@@ -1,0 +1,181 @@
+/*
+ * Sentilo
+ *   
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
+ */
+package org.sentilo.platform.server.pool;
+
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.sentilo.platform.server.SentiloThreadPoolExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+public class ThreadPool {
+
+	private static Logger log = LoggerFactory.getLogger(ThreadPool.class);
+
+	private ThreadPoolExecutor threadPool;
+
+	private int queueSize;
+	private int initialCapacity;
+	private int maxCapacity;
+	private int shutdownSecondsTimeout;
+	private String groupId;
+	private String groupName;
+
+	private WrapperBlockingQueue queue;
+
+	public void initialize() {
+		log.info("Initializing thread pool.");
+		debug();
+
+		queue = new WrapperBlockingQueue(queueSize);
+
+		threadPool = new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue,	new NativeThreadFactory(new ThreadGroup(groupName), groupId));
+		threadPool.prestartAllCoreThreads();
+
+		threadPool.allowCoreThreadTimeOut(false);
+		threadPool.setRejectedExecutionHandler(new RejectedExecutionHandler() {
+
+			@Override
+			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+				queue.backdoorOffer(r);
+			}
+		});
+		log.info("Thread pool initialized");
+	}
+
+	public void submit(SentiloThreadPoolExecutor task) {
+		threadPool.submit(task);
+	}
+
+	public void shutdown() {
+		if (threadPool != null) {
+			threadPool.shutdown();
+			try {
+				if (!threadPool.awaitTermination(shutdownSecondsTimeout, TimeUnit.SECONDS)) {
+					threadPool.shutdownNow();
+				}
+			} catch (InterruptedException ex) {
+				threadPool.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
+		}
+	}
+
+	public int getInitialCapacity() {
+		return initialCapacity;
+	}
+
+	public void setInitialCapacity(int initialCapacity) {
+		this.initialCapacity = initialCapacity;
+	}
+
+	public int getMaxCapacity() {
+		return maxCapacity;
+	}
+
+	public void setMaxCapacity(int maxCapacity) {
+		this.maxCapacity = maxCapacity;
+	}
+
+	public int getShutdownSecondsTimeout() {
+		return shutdownSecondsTimeout;
+	}
+
+	public void setShutdownSecondsTimeout(int shutdownSecondsTimeout) {
+		this.shutdownSecondsTimeout = shutdownSecondsTimeout;
+	}
+
+	public String getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public int getQueueSize() {
+		return queueSize;
+	}
+
+	public void setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
+	}
+
+	private void debug() {
+		if (log.isDebugEnabled()) {
+			log.debug("thread.pool.groupId: {}",  groupId);
+			log.debug("thread.pool.name: {}",  groupName);
+			log.debug("thread.pool.capacity.initial: {}",  initialCapacity);
+			log.debug("thread.pool.capacity.max: {}",  maxCapacity);
+			log.debug("thread.pool.queue.size: {}",  queueSize);
+			log.debug("thread.pool.shutdown.timeout.seconds: {}", shutdownSecondsTimeout);
+		}
+	}
+
+	public class NativeThreadFactory implements ThreadFactory {
+
+		private final ThreadGroup group;
+		private final AtomicInteger count;
+		private final String namePrefix;
+
+		public NativeThreadFactory(final ThreadGroup group,	final String namePrefix) {
+			super();
+			this.count = new AtomicInteger(1);
+			this.group = group;
+			this.namePrefix = namePrefix;
+		}
+
+		public Thread newThread(final Runnable runnable) {
+			StringBuffer buffer = new StringBuffer();
+			buffer.append(this.namePrefix);
+			buffer.append('-');
+			buffer.append(this.count.getAndIncrement());
+			Thread t = new Thread(group, runnable, buffer.toString(), 0);
+			t.setDaemon(false);
+			t.setPriority(Thread.NORM_PRIORITY);
+			return t;
+		}
+	}
+
+}

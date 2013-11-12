@@ -1,0 +1,52 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+  	
+  	
+	<!-- Realm config for static resources -->
+	<http pattern="/static/**" security="none"/>		
+	<!-- End realm config for static resources -->
+	
+	<!-- Realm config for REST calls -->
+	<http entry-point-ref="basicAuthEntryPoint" pattern="/api/**" use-expressions="true">
+		<intercept-url pattern="/api/**" access="hasRole('ROLE_PLATFORM')" />
+		<custom-filter ref="basicAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+	</http>
+ 
+	<beans:bean id="basicAuthEntryPoint" class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint"
+		p:realmName="REST Realm"/>				
+ 
+	<beans:bean id="basicAuthenticationFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter"
+		p:authenticationManager-ref="authenticationManager" p:authenticationEntryPoint-ref="basicAuthEntryPoint"/>			
+	<!-- End realm config for REST calls -->
+	
+	<!-- Realm config for the Web access -->
+    <http use-expressions="true">
+		<intercept-url pattern="/auth/login" access="permitAll" />
+		<intercept-url pattern="/" access="permitAll" />		
+		<intercept-url pattern="/home" access="permitAll" />
+		
+		<intercept-url pattern="/stats/**" access="permitAll" />
+		<intercept-url pattern="/component/**" access="permitAll" />		
+				
+		<intercept-url pattern="/admin/sensortypes/icons/json" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastOb/**" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastObs/**" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastOrders/**" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastAlarms/**" access="permitAll" />
+				
+		<intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')" />
+		<intercept-url pattern="/**" access="isAuthenticated()" />
+		<form-login login-page="/auth/login"
+			authentication-failure-url="/auth/login?error=true" />
+		<logout />
+	</http>
+	<!--End realm config for the Web access -->
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider user-service-ref="userDetailsService" />
+	</authentication-manager>
+
+</beans:beans>
