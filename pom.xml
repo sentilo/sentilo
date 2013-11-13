@@ -30,8 +30,7 @@
 	<module>./sentilo-platform-client-java</module>
 	<module>./sentilo-agent-alert</module>
 	<module>./sentilo-agent-relational</module>
-	<module>./sentilo-catalog-web</module>
-	<module>./sentilo-demo-web</module>
+	<module>./sentilo-catalog-web</module>	
   </modules>
 	
   
