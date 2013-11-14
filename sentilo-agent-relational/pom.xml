@@ -112,11 +112,16 @@
 	        <artifactId>mysql-connector-java</artifactId>
 	        <version>${mysql.jdbc.driver.version}</version>
 	    </dependency>
-	    <dependency>
+	    <!--  
+	          there is NO public Maven repository provides Oracle JDBC driver. You must install manually in your local repository
+	          before uncomment this dependency, as is explained here:
+	          http://www.mkyong.com/maven/how-to-add-oracle-jdbc-driver-in-your-maven-local-repository/ 
+	    -->
+	    <!-- dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>ojdbc6</artifactId>
 			<version>${oracle.jdbc.driver.version}</version>
-		</dependency>
+		</dependency -->
 	    <dependency>
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
