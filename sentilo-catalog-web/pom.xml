@@ -21,10 +21,7 @@
 		<hibernate.validator.version>4.3.1.Final</hibernate.validator.version>
 		<httpclient.version>4.2.2</httpclient.version>
 		<jackson.version>1.9.11</jackson.version>		
-		<commons.codec.version>1.7</commons.codec.version>
-		<commons.dbcp.version>1.4</commons.dbcp.version>	
-		<oracle.jdbc.driver.version>11.2.0.1.0</oracle.jdbc.driver.version>			
-		<mysql.jdbc.driver.version>5.1.15</mysql.jdbc.driver.version>    
+		<commons.codec.version>1.7</commons.codec.version>		
 	</properties>
 
 	<dependencies>		
@@ -209,33 +206,7 @@
 					<groupId>org.springframework</groupId>
 			 </exclusion>
 		 </exclusions>
-	    </dependency>
-	    <!-- Dependencies for relational DB -->
-	    <dependency>
-	    	<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>	
-		<dependency>
-	    	<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>		   
-	    <dependency>
-	        <groupId>mysql</groupId>
-	        <artifactId>mysql-connector-java</artifactId>
-	        <version>${mysql.jdbc.driver.version}</version>
-	    </dependency>			
-	    <dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc6</artifactId>
-			<version>${oracle.jdbc.driver.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-dbcp</groupId>
-			<artifactId>commons-dbcp</artifactId>
-			<version>${commons.dbcp.version}</version>
-		</dependency>	    	
+	    </dependency>	    	    
 	</dependencies>
 	
 </project>
