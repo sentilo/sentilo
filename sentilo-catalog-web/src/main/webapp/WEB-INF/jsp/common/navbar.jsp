@@ -12,14 +12,12 @@
 	</a>
 	<div class="main">
 		<div class="logotype">
-			<a href="${homeURL}"><img width="45" height="45"
+			<a href="${homeURL}"><img height="45"
 				src="${logoURL}"
 				alt="${logoALT}"></a>
 		</div>
 	</div>
-	<a href="#" class="brand">
-		<spring:message code="app.name" htmlEscape="false"/>
-	</a>
+	<div class="brand"></div>
 
 	<div class="nav-collapse collapse">
 		<%@include file="/WEB-INF/jsp/common/menu_about.jsp" %>
