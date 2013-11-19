@@ -129,9 +129,7 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
 	 * (non-Javadoc)
 	 * @see org.sentilo.web.catalog.service.PermissionService#getAuthorizedProviders(java.lang.String, java.lang.String)
 	 */
-	public List<AuthorizedProvider> getAuthorizedProviders(String entityId, String sensorType){
-		
-		//TODO Mikel: Este metodo no parece encajar muy bien en este servicio. Replantearse localizacion
+	public List<AuthorizedProvider> getAuthorizedProviders(String entityId, String sensorType){		
 		List<AuthorizedProvider> authorizedProviders = new ArrayList<AuthorizedProvider>();
 				
 		SearchFilter filter = new SearchFilter();

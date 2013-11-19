@@ -113,11 +113,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
 	}
 
 	@RequestMapping(value = "/delete", method = RequestMethod.POST)
-	public String deleteResource(@RequestParam String[] selectedIds, HttpServletRequest request, Model model) {
-		//TODO Mikel: las llamadas a este metodo deberian ser vía AJAX, ya que se producen desde el listado y el retorno es al listado.
-		// No tiene sentido la recarga de la página y además simplificaría las cosas.
-		// El problema es que si es via AJAX, el contenido no se actualiza ... a no ser que se haga la llamada de nuevo via AJAX
-		// o este sea el retorno en caso de exito del delete
+	public String deleteResource(@RequestParam String[] selectedIds, HttpServletRequest request, Model model) {		
 		doBeforeDeleteResource(selectedIds, request, model);
 		getService().delete(buildResourceListFromIds(selectedIds));
 		addConfirmationMessageToModel(RESOURCE_DELETED, model);
