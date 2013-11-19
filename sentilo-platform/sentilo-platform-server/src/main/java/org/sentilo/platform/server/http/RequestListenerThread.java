@@ -69,7 +69,7 @@ public class RequestListenerThread extends Thread {
 
 	private final Logger logger = LoggerFactory.getLogger(RequestListenerThread.class);
 
-	private ServerSocket socket;
+	private ServerSocket serverSocket;
 	private HttpParams params;
 	private HttpService httpService;
 
@@ -109,12 +109,15 @@ public class RequestListenerThread extends Thread {
 			while (notInterrupted()) {
 				manageConnection(new DefaultHttpServerConnection());
 			}
-		} catch (IOException e) {
-			logger.error("Error while initializing connection thread", e);
-		} finally {
+		} catch (IOException ioe) {
+			logger.error("Error while initializing connection thread. {}", ioe);
+		} catch (Throwable t){
+			logger.error("Error while running sentilo server on port {}. {}", port, t);			
+		}finally {
 			stopThreadPool();
+			releaseSocketPort();
 		}
-	}
+	}	
 
 	private void initialize() throws IOException {
 		logger.info("Initializing server");
@@ -151,7 +154,7 @@ public class RequestListenerThread extends Thread {
 
 	private void initializeListener() throws IOException {
 		logger.info("Initializing listener on port {}",port);
-		this.socket = new ServerSocket(port);
+		this.serverSocket = new ServerSocket(port);
 	}
 
 	private void initializeThreadPool() {
@@ -182,7 +185,7 @@ public class RequestListenerThread extends Thread {
 	}
 
 	private void manageConnection(DefaultHttpServerConnection conn)	throws IOException {
-		Socket s = this.socket.accept();
+		Socket s = this.serverSocket.accept();
 		conn.bind(s, params);
 		threadPool.submit(new SentiloThreadPoolExecutor(httpService, conn));
 	}
@@ -192,9 +195,27 @@ public class RequestListenerThread extends Thread {
 	}
 
 	private void stopThreadPool() {
-		if (this.threadPool != null) {
-			this.threadPool.shutdown();
+		try{
+			if (this.threadPool != null) {
+				this.threadPool.shutdown();
+			}
+		}catch(Throwable e){
+			//ignore the error
 		}
+		
+		logger.info("Thread pool shutdown");	
+	}
+	
+	private void releaseSocketPort() {
+		try {
+			if (this.serverSocket.isClosed() == false) {
+				this.serverSocket.close();
+			}
+		} catch (IOException e) {
+			//ignore the error
+		}		
+		
+		logger.info("Listener off on port {}", port);				
 	}
 
 	public int getPort() {
