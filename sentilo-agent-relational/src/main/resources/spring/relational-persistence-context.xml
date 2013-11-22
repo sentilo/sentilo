@@ -13,7 +13,8 @@
 	<tx:annotation-driven />
 	
 	<!-- Transaction manager -->	
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" p:dataSource-ref="dataSource"/>   
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" p:dataSource-ref="dataSource"
+	 p:defaultTimeout="120"/>   
 	
 	<!--  AbstractRoutingDataSource bean que nos permite dinamicamente fijar el Ds a utilizar de una lista predefinida de Ds. 
 	      Este bean es necesario para poder configurar el transactionManager con una lista de Ds dependiente del entorno de ejecución. -->
@@ -31,13 +32,18 @@
 		    <entry key="sentiloDs" value-ref="sentiloDs"/>	     		        
 		</util:map>	 
 		
-		<bean id="sentiloDs" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"> 
+		<bean id="sentiloDs" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close"> 
 			<property name="driverClassName" value="${sentiloDs.jdbc.driverClassName}" />
 			<property name="url" value="${sentiloDs.url}" />
 			<property name="username" value="${sentiloDs.username}" />
 			<property name="password" value="${sentiloDs.password}" />
 			<property name="minIdle" value="1" />			
 			<property name="maxActive" value="10" />
+			<property name="testOnBorrow" value="true" />			
+			<property name="testWhileIdle" value="true" />			
+			<property name="timeBetweenEvictionRunsMillis" value="10000" />	
+			<property name="validationInterval" value="30000" />					
+			<property name="validationQuery" value="${sentiloDs.validationQuery}" />
 		</bean>					   	    	    
     </beans>                
 </beans>

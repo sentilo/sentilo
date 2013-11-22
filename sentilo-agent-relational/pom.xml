@@ -17,10 +17,10 @@
 		<hibernate.version>3.2.1.ga</hibernate.version>
 		<org.springframework.data.redis.version>1.0.6.RELEASE</org.springframework.data.redis.version>
 		<jedis.version>2.1.0</jedis.version>
-		<commons.codec.version>1.7</commons.codec.version>
-		<commons.dbcp.version>1.4</commons.dbcp.version>
+		<commons.codec.version>1.7</commons.codec.version>		
 		<oracle.jdbc.driver.version>11.2.0.1.0</oracle.jdbc.driver.version>			
 		<mysql.jdbc.driver.version>5.1.15</mysql.jdbc.driver.version>
+		<tomcat.jdbc.version>7.0.47</tomcat.jdbc.version>
 	</properties>
 		
   	<profiles>
@@ -123,9 +123,9 @@
 			<version>${oracle.jdbc.driver.version}</version>
 		</dependency -->
 	    <dependency>
-			<groupId>commons-dbcp</groupId>
-			<artifactId>commons-dbcp</artifactId>
-			<version>${commons.dbcp.version}</version>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-jdbc</artifactId>
+			<version>${tomcat.jdbc.version}</version>
 		</dependency>		    
 	</dependencies>
 </project>
