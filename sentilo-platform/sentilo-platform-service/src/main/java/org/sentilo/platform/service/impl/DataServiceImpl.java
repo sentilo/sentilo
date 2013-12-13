@@ -42,12 +42,10 @@ import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.common.service.DataService;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
 import org.sentilo.platform.service.utils.ChannelUtils;
+import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.sentilo.platform.service.utils.PublishMessageUtils;
 import org.sentilo.platform.service.utils.QueryFilterParamsUtils;
-import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,16 +56,10 @@ import org.springframework.util.StringUtils;
 
 
 @Service
-public class DataServiceImpl implements DataService {		
+public class DataServiceImpl extends AbstractPlatformServiceImpl implements DataService {		
 	
 	private final Logger logger = LoggerFactory.getLogger(DataServiceImpl.class);	
-	
-	@Autowired
-	private JedisTemplate<String, String> jedisTemplate;
-
-	@Autowired
-	private JedisSequenceUtils jedisSequenceUtils;
-	
+			
 	@Autowired
 	private ResourceService resourceService;
 					
@@ -172,7 +164,7 @@ public class DataServiceImpl implements DataService {
 		// La sentencia a utilizar en Redis es:
 		//     ZREVRANGEBYSCORE sid:{sid}:observations to from LIMIT 0 limit
 										
-		Set<String> sdids = jedisTemplate.zRevRangeByScore("sid:"+sid+":observations", to, from, 0, limit);
+		Set<String> sdids = jedisTemplate.zRevRangeByScore(keysBuilder.getSensorObservationsKey(sid), to, from, 0, limit);
 		List<Observation> observations = null;		
 		
 		if(!CollectionUtils.isEmpty(sdids)){
@@ -203,12 +195,12 @@ public class DataServiceImpl implements DataService {
 		String ts = null;
 		String location = null;
 							
-		Map<String, String> infoSdid = jedisTemplate.hGetAll("sdid:"+sdid);
+		Map<String, String> infoSdid = jedisTemplate.hGetAll(keysBuilder.getObservationKey(sdid));
 		if(!CollectionUtils.isEmpty(infoSdid)){
-			value = infoSdid.get("data");
-			ts = infoSdid.get("ts");
-			sid = infoSdid.get("sid");
-			location = infoSdid.get("location");
+			value = infoSdid.get(DATA);
+			ts = infoSdid.get(TIMESTAMP);
+			sid = infoSdid.get(SID);
+			location = infoSdid.get(LOCATION);
 		}										
 				
 		if(StringUtils.hasText(sid)){
@@ -226,11 +218,12 @@ public class DataServiceImpl implements DataService {
 		//   1. Recuperamos el ultimo elemento del Sorted Set de observaciones del sensor (i.e., el que tiene score mas alto).
 		//   2. Eliminamos este elemento del Sorted Set.			
 		//   3. Eliminamos la clave sdid:{sdid}
-		Set<String> sdids = jedisTemplate.zRange("sid:"+sid+":observations", -1, -1);				
+		String sensorObservationsKey = keysBuilder.getSensorObservationsKey(sid);
+		Set<String> sdids = jedisTemplate.zRange(sensorObservationsKey, -1, -1);				
 		if(!CollectionUtils.isEmpty(sdids)){
-			jedisTemplate.zRemRangeByRank("sid:"+sid+":observations", -1, -1);
+			jedisTemplate.zRemRangeByRank(sensorObservationsKey, -1, -1);
 			String sdid = sdids.iterator().next();
-			jedisTemplate.del("sdid:"+sdid);
+			jedisTemplate.del(keysBuilder.getObservationKey(sdid));
 		}										
 	}
 	
@@ -242,16 +235,16 @@ public class DataServiceImpl implements DataService {
 		String location = (StringUtils.hasText(data.getLocation())?data.getLocation():"");
 		// Guardamos una hash de clave sdid:{sdid} y valores sid, data (aleatorio), timestamp y location.
 		Map<String,String> fields = new HashMap<String, String>();
-		fields.put("sid", Long.toString(sid));
-		fields.put("data",data.getValue());
-		fields.put("ts", timestamp.toString());
-		fields.put("location", location);
-		jedisTemplate.hmSet("sdid:"+sdid, fields);			
+		fields.put(SID, Long.toString(sid));
+		fields.put(DATA,data.getValue());
+		fields.put(TIMESTAMP, timestamp.toString());
+		fields.put(LOCATION, location);
+		jedisTemplate.hmSet(keysBuilder.getObservationKey(sdid), fields);			
 					
 		// Y definimos una reverse lookup key con la cual recuperar rapidamente las observaciones de un sensor			
 		// A continuacion, añadimos el sdid al Sorted Set sensor:{sid}:observations. La puntuacion, o score, que se asocia
 		// a cada elemento del Set es el timestamp de la observacion.		
-		jedisTemplate.zAdd("sid:"+sid+":observations", timestamp, sdid.toString());
+		jedisTemplate.zAdd(keysBuilder.getSensorObservationsKey(sid), timestamp, sdid.toString());
 		
 		logger.debug("Registered in Redis observation {} for sensor {} from provider {}", sdid, data.getSensor(), data.getProvider());		
 	}
@@ -266,14 +259,7 @@ public class DataServiceImpl implements DataService {
 		resourceService.registerProviderIfNecessary(data.getProvider());
 		resourceService.registerSensorIfNecessary(data.getSensor(), data.getProvider());		
 	}		
-
-	public void setJedisTemplate(JedisTemplate<String, String> jedisTemplate) {
-		this.jedisTemplate = jedisTemplate;
-	}
-
-	public void setJedisSequenceUtils(JedisSequenceUtils jedisSequenceUtils) {
-		this.jedisSequenceUtils = jedisSequenceUtils;
-	}
+	
 	
 	public void setResourceService(ResourceService resourceService) {
 		this.resourceService = resourceService;

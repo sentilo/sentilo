@@ -34,12 +34,11 @@ import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.AdminInputMessage;
+import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
-import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.AdminService;
-import org.sentilo.platform.server.exception.ForbiddenAccessException;
 import org.sentilo.platform.server.exception.MessageValidationException;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.parser.AdminParser;
@@ -52,7 +51,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 
 
 @Controller
@@ -61,7 +59,7 @@ public class AdminHandler extends AbstractHandler {
 	private final Logger logger = LoggerFactory.getLogger(AdminHandler.class);
 	
 	@Autowired
-	private AdminService adminService;
+	private AdminService adminService;	
 	
 	private AdminParser parser = new AdminParser();
 	private SubscribeParser subscribeParser = new SubscribeParser();
@@ -98,13 +96,7 @@ public class AdminHandler extends AbstractHandler {
 			throw new MessageValidationException(String.format("Request %s not supported", request.getUri())); 
 		}
 	}
-
-	private void validateAdminAccess(String source) throws ForbiddenAccessException{
-		//solo la aplicacion catalogo puede invocar a este servicio
-		if(!StringUtils.hasText(source) || !source.equals("sentilo-catalog")){
-			throw new ForbiddenAccessException(String.format("Entity %s has not permission to call admin service", source));
-		}
-	}
+		
 
 	@Override
 	public void onPost(SentiloRequest request, SentiloResponse response) 	throws PlatformException {

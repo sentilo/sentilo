@@ -7,8 +7,10 @@
 	<spring:message code="sensor.edit.title" var="pageTitle"/>	
 </c:if>
 <c:if test="${mode == 'create' }">
+	<spring:url value="/admin/component/search/json" var="componentSearchURL"/>
 	<spring:url value="/admin/sensor/create" var="actionURL"/>
 	<spring:message code="sensor.new.title" var="pageTitle"/>
+	<spring:message code="select.empty" var="emptySelectMessage"/>
 </c:if>
 
 <c:if test="${empty providerId}">
@@ -25,7 +27,38 @@
 $(document).ready(function() {
 	makeDateRangePicker('#validTime');
 	makeDatePicker('#installationDateDatePicker');
+	<c:if test="${not empty providerId && not editMode}">
+		populateComponents();
+	</c:if>
+	
 });
+
+function populateComponents() {
+	var providerId = $('#providerId').val();
+	var selectComponentId = $('#componentId');	
+	if (providerId) {
+		emptyComponentSelect();
+		jsonGET('${componentSearchURL}?providerId=' + providerId, [], function(data) {
+			for(var i=0; i<data.length; i++) {
+				addComponentToSelect(selectComponentId, data[i]);
+			}			
+		});
+	} 
+};
+
+function addComponentToSelect(select, component) {	
+	select.append('<option value="' + component.id + '">' + component.name +'</option>');		
+};
+
+function emptyComponentSelect() {
+	$('#componentId')
+	    .find('option')
+	    .remove()
+	    .end()
+	    .append('<option value="">${emptySelectMessage}</option>')
+	    .val('');
+};
+
 </script>
 
 <div class="container-fluid">
@@ -75,7 +108,8 @@ $(document).ready(function() {
 								<spring:message code="sensor.providerId" />
 							</form:label>
 							<div class="controls">
-								<form:select path="providerId" disabled="${editMode}">
+								<form:select path="providerId" id="providerId" onchange="populateComponents();" disabled="${editMode}">
+									<form:option value="">${emptySelectMessage}</form:option>
 									<form:options items="${providers}" itemValue="id" itemLabel="name"/>
 								</form:select>								
 								<c:if test="${editMode}">
@@ -106,12 +140,15 @@ $(document).ready(function() {
 						</form:label>
 						<div class="controls">
 							<form:select path="componentId" cssClass="input-large" disabled="${editMode}">
-								<form:options items="${components}" itemLabel="name" itemValue="id"/>
+								<form:option value="">${emptySelectMessage}</form:option>
+								<c:if test="${editMode}">
+									<form:options items="${components}" itemLabel="name" itemValue="id"/>
+								</c:if>
 							</form:select>
 							<c:if test="${editMode}">
 								<form:hidden path="componentId"/>
 							</c:if>	
-							<form:errors path="componentId" cssClass="error" htmlEscape="false" />
+							<form:errors path="componentId" cssClass="text-error" htmlEscape="false" />
 						</div>
 					</div>
 					

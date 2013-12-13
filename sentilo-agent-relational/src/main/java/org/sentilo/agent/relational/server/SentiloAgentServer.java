@@ -39,17 +39,17 @@ public final class SentiloAgentServer {
 	private SentiloAgentServer() {
 	}
 
-	private static Logger log = LoggerFactory.getLogger(SentiloAgentServer.class);
+	private static Logger logger = LoggerFactory.getLogger(SentiloAgentServer.class);	
 
 	public static void main(String... args) {
 		String activeProfiles = System.getProperty("spring.profiles.active");
-		log.info("Starting server");
-		log.info("Active profile:{}",activeProfiles);		
+		logger.info("Starting server");
+		logger.info("Active profile:{}",activeProfiles);		
 		
 		GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
 		ctx.getEnvironment().setActiveProfiles(activeProfiles);
 		ctx.load("classpath:spring/"+args[0]);
-		ctx.refresh();
+		ctx.refresh();				
 	}
 
 }

@@ -39,6 +39,8 @@ import org.sentilo.platform.server.response.SentiloResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.StringUtils;
 
 
 public abstract class AbstractHandler {
@@ -47,6 +49,11 @@ public abstract class AbstractHandler {
 	
 	@Autowired
 	protected AuthorizationService authorizationService;
+	
+	@Value("${catalog.id}")
+	protected String catalogId;
+	
+	private final String defaultCatalogId = "sentilo-catalog";	
 
 	public abstract void onDelete(SentiloRequest request, SentiloResponse response) throws PlatformException;
 
@@ -89,6 +96,13 @@ public abstract class AbstractHandler {
 		}
 	}
 	
+	protected void validateAdminAccess(String source) throws ForbiddenAccessException{
+		//solo la aplicacion catalogo puede invocar a este servicio
+		if(!StringUtils.hasText(source) || !source.equals(getCatalogId())){
+			throw new ForbiddenAccessException(String.format("Entity %s has not permission to call admin service", source));
+		}
+	}		
+
 	protected void validateResourceNumberParts(SentiloRequest request, int min, int max) throws PlatformException{
 		// Validamos que el path tenga el numero de tokens que corresponde a la accion invocada
 		if(!numberArgumentsValid(request.getResource().getParts(), min, max)){
@@ -100,6 +114,10 @@ public abstract class AbstractHandler {
 		return  (arguments==null? min==0:(arguments.length>=min && arguments.length<=max));
 	}
 	
+	private String getCatalogId() {
+		// Default value is sentilo-catalog
+		return (StringUtils.hasText(catalogId)?catalogId:defaultCatalogId);
+	}
 
 	protected void debug(SentiloRequest request) {		
 		logger.debug(request.toString());				

@@ -37,6 +37,7 @@ import java.util.List;
 
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.repository.ComponentRepository;
+import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +119,18 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
 		// 3. Eliminar referencias en componentes que lo tengan como padre
 		List<String> componentsIds = getComponetsIdsFromNames(componentsNames);
 		deleteComponentsAndChilds(componentsIds);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.sentilo.web.catalog.service.ComponentService#findByName(java.lang.String, java.lang.String)
+	 */
+	public Component findByName(String providerId, String name){
+		SearchFilter filter = new SearchFilter();
+		filter.addAndParam("providerId", providerId);
+		filter.addAndParam("name", name);
+		 
+		return getMongoOps().findOne(buildQuery(filter), Component.class);	
 	}
 		
 			

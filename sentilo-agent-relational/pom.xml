@@ -22,19 +22,7 @@
 		<mysql.jdbc.driver.version>5.1.15</mysql.jdbc.driver.version>
 		<tomcat.jdbc.version>7.0.47</tomcat.jdbc.version>
 	</properties>
-		
-  	<profiles>
-	    <profile>
-	      <id>dev</id>	
-	      <activation>
-		     <activeByDefault>true</activeByDefault>
-		  </activation>     
-	      <properties>
-	        <spring.profiles.active>dev</spring.profiles.active>
-	      </properties>
-	    </profile>		
-  	</profiles>
-
+		  	
 	<build>
 		<plugins>			
 			<plugin>

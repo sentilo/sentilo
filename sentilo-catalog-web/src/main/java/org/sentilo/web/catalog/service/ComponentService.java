@@ -38,4 +38,5 @@ import org.sentilo.web.catalog.domain.Component;
 public interface ComponentService extends CrudService<Component> {
 	void updateMulti(Collection<String> componentsIds, String param, Object value);	
 	void deleteComponents(String[] componentsIds);
+	Component findByName(String providerId, String component);
 }

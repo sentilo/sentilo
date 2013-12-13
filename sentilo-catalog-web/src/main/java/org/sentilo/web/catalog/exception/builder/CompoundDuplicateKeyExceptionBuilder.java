@@ -31,31 +31,25 @@
 package org.sentilo.web.catalog.exception.builder;
 
 import org.sentilo.web.catalog.exception.DuplicateKeyException;
+import org.sentilo.web.catalog.utils.CatalogUtils;
+import org.sentilo.web.catalog.utils.Constants;
 
 /**
- * Builder strategy for DuplicateKeyException errors when the key is compound with 2 tokens separated by default with the char '@'.  
+ * Builder strategy for DuplicateKeyException errors when the key is compound with two or more tokens separated by default with the char '.'.  
  */
 public class CompoundDuplicateKeyExceptionBuilder implements DuplicateKeyExceptionBuilder {
-
-	private static final String DEFAULT_SEPARATOR_TOKEN = "@";
+	
 	private final String errorMessageKey;	
-	private String separatorToken = DEFAULT_SEPARATOR_TOKEN;
+	private String keyTokenSplitter = Constants.DEFAULT_KEY_TOKEN_SPLITTER;
 	
 	public CompoundDuplicateKeyExceptionBuilder(String errorMessageKey){
 		this.errorMessageKey = errorMessageKey;
-	}
-	
-	public CompoundDuplicateKeyExceptionBuilder(String errorMessageKey, String separatorToken){
-		this.errorMessageKey = errorMessageKey;
-		this.separatorToken = separatorToken;
-	}
+	}		
 	
 	@Override
-	public DuplicateKeyException buildDuplicateKeyException(String invalidKey) {
-		// compoundInvalidKey has the format token1'separatorToken'token2.
-		String[] tokens = invalidKey.split(separatorToken);		
-		Object[] args = {tokens[0],tokens[1]};
-		throw new DuplicateKeyException(errorMessageKey, args);
-	}
+	public DuplicateKeyException buildDuplicateKeyException(String invalidKey) {		
+		String[] tokens = invalidKey.split(CatalogUtils.escapeRegexCharacter(keyTokenSplitter));				
+		throw new DuplicateKeyException(errorMessageKey, tokens);
+	}	
 
 }

@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,9 +74,11 @@ public class AgentRelationalDaoImplTest {
 	private AgentRelationalRepositoryImpl dao;
 	
 	@Before
-	public void setUp() throws SQLException{		
+	public void setUp() throws Exception{		
 		MockitoAnnotations.initMocks(this);
-		dao = new AgentRelationalRepositoryImpl();				
+		dao = new AgentRelationalRepositoryImpl();
+		injectTablesPrefixValue();
+		dao.init();
 		
 		Map<String,DataSource> dataSources = new HashMap<String, DataSource>();
 		dataSources.put(dsName, dataSource);
@@ -188,6 +191,12 @@ public class AgentRelationalDaoImplTest {
 		when(order.getProvider()).thenReturn("prov1");
 		when(order.getMessage()).thenReturn("test order message");		
 		when(order.getTimestamp()).thenReturn("20130729T12:00:00");
+	}
+	
+	private void injectTablesPrefixValue() throws Exception{
+		Field field = AgentRelationalRepositoryImpl.class.getDeclaredField("tables_prefix");
+		ReflectionUtils.makeAccessible(field);	
+		field.set(dao, "sentilo");
 	}
 
 }

@@ -50,7 +50,7 @@ public final class SentiloServer {
 		
 		GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
 		ctx.getEnvironment().setActiveProfiles(activeProfiles);
-		ctx.load("classpath:spring/sentilo-platform-server.xml");
+		ctx.load("classpath:spring/platform-server-context.xml");
 		ctx.refresh();
 
 		RequestListenerThread t = (RequestListenerThread) ctx.getBean("listener");

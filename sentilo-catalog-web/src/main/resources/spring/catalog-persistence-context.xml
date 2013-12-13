@@ -12,7 +12,7 @@
     <mongo:mongo host="${catalog.mongodb.host}" port="${catalog.mongodb.port}"/>    	 	 
 	
 	<!-- Default bean name is 'mongoDbFactory' -->
-	<mongo:db-factory dbname="sentilo" mongo-ref="mongo" username="${catalog.mongodb.user}" password="${catalog.mongodb.password}"/>
+	<mongo:db-factory dbname="${catalog.mongodb.database}" mongo-ref="mongo" username="${catalog.mongodb.user}" password="${catalog.mongodb.password}"/>
 	
 	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate"
 		c:mongoDbFactory-ref="mongoDbFactory"/>

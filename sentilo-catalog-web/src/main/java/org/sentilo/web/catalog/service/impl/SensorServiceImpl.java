@@ -54,7 +54,7 @@ import org.sentilo.web.catalog.repository.SensorRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.AlarmService;
 import org.sentilo.web.catalog.service.SensorService;
-import org.sentilo.web.catalog.validator.DefaultEntityKeyValidatorImpl;
+import org.sentilo.web.catalog.validator.SensorEntityKeyValidatorImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -83,7 +83,7 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
 	 * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#doAfterInit()
 	 */
 	protected void doAfterInit() {
-		this.entityKeyValidator = new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder("error.sensor.duplicate.key"));
+		this.entityKeyValidator = new SensorEntityKeyValidatorImpl(this, new CompoundDuplicateKeyExceptionBuilder("error.sensor.duplicate.key"));
 		super.doAfterInit();
 	}
 
@@ -122,7 +122,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
 	public Observation getLastObservation(Sensor sensor) {
 		DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId());
 		ObservationsOutputMessage outMessage = platformTemplate.getDataOps().getLastObservations(message);
-		//Observations observations = PlatformMessageConverter.convertPlatformObservations(outMessage);
 		return (CollectionUtils.isEmpty(outMessage.getObservations()) ? null : outMessage.getObservations().get(0));
 		//TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
 	}
@@ -194,7 +193,19 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
 		getMongoOps().remove(componentIdFilter, Alarm.class);
 		getMongoOps().remove(componentIdFilter, Sensor.class);
 	}
-			
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.sentilo.web.catalog.service.SensorService#findByName(java.lang.String, java.lang.String)
+	 */
+	public Sensor findByName(String providerId, String sensorId){
+		SearchFilter filter = new SearchFilter();
+		filter.addAndParam("providerId", providerId);
+		filter.addAndParam("sensorId", sensorId);
+		 
+		return getMongoOps().findOne(buildQuery(filter), Sensor.class);		
+	}
+				
 	private List<Alarm> getSensorAlerts(Sensor sensor){
 		SearchFilter sensorAlertsFilter = new SearchFilter();		
 		sensorAlertsFilter.addAndParam("sensorId", sensor.getSensorId());

@@ -7,7 +7,7 @@
 
 	<context:annotation-config />	
 		
-	<import resource="classpath:spring/relational-properties-service-context.xml" />
+	<import resource="classpath:spring/relational-properties-context.xml" />
 	<import resource="classpath:spring/relational-persistence-context.xml" />
 	<import resource="classpath:spring/relational-pubsub-context.xml" />
 						

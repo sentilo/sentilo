@@ -37,27 +37,18 @@ import java.util.Set;
 
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 
 @Service
-public class ResourceServiceImpl implements ResourceService {
+public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements ResourceService {
 
 private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class);	
-	
-	@Autowired
-	private JedisTemplate<String, String> jedisTemplate;
-
-	@Autowired
-	private JedisSequenceUtils jedisSequenceUtils;
-	
+			
 	/*
 	 * (non-Javadoc)
 	 * @see org.sentilo.platform.common.service.ResourceService#registerProviderIfNecessary(java.lang.String)
@@ -66,9 +57,9 @@ private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class)
 		Long pid = jedisSequenceUtils.getPid(providerId);
 		if(pid == null){ //se debe registrar el proveedor
 			pid = jedisSequenceUtils.setPid(providerId);			
-			jedisTemplate.set("pid:"+pid, providerId);
+			jedisTemplate.set(keysBuilder.getProviderKey(pid), providerId);
 			// Y definimos una reverse lookup key con la cual recuperar rapidamente el pid del proveedor providerId
-			jedisTemplate.set("provider:"+providerId+":pid", pid.toString());				
+			jedisTemplate.set(keysBuilder.getReverseProviderKey(providerId), pid.toString());				
 			logger.debug("Registered in Redis provider {} with pid {}", providerId, pid);
 		}															
 		
@@ -87,16 +78,16 @@ private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class)
 			
 			//Guardamos una hash de clave sid:{sid} y valores provider y sensor
 			Map<String,String> fields = new HashMap<String, String>();
-			fields.put("provider", providerId);
-			fields.put("sensor", sensorId);
-			jedisTemplate.hmSet("sid:"+sid, fields);
+			fields.put(PROVIDER, providerId);
+			fields.put(SENSOR, sensorId);
+			jedisTemplate.hmSet(keysBuilder.getSensorKey(sid), fields);
 			
 			// Definimos una reverse lookup key con la cual recuperar rapidamente los sensores de un proveedor			
-			jedisTemplate.sAdd("pid:"+pid+":sensors", sid.toString());
+			jedisTemplate.sAdd(keysBuilder.getProviderSensorsKey(pid), sid.toString());
 			
 			// Y por ultimo añadimos una ultima reverse lookup key que nos permita recuperar rapidamente el sid de un sensor
 			// sabiendo el proveedor y el sensor, es decir, poder almacenar rapidamente el dato /provider1/sensor2/26
-			jedisTemplate.set("sensor:"+providerId+":"+sensorId+":sid", sid.toString());
+			jedisTemplate.set(keysBuilder.getReverseSensorKey(providerId, sensorId), sid.toString());
 			
 			logger.debug("Registered in Redis sensor {} from provider {} with sid {}", sensorId, providerId, sid);
 		}
@@ -116,7 +107,7 @@ private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class)
 			return null;
 		}
 								
-		return jedisTemplate.sMembers("pid:"+pid+":sensors");		
+		return jedisTemplate.sMembers(keysBuilder.getProviderSensorsKey(pid));		
 	}
 	
 	/*
@@ -149,10 +140,10 @@ private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class)
 	 */
 	public Sensor getSensor(Long sid){		
 		Sensor sensor = null;											
-		Map<String, String> infoSid = jedisTemplate.hGetAll("sid:"+sid);
+		Map<String, String> infoSid = jedisTemplate.hGetAll(keysBuilder.getSensorKey(sid));
 		if(!CollectionUtils.isEmpty(infoSid)){
-			String sensorId = infoSid.get("sensor");
-			String providerId = infoSid.get("provider");
+			String sensorId = infoSid.get(SENSOR);
+			String providerId = infoSid.get(PROVIDER);
 			sensor = new Sensor(sensorId, providerId);
 		}
 		return sensor;													
@@ -166,9 +157,9 @@ private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class)
 		Long aid = jedisSequenceUtils.getAid(alarmId);
 		if(aid == null){ //se debe registrar la alarma
 			aid = jedisSequenceUtils.setAid(alarmId);			
-			jedisTemplate.set("aid:"+aid, alarmId);
+			jedisTemplate.set(keysBuilder.getAlarmKey(aid), alarmId);
 			// Definimos una reverse lookup key con la cual recuperar rapidamente el aid de la alarma alarmId
-			jedisTemplate.set("alarm:"+alarmId+":aid", aid.toString());				
+			jedisTemplate.set(keysBuilder.getReverseAlarmKey(alarmId), aid.toString());				
 			logger.debug("Registered in Redis alarm {} with aid {}", alarmId, aid);
 		}															
 		

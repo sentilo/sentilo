@@ -42,12 +42,10 @@ import org.sentilo.platform.common.domain.OrderInputMessage;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.common.service.OrderService;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
 import org.sentilo.platform.service.utils.ChannelUtils;
+import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.sentilo.platform.service.utils.PublishMessageUtils;
 import org.sentilo.platform.service.utils.QueryFilterParamsUtils;
-import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,15 +56,9 @@ import org.springframework.util.StringUtils;
 
 
 @Service
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl extends AbstractPlatformServiceImpl implements OrderService {
 	
-	private final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
-	
-	@Autowired
-	private JedisTemplate<String, String> jedisTemplate;		
-
-	@Autowired
-	private JedisSequenceUtils jedisSequenceUtils;
+	private final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);				
 	
 	@Autowired
 	private ResourceService resourceService;
@@ -105,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
 		
 		Iterator<String> it = sids.iterator();
 		while(it.hasNext()){
-			String sid = it.next();
+			Long sid = Long.parseLong(it.next());
 			List<Order> ordersFromSensor = getLastOrders(sid, message);
 			if(!CollectionUtils.isEmpty(ordersFromSensor)){
 				globalOrders.addAll(ordersFromSensor);
@@ -115,15 +107,15 @@ public class OrderServiceImpl implements OrderService {
 		return globalOrders;
 	}
 	
-	private List<Order> getLastOrders(String sid, OrderInputMessage message){
+	private List<Order> getLastOrders(Long sid, OrderInputMessage message){
 		Long to = QueryFilterParamsUtils.getTo(message);
 		Long from = QueryFilterParamsUtils.getFrom(message);
 		Integer limit = QueryFilterParamsUtils.getLimit(message);
 		
 		// La sentencia a utilizar en Redis es:
 		//     ZREVRANGEBYSCORE sid:{sid}:orders to from LIMIT 0 limit
-		Sensor sensor = resourceService.getSensor(Long.parseLong(sid));								
-		Set<String> soids = jedisTemplate.zRevRangeByScore("sid:"+sid+":orders", to, from, 0, limit);
+		Sensor sensor = resourceService.getSensor(sid);								
+		Set<String> soids = jedisTemplate.zRevRangeByScore(keysBuilder.getSensorOrdersKey(sid), to, from, 0, limit);
 		List<Order> orders = null;		
 		
 		if(!CollectionUtils.isEmpty(soids)){
@@ -155,11 +147,11 @@ public class OrderServiceImpl implements OrderService {
 		String ts = null;
 		String sender = null;
 							
-		Map<String, String> infoSoid = jedisTemplate.hGetAll("soid:"+soid);
+		Map<String, String> infoSoid = jedisTemplate.hGetAll(keysBuilder.getOrderKey(soid));
 		if(!CollectionUtils.isEmpty(infoSoid)){
-			message = infoSoid.get("order");
-			ts = infoSoid.get("ts");
-			sender = infoSoid.get("sender");
+			message = infoSoid.get(ORDER);
+			ts = infoSoid.get(TIMESTAMP);
+			sender = infoSoid.get(SENDER);
 			
 			order = new Order(message, sender, Long.parseLong(ts));
 		}														
@@ -216,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
 		// Definimos una reverse lookup key con la cual recuperar rapidamente las ordenes de un sensor			
 		// A continuacion, añadimos el soid al Sorted Set sensor:{sid}:orders. La puntuacion, o score, que se asocia
 		// a cada elemento del Set es el timestamp de la orden.		
-		jedisTemplate.zAdd("sid:"+sid+":orders", timestamp, soid.toString());
+		jedisTemplate.zAdd(keysBuilder.getSensorOrdersKey(sid), timestamp, soid.toString());
 		
 		logger.debug("Registered in Redis order {} for sensor {} from provider {}", soid, message.getSensorId(), message.getProviderId());			
 	}
@@ -228,10 +220,10 @@ public class OrderServiceImpl implements OrderService {
 		
 		// Guardamos una hash de clave soid:{soid} y valores sender, order y timestamp.
 		Map<String,String> fields = new HashMap<String, String>();
-		fields.put("sender", message.getSender());
-		fields.put("order",message.getOrder());
-		fields.put("ts", timestamp.toString());
-		jedisTemplate.hmSet("soid:"+soid, fields);		
+		fields.put(SENDER, message.getSender());
+		fields.put(ORDER,message.getOrder());
+		fields.put(TIMESTAMP, timestamp.toString());
+		jedisTemplate.hmSet(keysBuilder.getOrderKey(soid), fields);		
 		
 		return soid;
 	}
@@ -245,17 +237,7 @@ public class OrderServiceImpl implements OrderService {
 		logger.debug("Order published");
 	}			
 
-	public void setJedisTemplate(JedisTemplate<String, String> jedisTemplate) {		
-		this.jedisTemplate = jedisTemplate;
-	}
-	
-	public void setJedisSequenceUtils(JedisSequenceUtils jedisSequenceUtils) {
-		this.jedisSequenceUtils = jedisSequenceUtils;
-	}
-
 	public void setResourceService(ResourceService resourceService) {
 		this.resourceService = resourceService;
-	}
-	
-	
+	}		
 }

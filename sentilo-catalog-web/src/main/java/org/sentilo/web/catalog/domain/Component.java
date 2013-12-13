@@ -37,6 +37,7 @@ import javax.validation.constraints.Pattern;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.validator.constraints.NotBlank;
+import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TagUtils;
 import org.springframework.data.annotation.Id;
@@ -90,7 +91,7 @@ public class Component implements CatalogDocument {
 	}
 	
 	public static String buildId(String providerId, String name){		
-		return (StringUtils.hasText(name) && StringUtils.hasText(providerId))?providerId + "." + name:null;					
+		return CompoundKeyBuilder.buildCompoundKey(providerId,name);				
 	}
 
 	@Override

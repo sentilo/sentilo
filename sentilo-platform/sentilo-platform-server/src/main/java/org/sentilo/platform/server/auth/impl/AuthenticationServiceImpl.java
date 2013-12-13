@@ -69,6 +69,8 @@ public class AuthenticationServiceImpl implements AuthenticationService{
 			return activeCredentials.get(credential);
 		}
 		
+		logger.warn("No valid credential associated to token {}",credential);
+		
 		return null;
 	}
 	

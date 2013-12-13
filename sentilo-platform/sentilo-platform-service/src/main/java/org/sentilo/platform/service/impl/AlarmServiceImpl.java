@@ -45,12 +45,10 @@ import org.sentilo.platform.common.exception.CatalogAccessException;
 import org.sentilo.platform.common.service.AlarmService;
 import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
 import org.sentilo.platform.service.utils.ChannelUtils;
+import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.sentilo.platform.service.utils.PublishMessageUtils;
 import org.sentilo.platform.service.utils.QueryFilterParamsUtils;
-import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,15 +59,9 @@ import org.springframework.util.CollectionUtils;
 
 
 @Service
-public class AlarmServiceImpl implements AlarmService {
+public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements AlarmService {
 	
-	private final Logger logger = LoggerFactory.getLogger(AlarmServiceImpl.class);
-	
-	@Autowired
-	private JedisTemplate<String, String> jedisTemplate;
-	
-	@Autowired
-	private JedisSequenceUtils jedisSequenceUtils;
+	private final Logger logger = LoggerFactory.getLogger(AlarmServiceImpl.class);						
 	
 	@Autowired
 	private CatalogService catalogService;
@@ -112,7 +104,7 @@ public class AlarmServiceImpl implements AlarmService {
 		List<Alarm> messages = new ArrayList<Alarm>();
 		Long aid = jedisSequenceUtils.getAid(message.getAlarmId());
 		if(aid != null){
-			messages.addAll(getLastAlarms(aid.toString(), message));
+			messages.addAll(getLastAlarms(aid, message));
 		}
 				
 		return messages;
@@ -134,7 +126,7 @@ public class AlarmServiceImpl implements AlarmService {
 		// Definimos una reverse lookup key con la cual recuperar rapidamente los mensajes de una alarma			
 		// A continuacion, añadimos el amid al Sorted Set alarm:{aid}:messages. La puntuacion, o score, que se asocia
 		// a cada elemento del Set es el timestamp del mensaje.		
-		jedisTemplate.zAdd("aid:"+aid+":messages", timestamp, amid.toString());
+		jedisTemplate.zAdd(keysBuilder.getAlarmMessagesKey(aid), timestamp, amid.toString());
 		
 		logger.debug("Registered in Redis message {} for alarm {}", amid, message.getAlarmId());			
 	}
@@ -146,10 +138,10 @@ public class AlarmServiceImpl implements AlarmService {
 		
 		// Guardamos una hash de clave amid:{amid} y valores source, message y timestamp.
 		Map<String,String> fields = new HashMap<String, String>();
-		fields.put("sender", message.getSender());
-		fields.put("message",message.getMessage());
-		fields.put("ts", timestamp.toString());
-		jedisTemplate.hmSet("amid:"+amid, fields);		
+		fields.put(SENDER, message.getSender());
+		fields.put(MESSAGE,message.getMessage());
+		fields.put(TIMESTAMP, timestamp.toString());
+		jedisTemplate.hmSet(keysBuilder.getMessageKey(amid), fields);		
 		
 		return amid;
 	}
@@ -162,7 +154,7 @@ public class AlarmServiceImpl implements AlarmService {
 	
 	
 	
-	private List<Alarm> getLastAlarms(String aid, AlarmInputMessage message){
+	private List<Alarm> getLastAlarms(Long aid, AlarmInputMessage message){
 		Long to = QueryFilterParamsUtils.getTo(message);
 		Long from = QueryFilterParamsUtils.getFrom(message);
 		Integer limit = QueryFilterParamsUtils.getLimit(message);
@@ -170,7 +162,7 @@ public class AlarmServiceImpl implements AlarmService {
 		// La sentencia a utilizar en Redis es:
 		//     ZREVRANGEBYSCORE aid:{aid}:messages to from LIMIT 0 limit
 									
-		Set<String> amids = jedisTemplate.zRevRangeByScore("aid:"+aid+":messages", to, from, 0, limit);
+		Set<String> amids = jedisTemplate.zRevRangeByScore(keysBuilder.getAlarmMessagesKey(aid), to, from, 0, limit);
 		List<Alarm> alarmMessages = null;		
 		
 		if(!CollectionUtils.isEmpty(amids)){
@@ -200,11 +192,11 @@ public class AlarmServiceImpl implements AlarmService {
 		String ts = null;
 		String sender = null;
 							
-		Map<String, String> infoSoid = jedisTemplate.hGetAll("amid:"+amid);
+		Map<String, String> infoSoid = jedisTemplate.hGetAll(keysBuilder.getMessageKey(amid));
 		if(!CollectionUtils.isEmpty(infoSoid)){
-			message = infoSoid.get("message");
-			ts = infoSoid.get("ts");
-			sender = infoSoid.get("sender");
+			message = infoSoid.get(MESSAGE);
+			ts = infoSoid.get(TIMESTAMP);
+			sender = infoSoid.get(SENDER);
 			
 			alarm = new Alarm(alarmId, message, sender, Long.parseLong(ts));
 		}														
@@ -236,16 +228,7 @@ public class AlarmServiceImpl implements AlarmService {
 	private void replaceActiveAlertsOwners(Map<String, String> updatedAlertsOwners){
 		alertsOwners.clear();
 		alertsOwners.putAll(updatedAlertsOwners);
-	}
-			
-	
-	public void setJedisTemplate(JedisTemplate<String, String> jedisTemplate) {
-		this.jedisTemplate = jedisTemplate;
-	}
-
-	public void setJedisSequenceUtils(JedisSequenceUtils jedisSequenceUtils) {
-		this.jedisSequenceUtils = jedisSequenceUtils;
-	}
+	}			
 
 	public void setResourceService(ResourceService resourceService) {
 		this.resourceService = resourceService;		

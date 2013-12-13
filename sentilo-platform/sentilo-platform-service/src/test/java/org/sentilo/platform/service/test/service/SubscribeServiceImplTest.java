@@ -106,7 +106,7 @@ public class SubscribeServiceImplTest {
 		when(dataSubscription.hasResourceIdentified()).thenReturn(true);
 		
 		Topic topic = ChannelUtils.getChannel(dataSubscription);
-		String key = service.buildSubscriptionKey(dataSubscription.getSourceEntityId());		
+		String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());		
 		
 		service.remove(dataSubscription);
 				
@@ -120,7 +120,7 @@ public class SubscribeServiceImplTest {
 		when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
 		when(dataSubscription.hasResourceIdentified()).thenReturn(false);
 						
-		String key = service.buildSubscriptionKey(dataSubscription.getSourceEntityId());		
+		String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());		
 		Set<String> topics = getTopics();
 		List<String> topicsToRemove = ChannelUtils.filterTopicsOfType(topics, dataSubscription.getType());
 		
@@ -139,7 +139,7 @@ public class SubscribeServiceImplTest {
 		when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
 		when(dataSubscription.hasResourceIdentified()).thenReturn(false);
 						
-		String key = service.buildSubscriptionKey(dataSubscription.getSourceEntityId());		
+		String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());		
 		Set<String> topics = getEmptyTopics();
 		List<String> topicsToRemove = ChannelUtils.filterTopicsOfType(topics, dataSubscription.getType());
 		
@@ -158,7 +158,7 @@ public class SubscribeServiceImplTest {
 		when(dataSubscription.getType()).thenReturn(null);
 		when(dataSubscription.hasResourceIdentified()).thenReturn(true);
 				
-		String key = service.buildSubscriptionKey(dataSubscription.getSourceEntityId());		
+		String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());		
 		
 		service.remove(dataSubscription);
 				
@@ -172,7 +172,7 @@ public class SubscribeServiceImplTest {
 		initSubscription(dataSubscription);
 		when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
 					
-		String key = service.buildSubscriptionKey(dataSubscription.getSourceEntityId());		
+		String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());		
 		when(jedisTemplate.hGetAll(key)).thenReturn(buildSubscriptions());
 		
 		List<Subscription> subscriptions = service.get(dataSubscription);
@@ -187,7 +187,7 @@ public class SubscribeServiceImplTest {
 		initSubscription(dataSubscription);
 		when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
 					
-		String key = service.buildSubscriptionKey(dataSubscription.getSourceEntityId());						
+		String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());						
 		List<Subscription> subscriptions = service.get(dataSubscription);
 				
 		verify(jedisTemplate).hGetAll(key);
@@ -205,7 +205,7 @@ public class SubscribeServiceImplTest {
 	private void verifySubscribe(Subscription subscription){
 		initSubscription(subscription);
 		Topic topic = ChannelUtils.getChannel(subscription);
-		String key = service.buildSubscriptionKey(subscription.getSourceEntityId());		
+		String key = service.getKeysBuilder().getSubscriptionKey(subscription.getSourceEntityId());		
 		
 		service.subscribe(subscription);
 				

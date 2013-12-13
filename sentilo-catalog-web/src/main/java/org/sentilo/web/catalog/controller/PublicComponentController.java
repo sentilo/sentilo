@@ -93,7 +93,8 @@ public class PublicComponentController extends BaseComponentController {
 	@RequestMapping(value = "/{id}/lastOb", method = RequestMethod.GET)
 	public @ResponseBody List<ObservationDTO> getLastObservations(@PathVariable String id, Model model) {
 		SearchFilter filter = new SearchFilter();
-		filter.addParam("componentId", id);
+		filter.addAndParam("componentId", id);
+		filter.addAndParam("publicAccess", Boolean.TRUE);
 		List<Sensor> sensors = sensorService.search(filter).getContent();
 		List<ObservationDTO> result = new ArrayList<ObservationDTO>();
 		for (Sensor sensor : sensors) {

@@ -250,7 +250,7 @@ function toggleAlarmType(type) {
 			</form:label>
 			<div class="controls">
 				<form:select path="componentId" id="componentId" onchange="populateSensorId();" disabled="${editMode}">
-     				<form:option value=""><spring:message code="select.empty" /></form:option>
+     				<form:option value="">${emptySelectMessage}</form:option>
 				</form:select>
 				<c:if test="${editMode}">
 					<form:hidden path="componentId"/>

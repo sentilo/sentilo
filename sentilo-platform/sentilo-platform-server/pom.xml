@@ -49,19 +49,7 @@
 			<artifactId>httpclient</artifactId>
 			<version>${httpclient.version}</version>
 		</dependency>
-	</dependencies>
-	
-	<profiles>
-	    <profile>
-	      <id>dev</id>	
-	      <activation>
-		     <activeByDefault>true</activeByDefault>
-		  </activation>     
-	      <properties>
-	        <spring.profiles.active>dev</spring.profiles.active>
-	      </properties>
-	    </profile>		
-	</profiles>
+	</dependencies>		
 	
 	<build>
 		<plugins>

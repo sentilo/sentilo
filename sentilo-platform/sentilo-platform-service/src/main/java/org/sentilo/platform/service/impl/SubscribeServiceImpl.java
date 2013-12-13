@@ -41,7 +41,6 @@ import java.util.Set;
 import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.SubscribeService;
-import org.sentilo.platform.service.dao.JedisTemplate;
 import org.sentilo.platform.service.listener.MessageListenerImpl;
 import org.sentilo.platform.service.listener.MockMessageListenerImpl;
 import org.sentilo.platform.service.utils.ChannelUtils;
@@ -57,12 +56,9 @@ import org.springframework.util.CollectionUtils;
 
 
 @Service
-public class SubscribeServiceImpl implements SubscribeService {
+public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements SubscribeService {
 
-	private final Logger logger = LoggerFactory.getLogger(SubscribeServiceImpl.class);
-	
-	@Autowired
-	private JedisTemplate<String, String> jedisTemplate;
+	private final Logger logger = LoggerFactory.getLogger(SubscribeServiceImpl.class);		
 	
 	@Autowired
 	private RedisMessageListenerContainer listenerContainer;
@@ -150,7 +146,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 		doRegisterSubscription(subscription.getSourceEntityId(), topic, subscription.getEndpoint());
 		
 		// Persistimos en Redis la subscripcion
-		jedisTemplate.hSet(buildSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(), subscription.getEndpoint());
+		jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(), subscription.getEndpoint());
 		
 		logger.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
 	}
@@ -206,7 +202,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 		}
 								
 		// Eliminamos en Redis la subscripcion del listener al topic
-		jedisTemplate.hDel(buildSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic());
+		jedisTemplate.hDel(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic());
 		
 		logger.debug("Subscription from listener {} subscribe to channel {} removed", subscription.getSourceEntityId(), topic.getTopic());
 	}
@@ -217,7 +213,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 		logger.debug("Removing all subscriptions for listener {}", subscription.getSourceEntityId());		
 		
 		// Recuperamos todos los canales a los cuales esta subscrito el listener.
-		Set<String> topics = jedisTemplate.hKeys(buildSubscriptionKey(subscription.getSourceEntityId()));
+		Set<String> topics = jedisTemplate.hKeys(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));
 		
 		MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
 		if(listener != null && !CollectionUtils.isEmpty(topics)){
@@ -232,7 +228,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 		}
 								
 		// Por ultimo, eliminamos en Redis la hash de subscripciones de este listener:
-		jedisTemplate.del(buildSubscriptionKey(subscription.getSourceEntityId()));				
+		jedisTemplate.del(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));				
 		
 		logger.debug("Subscriptions removed for listener {} ", subscription.getSourceEntityId());
 	}
@@ -246,7 +242,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 		logger.debug("Removing all subscriptions of type {} for listener {}", subscription.getType(), subscription.getSourceEntityId());		
 		
 		// Recuperamos todos los canales a los cuales esta subscrito el listener.
-		Set<String> topics = jedisTemplate.hKeys(buildSubscriptionKey(subscription.getSourceEntityId()));
+		Set<String> topics = jedisTemplate.hKeys(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));
 		List<String> topicsToRemove = ChannelUtils.filterTopicsOfType(topics, subscription.getType());
 		
 		// Y para cada uno, eliminamos la subscripcion activa del listener
@@ -263,7 +259,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 								
 		if(!CollectionUtils.isEmpty(topicsToRemove)){
 			// Por ultimo, eliminamos en Redis de la hash de subscripciones todas aquellas que corresponden a canales del tipo indicado:
-			jedisTemplate.hDel(buildSubscriptionKey(subscription.getSourceEntityId()), topicsToRemove.toArray(new String[0]));				
+			jedisTemplate.hDel(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topicsToRemove.toArray(new String[0]));				
 		}
 		
 		logger.debug("Subscriptions of type {} removed for listener {} ", subscription.getType(), subscription.getSourceEntityId());
@@ -277,7 +273,7 @@ public class SubscribeServiceImpl implements SubscribeService {
 		logger.debug("Retrieving subscriptions for entity {}", subscription.getSourceEntityId());
 		
 		List<Subscription> subscriptionList = null;
-		String key = buildSubscriptionKey(subscription.getSourceEntityId());
+		String key = keysBuilder.getSubscriptionKey(subscription.getSourceEntityId());
 		Map<String,String> subscriptions = jedisTemplate.hGetAll(key);
 		if(!CollectionUtils.isEmpty(subscriptions)){
 			subscriptionList = new ArrayList<Subscription>();
@@ -297,15 +293,8 @@ public class SubscribeServiceImpl implements SubscribeService {
 		
 		return subscriptionList;		
 	}		
+				
 			
-	public String buildSubscriptionKey(String entityId){
-		return "subs"+PubSubConstants.REDIS_KEY_TOKEN+entityId;
-	}
-		
-	public void setJedisTemplate(JedisTemplate<String, String> jedisTemplate) {
-		this.jedisTemplate = jedisTemplate;
-	}
-
 	public void setListenerContainer(RedisMessageListenerContainer listenerContainer) {
 		this.listenerContainer = listenerContainer;
 	}

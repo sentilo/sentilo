@@ -125,9 +125,9 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
 	private void registerComponentDataTableColumns() {
 		List<Column> columns = new ArrayList<Column>();
-		columns.add(new Column("_id", true, true));
 		columns.add(new Column("name", true, true));
 		columns.add(new Column("description", true, true));
+		columns.add(new Column("providerId", true, true));
 		columns.add(new Column("mobile", true, true));
 		columns.add(new Column("createdAt", true));
 
@@ -145,8 +145,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 	}
 
 	private void registerPermissionsDataTableColumns() {
-		List<Column> columns = new ArrayList<Column>();
-		columns.add(new Column("_id", true, true));
+		List<Column> columns = new ArrayList<Column>();		
 		columns.add(new Column("target", true, true));
 		columns.add(new Column("type", true));
 

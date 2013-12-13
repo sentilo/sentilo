@@ -37,7 +37,7 @@ import org.springframework.data.redis.connection.Message;
 public class MonitorMessageListenerImpl extends MessageListenerImpl {
 	
 	private final Logger logger = LoggerFactory.getLogger(MessageListenerImpl.class);
-	private static final String MONITOR_NAME = "ALARM_AGENT_MONITOR";
+	private static final String MONITOR_NAME = "RELATIONAL_AGENT_MONITOR";
 	
 	public MonitorMessageListenerImpl(){
 		super(MONITOR_NAME);

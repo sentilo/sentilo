@@ -33,6 +33,7 @@ package org.sentilo.agent.relational.business.repository.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
@@ -43,6 +44,7 @@ import org.sentilo.agent.relational.common.domain.Observation;
 import org.sentilo.agent.relational.common.domain.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
@@ -56,10 +58,24 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
 	
 	private Map<String,JdbcTemplate> jdbcTemplates;	
 	
-	private static final String OBSERVATION_PS = "insert into sentilo_observations (provider, sensor, value, timestamp) values (?,?,?,?)";
-    private static final String ORDER_PS = "insert into sentilo_orders (provider, sensor, message, timestamp) values (?,?,?,?)";
-    private static final String ALARM_PS = "insert into sentilo_alarms (alarm, message, timestamp) values (?,?,?)";
+	@Value("${relational.tables.prefix}")
+	private String tables_prefix;
 	
+	private String observation_ps;
+    private String order_ps;
+    private String alarm_ps;
+	
+    @PostConstruct
+    public void init() throws Exception {
+    	if(StringUtils.hasText(tables_prefix) && !tables_prefix.startsWith("$")){
+	    	observation_ps = "insert into "+ tables_prefix +"_observations (provider, sensor, value, timestamp) values (?,?,?,?)";
+	        order_ps = "insert into "+ tables_prefix +"_orders (provider, sensor, message, timestamp) values (?,?,?,?)";
+	        alarm_ps = "insert into "+ tables_prefix +"_alarms (alarm, message, timestamp) values (?,?,?)";
+    	}else{
+    		throw new IllegalStateException("Field tables_prefix is not initialized. Review your properties configuration and confirm that property relational.tables.prefix is defined");
+    	}
+  	}
+    
     @Resource
     public void setDataSources(Map<String, DataSource> dataSources) {		
     	// For every Ds this method creates and initializes a new JdbcTemplate and associates it with the dataSource key.
@@ -81,7 +97,7 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
 	public void save(Observation observation) {		
 		JdbcTemplate jdbcTemplate = getJdbcTemplate(observation);
 		if(jdbcTemplate!=null){
-			jdbcTemplate.update(OBSERVATION_PS, observation.getProvider(), observation.getSensor(), observation.getValue(), observation.getTimestamp());
+			jdbcTemplate.update(observation_ps, observation.getProvider(), observation.getSensor(), observation.getValue(), observation.getTimestamp());
 		}
 	}
 
@@ -92,7 +108,7 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
 	public void save(Alarm alarm) {
 		JdbcTemplate jdbcTemplate = getJdbcTemplate(alarm);
 		if(jdbcTemplate!=null){
-			jdbcTemplate.update(ALARM_PS, alarm.getAlarm(), alarm.getMessage(), alarm.getTimestamp());
+			jdbcTemplate.update(alarm_ps, alarm.getAlarm(), alarm.getMessage(), alarm.getTimestamp());
 		}
 	}
 
@@ -103,7 +119,7 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
 	public void save(Order order) {
 		JdbcTemplate jdbcTemplate = getJdbcTemplate(order);
 		if(jdbcTemplate!=null){
-			jdbcTemplate.update(ORDER_PS, order.getProvider(), order.getSensor(), order.getMessage(), order.getTimestamp());
+			jdbcTemplate.update(order_ps, order.getProvider(), order.getSensor(), order.getMessage(), order.getTimestamp());
 		}
 	}
 	

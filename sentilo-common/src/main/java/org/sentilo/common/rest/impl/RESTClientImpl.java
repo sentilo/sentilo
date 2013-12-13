@@ -106,7 +106,8 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 		logger.debug("Send post message to host {} and path {}", host, path);
 		String url = URIUtils.getURI(host, path);
 		HttpPost post = new HttpPost(url);
-		
+		logger.debug("Token {}", identityToken);
+		logger.debug("Body {}", body);		
 		return executeHttpCall(post, body, identityToken);	
 	}
 
@@ -172,12 +173,12 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 			StringBuilder sb = new StringBuilder(line.getReasonPhrase());
 			try {
 				if(response.getEntity()!=null){
-					sb.append(EntityUtils.toString(response.getEntity()));
+					sb.append(EntityUtils.toString(response.getEntity())+". ");
 				}
 			} catch (Exception e) {
 				//Ignored
 			}
-			throw new RESTClientException(line.getStatusCode(),	line.getReasonPhrase());																
+			throw new RESTClientException(line.getStatusCode(),	sb.toString());																
 		}
 	}
 	
@@ -198,10 +199,12 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 			HttpResponse response = httpClient.execute(httpRequest);
 			validateResponse(response);
 			return EntityUtils.toString(response.getEntity());
+		} catch (RESTClientException e) {
+			throw e;
 		} catch (Exception e) {
 			String msg = String.format("Error while executing http call: %s ", httpRequest.toString());
 			throw new RESTClientException(msg, e);
-		}
+		} 
 	}	
 			
 	/**

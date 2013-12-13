@@ -40,7 +40,12 @@ import org.springframework.util.StringUtils;
 public abstract class DateUtils {
 
 	private static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
-	private static final DateFormat PSAB_DF = new SimpleDateFormat(TIMESTAMP_PATTERN);
+	private static final DateFormat PSAB_DF;
+	
+	static{
+		PSAB_DF = new SimpleDateFormat(TIMESTAMP_PATTERN);
+		PSAB_DF.setLenient(false);
+	}
 
 	private DateUtils(){
 		throw new AssertionError();
@@ -55,7 +60,7 @@ public abstract class DateUtils {
 	}
 
 	public static Date stringToDate(String date) {
-		try {			
+		try {					
 			return (StringUtils.hasText(date)?PSAB_DF.parse(date):null);
 		} catch (ParseException e) {
 			throw new IllegalArgumentException("Error parsing date", e);

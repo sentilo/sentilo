@@ -30,7 +30,7 @@
  */
 package org.sentilo.web.catalog.exception;
 
-public class DuplicateKeyException extends CatalogException {
+public class DuplicateKeyException extends BusinessValidationException {
 	
 	private static final long serialVersionUID = 1L;	
 	private static final String DEFAULT_MESSAGE_KEY = "error.generic.duplicate.key";
@@ -40,6 +40,6 @@ public class DuplicateKeyException extends CatalogException {
 	}
 	
 	public DuplicateKeyException(String errorMessageKey, Object[] errorMessageArgs) {
-		super(errorMessageKey,errorMessageArgs);
+		super(errorMessageKey,errorMessageArgs);				
 	}
 }

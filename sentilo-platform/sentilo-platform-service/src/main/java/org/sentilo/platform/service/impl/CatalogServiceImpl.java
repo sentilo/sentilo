@@ -64,7 +64,7 @@ public class CatalogServiceImpl implements CatalogService {
 	 */
 	public PermissionsMessage getPermissions() {
 		try{
-			String response = restClient.get("api/permissions");
+			String response = restClient.get(buildApiPath("permissions"));
 			return parser.parsePermissions(response);		
 		}catch(NestedRuntimeException rce){
 			throw translateException(rce);
@@ -77,7 +77,7 @@ public class CatalogServiceImpl implements CatalogService {
 	 */
 	public CredentialsMessage getCredentials() {
 		try{
-			String response = restClient.get("api/credentials");
+			String response = restClient.get(buildApiPath("credentials"));
 			return parser.parseCredentials(response);
 		}catch(NestedRuntimeException rce){
 			throw translateException(rce);
@@ -91,7 +91,7 @@ public class CatalogServiceImpl implements CatalogService {
 	 */
 	public CatalogResponseMessage insertSensors(CatalogInputMessage message) {
 		try{
-			String path = "api/provider/"+message.getProviderId();
+			String path = buildApiPath("provider", message.getProviderId());
 			String response = restClient.post(path, message.getBody());			
 			return parser.parseCatalogResponse(response);
 		}catch(NestedRuntimeException rce){
@@ -105,7 +105,7 @@ public class CatalogServiceImpl implements CatalogService {
 	 */
 	public CatalogResponseMessage updateSensorsOrComponents(CatalogInputMessage message) {
 		try{
-			String path = "api/provider/"+message.getProviderId();
+			String path = buildApiPath("provider", message.getProviderId()); 				
 			String response = restClient.put(path, message.getBody());			
 			return parser.parseCatalogResponse(response);
 		}catch(NestedRuntimeException rce){
@@ -120,7 +120,8 @@ public class CatalogServiceImpl implements CatalogService {
 	public CatalogResponseMessage getAuthorizedProviders(CatalogInputMessage message) {
 		try{			
 			RequestParameters parameters = new RequestParameters();
-			String path = "api/authorized/provider/"+message.getEntityId();
+			String path = buildApiPath("authorized","provider",message.getEntityId()); 
+				
 			if(StringUtils.hasText(message.getSensorType())){
 				parameters.put("type", message.getSensorType());
 			}			
@@ -137,7 +138,7 @@ public class CatalogServiceImpl implements CatalogService {
 	 */
 	public AlertsOwnersResponseMessage getAlertsOwners(){
 		try{
-			String response = restClient.get("api/alerts");
+			String response = restClient.get(buildApiPath("alerts"));
 			return parser.parseAlertsOwners(response);
 		}catch(NestedRuntimeException rce){
 			throw translateException(rce);
@@ -150,12 +151,22 @@ public class CatalogServiceImpl implements CatalogService {
 	 */
 	public CatalogResponseMessage deleteProvider(CatalogInputMessage message){
 		try{
-			String path = "api/delete/provider/"+message.getProviderId();
+			String path = buildApiPath("delete","provider",message.getProviderId()); 								
 			String response = restClient.put(path, message.getBody());						
 			return parser.parseCatalogResponse(response);
 		}catch(NestedRuntimeException rce){
 			throw translateException(rce);
 		}
+	}
+	
+	private String buildApiPath(String ... pathTokens){
+		StringBuilder sb = new StringBuilder("api");
+		
+		for(String pathToken:pathTokens){
+			sb.append("/").append(pathToken);
+		}
+		
+		return sb.toString();
 	}
 	
 	private CatalogAccessException translateException(NestedRuntimeException nre){

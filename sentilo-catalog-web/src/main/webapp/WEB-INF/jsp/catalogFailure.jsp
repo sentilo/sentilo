@@ -32,12 +32,9 @@ $(document).ready(function() {
 
 	<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp" %>
 
-	<div class="alert alert-error">
-		<spring:message var="title" code="error.data.access.title" />
+	<div class="alert alert-error">		
 		<h2><spring:message code="error.data.access.title" /></h2>
-		<p>
-			<spring:message code="error.data.access.description" />
-		</p>
+		
 		<c:if test="${not empty exception}">
 			<h4><spring:message code="error.data.acces.detail" /></h4>
 			<c:choose>

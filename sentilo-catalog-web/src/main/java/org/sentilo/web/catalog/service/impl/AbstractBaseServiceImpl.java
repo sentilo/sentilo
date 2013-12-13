@@ -278,13 +278,11 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
 	private Collection<T> removeFromCollectionIfAlreadyExists(Collection<T> entities){
 		Collection<T> entitiesFiltered = new ArrayList<T>();
 		if(!CollectionUtils.isEmpty(entities)){
-			for(T doc: entities){
-				if(find(doc)==null){
-					// Si el doc no tiene id o bien no se encuentra, significa que no existe en el sistema
-					if(!StringUtils.hasText(doc.getId()) || find(doc)==null){
-						entitiesFiltered.add(doc);
-					}
-				}
+			for(T doc: entities){				
+				// Si el doc no tiene id o bien no se encuentra, significa que no existe en el sistema
+				if(!StringUtils.hasText(doc.getId()) || find(doc)==null){
+					entitiesFiltered.add(doc);
+				}				
 			}
 		}
 		

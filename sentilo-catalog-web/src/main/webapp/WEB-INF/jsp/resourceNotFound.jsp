@@ -13,13 +13,15 @@
 <div class="row-fluid">
 <div class="span12">
 
-	<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp" %>
-	<div class="alert alert-error">
-		<spring:message var="title" code="error.data.access.title" />
-		<h2><spring:message code="error.resource.not.found"/></h2>
-		<p>
-			<spring:message code="error.resource.not.found"/>
-		</p>
+	<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp" %>	
+	
+	<div class="alert alert-error">		
+		<h2><spring:message code="error.resource.not.found.title" /></h2>
+		
+		<c:if test="${not empty exception.errorMessageKey}">
+			<h4><spring:message code="error.resource.not.found.detail" /></h4>
+			<spring:message code="${exception.errorMessageKey}" arguments="${exception.errorMessageArgs}" htmlEscape="false"/>													
+		</c:if>
 	</div>
 
 </div>

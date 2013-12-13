@@ -30,9 +30,20 @@
 	<module>./sentilo-platform-client-java</module>
 	<module>./sentilo-agent-alert</module>
 	<module>./sentilo-agent-relational</module>
-	<module>./sentilo-catalog-web</module>	
+	<module>./sentilo-catalog-web</module>		
   </modules>
 	
+  <profiles>
+	    <profile>
+	      <id>dev</id>	
+	      <activation>
+		     <activeByDefault>true</activeByDefault>
+		  </activation>     
+	      <properties>
+	        <spring.profiles.active>dev</spring.profiles.active>
+	      </properties>
+	    </profile>		
+  </profiles>
   
   <build>
 	<plugins>

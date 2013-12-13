@@ -96,6 +96,7 @@ var addLastSensorObservationToPanel = function(panel, data) {
 		date = date + '<spring:message code="component.sensor.observation.not.found"/>';
 		stats.html('<spring:message code="component.sensor.observation.not.found"/>');
 	}
+	panel.append(data.sensor+'<br/>'+data.sensorType+'<br/>');
 	panel.append(stats);
 	panel.append(date);
 	panel.append($('<br/>'));
@@ -117,7 +118,6 @@ var retrieveLastSensorObservationPanel = function() {
  */
 
 var retrieveRightPanel = function() {
-	
 	if (dataType === 'activity') {
 		retrieveActivity('#activity_placeholder', '${activityURLPrefix}' + selectedSensor.id + "/", selectedSensor.label);
 	} else if (dataType === 'orders') {
@@ -174,11 +174,20 @@ $(document).ready(function() {
 		initializeMap('${component.location.latitude}','${component.location.longitude}', '${component.name}', '${componentIcon}');
 	</c:if>
 	<c:if test="${not empty componentSensors}">
-		selectSensor({
-			'id': '${componentSensors[0].id}',			
-			'label': '${componentSensors[0].type} (${componentSensors[0].unit})',
-			'dataType': '${componentSensors[0].dataType}'
-		});
+		var firstSelPublicSensor=null;
+		<c:set var="alreadySet" value="${false}"/>
+		<c:forEach var="sensor" items="${componentSensors}">
+			<c:if test="${sensor.publicAccess && !alreadySet}">
+				<c:set var="alreadySet" value="${true}"/>  
+				firstSelPublicSensor={
+					'id': '${sensor.id}',			
+					'label': '${sensor.type} (${sensor.unit})',
+					'dataType': '${sensor.dataType}'
+				};
+			</c:if>
+		</c:forEach>
+		if (firstSelPublicSensor!=null)
+			selectSensor(firstSelPublicSensor);
 	</c:if>
 });
 </script>

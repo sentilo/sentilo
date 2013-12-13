@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.Alarm;
 import org.sentilo.web.catalog.domain.Application;
-import org.sentilo.web.catalog.exception.CatalogException;
+import org.sentilo.web.catalog.exception.BusinessValidationException;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.AlarmService;
 import org.sentilo.web.catalog.service.ApplicationService;
@@ -111,7 +111,7 @@ public class ApplicationController extends CrudController<Application> {
 			filter.addAndParam("applicationId", applicationId);
 			boolean alarmFound = alarmService.search(filter).getContent().size() > 0;
 			if (alarmFound) {
-				throw new CatalogException("application.error.existing.alarms");
+				throw new BusinessValidationException("application.error.existing.alarms");
 			}
 		}
 	}

@@ -38,7 +38,7 @@ import java.util.Map;
 import org.sentilo.common.domain.AuthorizedProvider;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.web.catalog.converter.PermissionConverter;
-import org.sentilo.web.catalog.converter.PlatformMessageConverter;
+import org.sentilo.web.catalog.converter.ApiConverter;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Permission;
@@ -142,7 +142,7 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
 			List<Sensor> sensors = getSensorsByProviderAndType(permission.getTarget(), sensorType);
 			if(!CollectionUtils.isEmpty(sensors)){				
 				List<Component> components = getComponentsByProvider(permission.getTarget(), mapComponents);			
-				List<CatalogSensor> catalogSensors = PlatformMessageConverter.convertToCatalogSensorList(sensors, components); 						
+				List<CatalogSensor> catalogSensors = ApiConverter.convertToCatalogSensorList(sensors, components); 						
 				authorizedProviders.add(new AuthorizedProvider(permission.getTarget(), permission.getType().toString(),	catalogSensors));
 			}
 		}

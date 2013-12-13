@@ -103,4 +103,33 @@ public class DateUtilsTest {
 		assertTrue(DateUtils.parseTimestamp(formatDate)>0);			
 	}
 	
+	@Test(expected=IllegalArgumentException.class)
+	public void parseInvalidFormatTimestamp(){
+		String timestamp = "12/10/2013_23:12:23";
+		DateUtils.parseTimestamp(timestamp);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void parseTimestampWithoutTime(){
+		String timestamp = "12/10/2013";
+		DateUtils.parseTimestamp(timestamp);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void parseTransposeTimestamp(){
+		String timestamp = "11/23/2013T23:12:23";
+		DateUtils.parseTimestamp(timestamp);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void parseTranspose2Timestamp(){
+		String timestamp = "2013/11/23T23:12:23";
+		DateUtils.parseTimestamp(timestamp);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void toMillisTransposeTimestamp(){
+		String timestamp = "11/23/2013T23:12:23";
+		DateUtils.toMillis(timestamp);
+	}			
 }

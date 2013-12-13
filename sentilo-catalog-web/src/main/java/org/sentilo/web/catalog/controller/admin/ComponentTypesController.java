@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
-import org.sentilo.web.catalog.exception.CatalogException;
+import org.sentilo.web.catalog.exception.BusinessValidationException;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.SearchFilterResult;
 import org.sentilo.web.catalog.service.ComponentService;
@@ -119,10 +119,10 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
 	private void throwExceptionIfComponentsFoundWithType(String componentType) {
 		SearchFilter filter = new SearchFilter();
-		filter.addAndParam("type", componentType);
+		filter.addAndParam("componentType", componentType);
 		SearchFilterResult<Component> components = componentService.search(filter);
 		if (!CollectionUtils.isEmpty(components.getContent())) {
-			throw new CatalogException("componenttype.error.cannot.delete", new Object[] { componentType });
+			throw new BusinessValidationException("componenttype.error.cannot.delete", new Object[] { componentType });
 		}
 	}
 }

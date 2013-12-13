@@ -103,7 +103,7 @@ public class SensorController extends CrudController<Sensor> {
 	@RequestMapping("/search/json")
 	public @ResponseBody
 	List<Sensor> search(HttpServletRequest request, @RequestParam(required = true) String search, @RequestParam(required = true) String providerId, @RequestParam(required = false) String componentId, Model model) {
-		// TODO Mikel: este método se utiliza en el mantenimiento de alarmas para seleccionar el sensor de la alarma
+		// este método se utiliza en el mantenimiento de alarmas para seleccionar el sensor de la alarma
 		SearchFilter filter = getSearchFilterBuilder().buildSearchFilter(request, null, search);
 		filter.addAndParam("providerId", providerId);
 		if (StringUtils.hasText(componentId)) {
@@ -197,9 +197,7 @@ public class SensorController extends CrudController<Sensor> {
 		String providerId = request.getParameter("providerId");
 		if (StringUtils.hasText(providerId)) {
 			model.addAttribute(Constants.MODEL_PROVIDER_ID, providerId);
-		}
-		
-		addComponentListTo(model);
+		}	
 	}
 
 	@Override

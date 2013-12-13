@@ -16,20 +16,7 @@
 		<hibernate.version>3.2.1.ga</hibernate.version>
 		<commons.codec.version>1.7</commons.codec.version>
 		<jedis.version>2.1.0</jedis.version>						
-   </properties>		
-	
-	
-	<profiles>
-	    <profile>
-	      <id>dev</id>	
-	      <activation>
-		     <activeByDefault>true</activeByDefault>
-		  </activation>     
-	      <properties>
-	        <spring.profiles.active>dev</spring.profiles.active>
-	      </properties>
-	    </profile>		
-	  </profiles>
+   </properties>				
 
 	<build>
 		<plugins>			

@@ -44,7 +44,12 @@ public class PlatformClientExceptionTranslator implements PlatformExceptionTrans
 	@Override
 	public PlatformAccessException translateExceptionIfPossible(RuntimeException ex) {		
 		logger.debug("Translating exception of type {} ", ex.getClass());
-		throw new PlatformClientAccessException(ex.getMessage(), ex);
+		if(ex instanceof PlatformClientAccessException){
+			throw ex;
+		}else{
+			throw new PlatformClientAccessException(ex.getMessage(), ex);
+		}
+		
 	}
 
 }

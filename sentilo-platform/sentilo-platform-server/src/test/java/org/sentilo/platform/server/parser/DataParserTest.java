@@ -49,6 +49,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.DataInputMessage;
 import org.sentilo.platform.common.domain.Observation;
+import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.server.parser.DataParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
@@ -143,6 +144,28 @@ public class DataParserTest {
 		
 		DataInputMessage message = parser.parsePutRequest(sentiloRequest);
 		assertEquals("Must parse 1 element", 1, message.getObservations().size());		
+	}
+	
+	@Test(expected=PlatformException.class)
+	public void parsePutBadRequestObservation() throws Exception {
+		String json = "{\"observations\":[{\"value\":\"11.2\", \"timestamp\": \"17/09/2012A12:34:45\"}]}";
+		String[] parts = {"prov1","sensor1"};
+		
+		when(sentiloRequest.getBody()).thenReturn(json);
+		when(resource.getParts()).thenReturn(parts);
+		
+		parser.parsePutRequest(sentiloRequest);		
+	}
+	
+	@Test(expected=PlatformException.class)
+	public void parsePutObservationWithTrasposeTimestamp() throws Exception {
+		String json = "{\"observations\":[{\"value\":\"11.2\", \"timestamp\": \"11/23/2012T12:34:45\"}]}";
+		String[] parts = {"prov1","sensor1"};
+		
+		when(sentiloRequest.getBody()).thenReturn(json);
+		when(resource.getParts()).thenReturn(parts);
+		
+		parser.parsePutRequest(sentiloRequest);		
 	}
 	
 	@Test

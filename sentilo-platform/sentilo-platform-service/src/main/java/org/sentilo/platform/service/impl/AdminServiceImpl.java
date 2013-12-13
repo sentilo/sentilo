@@ -35,13 +35,12 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.sentilo.platform.common.domain.Statistics;
-import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.domain.Statistics.Events;
 import org.sentilo.platform.common.domain.Statistics.Performance;
+import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.AdminService;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,17 +49,11 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class AdminServiceImpl implements AdminService {
+public class AdminServiceImpl extends AbstractPlatformServiceImpl implements AdminService {
 	
 	private final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
 	
-	private static final String MAX_AVG_RATE_KEY = "stats:avg:max";	
-	
-	@Autowired
-	private JedisSequenceUtils jedisSequenceUtils;
-	
-	@Autowired
-	private JedisTemplate<String, String> jedisTemplate;
+	private static final String MAX_AVG_RATE_KEY = "stats:avg:max";			
 	
 	@Autowired
 	private SubscribeService subscribeService;
@@ -144,8 +137,5 @@ public class AdminServiceImpl implements AdminService {
 		 		 
 		 lastTotalEvents = totalEvents;			 		 
 	}				
-	
-	public void setJedisSequenceUtils(JedisSequenceUtils jedisSequenceUtils) {
-		this.jedisSequenceUtils = jedisSequenceUtils;
-	}		
+				
 }

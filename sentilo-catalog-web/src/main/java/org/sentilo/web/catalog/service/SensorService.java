@@ -47,4 +47,5 @@ public interface SensorService extends CrudService<Sensor>{
 	void updateMulti(Collection<String> sensorIds, String param, Object value);
 	void deleteSensors(String[] sensorsIds);
 	void deleteSensorsFromComponents(List<String> componentsIds);
+	Sensor findByName(String providerId, String sensorId);
 }

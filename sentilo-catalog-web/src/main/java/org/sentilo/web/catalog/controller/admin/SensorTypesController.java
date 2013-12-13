@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
-import org.sentilo.web.catalog.exception.CatalogException;
+import org.sentilo.web.catalog.exception.BusinessValidationException;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.SearchFilterResult;
 import org.sentilo.web.catalog.service.CrudService;
@@ -122,7 +122,7 @@ public class SensorTypesController extends CrudController<SensorType> {
 		filter.addAndParam("type", sensorType);
 		SearchFilterResult<Sensor> sensors = sensorService.search(filter);
 		if (!CollectionUtils.isEmpty(sensors.getContent())) {
-			throw new CatalogException("sensortype.error.cannot.delete", new Object[] { sensorType });
+			throw new BusinessValidationException("sensortype.error.cannot.delete", new Object[] { sensorType });
 		}
 	}
 }

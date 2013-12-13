@@ -39,10 +39,14 @@ import org.springframework.util.StringUtils;
 
 public abstract class CatalogUtils {
 	
+	public static final String ESCAPE_REGEXP_CHARACTER = "\\";
+	public static final String ISO_8859_1 = "ISO-8859-1";
+	
+	
 	public static String decodeAjaxParam(String source){
 		String target = source; 
 		try{	
-			target = (source==null?source:URLDecoder.decode(source, "ISO-8859-1"));
+			target = (source==null?source:URLDecoder.decode(source, ISO_8859_1));
 		}catch(UnsupportedEncodingException ex){
 			//ignore
 		}
@@ -79,6 +83,10 @@ public abstract class CatalogUtils {
 	
 	public static String locationToString(Location location){				
 		return (location == null?null:location.getLatitude() + " " + location.getLongitude());
+	}
+	
+	public static String escapeRegexCharacter(String character){
+		return ESCAPE_REGEXP_CHARACTER.concat(character);
 	}
 	
 	private CatalogUtils(){

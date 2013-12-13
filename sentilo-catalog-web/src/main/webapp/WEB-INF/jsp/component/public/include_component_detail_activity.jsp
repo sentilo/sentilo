@@ -15,7 +15,9 @@
 							<a href="#activity" class="dropdown-toggle" data-toggle="dropdown"><spring:message code="component.sensors"/> <b class="caret"></b></a>
 							<ul class="dropdown-menu">
 								<c:forEach var="sensor" items="${componentSensors}">
-									<li><a href="#activity" onclick="selectSensor({ 'id': '${sensor.id}', 'sensorId': '${sensor.sensorId}', 'label': '${fn:replace(sensor.type,search,replace)} (${sensor.unit})', 'dataType': '${sensor.dataType}'})" data-toggle="pill">${sensor.type}</a></li>
+									<c:if test="${sensor.publicAccess}">
+										<li><a href="#activity" onclick="selectSensor({ 'id': '${sensor.id}', 'sensorId': '${sensor.sensorId}', 'label': '${fn:replace(sensor.type,search,replace)} (${sensor.unit})', 'dataType': '${sensor.dataType}'})" data-toggle="pill">${sensor.type}</a></li>
+									</c:if>
 								</c:forEach>
 							</ul>
 						</li>

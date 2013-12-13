@@ -38,6 +38,7 @@ import javax.validation.constraints.Pattern;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.hibernate.validator.constraints.NotBlank;
+import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TagUtils;
 import org.springframework.data.annotation.Id;
@@ -128,7 +129,7 @@ public class Sensor implements CatalogDocument {
 
 	
 	public static String buildId(String componentId, String sensorId){				
-		return (StringUtils.hasText(sensorId) && StringUtils.hasText(componentId))?componentId + "." + sensorId:null;					
+		return CompoundKeyBuilder.buildCompoundKey(componentId,sensorId);							
 	}
 	
 	@Override
