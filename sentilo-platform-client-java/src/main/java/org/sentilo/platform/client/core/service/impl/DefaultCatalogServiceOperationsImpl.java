@@ -40,7 +40,7 @@ import org.sentilo.platform.client.core.utils.RequestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 
 @Service
@@ -56,8 +56,8 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
 	public CatalogOutputMessage getSensors(CatalogInputMessage message) {
 		logger.debug("Retrieving authorized sensors from catalog ");
 		RequestParameters parameters = new RequestParameters(); 
-		if(StringUtils.hasText(message.getType())){
-			parameters.put("type", message.getType());
+		if(!CollectionUtils.isEmpty(message.getParameters())){
+			parameters.put(message.getParameters());
 		}		
 		
 		String response = restClient.get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());		

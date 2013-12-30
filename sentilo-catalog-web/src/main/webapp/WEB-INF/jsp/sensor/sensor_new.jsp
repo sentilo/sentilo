@@ -220,73 +220,7 @@ function emptyComponentSelect() {
 					<%@include file="/WEB-INF/jsp/common/include_input_tags.jsp" %>
 				</div>
 				<div class="tab-pane" id="tab2">
-					<div class="control-group">
-						<form:label path="manufacturer" class="control-label">
-							<spring:message code="sensor.manufacturer" />
-						</form:label>
-						<div class="controls">
-							<form:input path="manufacturer" />
-							<form:errors path="manufacturer" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
-					<div class="control-group">
-						<form:label path="modelReference" class="control-label">
-							<spring:message code="sensor.modelReference" />
-						</form:label>
-						<div class="controls">
-							<form:input path="modelReference" />
-							<form:errors path="modelReference" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
-					<div class="control-group">
-						<form:label path="serialNumber" class="control-label">
-							<spring:message code="sensor.serialNumber" />
-						</form:label>
-						<div class="controls">
-							<form:input path="serialNumber" />
-							<form:errors path="serialNumber" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
-					<div class="control-group">
-						<form:label path="installationDate" class="control-label">
-							<spring:message code="sensor.installationDate" />
-						</form:label>
-						<div class="controls">
-							<div data-date-format="dd/mm/yyyy" data-date="12-02-2012" id="installationDateDatePicker" class="input-append date">
-								<form:input path="installationDate" />
-								<span class="add-on"><i class="icon-calendar"></i></span>
-			  				</div>
-							
-							<form:errors path="installationDate" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
-					<div class="control-group">
-						<form:label path="parentId" class="control-label">
-							<spring:message code="sensor.parentId" />
-						</form:label>
-						<div class="controls">
-							<form:input path="parentId" />
-							<form:errors path="parentId" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
-					<div class="control-group">
-						<form:label path="ipAddress" class="control-label">
-							<spring:message code="sensor.ipAddress" />
-						</form:label>
-						<div class="controls">
-							<form:input path="ipAddress" />
-							<form:errors path="ipAddress" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
-					<div class="control-group">
-						<form:label path="observations" class="control-label">
-							<spring:message code="sensor.observations" />
-						</form:label>
-						<div class="controls">
-							<form:textarea path="observations" />
-							<form:errors path="observations" cssClass="text-error" htmlEscape="false" />
-						</div>
-					</div>
+					<%@include file="include_sensor_additional_info.jsp" %>
 				</div>
 			</div>
 		</div>

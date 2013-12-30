@@ -73,9 +73,9 @@ public class CatalogHandler extends AbstractHandler {
 		logger.debug("Executing catalog GET request");		
 		debug(request);
 		
-		//La peticion sólo puede ser de la sigiente manera
+		//La peticion sólo puede ser de la siguiente manera
 		// GET /catalog
-		//Ademas, puede haber un parametro en la URL
+		//Ademas, puede haber parametros en la URL
 		
 		validateResourceNumberParts(request, 0, 0);
 		CatalogInputMessage inputMessage = parser.parseGetRequest(request);

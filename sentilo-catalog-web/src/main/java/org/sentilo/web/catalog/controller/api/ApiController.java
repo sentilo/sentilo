@@ -31,6 +31,7 @@
 package org.sentilo.web.catalog.controller.api;
 
 import java.util.List;
+import java.util.Map;
 
 import org.sentilo.common.domain.AlertsOwnersResponseMessage;
 import org.sentilo.common.domain.AuthorizedProvider;
@@ -198,11 +199,11 @@ public class ApiController {
 	}
 	
 	@RequestMapping(value = "/authorized/provider/{entityId}", method = RequestMethod.GET)
-	public @ResponseBody CatalogResponseMessage getAuthorizedProviders(@PathVariable String entityId, @RequestParam(required=false) String type) {				
+	public @ResponseBody CatalogResponseMessage getAuthorizedProviders(@PathVariable String entityId, @RequestParam(required=false) Map<String,String> parameters) {				
 		logger.debug("Catalog API: getting authorized sensors and providers for entity {} ", entityId);
 		List<AuthorizedProvider> authorizedProviders = null;
 		try{			
-			authorizedProviders = permissionService.getAuthorizedProviders(entityId, type);
+			authorizedProviders = permissionService.getAuthorizedProviders(entityId, parameters);
 		}catch(DataAccessException dae){
 			logger.error("Error searching authorized providers. {}", dae);			
 			return new CatalogResponseMessage(dae.getLocalizedMessage());			

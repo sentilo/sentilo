@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sentilo.common.utils.DateUtils;
+import org.springframework.util.CollectionUtils;
 
 
 public class RequestParameters {
@@ -82,6 +83,14 @@ public class RequestParameters {
 
 	public void put(String parameter, Integer value) {
 		values.put(parameter, Integer.toString(value));
+	}
+	
+	public void put(Map<String,String> parameters){
+		if(!CollectionUtils.isEmpty(parameters)){			
+			for(String key:parameters.keySet()){
+				values.put(key, parameters.get(key));
+			}
+		}
 	}
 
 	public int size() {

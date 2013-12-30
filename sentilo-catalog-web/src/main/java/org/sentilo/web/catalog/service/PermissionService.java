@@ -31,6 +31,7 @@
 package org.sentilo.web.catalog.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.sentilo.common.domain.AuthorizedProvider;
 import org.sentilo.web.catalog.domain.CatalogDocument;
@@ -43,5 +44,5 @@ public interface PermissionService extends CrudService<Permission> {
 	Permissions retrievePermissions();
 	void deleteRelated(CatalogDocument entity);
 	void createRelated(CatalogDocument entity);	
-	List<AuthorizedProvider> getAuthorizedProviders(String entityId, String sensorType);
+	List<AuthorizedProvider> getAuthorizedProviders(String entityId, Map<String,String> filterParams);
 }

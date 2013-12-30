@@ -14,6 +14,9 @@
 <spring:url value="/admin/sensor/lastOrders/" var="ordersURLPrefix"/>
 <spring:url value="/admin/sensor/lastAlarms/" var="alarmsURLPrefix"/>
 
+<c:set var="search" value="'" />
+<c:set var="replace" value="\\'" />
+
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp" %>
 <%@include file="/WEB-INF/jsp/common/include_script_maps.jsp" %>
 <%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp" %>
@@ -181,7 +184,7 @@ $(document).ready(function() {
 				<c:set var="alreadySet" value="${true}"/>  
 				firstSelPublicSensor={
 					'id': '${sensor.id}',			
-					'label': '${sensor.type} (${sensor.unit})',
+					'label': '${fn:replace(sensor.type,search,replace)} (${sensor.unit})',
 					'dataType': '${sensor.dataType}'
 				};
 			</c:if>

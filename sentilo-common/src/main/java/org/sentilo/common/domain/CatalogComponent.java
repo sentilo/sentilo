@@ -41,6 +41,8 @@ public class CatalogComponent implements CatalogElement{
 	private String componentType;
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 	private String componentDesc;
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+	private Boolean componentPublicAccess;
 	
 	public CatalogComponent(){
 		super();
@@ -75,5 +77,13 @@ public class CatalogComponent implements CatalogElement{
 
 	public String getComponentDesc() {
 		return componentDesc;
+	}
+
+	public void setComponentPublicAccess(Boolean componentPublicAccess) {
+		this.componentPublicAccess = componentPublicAccess;
+	}
+
+	public Boolean getComponentPublicAccess() {
+		return componentPublicAccess;
 	}		
 }

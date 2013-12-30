@@ -36,7 +36,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -147,7 +149,9 @@ public class CatalogServiceOperationsIntegrationTest {
 		CatalogInputMessage message = new CatalogInputMessage();
 		message.setIdentityToken(tokenApp);	
 		if(StringUtils.hasText(type)){
-			message.setType(type);
+			Map<String,String> parameters = new HashMap<String, String>();
+			parameters.put("type", type);
+			message.setParameters(parameters);
 		}
 		
 		CatalogOutputMessage outputMessage = platformTemplate.getCatalogOps().getSensors(message);

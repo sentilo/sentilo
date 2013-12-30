@@ -32,6 +32,7 @@ package org.sentilo.platform.client.core.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -59,8 +60,8 @@ public class CatalogInputMessage implements PlatformClientInputMessage{
 	@JsonIgnore
 	private String identityToken;
 	
-	@JsonIgnore
-	private String type;
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+	private Map<String,String> parameters;
 	
 	public CatalogInputMessage(){
 		super();
@@ -108,20 +109,20 @@ public class CatalogInputMessage implements PlatformClientInputMessage{
 		return sensors;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public String getType() {
-		return type;
-	}
-
 	public void setComponents(List<CatalogComponent> components) {
 		this.components = components;
 	}
 
 	public List<CatalogComponent> getComponents() {
 		return components;
+	}
+
+	public void setParameters(Map<String,String> parameters) {
+		this.parameters = parameters;
+	}
+
+	public Map<String,String> getParameters() {
+		return parameters;
 	}
 	
 }

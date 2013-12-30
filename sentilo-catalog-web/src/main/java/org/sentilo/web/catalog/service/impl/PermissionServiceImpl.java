@@ -127,9 +127,9 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.sentilo.web.catalog.service.PermissionService#getAuthorizedProviders(java.lang.String, java.lang.String)
+	 * @see org.sentilo.web.catalog.service.PermissionService#getAuthorizedProviders(java.lang.String, java.util.Map)
 	 */
-	public List<AuthorizedProvider> getAuthorizedProviders(String entityId, String sensorType){		
+	public List<AuthorizedProvider> getAuthorizedProviders(String entityId, Map<String,String> filterParams){		
 		List<AuthorizedProvider> authorizedProviders = new ArrayList<AuthorizedProvider>();
 				
 		SearchFilter filter = new SearchFilter();
@@ -138,34 +138,45 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
 		
 		Map<String, List<Component>> mapComponents = new HashMap<String, List<Component>>(); 
 		//Para cada permiso, hemos de definir un nuevo objeto AuthorizedProvider con su lista de sensores
-		for(Permission permission: result){						
-			List<Sensor> sensors = getSensorsByProviderAndType(permission.getTarget(), sensorType);
+		for(Permission permission: result){												
+			List<Sensor> sensors = getSensorsByProvider(permission.getTarget(), filterParams);
 			if(!CollectionUtils.isEmpty(sensors)){				
-				List<Component> components = getComponentsByProvider(permission.getTarget(), mapComponents);			
+				List<Component> components = getComponentsByProvider(permission.getTarget(), mapComponents, filterParams);			
 				List<CatalogSensor> catalogSensors = ApiConverter.convertToCatalogSensorList(sensors, components); 						
-				authorizedProviders.add(new AuthorizedProvider(permission.getTarget(), permission.getType().toString(),	catalogSensors));
+				if(!CollectionUtils.isEmpty(catalogSensors)){
+					authorizedProviders.add(new AuthorizedProvider(permission.getTarget(), permission.getType().toString(),	catalogSensors));
+				}
 			}
 		}
 						
 		return authorizedProviders;
 	}
 	
-	private List<Sensor> getSensorsByProviderAndType(String providerId, String sensorType){
+	private List<Sensor> getSensorsByProvider(String providerId, Map<String,String> filterParams){				
 		SearchFilter filter = new SearchFilter();
 		filter.addAndParam("providerId", providerId);
-		if(StringUtils.hasText(sensorType)){
-			filter.addAndParam("type", sensorType);
-		}
+		
+		if(StringUtils.hasText(filterParams.get("type"))){
+			filter.addAndParam("type", filterParams.get("type"));
+		}		
 								
 		return sensorService.search(filter).getContent();
 	}
 	
-	private List<Component> getComponentsByProvider(String providerId, Map<String, List<Component>> mapComponents){
+	private List<Component> getComponentsByProvider(String providerId, Map<String, List<Component>> mapComponents, Map<String,String> filterParams){
 		
 		List<Component> components = mapComponents.get(providerId);
 		if(components == null){
 			SearchFilter filter = new SearchFilter();
 			filter.addAndParam("providerId", providerId);		
+			
+			if(StringUtils.hasText(filterParams.get("component"))){
+				filter.addAndParam("name", filterParams.get("component"));
+			}
+			
+			if(StringUtils.hasText(filterParams.get("componentType"))){
+				filter.addAndParam("componentType", filterParams.get("componentType"));
+			}
 									
 			components = componentService.search(filter).getContent();
 			mapComponents.put(providerId, components);

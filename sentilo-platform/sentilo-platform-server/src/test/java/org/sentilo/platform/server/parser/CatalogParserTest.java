@@ -69,7 +69,8 @@ public class CatalogParserTest {
 		String providerId = PROVIDER_ID;		
 		
 		String json = "{\"sensors\":[{\"sensor\":\"REC012\",\"description\":\"sensor 12\",\"type\":\"humidity\",\"dataType\":\"number\",\"unit\":\"grams\"}," +
-				"{\"sensor\":\"REC013\",\"description\":\"sensor 13\",\"type\":\"humidity\",\"dataType\":\"number\",\"unit\":\"grams\",\"component\":\"comp01\",\"componentDesc\":\"desc del comp\"}]}";		
+				"{\"sensor\":\"REC013\",\"description\":\"sensor 13\",\"type\":\"humidity\",\"dataType\":\"number\",\"unit\":\"grams\",\"component\":\"comp01\",\"componentDesc\":\"desc del comp\"},"+
+				"{\"sensor\":\"REC014\",\"type\":\"humidity\",\"dataType\":\"number\",\"unit\":\"grams\",\"publicAccess\":true,\"additionalInfo\":{\"field1\":\"mock value\"}}]}";		
 				
 		when(sentiloRequest.getBody()).thenReturn(json);
 		when(sentiloRequest.getResourcePart(0)).thenReturn(providerId);		
@@ -78,7 +79,8 @@ public class CatalogParserTest {
 				
 		assertEquals(PROVIDER_ID,message.getProviderId());				
 		assertNotNull(message.getSensors());
-		assertEquals(message.getSensors().size(),2);
+		assertEquals(message.getSensors().size(),3);
+		assertNotNull(message.getSensors().get(2).getAdditionalInfo());
 	}				
 	
 	@Test(expected=JsonConverterException.class)

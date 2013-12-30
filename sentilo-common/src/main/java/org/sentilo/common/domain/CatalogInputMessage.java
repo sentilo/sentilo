@@ -31,6 +31,7 @@
 package org.sentilo.common.domain;
 
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -39,13 +40,14 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class CatalogInputMessage implements PlatformInputMessage{
 	
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-	private String providerId;	
-	@JsonIgnore
-	private String sensorType;
+	private String providerId;		
 	@JsonIgnore
 	private String entityId;
 	@JsonIgnore
 	private String body;
+	
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+	private Map<String,String> parameters;
 	
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
 	private List<CatalogSensor> sensors;	
@@ -57,10 +59,10 @@ public class CatalogInputMessage implements PlatformInputMessage{
 		super();
 	}
 	
-	public CatalogInputMessage(String entityId, String sensorType){
+	public CatalogInputMessage(String entityId, Map<String,String> parameters){
 		this();
 		this.entityId = entityId;
-		this.sensorType = sensorType;
+		this.parameters = parameters;
 	}
 	
 		
@@ -85,21 +87,9 @@ public class CatalogInputMessage implements PlatformInputMessage{
 		this.body = body;
 	}
 
-
 	public String getBody() {
 		return body;
 	}
-
-
-	public void setSensorType(String sensorType) {
-		this.sensorType = sensorType;
-	}
-
-
-	public String getSensorType() {
-		return sensorType;
-	}
-
 
 	public void setEntityId(String entityId) {
 		this.entityId = entityId;
@@ -116,5 +106,13 @@ public class CatalogInputMessage implements PlatformInputMessage{
 
 	public void setComponents(List<CatalogComponent> components) {
 		this.components = components;
+	}
+
+	public void setParameters(Map<String,String> parameters) {
+		this.parameters = parameters;
+	}
+
+	public Map<String,String> getParameters() {
+		return parameters;
 	}
 }

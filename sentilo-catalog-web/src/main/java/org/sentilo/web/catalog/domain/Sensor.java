@@ -32,6 +32,7 @@ package org.sentilo.web.catalog.domain;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.Pattern;
 
@@ -70,6 +71,7 @@ public class Sensor implements CatalogDocument {
 	private String componentId;
 
 	private String description;
+	
 	private DataType dataType;
 
 	@DateTimeFormat(pattern = Constants.DATE_FORMAT)
@@ -81,33 +83,21 @@ public class Sensor implements CatalogDocument {
 	@NotBlank
 	private String type;
 
-	@NotBlank
 	private String unit;
+	
 	private String validTime;
 	
-	//Additional info
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String metaData;
-
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String manufacturer;
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String modelReference;
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String serialNumber;
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	@DateTimeFormat(pattern = Constants.DATE_FORMAT)
-	private Date installationDate;
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String parentId;
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String ipAddress;
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String observations;	
 	@JsonSerialize(include=Inclusion.NON_EMPTY)
 	private String tags;
-
+	
 	private Boolean publicAccess = Boolean.FALSE;
+	
+	@JsonSerialize(include=Inclusion.NON_EMPTY)
+	private String metaData;
+	
+	//Additional info
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+	private Map<String,String> additionalInfo;		
 
 	public Sensor() {
 
@@ -207,14 +197,6 @@ public class Sensor implements CatalogDocument {
 		this.validTime = validTime;
 	}
 
-	public String getMetaData() {
-		return metaData;
-	}
-
-	public void setMetaData(String metaData) {
-		this.metaData = metaData;
-	}
-
 	public String getProviderId() {
 		return providerId;
 	}
@@ -245,63 +227,7 @@ public class Sensor implements CatalogDocument {
 
 	public Date getUpdateAt() {
 		return updateAt;
-	}
-
-	public String getManufacturer() {
-		return manufacturer;
-	}
-
-	public void setManufacturer(String manufacturer) {
-		this.manufacturer = manufacturer;
-	}
-
-	public String getModelReference() {
-		return modelReference;
-	}
-
-	public void setModelReference(String modelReference) {
-		this.modelReference = modelReference;
-	}
-
-	public String getSerialNumber() {
-		return serialNumber;
-	}
-
-	public void setSerialNumber(String serialNumber) {
-		this.serialNumber = serialNumber;
-	}
-
-	public Date getInstallationDate() {
-		return installationDate;
-	}
-
-	public void setInstallationDate(Date installationDate) {
-		this.installationDate = installationDate;
-	}
-
-	public String getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
-	}
-
-	public String getIpAddress() {
-		return ipAddress;
-	}
-
-	public void setIpAddress(String ipAddress) {
-		this.ipAddress = ipAddress;
-	}
-
-	public String getObservations() {
-		return observations;
-	}
-
-	public void setObservations(String observations) {
-		this.observations = observations;
-	}
+	}	
 
 	public void setId(String id) {
 		this.id = id;
@@ -333,5 +259,21 @@ public class Sensor implements CatalogDocument {
 
 	public void setComponentId(String componentId) {
 		this.componentId = componentId;
+	}
+
+	public void setAdditionalInfo(Map<String,String> additionalInfo) {
+		this.additionalInfo = additionalInfo;
+	}
+
+	public Map<String,String> getAdditionalInfo() {
+		return additionalInfo;
+	}
+
+	public void setMetaData(String metaData) {
+		this.metaData = metaData;
+	}
+
+	public String getMetaData() {
+		return metaData;
 	}
 }

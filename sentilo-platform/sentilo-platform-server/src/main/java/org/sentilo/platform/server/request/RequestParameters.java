@@ -52,5 +52,9 @@ public class RequestParameters {
 
 	public String get(String key) {
 		return parameters.get(key);
-	}
+	}	
+
+	public Map<String, String> getParameters() {
+		return parameters;
+	}	
 }

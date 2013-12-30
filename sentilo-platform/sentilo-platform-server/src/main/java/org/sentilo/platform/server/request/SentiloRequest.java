@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -88,6 +89,10 @@ public class SentiloRequest {
 	
 	public String getRequestParameter(String paramName) {		
 		return parameters.get(paramName);
+	}
+	
+	public Map<String,String> getParameters(){
+		return parameters.getParameters();
 	}
 
 	public void processResource(String path) {

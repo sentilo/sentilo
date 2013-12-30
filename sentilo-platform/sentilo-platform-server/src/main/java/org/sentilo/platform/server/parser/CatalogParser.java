@@ -68,10 +68,9 @@ public class CatalogParser extends PlatformJsonMessageConverter {
 		
 	
 	public CatalogInputMessage parseGetRequest(SentiloRequest request) {		
-		String entityId = request.getEntitySource();
-		String sensorType = request.getRequestParameter("type");		
+		String entityId = request.getEntitySource();							
 				
-		return new CatalogInputMessage(entityId, sensorType);
+		return new CatalogInputMessage(entityId, request.getParameters());
 	}
 	
 	public CatalogDeleteInputMessage parseDeleteRequest(SentiloRequest request) throws PlatformException{

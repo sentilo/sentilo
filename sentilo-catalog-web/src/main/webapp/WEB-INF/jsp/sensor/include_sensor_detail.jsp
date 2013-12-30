@@ -84,55 +84,15 @@
 		</div>
 	</div>
 	<div class="${tab2PaneClass}" id="tab2">
-		<div class="accordion" id="detailAdditionalInfoAccordion">
-		<div class="accordion-group">
-			<div class="accordion-heading">
-				<a class="accordion-toggle" data-toggle="collapse" data-parent="#detailAdditionalInfoAccordion" href="#detailAdditionalInfoAccordionCollapse">
-					<i class="icon-th"></i>
-					<spring:message code="data" />
-					<i class="icon-chevron-down pull-right"></i>
-				</a>
-			</div>
-			<div id="detailAdditionalInfoAccordionCollapse" class="accordion-body collapse in">
-				<div class="accordion-inner">
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.manufacturer" /></strong></div>
-						<div class="span8">${sensor.manufacturer}</div>
+		<div class="accordion" id="detailAdditionalInfoAccordion">		
+			<%@include file="include_sensor_additional_info.jsp" %>
+			<br/>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="control-group pull-right">
+						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp" %>
 					</div>
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.modelReference" /></strong></div>
-						<div class="span8">${sensor.modelReference}</div>
-					</div>
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.serialNumber" /></strong></div>
-						<div class="span8">${sensor.serialNumber}</div>
-					</div>
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.installationDate" /></strong></div>
-						<div class="span8"><spring:eval expression="sensor.installationDate"/></div>
-					</div>
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.parentId" /></strong></div>
-						<div class="span8">${sensor.parentId}</div>
-					</div>
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.ipAddress" /></strong></div>
-						<div class="span8">${sensor.ipAddress}</div>
-					</div>
-					<div class="row-fluid">
-						<div class="span4"><strong><spring:message code="sensor.observations" /></strong></div>
-						<div class="span8">${sensor.observations}</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<br/>
-		<div class="row-fluid">
-			<div class="span12">
-				<div class="control-group pull-right">
-					<%@include file="/WEB-INF/jsp/common/include_input_back.jsp" %>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>

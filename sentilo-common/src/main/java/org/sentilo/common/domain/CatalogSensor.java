@@ -30,6 +30,8 @@
  */
 package org.sentilo.common.domain;
 
+import java.util.Map;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -49,11 +51,19 @@ public class CatalogSensor implements CatalogElement{
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 	private String unit;
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+	private Boolean publicAccess;
+	
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 	private String component;
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 	private String componentType;
 	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 	private String componentDesc;
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+	private Boolean componentPublicAccess;
+	
+	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+	private Map<String,String> additionalInfo;
 	
 	public CatalogSensor(){
 		super();
@@ -124,5 +134,29 @@ public class CatalogSensor implements CatalogElement{
 
 	public String getComponentDesc() {
 		return componentDesc;
+	}
+
+	public void setAdditionalInfo(Map<String,String> additionalInfo) {
+		this.additionalInfo = additionalInfo;
+	}
+
+	public Map<String,String> getAdditionalInfo() {
+		return additionalInfo;
+	}
+
+	public void setPublicAccess(Boolean publicAccess) {
+		this.publicAccess = publicAccess;
+	}
+
+	public Boolean getPublicAccess() {
+		return publicAccess;
+	}
+
+	public void setComponentPublicAccess(Boolean componentPublicAccess) {
+		this.componentPublicAccess = componentPublicAccess;
+	}
+
+	public Boolean getComponentPublicAccess() {
+		return componentPublicAccess;
 	}		
 }

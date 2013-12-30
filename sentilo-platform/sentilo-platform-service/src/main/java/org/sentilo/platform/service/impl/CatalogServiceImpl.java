@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 
 @Service
@@ -120,11 +120,12 @@ public class CatalogServiceImpl implements CatalogService {
 	public CatalogResponseMessage getAuthorizedProviders(CatalogInputMessage message) {
 		try{			
 			RequestParameters parameters = new RequestParameters();
-			String path = buildApiPath("authorized","provider",message.getEntityId()); 
-				
-			if(StringUtils.hasText(message.getSensorType())){
-				parameters.put("type", message.getSensorType());
-			}			
+			String path = buildApiPath("authorized","provider",message.getEntityId()); 							
+			
+			if(!CollectionUtils.isEmpty(message.getParameters())){
+				parameters.put(message.getParameters());
+			}
+						
 			String response = restClient.get(path, parameters);			
 			return parser.parseCatalogResponse(response);
 		}catch(NestedRuntimeException rce){

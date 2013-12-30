@@ -35,7 +35,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +80,7 @@ public class ApiControllerIntegrationTest {
 	private static final String MOCK_APP = "mockApp";
 	private static final String MOCK_COMPONENT = "mockComponent";
 	private static final String MOCK_COMPONENT_2 = "mockComponent2";
+	private static final String COMP_DEMO = "comp_demo";
 	private static final String MOCK_SENSOR_1 = "mockSensor1";
 	private static final String MOCK_SENSOR_2 = "mockSensor2";
 	private static final String MOCK_TYPE = "mockType";
@@ -105,17 +108,34 @@ public class ApiControllerIntegrationTest {
 	
 	@Test
 	public void getAuthorizedProviders(){									
-		CatalogResponseMessage response = controller.getAuthorizedProviders(MOCK_APP, null);
+		Map<String,String> filterParams = new HashMap<String, String>();				
+		CatalogResponseMessage response = controller.getAuthorizedProviders(MOCK_APP, filterParams);
 		assertTrue(CollectionUtils.isEmpty(response.getProviders()));
 		
-		response = controller.getAuthorizedProviders(DEMO_APP, null);
+		response = controller.getAuthorizedProviders(DEMO_APP, filterParams);
 		assertTrue(!CollectionUtils.isEmpty(response.getProviders()));
 		
-		response = controller.getAuthorizedProviders(DEMO_APP, MOCK_TYPE);
+		filterParams.put("type", MOCK_TYPE);
+		response = controller.getAuthorizedProviders(DEMO_APP, filterParams);
 		assertTrue(CollectionUtils.isEmpty(response.getProviders()));
 		
-		response = controller.getAuthorizedProviders(DEMO_APP, TEMP_TYPE);
-		assertTrue(!CollectionUtils.isEmpty(response.getProviders()));			
+		filterParams.clear();
+		filterParams.put("type", TEMP_TYPE);
+		response = controller.getAuthorizedProviders(DEMO_APP, filterParams);
+		assertTrue(!CollectionUtils.isEmpty(response.getProviders()));		
+		
+		filterParams.clear();
+		filterParams.put("type", TEMP_TYPE);
+		filterParams.put("component", MOCK_COMPONENT);
+		response = controller.getAuthorizedProviders(DEMO_APP, filterParams);
+		assertTrue(CollectionUtils.isEmpty(response.getProviders()));
+		
+		filterParams.clear();
+		filterParams.put("type", TEMP_TYPE);
+		filterParams.put("component", COMP_DEMO);
+		response = controller.getAuthorizedProviders(DEMO_APP, filterParams);
+		assertTrue(!CollectionUtils.isEmpty(response.getProviders()));
+		
 	}
 	
 	@Test

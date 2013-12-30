@@ -24,6 +24,11 @@
 		<commons.codec.version>1.7</commons.codec.version>		
 	</properties>
 
+	<build>
+	    <!-- The war name must be connecta-catalog web and not the default value sentilo-catalog-web-1.0.0-RC1.war -->	
+		<finalName>sentilo-catalog-web</finalName>
+	</build>
+
 	<dependencies>		
 		<dependency>
 			<groupId>org.sentilo.platform</groupId>

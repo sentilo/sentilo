@@ -32,7 +32,9 @@ package org.sentilo.web.catalog.converter;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.sentilo.common.domain.CatalogComponent;
 import org.sentilo.common.domain.CatalogElement;
@@ -52,9 +54,10 @@ public abstract class ApiConverter {
 		List<CatalogSensor>  catalogSensors = new ArrayList<CatalogSensor>();
 		
 		for(Sensor sensor: sensors){
-			CatalogSensor catalogSensor = convertToCatalogSensor(sensor);
+			
 			int pos = components.indexOf(new Component(sensor.getComponentId())); 
 			if(pos!=-1){
+				CatalogSensor catalogSensor = convertToCatalogSensor(sensor);
 				Component component = components.get(pos);
 				catalogSensor.setComponent(component.getName());
 				if(component.getLocation()!=null){
@@ -66,8 +69,12 @@ public abstract class ApiConverter {
 				if(StringUtils.hasText(component.getComponentType())){
 					catalogSensor.setComponentType(component.getComponentType());
 				}
-			}
-			catalogSensors.add(catalogSensor);
+				if(component.getPublicAccess()!=null){
+					catalogSensor.setComponentPublicAccess(component.getPublicAccess());
+				}
+				
+				catalogSensors.add(catalogSensor);
+			}			
 		}
 		
 		return catalogSensors; 
@@ -114,6 +121,15 @@ public abstract class ApiConverter {
 		sensor.setType(catalogSensor.getType());
 		sensor.setUnit(catalogSensor.getUnit());
 		sensor.setDataType(parseDataTypeValue(catalogSensor.getDataType()));
+		
+		if(catalogSensor.getPublicAccess()!=null){
+			sensor.setPublicAccess(catalogSensor.getPublicAccess());
+		}
+		
+		if(!CollectionUtils.isEmpty(catalogSensor.getAdditionalInfo())){
+			sensor.setAdditionalInfo(catalogSensor.getAdditionalInfo());
+		}
+		
 		sensor.setCreatedAt(new Date());
 		sensor.setUpdateAt(new Date());
 		return sensor;
@@ -138,7 +154,21 @@ public abstract class ApiConverter {
 			
 			if(CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getUnit())){
 				sensor.setUnit(catalogSensor.getUnit());
-			}						
+			}	
+			
+			if(catalogSensor.getPublicAccess()!=null){
+				sensor.setPublicAccess(catalogSensor.getPublicAccess());
+			}
+			
+			if(!CollectionUtils.isEmpty(catalogSensor.getAdditionalInfo())){				
+				Map<String,String> sensorAdditionalInfoToUpdate = sensor.getAdditionalInfo();
+				
+				if(CollectionUtils.isEmpty(sensorAdditionalInfoToUpdate)){
+					sensorAdditionalInfoToUpdate = new HashMap<String, String>();
+				}
+				
+				sensorAdditionalInfoToUpdate.putAll(catalogSensor.getAdditionalInfo());
+			}
 			
 			sensor.setUpdateAt(new Date());						
 		}
@@ -152,9 +182,14 @@ public abstract class ApiConverter {
 		catalogSensor.setType(sensor.getType());			
 		catalogSensor.setDataType(sensor.getDataType().name());
 		catalogSensor.setUnit(sensor.getUnit());	
+		catalogSensor.setPublicAccess(sensor.getPublicAccess());
 		
 		if(StringUtils.hasText(sensor.getDescription())){
 			catalogSensor.setDescription(sensor.getDescription());
+		}
+		
+		if(!CollectionUtils.isEmpty(sensor.getAdditionalInfo())){
+			catalogSensor.setAdditionalInfo(sensor.getAdditionalInfo());
 		}
 		
 		return catalogSensor;
@@ -212,6 +247,10 @@ public abstract class ApiConverter {
 			if(CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getComponentDesc())){
 				component.setDescription(catalogSensor.getComponentDesc());
 			}
+			
+			if(catalogSensor.getComponentPublicAccess()!=null){
+				component.setPublicAccess(catalogSensor.getComponentPublicAccess());
+			}
 							
 			component.setId(Component.buildId(context.getProviderId(), component.getName()));
 			component.setCreatedAt(new Date());
@@ -240,6 +279,10 @@ public abstract class ApiConverter {
 			if(CatalogUtils.stringIsNotEmptyOrNull(catalogComponent.getLocation())){
 				component.setLocation(CatalogUtils.convertStringLocation(catalogComponent.getLocation()));
 				component.setMobile(Constants.STATIC);
+			}
+			
+			if(catalogComponent.getComponentPublicAccess()!=null){
+				component.setPublicAccess(catalogComponent.getComponentPublicAccess());
 			}
 			
 			component.setUpdateAt(new Date());
