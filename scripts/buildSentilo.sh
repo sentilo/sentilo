@@ -1,28 +1,28 @@
 #!/bin/bash
 
 function not_m2_home () {
-	echo ""
-	echo "ERROR: M2_HOME is set to an invalid directory, or not set."
-	echo "M2_HOME = $M2_HOME"
-	echo "Please set the M2_HOME variable in your environment to match the location of the Maven installation"
-	echo ""
-	ERROR_LEVEL="1"
+        echo ""
+        echo "ERROR: your operating system's PATH environment variable does not include properly Maven."
+        echo "PATH = $PATH"
+        echo "Please add Maven to your system's PATH environment variable."
+        echo ""
+        ERROR_LEVEL="1"
 }
 
 function not_java_home () {
-	echo ""
-	echo "ERROR: JAVA_HOME is set to an invalid directory, or not set."
-	echo "JAVA_HOME = $JAVA_HOME"
-	echo "Please set the JAVA_HOME variable in your environment to match the location of the Java installation"
-	echo ""
-	ERROR_LEVEL="1"
+        echo ""
+        echo "ERROR: your operating system's PATH environment variable does not include properly Java."
+        echo "PATH = $PATH"
+        echo "Please add Java to your system's PATH environment variable."
+        echo ""
+        ERROR_LEVEL="1"
 }
 
 function error() {
-	cd $CURRENT_DIR;
-	echo "Error code : ${ERROR_LEVEL}" 
-	echo ""
-	exit $ERROR_LEVEL;
+        cd $CURRENT_DIR;
+        echo "Error code : ${ERROR_LEVEL}"
+        echo ""
+        exit $ERROR_LEVEL;
 }
 
 
@@ -34,19 +34,16 @@ ERROR_LEVEL="0"
 
 clear
 
-# Step 0: Validate prerequisites: environment variables M2_HOME and JAVA_HOME must be 
-# M2_HOME environment variable
-if [ ! -d "$M2_HOME" ]; then not_m2_home; fi
-if [ ! -d "$JAVA_HOME" ]; then not_java_home; fi
+# Step 0: Validate prerequisites: environment variable PATH is properly defined
 if hash mvn 2>/dev/null; then
-	echo "maven runs..."
+        echo "maven runs..."
 else
-	not_m2_home;
+        not_m2_home;
 fi
 if hash java 2>/dev/null; then
-	echo "java runs.."
+        echo "java runs.."
 else
-	not_java_home;
+        not_java_home;
 fi
 if [ "$ERROR_LEVEL" == "1" ]; then error; fi
 clear
