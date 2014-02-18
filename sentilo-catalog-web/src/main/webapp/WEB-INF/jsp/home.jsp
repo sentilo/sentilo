@@ -1,11 +1,10 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
 
-<spring:url value="/component/map" var="startURL"/>
+<spring:url value="/component/map" var="startURL" />
 
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -18,19 +17,21 @@
 		<div class="row-fluid">
 			<div id="heroBanner" class="hero-unit">
 				<br>
-				<h1><spring:message code="app.name" htmlEscape="false"/></h1>
+				<h1>
+					<spring:message code="app.name" htmlEscape="false" />
+				</h1>
 				<p>
-					<spring:message code="generic.title"/><br/>
+					<spring:message code="generic.title" />
+					<br />
 				</p>
-				<br/>
+				<br />
 				<p>
-					<a id="exploreButton" class="btn btn-inverse btn-large" href="${startURL}">
-						<spring:message code="start.browsing" />
-					</a>
+					<a id="exploreButton" class="btn btn-inverse btn-large" href="${startURL}"> <spring:message
+							code="start.browsing" /> </a>
 				</p>
 			</div>
-			<c:set var="mapClass" value="maphome"/>
-			<%@include file="/WEB-INF/jsp/component/public/include_component_map.jsp" %>
+			<c:set var="mapClass" value="maphome" />
+			<%@include file="/WEB-INF/jsp/component/public/include_component_map.jsp"%>
 		</div>
 		<!-- div class="content" id="home">
 			<div class="row-fluid">

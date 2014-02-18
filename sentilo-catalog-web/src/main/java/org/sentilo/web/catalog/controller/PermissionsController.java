@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
@@ -64,112 +59,110 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
 @Controller
 @RequestMapping("/permissions")
 public class PermissionsController extends SearchController<Permission> {
 
-	@Autowired
-	private ApplicationService applicationService;
+  @Autowired
+  private ApplicationService applicationService;
 
-	@Autowired
-	private PermissionService permissionService;
+  @Autowired
+  private PermissionService permissionService;
 
-	@Autowired
-	private ProviderService providerService;
+  @Autowired
+  private ProviderService providerService;
 
-	@Autowired
-	private MessageSource messageSource;
+  @Autowired
+  private MessageSource messageSource;
 
-	@ModelAttribute(Constants.MODEL_ACTIVE_MENU)
-	public String getActiveMenu() {
-		return Constants.MENU_APPLICATION;
-	}
+  @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
+  public String getActiveMenu() {
+    return Constants.MENU_APPLICATION;
+  }
 
-	@RequestMapping(value = "/application/{id}/add", method = RequestMethod.GET)
-	public String showApplicationPermissions(@PathVariable String id, Model model) {
+  @RequestMapping(value = "/application/{id}/add", method = RequestMethod.GET)
+  public String showApplicationPermissions(@PathVariable final String id, final Model model) {
 
-		addPermissionTypesToModel(model);
+    addPermissionTypesToModel(model);
 
-		//TODO Falta filtrar aquellos proveedores para los que no tiene permiso la app
-		List<Provider> providers = providerService.findAll();
-		List<Application> applications = applicationService.findAll();
-		PermissionsDTO form = new PermissionsDTO(id, providers, applications);
-		model.addAttribute(Constants.MODEL_PERMISSIONS, form);
+    // TODO Falta filtrar aquellos proveedores para los que no tiene permiso la app
+    final List<Provider> providers = providerService.findAll();
+    final List<Application> applications = applicationService.findAll();
+    final PermissionsDTO form = new PermissionsDTO(id, providers, applications);
+    model.addAttribute(Constants.MODEL_PERMISSIONS, form);
 
-		return Constants.VIEW_ADD_APPLICATION_PERMISSIONS;
-	}
+    return Constants.VIEW_ADD_APPLICATION_PERMISSIONS;
+  }
 
-	@RequestMapping(value = "/application/{id}/add", method = RequestMethod.POST)
-	public String addApplicationPermissions(@Valid PermissionsDTO permissions, BindingResult result, @PathVariable String id, Model model) {
+  @RequestMapping(value = "/application/{id}/add", method = RequestMethod.POST)
+  public String addApplicationPermissions(@Valid final PermissionsDTO permissions, final BindingResult result, @PathVariable final String id, final Model model) {
 
-		createPermissions(id, permissions.getSelectedProvidersIds(), permissions.getPermissionType());
-		createPermissions(id, permissions.getSelectedApplicationsIds(), permissions.getPermissionType());
+    createPermissions(id, permissions.getSelectedProvidersIds(), permissions.getPermissionType());
+    createPermissions(id, permissions.getSelectedApplicationsIds(), permissions.getPermissionType());
 
-		return viewApplicationDetail(id, model, "permission.added");
-	}
+    return viewApplicationDetail(id, model, "permission.added");
+  }
 
-	@RequestMapping(value = "/application/{id}/remove", method = RequestMethod.POST)
-	public String removeApplicationPermissions(@Valid PermissionsDTO permissions, BindingResult result, @PathVariable String id, Model model) {
+  @RequestMapping(value = "/application/{id}/remove", method = RequestMethod.POST)
+  public String removeApplicationPermissions(@Valid final PermissionsDTO permissions, final BindingResult result, @PathVariable final String id, final Model model) {
 
-		permissionService.delete(permissions.getSelectedPermissions());
-		return viewApplicationDetail(id, model, "permission.deleted");
-	}
+    permissionService.delete(permissions.getSelectedPermissions());
+    return viewApplicationDetail(id, model, "permission.deleted");
+  }
 
-	@RequestMapping("/application/{id}")
-	public @ResponseBody
-	DataTablesDTO getApplicationPermissions(HttpServletRequest request, Model model, Pageable pageable, @PathVariable String id, @RequestParam Integer sEcho,
-			@RequestParam(required = false) String search) {
-		return getPageList(model, request, pageable, sEcho, search);
-	}
+  @RequestMapping("/application/{id}")
+  @ResponseBody
+  public DataTablesDTO getApplicationPermissions(final HttpServletRequest request, final Model model, final Pageable pageable, @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam(required = false) final String search) {
+    return getPageList(model, request, pageable, sEcho, search);
+  }
 
-	@Override
-	protected void doBeforeSearchPage(HttpServletRequest request, SearchFilter filter) {
-		String id = SearchFilterUtils.getUriVariableValue(request, "/permissions/application/{id}", "id");
-		if (StringUtils.hasText(id)) {
-			filter.addParam("source", id);
-		}
-	}
+  @Override
+  protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
+    final String id = SearchFilterUtils.getUriVariableValue(request, "/permissions/application/{id}", "id");
+    if (StringUtils.hasText(id)) {
+      filter.addParam("source", id);
+    }
+  }
 
-	@Override
-	protected List<String> toRow(Permission permission) {
-		List<String> row = new ArrayList<String>();
-		row.add(permission.getId());
-		row.add(permission.getTarget());
-		row.add(messageSource.getMessage("permission." + permission.getType().toString(), null, Locale.getDefault()));
-		return row;
-	}
+  @Override
+  protected List<String> toRow(final Permission permission) {
+    final List<String> row = new ArrayList<String>();
+    row.add(permission.getId());
+    row.add(permission.getTarget());
+    row.add(messageSource.getMessage("permission." + permission.getType().toString(), null, Locale.getDefault()));
+    return row;
+  }
 
-	@Override
-	protected CrudService<Permission> getService() {
-		return permissionService;
-	}
+  @Override
+  protected CrudService<Permission> getService() {
+    return permissionService;
+  }
 
-	@Override
-	protected void initViewNames() {
-	}
+  @Override
+  protected void initViewNames() {
+  }
 
-	private void createPermissions(String sourceId, String[] selectedIds, Permission.Type type) {
-		for (String targetId : selectedIds) {
-			Permission permission = new Permission(sourceId, targetId, type);
-			permissionService.create(permission);
-		}
-	}
+  private void createPermissions(final String sourceId, final String[] selectedIds, final Permission.Type type) {
+    for (final String targetId : selectedIds) {
+      final Permission permission = new Permission(sourceId, targetId, type);
+      permissionService.create(permission);
+    }
+  }
 
-	private String viewApplicationDetail(String id, Model model, String messageCode) {
-		ModelUtils.addConfirmationMessageTo(model, messageCode);
-		ModelUtils.addOpenedTabTo(model, Constants.TAB_2);
+  private String viewApplicationDetail(final String id, final Model model, final String messageCode) {
+    ModelUtils.addConfirmationMessageTo(model, messageCode);
+    ModelUtils.addOpenedTabTo(model, Constants.TAB_2);
 
-		addApplicationToModel(id, model);
-		return Constants.VIEW_APPLICATION_DETAIL;
-	}
+    addApplicationToModel(id, model);
+    return Constants.VIEW_APPLICATION_DETAIL;
+  }
 
-	private void addApplicationToModel(String id, Model model) {
-		Application application = applicationService.findAndThrowErrorIfNotExist(new Application(id));
-		model.addAttribute(Constants.MODEL_APPLICATION, application);
-	}
+  private void addApplicationToModel(final String id, final Model model) {
+    final Application application = applicationService.findAndThrowErrorIfNotExist(new Application(id));
+    model.addAttribute(Constants.MODEL_APPLICATION, application);
+  }
 
-	private void addPermissionTypesToModel(Model model) {
-		model.addAttribute(Constants.MODEL_PERMISSION_TYPES, Permission.Type.values());
-	}
+  private void addPermissionTypesToModel(final Model model) {
+    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, Permission.Type.values());
+  }
 }

@@ -62,10 +62,14 @@ $(document).ready(function() {
 <div class="control-group">
 	<div class="controls">
 		<div data-toggle="buttons-radio" class="btn-group">
-			<button type="button" id="btnStatic" class="btn" onclick="toggleMobile(0);"><spring:message code="static" /></button>
-			<button type="button" id="btnMobile" class="btn" onclick="toggleMobile(1);"><spring:message code="mobile" /></button>
+			<button type="button" id="btnStatic" class="btn" onclick="toggleMobile(0);">
+				<spring:message code="static" />
+			</button>
+			<button type="button" id="btnMobile" class="btn" onclick="toggleMobile(1);">
+				<spring:message code="mobile" />
+			</button>
 		</div>
-		<form:hidden path="mobile" id="mobile"/>
+		<form:hidden path="mobile" id="mobile" />
 	</div>
 </div>
 
@@ -74,7 +78,7 @@ $(document).ready(function() {
 		<spring:message code="location.latitude" />
 	</form:label>
 	<div class="controls">
-		<form:input path="location.latitude" disabled="true" id="latitude"/>
+		<form:input path="location.latitude" disabled="true" id="latitude" />
 		<form:errors path="location.latitude" cssClass="text-error" htmlEscape="false" />
 	</div>
 </div>
@@ -83,14 +87,12 @@ $(document).ready(function() {
 		<spring:message code="location.longitude" />
 	</form:label>
 	<div class="controls">
-		<form:input path="location.longitude" disabled="true" id="longitude"/>
+		<form:input path="location.longitude" disabled="true" id="longitude" />
 		<form:errors path="location.longitude" cssClass="text-error" htmlEscape="false" />
 	</div>
 </div>
 <div class="control-group">
-	<label for="locationaddress" class="control-label">
-		<spring:message code="location.address" />
-	</label>
+	<label for="locationaddress" class="control-label"> <spring:message code="location.address" /> </label>
 	<div class="controls">
 		<input type="text" id="locationaddress" disabled="disabled" />
 	</div>
@@ -98,13 +100,13 @@ $(document).ready(function() {
 <div class="control-group">
 	<div class="controls">
 		<div id="map_controls" class="hide">
-		    <form class="form-inline row-fluid">
-		        <button id="locate" class="btn" type="button" onclick="">
-		            <i class="connecta-icon-location">&nbsp;&nbsp;&nbsp;</i>
-		        </button>
-		    </form>
+			<form class="form-inline row-fluid">
+				<button id="locate" class="btn" type="button" onclick="">
+					<i class="connecta-icon-location">&nbsp;&nbsp;&nbsp;</i>
+				</button>
+			</form>
 		</div>
-	
+
 		<div id="input_location_map_canvas" class="input_location_map" style="width: 100%;">Map placeholder</div>
 	</div>
 </div>

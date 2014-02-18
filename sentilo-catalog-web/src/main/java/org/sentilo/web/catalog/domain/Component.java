@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.domain;
 
@@ -45,189 +40,188 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
-
 @Document
 public class Component implements CatalogDocument {
 
-	private static final long serialVersionUID = 1L;	
+  private static final long serialVersionUID = 1L;
 
-	@Id	
-	private String id;
+  @Id
+  private String id;
 
-	@NotBlank
-	@Pattern(regexp = Constants.VALIDATION_ENTITY_NAME_REGEXP)
-	private String name;
+  @NotBlank
+  @Pattern(regexp = Constants.VALIDATION_ENTITY_NAME_REGEXP)
+  private String name;
 
-	private String description;
-	
-	@NotBlank
-	private String providerId;
+  private String description;
 
-	private Location location;	
+  @NotBlank
+  private String providerId;
 
-	@DateTimeFormat(pattern = Constants.DATE_FORMAT)
-	private Date createdAt;
+  private Location location;
 
-	@DateTimeFormat(pattern = Constants.DATE_FORMAT)
-	private Date updateAt;
+  @DateTimeFormat(pattern = Constants.DATE_FORMAT)
+  private Date createdAt;
 
-	private int mobile = Constants.MOBILE;
+  @DateTimeFormat(pattern = Constants.DATE_FORMAT)
+  private Date updateAt;
 
-	private String parentId;
+  private int mobile = Constants.MOBILE;
 
-	private String tags;
+  private String parentId;
 
-	private Boolean publicAccess = Boolean.FALSE;
-	
-	private String componentType;
+  private String tags;
 
-	public Component() {
-		
-	}
+  private Boolean publicAccess = Boolean.FALSE;
 
-	public Component(String id) {
-		this();
-		this.id = id;		
-	}
-	
-	public static String buildId(String providerId, String name){		
-		return CompoundKeyBuilder.buildCompoundKey(providerId,name);				
-	}
+  private String componentType;
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Component) || id == null) {
-			return false;
-		}
-		Component other = (Component) obj;		
-		return getId().equals(other.getId());
-	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result*super.hashCode();
-	}
+  public Component() {
 
-	@Override
-	public String getId() {
-		if (!StringUtils.hasText(this.id) && StringUtils.hasText(name) && StringUtils.hasText(providerId)) {
-			this.id = buildId(providerId, name);
-		}
+  }
 
-		return this.id;			
-	}
+  public Component(final String id) {
+    this();
+    this.id = id;
+  }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  public static String buildId(final String providerId, final String name) {
+    return CompoundKeyBuilder.buildCompoundKey(providerId, name);
+  }
 
-	public String getName() {
-		return name;
-	}
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof Component) || id == null) {
+      return false;
+    }
+    final Component other = (Component) obj;
+    return getId().equals(other.getId());
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    return result * super.hashCode();
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  @Override
+  public String getId() {
+    if (!StringUtils.hasText(id) && StringUtils.hasText(name) && StringUtils.hasText(providerId)) {
+      id = buildId(providerId, name);
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    return id;
+  }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+  public void setId(final String id) {
+    this.id = id;
+  }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public Date getUpdateAt() {
-		return updateAt;
-	}
+  public void setName(final String name) {
+    this.name = name;
+  }
 
-	public void setUpdateAt(Date updateAt) {
-		this.updateAt = updateAt;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public Location getLocation() {
-		return location;
-	}
+  public void setDescription(final String description) {
+    this.description = description;
+  }
 
-	public void setLocation(Location location) {
-		this.location = location;
-	}
+  public Date getCreatedAt() {
+    return createdAt;
+  }
 
-	public int getMobile() {
-		return mobile;
-	}
+  public void setCreatedAt(final Date createdAt) {
+    this.createdAt = createdAt;
+  }
 
-	@JsonIgnore
-	public boolean isMobileComponent() {
-		return mobile == Constants.MOBILE;
-	}
+  public Date getUpdateAt() {
+    return updateAt;
+  }
 
-	@JsonIgnore
-	public boolean isStaticComponent() {
-		return mobile == Constants.STATIC;
-	}
+  public void setUpdateAt(final Date updateAt) {
+    this.updateAt = updateAt;
+  }
 
-	public void setMobile(int mobile) {
-		this.mobile = mobile;
-	}
+  public Location getLocation() {
+    return location;
+  }
 
-	public String getParentId() {
-		return parentId;
-	}
+  public void setLocation(final Location location) {
+    this.location = location;
+  }
 
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
-	}
+  public int getMobile() {
+    return mobile;
+  }
 
-	@JsonIgnore
-	public boolean isRoot() {
-		return !StringUtils.hasText(parentId);
-	}	
+  @JsonIgnore
+  public boolean isMobileComponent() {
+    return mobile == Constants.MOBILE;
+  }
 
-	public String getTags() {
-		return tags;
-	}
+  @JsonIgnore
+  public boolean isStaticComponent() {
+    return mobile == Constants.STATIC;
+  }
 
-	public List<String> getTagsAsList() {
-		return TagUtils.toStringList(tags);
-	}
+  public void setMobile(final int mobile) {
+    this.mobile = mobile;
+  }
 
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
+  public String getParentId() {
+    return parentId;
+  }
 
-	public Boolean getPublicAccess() {
-		return publicAccess;
-	}
+  public void setParentId(final String parentId) {
+    this.parentId = parentId;
+  }
 
-	public void setPublicAccess(Boolean publicAccess) {
-		this.publicAccess = publicAccess;
-	}
+  @JsonIgnore
+  public boolean isRoot() {
+    return !StringUtils.hasText(parentId);
+  }
 
-	public String getComponentType() {
-		return componentType;
-	}
+  public String getTags() {
+    return tags;
+  }
 
-	public void setComponentType(String componentType) {
-		this.componentType = componentType;
-	}
+  public List<String> getTagsAsList() {
+    return TagUtils.toStringList(tags);
+  }
 
-	public String getProviderId() {
-		return providerId;
-	}
+  public void setTags(final String tags) {
+    this.tags = tags;
+  }
 
-	public void setProviderId(String providerId) {
-		this.providerId = providerId;
-	}
+  public Boolean getPublicAccess() {
+    return publicAccess;
+  }
+
+  public void setPublicAccess(final Boolean publicAccess) {
+    this.publicAccess = publicAccess;
+  }
+
+  public String getComponentType() {
+    return componentType;
+  }
+
+  public void setComponentType(final String componentType) {
+    this.componentType = componentType;
+  }
+
+  public String getProviderId() {
+    return providerId;
+  }
+
+  public void setProviderId(final String providerId) {
+    this.providerId = providerId;
+  }
 }

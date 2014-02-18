@@ -31,7 +31,7 @@ if not "%ERRORLEVEL%" == "0" goto error
 REM Step 2: Run appassempler plugin into java-standalone modules for generate scripts for starts java processes.
 REM For more  information about plugin visit http://mojo.codehaus.org/appassembler/appassembler-maven-plugin/ 
 cd %CURRENT_DIR%/../sentilo-platform/sentilo-platform-server
-set COMMAND=mvn appassembler:assemble -P dev
+set COMMAND=mvn package appassembler:assemble -P dev
 echo Step 2: Generate scripts for start java processes 
 echo.
 echo %COMMAND%

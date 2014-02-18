@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.pool;
 
@@ -40,142 +35,141 @@ import org.sentilo.platform.server.SentiloThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ThreadPool {
 
-	private static Logger log = LoggerFactory.getLogger(ThreadPool.class);
+  private static Logger log = LoggerFactory.getLogger(ThreadPool.class);
 
-	private ThreadPoolExecutor threadPool;
+  private ThreadPoolExecutor threadPool;
 
-	private int queueSize;
-	private int initialCapacity;
-	private int maxCapacity;
-	private int shutdownSecondsTimeout;
-	private String groupId;
-	private String groupName;
+  private int queueSize;
+  private int initialCapacity;
+  private int maxCapacity;
+  private int shutdownSecondsTimeout;
+  private String groupId;
+  private String groupName;
 
-	private WrapperBlockingQueue queue;
+  private WrapperBlockingQueue queue;
 
-	public void initialize() {
-		log.info("Initializing thread pool.");
-		debug();
+  public void initialize() {
+    log.info("Initializing thread pool.");
+    debug();
 
-		queue = new WrapperBlockingQueue(queueSize);
+    queue = new WrapperBlockingQueue(queueSize);
 
-		threadPool = new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue,	new NativeThreadFactory(new ThreadGroup(groupName), groupId));
-		threadPool.prestartAllCoreThreads();
+    threadPool = new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue, new NativeThreadFactory(new ThreadGroup(groupName), groupId));
+    threadPool.prestartAllCoreThreads();
 
-		threadPool.allowCoreThreadTimeOut(false);
-		threadPool.setRejectedExecutionHandler(new RejectedExecutionHandler() {
+    threadPool.allowCoreThreadTimeOut(false);
+    threadPool.setRejectedExecutionHandler(new RejectedExecutionHandler() {
 
-			@Override
-			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-				queue.backdoorOffer(r);
-			}
-		});
-		log.info("Thread pool initialized");
-	}
+      @Override
+      public void rejectedExecution(final Runnable r, final ThreadPoolExecutor executor) {
+        queue.backdoorOffer(r);
+      }
+    });
+    log.info("Thread pool initialized");
+  }
 
-	public void submit(SentiloThreadPoolExecutor task) {
-		threadPool.submit(task);
-	}
+  public void submit(final SentiloThreadPoolExecutor task) {
+    threadPool.submit(task);
+  }
 
-	public void shutdown() {
-		if (threadPool != null) {
-			threadPool.shutdown();
-			try {
-				if (!threadPool.awaitTermination(shutdownSecondsTimeout, TimeUnit.SECONDS)) {
-					threadPool.shutdownNow();
-				}
-			} catch (InterruptedException ex) {
-				threadPool.shutdownNow();
-				Thread.currentThread().interrupt();
-			}
-		}
-	}
+  public void shutdown() {
+    if (threadPool != null) {
+      threadPool.shutdown();
+      try {
+        if (!threadPool.awaitTermination(shutdownSecondsTimeout, TimeUnit.SECONDS)) {
+          threadPool.shutdownNow();
+        }
+      } catch (final InterruptedException ex) {
+        threadPool.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
 
-	public int getInitialCapacity() {
-		return initialCapacity;
-	}
+  public int getInitialCapacity() {
+    return initialCapacity;
+  }
 
-	public void setInitialCapacity(int initialCapacity) {
-		this.initialCapacity = initialCapacity;
-	}
+  public void setInitialCapacity(final int initialCapacity) {
+    this.initialCapacity = initialCapacity;
+  }
 
-	public int getMaxCapacity() {
-		return maxCapacity;
-	}
+  public int getMaxCapacity() {
+    return maxCapacity;
+  }
 
-	public void setMaxCapacity(int maxCapacity) {
-		this.maxCapacity = maxCapacity;
-	}
+  public void setMaxCapacity(final int maxCapacity) {
+    this.maxCapacity = maxCapacity;
+  }
 
-	public int getShutdownSecondsTimeout() {
-		return shutdownSecondsTimeout;
-	}
+  public int getShutdownSecondsTimeout() {
+    return shutdownSecondsTimeout;
+  }
 
-	public void setShutdownSecondsTimeout(int shutdownSecondsTimeout) {
-		this.shutdownSecondsTimeout = shutdownSecondsTimeout;
-	}
+  public void setShutdownSecondsTimeout(final int shutdownSecondsTimeout) {
+    this.shutdownSecondsTimeout = shutdownSecondsTimeout;
+  }
 
-	public String getGroupId() {
-		return groupId;
-	}
+  public String getGroupId() {
+    return groupId;
+  }
 
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
-	}
+  public void setGroupId(final String groupId) {
+    this.groupId = groupId;
+  }
 
-	public String getGroupName() {
-		return groupName;
-	}
+  public String getGroupName() {
+    return groupName;
+  }
 
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
-	}
+  public void setGroupName(final String groupName) {
+    this.groupName = groupName;
+  }
 
-	public int getQueueSize() {
-		return queueSize;
-	}
+  public int getQueueSize() {
+    return queueSize;
+  }
 
-	public void setQueueSize(int queueSize) {
-		this.queueSize = queueSize;
-	}
+  public void setQueueSize(final int queueSize) {
+    this.queueSize = queueSize;
+  }
 
-	private void debug() {
-		if (log.isDebugEnabled()) {
-			log.debug("thread.pool.groupId: {}",  groupId);
-			log.debug("thread.pool.name: {}",  groupName);
-			log.debug("thread.pool.capacity.initial: {}",  initialCapacity);
-			log.debug("thread.pool.capacity.max: {}",  maxCapacity);
-			log.debug("thread.pool.queue.size: {}",  queueSize);
-			log.debug("thread.pool.shutdown.timeout.seconds: {}", shutdownSecondsTimeout);
-		}
-	}
+  private void debug() {
+    if (log.isDebugEnabled()) {
+      log.debug("thread.pool.groupId: {}", groupId);
+      log.debug("thread.pool.name: {}", groupName);
+      log.debug("thread.pool.capacity.initial: {}", initialCapacity);
+      log.debug("thread.pool.capacity.max: {}", maxCapacity);
+      log.debug("thread.pool.queue.size: {}", queueSize);
+      log.debug("thread.pool.shutdown.timeout.seconds: {}", shutdownSecondsTimeout);
+    }
+  }
 
-	public class NativeThreadFactory implements ThreadFactory {
+  public class NativeThreadFactory implements ThreadFactory {
 
-		private final ThreadGroup group;
-		private final AtomicInteger count;
-		private final String namePrefix;
+    private final ThreadGroup group;
+    private final AtomicInteger count;
+    private final String namePrefix;
 
-		public NativeThreadFactory(final ThreadGroup group,	final String namePrefix) {
-			super();
-			this.count = new AtomicInteger(1);
-			this.group = group;
-			this.namePrefix = namePrefix;
-		}
+    public NativeThreadFactory(final ThreadGroup group, final String namePrefix) {
+      super();
+      count = new AtomicInteger(1);
+      this.group = group;
+      this.namePrefix = namePrefix;
+    }
 
-		public Thread newThread(final Runnable runnable) {
-			StringBuffer buffer = new StringBuffer();
-			buffer.append(this.namePrefix);
-			buffer.append('-');
-			buffer.append(this.count.getAndIncrement());
-			Thread t = new Thread(group, runnable, buffer.toString(), 0);
-			t.setDaemon(false);
-			t.setPriority(Thread.NORM_PRIORITY);
-			return t;
-		}
-	}
+    public Thread newThread(final Runnable runnable) {
+      final StringBuffer buffer = new StringBuffer();
+      buffer.append(namePrefix);
+      buffer.append('-');
+      buffer.append(count.getAndIncrement());
+      final Thread t = new Thread(group, runnable, buffer.toString(), 0);
+      t.setDaemon(false);
+      t.setPriority(Thread.NORM_PRIORITY);
+      return t;
+    }
+  }
 
 }

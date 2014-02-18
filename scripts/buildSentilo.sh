@@ -73,7 +73,7 @@ if [ "$ERROR_LEVEL" == "1" ]; then error; fi
 # Step 2: Run appassempler plugin into java-standalone modules for generate scripts for starts java processes.
 # For more  information about plugin visit http://mojo.codehaus.org/appassembler/appassembler-maven-plugin/ 
 cd $CURRENT_DIR/../sentilo-platform/sentilo-platform-server
-COMMAND="mvn appassembler:assemble -P dev"
+COMMAND="mvn package appassembler:assemble -P dev"
 echo ""
 echo "=================================================="
 echo "Step 2.1: Generate scripts for start java processes "

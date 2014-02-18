@@ -2,24 +2,24 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<c:set var="componentId" scope="request" value="${component.id}"/>
+<c:set var="componentId" scope="request" value="${component.id}" />
 
-<spring:url value="/component/${component.id}/edit" var="editComponentLink"/>
-<spring:url value="/admin/sensor/list/json?componentId=${component.id}" var="sensorsAjaxSource"/>
-<spring:url value="/component/${component.id}/removeSensors" var="deleteSensorsURL"/>
-<spring:url value="/admin/sensor/lastOb/" var="lastSensorObservationAjaxPrefix"/>
+<spring:url value="/component/${component.id}/edit" var="editComponentLink" />
+<spring:url value="/admin/sensor/list/json?componentId=${component.id}" var="sensorsAjaxSource" />
+<spring:url value="/component/${component.id}/removeSensors" var="deleteSensorsURL" />
+<spring:url value="/admin/sensor/lastOb/" var="lastSensorObservationAjaxPrefix" />
 
-<spring:url value="/admin/sensor/lastObs/" var="activityURLPrefix"/>
+<spring:url value="/admin/sensor/lastObs/" var="activityURLPrefix" />
 
-<spring:url value="/admin/sensor/lastOrders/" var="ordersURLPrefix"/>
-<spring:url value="/admin/sensor/lastAlarms/" var="alarmsURLPrefix"/>
+<spring:url value="/admin/sensor/lastOrders/" var="ordersURLPrefix" />
+<spring:url value="/admin/sensor/lastAlarms/" var="alarmsURLPrefix" />
 
 <c:set var="search" value="'" />
 <c:set var="replace" value="\\'" />
 
-<%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp" %>
-<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp" %>
-<%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp" %>
+<%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
+<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
+<%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp"%>
 
 
 <script type="text/javascript">
@@ -196,54 +196,54 @@ $(document).ready(function() {
 </script>
 
 <div class="container-fluid">
-<div class="content">
+	<div class="content">
 
-<%@ include file="/WEB-INF/jsp/component/public/include_component_detail_header.jsp" %>
+		<%@ include file="/WEB-INF/jsp/component/public/include_component_detail_header.jsp"%>
 
-<div class="row-fluid">
-	<div class="span9">
-		<%@include file="/WEB-INF/jsp/common/include_location_map.jsp" %>	
-	</div>
-	<div class="span3">
-		<%@include file="/WEB-INF/jsp/component/public/include_component_detail_photo.jsp" %>
-	</div>
-</div>
-
-<c:if test="${not empty componentSensors}">
-	<div class="row-fluid">
-		<div class="span3">
-			<%@include file="/WEB-INF/jsp/component/public/include_component_detail_last_data.jsp" %>
+		<div class="row-fluid">
+			<div class="span9">
+				<%@include file="/WEB-INF/jsp/common/include_location_map.jsp"%>
+			</div>
+			<div class="span3">
+				<%@include file="/WEB-INF/jsp/component/public/include_component_detail_photo.jsp"%>
+			</div>
 		</div>
-		<div class="span9">
-			<%@include file="/WEB-INF/jsp/component/public/include_component_detail_activity.jsp" %>
-		</div>
-	</div>
-</c:if>
+
+		<c:if test="${not empty componentSensors}">
+			<div class="row-fluid">
+				<div class="span3">
+					<%@include file="/WEB-INF/jsp/component/public/include_component_detail_last_data.jsp"%>
+				</div>
+				<div class="span9">
+					<%@include file="/WEB-INF/jsp/component/public/include_component_detail_activity.jsp"%>
+				</div>
+			</div>
+		</c:if>
 
 
-<div class="row-fluid">
-	<div class="span3">
-		<strong><spring:message code="component.description" /></strong>
-		<br/>
-		${component.description}
-	</div>
-	<div class="row_fluid span9">
-		<div class="span6">
-			<strong><spring:message code="component.type" />: </strong> ${component.componentType}
-			<br/>
-			<strong><spring:message code="component.createdAt" />: </strong> <spring:eval expression="component.createdAt"/>
+		<div class="row-fluid">
+			<div class="span3">
+				<strong><spring:message code="component.description" /> </strong> <br /> ${component.description}
+			</div>
+			<div class="row_fluid span9">
+				<div class="span6">
+					<strong><spring:message code="component.type" />: </strong> ${component.componentType} <br /> <strong><spring:message
+							code="component.createdAt" />: </strong>
+					<spring:eval expression="component.createdAt" />
+				</div>
+				<div class="span6">
+					<strong><spring:message code="location.latitude" />: </strong> ${component.location.latitude} <br /> <strong><spring:message
+							code="location.longitude" />: </strong> ${component.location.longitude} <br /> <strong><spring:message
+							code="component.location" />: </strong>
+					<c:if test="${component.mobileComponent}">
+						<spring:message code="mobile" />
+					</c:if>
+					<c:if test="${not component.mobileComponent}">
+						<spring:message code="static" />
+					</c:if>
+				</div>
+			</div>
 		</div>
-		<div class="span6">
-			<strong><spring:message code="location.latitude" />: </strong> ${component.location.latitude}
-			<br/>
-			<strong><spring:message code="location.longitude" />: </strong> ${component.location.longitude}
-			<br/>
-			<strong><spring:message code="component.location" />: </strong> 
-			<c:if test="${component.mobileComponent}"><spring:message code="mobile"/></c:if>
-			<c:if test="${not component.mobileComponent}"><spring:message code="static"/></c:if>
-		</div>
 	</div>
-</div>
-</div>
 </div>
 <%@include file="/WEB-INF/jsp/common/footer.jsp"%>

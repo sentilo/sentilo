@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.search.resolver;
 
@@ -48,6 +43,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableArgumentResolver;
 import org.springframework.data.web.PageableDefaults;
 import org.springframework.validation.DataBinder;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -55,258 +51,262 @@ import org.springframework.web.bind.ServletRequestParameterPropertyValues;
 import org.springframework.web.bind.support.WebArgumentResolver;
 import org.springframework.web.context.request.NativeWebRequest;
 
-
 /**
- * Based on {@link PageableArgumentResolver}. This resolver adds the translation of the sort column position 
- * to the real name of the attribute for which to apply the sorting in the repository  
+ * Based on {@link PageableArgumentResolver}. This resolver adds the translation of the sort column
+ * position to the real name of the attribute for which to apply the sorting in the repository
  */
-public class CatalogPageableArgumentResolver implements WebArgumentResolver{
+public class CatalogPageableArgumentResolver implements WebArgumentResolver {
 
-	private static final Pageable DEFAULT_PAGE_REQUEST = new PageRequest(0, 10);
-	private static final String DEFAULT_PREFIX = "page";
-	private static final String DEFAULT_SEPARATOR = ".";
+  private static final Pageable DEFAULT_PAGE_REQUEST = new PageRequest(0, 10);
+  private static final String DEFAULT_PREFIX = "page";
+  private static final String DEFAULT_SEPARATOR = ".";
 
-	private Pageable fallbackPagable = DEFAULT_PAGE_REQUEST;
-	private String prefix = DEFAULT_PREFIX;
-	private String separator = DEFAULT_SEPARATOR;	
-	
-	
-	/**
-	 * Setter to configure a fallback instance of {@link Pageable} that is being used to back missing parameters. Defaults
-	 * to {@value #DEFAULT_PAGE_REQUEST}.
-	 * 
-	 * @param fallbackPagable the fallbackPagable to set
-	 */
-	public void setFallbackPagable(Pageable fallbackPagable) {
-		this.fallbackPagable = null == fallbackPagable ? DEFAULT_PAGE_REQUEST : fallbackPagable;
-	}
+  private Pageable fallbackPagable = DEFAULT_PAGE_REQUEST;
+  private String prefix = DEFAULT_PREFIX;
+  private String separator = DEFAULT_SEPARATOR;
 
-	/**
-	 * Setter to configure the prefix of request parameters to be used to retrieve paging information. Defaults to
-	 * {@link #DEFAULT_PREFIX}.
-	 * 
-	 * @param prefix the prefix to set
-	 */
-	public void setPrefix(String prefix) {
-		this.prefix = null == prefix ? DEFAULT_PREFIX : prefix;
-	}
+  /**
+   * Setter to configure a fallback instance of {@link Pageable} that is being used to back missing
+   * parameters. Defaults to {@value #DEFAULT_PAGE_REQUEST}.
+   * 
+   * @param fallbackPagable the fallbackPagable to set
+   */
+  public void setFallbackPagable(final Pageable fallbackPagable) {
+    this.fallbackPagable = null == fallbackPagable ? DEFAULT_PAGE_REQUEST : fallbackPagable;
+  }
 
-	/**
-	 * Setter to configure the separator between prefix and actual property value. Defaults to {@link #DEFAULT_SEPARATOR}.
-	 * 
-	 * @param separator the separator to set
-	 */
-	public void setSeparator(String separator) {
-		this.separator = null == separator ? DEFAULT_SEPARATOR : separator;
-	}
+  /**
+   * Setter to configure the prefix of request parameters to be used to retrieve paging information.
+   * Defaults to {@link #DEFAULT_PREFIX}.
+   * 
+   * @param prefix the prefix to set
+   */
+  public void setPrefix(final String prefix) {
+    this.prefix = null == prefix ? DEFAULT_PREFIX : prefix;
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.web.bind.support.WebArgumentResolver#resolveArgument(org.springframework.core.MethodParameter, org.springframework.web.context.request.NativeWebRequest)
-	 */
-	public Object resolveArgument(MethodParameter methodParameter, NativeWebRequest webRequest) {
+  /**
+   * Setter to configure the separator between prefix and actual property value. Defaults to
+   * {@link #DEFAULT_SEPARATOR}.
+   * 
+   * @param separator the separator to set
+   */
+  public void setSeparator(final String separator) {
+    this.separator = null == separator ? DEFAULT_SEPARATOR : separator;
+  }
 
-		if (methodParameter.getParameterType().equals(Pageable.class)) {
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.springframework.web.bind.support.WebArgumentResolver#resolveArgument(org.springframework
+   * .core.MethodParameter, org.springframework.web.context.request.NativeWebRequest)
+   */
+  public Object resolveArgument(final MethodParameter methodParameter, final NativeWebRequest webRequest) {
 
-			assertPageableUniqueness(methodParameter);
+    if (methodParameter.getParameterType().equals(Pageable.class)) {
 
-			Pageable request = getDefaultFromAnnotationOrFallback(methodParameter);
-			ServletRequest servletRequest = (ServletRequest) webRequest.getNativeRequest();
-			PropertyValues propertyValues = new ServletRequestParameterPropertyValues(servletRequest, getPrefix(methodParameter), separator);
+      assertPageableUniqueness(methodParameter);
 
-			DataBinder binder = new ServletRequestDataBinder(request);
+      Pageable request = getDefaultFromAnnotationOrFallback(methodParameter);
+      final ServletRequest servletRequest = (ServletRequest) webRequest.getNativeRequest();
+      final PropertyValues propertyValues = new ServletRequestParameterPropertyValues(servletRequest, getPrefix(methodParameter), separator);
 
-			binder.initDirectFieldAccess();
-			binder.registerCustomEditor(Sort.class, new SortPropertyEditor("sort.dir", propertyValues, webRequest));
-			binder.bind(propertyValues);
+      final DataBinder binder = new ServletRequestDataBinder(request);
 
-			if (request.getPageNumber() > 0) {
-				request = new PageRequest(request.getPageNumber() - 1, request.getPageSize(), request.getSort());
-			}
+      binder.initDirectFieldAccess();
+      binder.registerCustomEditor(Sort.class, new SortPropertyEditor("sort.dir", propertyValues, webRequest));
+      binder.bind(propertyValues);
 
-			return request;
-		}
+      if (request.getPageNumber() > 0) {
+        request = new PageRequest(request.getPageNumber() - 1, request.getPageSize(), request.getSort());
+      }
 
-		return UNRESOLVED;
-	}
+      return request;
+    }
 
-	private Pageable getDefaultFromAnnotationOrFallback(MethodParameter methodParameter) {
+    return UNRESOLVED;
+  }
 
-		// search for PageableDefaults annotation
-		for (Annotation annotation : methodParameter.getParameterAnnotations()) {
-			if (annotation instanceof PageableDefaults) {
-				return getDefaultPageRequestFrom((PageableDefaults) annotation);
-			}
-		}
+  private Pageable getDefaultFromAnnotationOrFallback(final MethodParameter methodParameter) {
 
-		// Construct request with fallback request to ensure sensible
-		// default values. Create fresh copy as Spring will manipulate the
-		// instance under the covers
-		return new PageRequest(fallbackPagable.getPageNumber(), fallbackPagable.getPageSize(), fallbackPagable.getSort());
-	}
+    // search for PageableDefaults annotation
+    for (final Annotation annotation : methodParameter.getParameterAnnotations()) {
+      if (annotation instanceof PageableDefaults) {
+        return getDefaultPageRequestFrom((PageableDefaults) annotation);
+      }
+    }
 
-	private static Pageable getDefaultPageRequestFrom(PageableDefaults defaults) {
+    // Construct request with fallback request to ensure sensible
+    // default values. Create fresh copy as Spring will manipulate the
+    // instance under the covers
+    return new PageRequest(fallbackPagable.getPageNumber(), fallbackPagable.getPageSize(), fallbackPagable.getSort());
+  }
 
-		// +1 is because we substract 1 later
-		int defaultPageNumber = defaults.pageNumber() + 1;
-		int defaultPageSize = defaults.value();
+  private static Pageable getDefaultPageRequestFrom(final PageableDefaults defaults) {
 
-		if (defaults.sort().length == 0) {
-			return new PageRequest(defaultPageNumber, defaultPageSize);
-		}
+    // +1 is because we substract 1 later
+    final int defaultPageNumber = defaults.pageNumber() + 1;
+    final int defaultPageSize = defaults.value();
 
-		return new PageRequest(defaultPageNumber, defaultPageSize, defaults.sortDir(), defaults.sort());
-	}
+    if (defaults.sort().length == 0) {
+      return new PageRequest(defaultPageNumber, defaultPageSize);
+    }
 
-	/**
-	 * Resolves the prefix to use to bind properties from. Will prepend a possible {@link Qualifier} if available or
-	 * return the configured prefix otherwise.
-	 * 
-	 * @param parameter
-	 * @return
-	 */
-	private String getPrefix(MethodParameter parameter) {
+    return new PageRequest(defaultPageNumber, defaultPageSize, defaults.sortDir(), defaults.sort());
+  }
 
-		for (Annotation annotation : parameter.getParameterAnnotations()) {
-			if (annotation instanceof Qualifier) {
-				return new StringBuilder(((Qualifier) annotation).value()).append("_").append(prefix).toString();
-			}
-		}
+  /**
+   * Resolves the prefix to use to bind properties from. Will prepend a possible {@link Qualifier}
+   * if available or return the configured prefix otherwise.
+   * 
+   * @param parameter
+   * @return
+   */
+  private String getPrefix(final MethodParameter parameter) {
 
-		return prefix;
-	}
+    for (final Annotation annotation : parameter.getParameterAnnotations()) {
+      if (annotation instanceof Qualifier) {
+        return new StringBuilder(((Qualifier) annotation).value()).append("_").append(prefix).toString();
+      }
+    }
 
-	/**
-	 * Asserts uniqueness of all {@link Pageable} parameters of the method of the given {@link MethodParameter}.
-	 * 
-	 * @param parameter
-	 */
-	private void assertPageableUniqueness(MethodParameter parameter) {
+    return prefix;
+  }
 
-		Method method = parameter.getMethod();
+  /**
+   * Asserts uniqueness of all {@link Pageable} parameters of the method of the given
+   * {@link MethodParameter}.
+   * 
+   * @param parameter
+   */
+  private void assertPageableUniqueness(final MethodParameter parameter) {
 
-		if (containsMoreThanOnePageableParameter(method)) {
-			Annotation[][] annotations = method.getParameterAnnotations();
-			assertQualifiersFor(method.getParameterTypes(), annotations);
-		}
-	}
+    final Method method = parameter.getMethod();
 
-	/**
-	 * Returns whether the given {@link Method} has more than one {@link Pageable} parameter.
-	 * 
-	 * @param method
-	 * @return
-	 */
-	private boolean containsMoreThanOnePageableParameter(Method method) {
+    if (containsMoreThanOnePageableParameter(method)) {
+      final Annotation[][] annotations = method.getParameterAnnotations();
+      assertQualifiersFor(method.getParameterTypes(), annotations);
+    }
+  }
 
-		boolean pageableFound = false;
+  /**
+   * Returns whether the given {@link Method} has more than one {@link Pageable} parameter.
+   * 
+   * @param method
+   * @return
+   */
+  private boolean containsMoreThanOnePageableParameter(final Method method) {
 
-		for (Class<?> type : method.getParameterTypes()) {
+    boolean pageableFound = false;
 
-			if (pageableFound && type.equals(Pageable.class)) {
-				return true;
-			}
+    for (final Class<?> type : method.getParameterTypes()) {
 
-			if (type.equals(Pageable.class)) {
-				pageableFound = true;
-			}
-		}
+      if (pageableFound && type.equals(Pageable.class)) {
+        return true;
+      }
 
-		return false;
-	}
+      if (type.equals(Pageable.class)) {
+        pageableFound = true;
+      }
+    }
 
-	/**
-	 * Asserts that every {@link Pageable} parameter of the given parameters carries an {@link Qualifier} annotation to
-	 * distinguish them from each other.
-	 * 
-	 * @param parameterTypes
-	 * @param annotations
-	 */
-	private void assertQualifiersFor(Class<?>[] parameterTypes, Annotation[][] annotations) {
+    return false;
+  }
 
-		Set<String> values = new HashSet<String>();
+  /**
+   * Asserts that every {@link Pageable} parameter of the given parameters carries an
+   * {@link Qualifier} annotation to distinguish them from each other.
+   * 
+   * @param parameterTypes
+   * @param annotations
+   */
+  private void assertQualifiersFor(final Class<?>[] parameterTypes, final Annotation[][] annotations) {
 
-		for (int i = 0; i < annotations.length; i++) {
+    final Set<String> values = new HashSet<String>();
 
-			if (Pageable.class.equals(parameterTypes[i])) {
+    for (int i = 0; i < annotations.length; i++) {
 
-				Qualifier qualifier = findAnnotation(annotations[i]);
+      if (Pageable.class.equals(parameterTypes[i])) {
 
-				if (null == qualifier) {
-					throw new IllegalStateException(
-							"Ambiguous Pageable arguments in handler method. If you use multiple parameters of type Pageable you need to qualify them with @Qualifier");
-				}
+        final Qualifier qualifier = findAnnotation(annotations[i]);
 
-				if (values.contains(qualifier.value())) {
-					throw new IllegalStateException("Values of the user Qualifiers must be unique!");
-				}
+        if (null == qualifier) {
+          throw new IllegalStateException("Ambiguous Pageable arguments in handler method. If you use multiple parameters of type Pageable you need to qualify them with @Qualifier");
+        }
 
-				values.add(qualifier.value());
-			}
-		}
-	}
+        if (values.contains(qualifier.value())) {
+          throw new IllegalStateException("Values of the user Qualifiers must be unique!");
+        }
 
-	/**
-	 * Returns a {@link Qualifier} annotation from the given array of {@link Annotation}s. Returns {@literal null} if the
-	 * array does not contain a {@link Qualifier} annotation.
-	 * 
-	 * @param annotations
-	 * @return
-	 */
-	private Qualifier findAnnotation(Annotation[] annotations) {
+        values.add(qualifier.value());
+      }
+    }
+  }
 
-		for (Annotation annotation : annotations) {
-			if (annotation instanceof Qualifier) {
-				return (Qualifier) annotation;
-			}
-		}
+  /**
+   * Returns a {@link Qualifier} annotation from the given array of {@link Annotation}s. Returns
+   * {@literal null} if the array does not contain a {@link Qualifier} annotation.
+   * 
+   * @param annotations
+   * @return
+   */
+  private Qualifier findAnnotation(final Annotation[] annotations) {
 
-		return null;
-	}
+    for (final Annotation annotation : annotations) {
+      if (annotation instanceof Qualifier) {
+        return (Qualifier) annotation;
+      }
+    }
 
-	/**
-	 * {@link java.beans.PropertyEditor} to create {@link Sort} instances from textual representations. The implementation
-	 * interprets the string as a comma separated list where the first entry is the sort direction ( {@code asc},
-	 * {@code desc}) followed by the properties to sort by.
-	 * 
-	 * @author Oliver Gierke
-	 */
-	private static class SortPropertyEditor extends PropertyEditorSupport {
+    return null;
+  }
 
-		private final String orderProperty;
-		private final PropertyValues values;
-		private HttpServletRequest httpRequest;		
+  /**
+   * {@link java.beans.PropertyEditor} to create {@link Sort} instances from textual
+   * representations. The implementation interprets the string as a comma separated list where the
+   * first entry is the sort direction ( {@code asc}, {@code desc}) followed by the properties to
+   * sort by.
+   * 
+   * @author Oliver Gierke
+   */
+  private static class SortPropertyEditor extends PropertyEditorSupport {
 
-		/**
-		 * Creates a new {@link SortPropertyEditor}.
-		 * 
-		 * @param orderProperty
-		 * @param values
-		 */
-		public SortPropertyEditor(String orderProperty, PropertyValues values, NativeWebRequest webRequest) {
+    private final String orderProperty;
+    private final PropertyValues values;
+    private final HttpServletRequest httpRequest;
 
-			this.orderProperty = orderProperty;
-			this.values = values;
-			this.httpRequest = (HttpServletRequest)webRequest.getNativeRequest();
-		}
+    /**
+     * Creates a new {@link SortPropertyEditor}.
+     * 
+     * @param orderProperty
+     * @param values
+     */
+    public SortPropertyEditor(final String orderProperty, final PropertyValues values, final NativeWebRequest webRequest) {
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.beans.PropertyEditorSupport#setAsText(java.lang.String)
-		 */
-		@Override
-		public void setAsText(String text) {
+      this.orderProperty = orderProperty;
+      this.values = values;
+      httpRequest = (HttpServletRequest) webRequest.getNativeRequest();
+    }
 
-			PropertyValue rawOrder = values.getPropertyValue(orderProperty);
-			Direction order = null == rawOrder ? Direction.ASC : Direction.fromString(rawOrder.getValue().toString());
-			String columnName = SearchFilterUtils.translateSortProperty(getListName(), text);
-			
-			setValue(new Sort(order, columnName));
-		}
-		
-		private String getListName(){						
-			return SearchFilterUtils.getListName(httpRequest);
-		}
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.beans.PropertyEditorSupport#setAsText(java.lang.String)
+     */
+    @Override
+    public void setAsText(final String text) {
+
+      final PropertyValue rawOrder = values.getPropertyValue(orderProperty);
+      final Direction order = null == rawOrder ? Direction.ASC : Direction.fromString(rawOrder.getValue().toString());
+      final String columnName = SearchFilterUtils.translateSortProperty(getListName(), text);
+
+      setValue(new Sort(order, columnName));
+    }
+
+    private String getListName() {
+      return SearchFilterUtils.getListName(httpRequest);
+    }
+  }
 
 }

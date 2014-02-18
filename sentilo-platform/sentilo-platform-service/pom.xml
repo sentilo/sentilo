@@ -10,12 +10,7 @@
     <artifactId>sentilo-platform</artifactId>
     <groupId>org.sentilo.platform</groupId>
     <version>1.0.0-RC1</version>      
-  </parent>  
-  
-  <properties>    
-    <org.springframework.data.redis.version>1.0.6.RELEASE</org.springframework.data.redis.version>	
-	<jedis.version>2.1.0</jedis.version>
-  </properties>
+  </parent>      
   
   <dependencies>    
     <dependency>

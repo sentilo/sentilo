@@ -1,10 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:message code="sure.delete" var="deleteConfirmMessage"/>
-<spring:message code="sure.unassign" var="unassignConfirmMessage"/>
-<spring:message code="select.one" var="selectOneErrorMessage"/>
-<spring:message code="ok" var="okButtonLabel"/>
+<spring:message code="sure.delete" var="deleteConfirmMessage" />
+<spring:message code="sure.unassign" var="unassignConfirmMessage" />
+<spring:message code="select.one" var="selectOneErrorMessage" />
+<spring:message code="ok" var="okButtonLabel" />
 
 <script type="text/javascript">
 function openDetail(url) {
@@ -102,12 +102,12 @@ function isValidDecimalNumber(number) {
 
 </script>
 
-<spring:url value="/static/js/jquery-1.9.0.js" var="jqueryJS"/>
-<spring:url value="/static/js/bootstrap.min.js" var="bootstrapJS"/>
-<spring:url value="/static/js/jquery.dataTables.js" var="jqueryDataTablesJS"/>
-<spring:url value="/static/js/bootbox.min.js" var="bootboxJS"/>
-<spring:url value="/static/js/jquery.pnotify.min.js" var="jqueryPinesNotifyJS"/>
-<spring:url value="/static/js/jquery.tagsinput.js" var="jqueryTagsInputJS"/>
+<spring:url value="/static/js/jquery-1.9.0.js" var="jqueryJS" />
+<spring:url value="/static/js/bootstrap.min.js" var="bootstrapJS" />
+<spring:url value="/static/js/jquery.dataTables.js" var="jqueryDataTablesJS" />
+<spring:url value="/static/js/bootbox.min.js" var="bootboxJS" />
+<spring:url value="/static/js/jquery.pnotify.min.js" var="jqueryPinesNotifyJS" />
+<spring:url value="/static/js/jquery.tagsinput.js" var="jqueryTagsInputJS" />
 
 <script type="text/javascript" src="${jqueryJS}"></script>
 <script type="text/javascript" src="${bootstrapJS}"></script>

@@ -13,10 +13,10 @@ $(document).ready(function() {
 
 <div class="control-group">
 	<form:label path="tags" class="control-label">
-		<spring:message code="tags"/>
+		<spring:message code="tags" />
 	</form:label>
 	<div class="controls">
-		<form:input path="tags" id="tags"/>
+		<form:input path="tags" id="tags" />
 		<form:errors path="tags" cssClass="text-error" htmlEscape="false" />
 	</div>
 </div>

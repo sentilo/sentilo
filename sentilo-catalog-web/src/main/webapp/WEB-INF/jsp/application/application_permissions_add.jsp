@@ -3,80 +3,80 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <div class="container-fluid">
-<div class="content">
-<div class="row-fluid">
-<div class="span3">
-	<%@include file="/WEB-INF/jsp/common/include_sidebar.jsp" %>
-</div>
+	<div class="content">
+		<div class="row-fluid">
+			<div class="span3">
+				<%@include file="/WEB-INF/jsp/common/include_sidebar.jsp"%>
+			</div>
 
-<div class="span9">
+			<div class="span9">
 
-<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp" %>
+				<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp"%>
 
-<spring:url value="/permissions/application/${permissions.parentEntityId}/add" var="addPermissionURL"/>
+				<spring:url value="/permissions/application/${permissions.parentEntityId}/add" var="addPermissionURL" />
 
-<h1 class="lead">
-	<spring:message code="permissions.new.title" />
-</h1>
-<form:form method="post" modelAttribute="permissions" action="${addPermissionURL}" class="form-horizontal">
-	<fieldset>
-		<div class="control-group">
-			<form:label path="parentEntityId" class="control-label">
-				<spring:message code="application.id" />
-			</form:label>
-			<div class="controls">
-				<form:input path="parentEntityId" value="${applicationId}" readonly="true" cssClass="input-large"/>
-				<form:errors path="parentEntityId" cssClass="error" htmlEscape="false" />
+				<h1 class="lead">
+					<spring:message code="permissions.new.title" />
+				</h1>
+				<form:form method="post" modelAttribute="permissions" action="${addPermissionURL}" class="form-horizontal">
+					<fieldset>
+						<div class="control-group">
+							<form:label path="parentEntityId" class="control-label">
+								<spring:message code="application.id" />
+							</form:label>
+							<div class="controls">
+								<form:input path="parentEntityId" value="${applicationId}" readonly="true" cssClass="input-large" />
+								<form:errors path="parentEntityId" cssClass="error" htmlEscape="false" />
+							</div>
+						</div>
+						<div class="control-group">
+							<form:label path="selectedProvidersIds" class="control-label">
+								<spring:message code="permissions.providers" />
+							</form:label>
+							<div class="controls">
+								<form:select path="selectedProvidersIds" cssClass="input-large">
+									<form:options items="${permissions.providers}" itemLabel="name" itemValue="id" />
+								</form:select>
+								<form:errors path="selectedProvidersIds" cssClass="error" htmlEscape="false" />
+							</div>
+						</div>
+						<div class="control-group">
+							<form:label path="selectedApplicationsIds" class="control-label">
+								<spring:message code="permissions.applications" />
+							</form:label>
+							<div class="controls">
+								<form:select path="selectedApplicationsIds" cssClass="input-large">
+									<form:options items="${permissions.applications}" itemLabel="name" itemValue="id" />
+								</form:select>
+								<form:errors path="selectedApplicationsIds" cssClass="error" htmlEscape="false" />
+							</div>
+						</div>
+						<div class="control-group">
+							<form:label path="permissionType" class="control-label">
+								<spring:message code="permissions" />
+							</form:label>
+							<div class="controls">
+								<form:select path="permissionType" cssClass="input-large">
+									<c:forEach items="${permissionTypes}" var="permissionType">
+										<form:option value="${permissionType}">
+											<spring:message code="permission.${permissionType}" />
+										</form:option>
+									</c:forEach>
+								</form:select>
+							</div>
+						</div>
+						<div class="control-group">
+							<div class="controls">
+								<button type="submit" class="btn">
+									<spring:message code="permission.add" />
+								</button>
+							</div>
+						</div>
+					</fieldset>
+				</form:form>
+
 			</div>
 		</div>
-		<div class="control-group">
-			<form:label path="selectedProvidersIds" class="control-label">
-				<spring:message code="permissions.providers" />
-			</form:label>
-			<div class="controls">
-				<form:select path="selectedProvidersIds" cssClass="input-large">
-					<form:options items="${permissions.providers}" itemLabel="name" itemValue="id"/>
-				</form:select>
-				<form:errors path="selectedProvidersIds" cssClass="error" htmlEscape="false" />
-			</div>
-		</div>
-		<div class="control-group">
-			<form:label path="selectedApplicationsIds" class="control-label">
-				<spring:message code="permissions.applications" />
-			</form:label>
-			<div class="controls">
-				<form:select path="selectedApplicationsIds" cssClass="input-large">
-					<form:options items="${permissions.applications}" itemLabel="name" itemValue="id"/>
-				</form:select>
-				<form:errors path="selectedApplicationsIds" cssClass="error" htmlEscape="false" />
-			</div>
-		</div>
-		<div class="control-group">
-			<form:label path="permissionType" class="control-label">
-				<spring:message code="permissions" />
-			</form:label>
-			<div class="controls">
-				<form:select path="permissionType" cssClass="input-large">
-					<c:forEach items="${permissionTypes}" var="permissionType">
-						<form:option value="${permissionType}">
-							<spring:message code="permission.${permissionType}"/>
-						</form:option>
-					</c:forEach>
-				</form:select>
-			</div>
-		</div>
-		<div class="control-group">
-			<div class="controls">
-				<button type="submit" class="btn">
-					<spring:message code="permission.add" />
-				</button>
-			</div>
-		</div>
-	</fieldset>
-</form:form>
-	
-</div>
-</div>
-</div>
+	</div>
 </div>
 <%@include file="/WEB-INF/jsp/common/footer.jsp"%>

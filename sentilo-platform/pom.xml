@@ -14,9 +14,7 @@
 
 	<properties>		
 		<httpcore.version>4.2.3</httpcore.version>
-		<commonspool.version>1.6</commonspool.version>				
-		<httpclient.version>4.2.2</httpclient.version>
-		<jackson.version>1.9.11</jackson.version>			
+		<commonspool.version>1.6</commonspool.version>									
 	</properties>		
 
 	<dependencies>			

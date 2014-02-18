@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@include file="/WEB-INF/jsp/common/taglibs.jsp" %>
+<%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 
 <script type="text/javascript">
@@ -28,20 +28,20 @@ function showErrorNotification(title, text) {
 </script>
 
 <c:if test="${not empty confirmationMessage}">
-<script type="text/javascript">
+	<script type="text/javascript">
 $(document).ready(function() {
 	<spring:message code="confirm" var="title"/>
 	<spring:message code="${confirmationMessage}" var="msg"/>
 	showConfirmNotification('${title}', '${msg}');
 });
-</script>	
+</script>
 </c:if>
 <c:if test="${not empty errorMessage}">
-<script type="text/javascript">
+	<script type="text/javascript">
 $(document).ready(function() {
 	<spring:message code="error" var="title"/>
 	<spring:message code="${errorMessage}" var="msg"/>
 	showErrorNotification('${title}', '${msg}');
 });
-</script>	
+</script>
 </c:if>

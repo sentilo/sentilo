@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.common.domain;
 
@@ -36,83 +31,79 @@ import java.util.Map;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+public class CatalogInputMessage implements PlatformInputMessage {
 
-public class CatalogInputMessage implements PlatformInputMessage{
-	
-	@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-	private String providerId;		
-	@JsonIgnore
-	private String entityId;
-	@JsonIgnore
-	private String body;
-	
-	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-	private Map<String,String> parameters;
-	
-	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-	private List<CatalogSensor> sensors;	
-	
-	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-	private List<CatalogComponent> components;
-	
-	public CatalogInputMessage(){
-		super();
-	}
-	
-	public CatalogInputMessage(String entityId, Map<String,String> parameters){
-		this();
-		this.entityId = entityId;
-		this.parameters = parameters;
-	}
-	
-		
-	public void setProviderId(String providerId) {
-		this.providerId = providerId;
-	}
-	
-	public String getProviderId() {
-		return providerId;
-	}
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String providerId;
+  @JsonIgnore
+  private String entityId;
+  @JsonIgnore
+  private String body;
 
-	public void setSensors(List<CatalogSensor> sensors) {
-		this.sensors = sensors;
-	}
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Map<String, String> parameters;
 
-	public List<CatalogSensor> getSensors() {
-		return sensors;
-	}
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<CatalogSensor> sensors;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<CatalogComponent> components;
 
-	public void setBody(String body) {
-		this.body = body;
-	}
+  public CatalogInputMessage() {
+    super();
+  }
 
-	public String getBody() {
-		return body;
-	}
+  public CatalogInputMessage(final String entityId, final Map<String, String> parameters) {
+    this();
+    this.entityId = entityId;
+    this.parameters = parameters;
+  }
 
-	public void setEntityId(String entityId) {
-		this.entityId = entityId;
-	}
+  public void setProviderId(final String providerId) {
+    this.providerId = providerId;
+  }
 
+  public String getProviderId() {
+    return providerId;
+  }
 
-	public String getEntityId() {
-		return entityId;
-	}
+  public void setSensors(final List<CatalogSensor> sensors) {
+    this.sensors = sensors;
+  }
 
-	public List<CatalogComponent> getComponents() {
-		return components;
-	}
+  public List<CatalogSensor> getSensors() {
+    return sensors;
+  }
 
-	public void setComponents(List<CatalogComponent> components) {
-		this.components = components;
-	}
+  public void setBody(final String body) {
+    this.body = body;
+  }
 
-	public void setParameters(Map<String,String> parameters) {
-		this.parameters = parameters;
-	}
+  public String getBody() {
+    return body;
+  }
 
-	public Map<String,String> getParameters() {
-		return parameters;
-	}
+  public void setEntityId(final String entityId) {
+    this.entityId = entityId;
+  }
+
+  public String getEntityId() {
+    return entityId;
+  }
+
+  public List<CatalogComponent> getComponents() {
+    return components;
+  }
+
+  public void setComponents(final List<CatalogComponent> components) {
+    this.components = components;
+  }
+
+  public void setParameters(final Map<String, String> parameters) {
+    this.parameters = parameters;
+  }
+
+  public Map<String, String> getParameters() {
+    return parameters;
+  }
 }

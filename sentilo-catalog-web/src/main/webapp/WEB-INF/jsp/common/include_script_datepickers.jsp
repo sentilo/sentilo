@@ -1,13 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:url value="/static/js/bootstrap-datepicker.js" var="datePickerJS"/>
+<spring:url value="/static/js/bootstrap-datepicker.js" var="datePickerJS" />
 <script type="text/javascript" src="${datePickerJS}"></script>
 
-<spring:url value="/static/js/daterangepicker.js" var="dateRangePickerJS"/>
+<spring:url value="/static/js/daterangepicker.js" var="dateRangePickerJS" />
 <script type="text/javascript" src="${dateRangePickerJS}"></script>
 
-<spring:url value="/static/js/date.js" var="dateJS"/>
+<spring:url value="/static/js/date.js" var="dateJS" />
 <script type="text/javascript" src="${dateJS}"></script>
 
 <script type="text/javascript">

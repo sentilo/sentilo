@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:task="http://www.springframework.org/schema/task"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
 
-	<import resource="classpath:spring/platform-server-properties-context.xml" />	
+	<import resource="classpath:spring/platform-server-properties-context.xml" />
 	<import resource="classpath:spring/platform-service-context.xml" />
-	
-	<context:annotation-config />			
+
+	<context:annotation-config />
 	<context:component-scan base-package="org.sentilo.platform.server.handler.impl" />
 	<context:component-scan base-package="org.sentilo.platform.server.auth.impl" />
 
-	<bean id="listener" class="org.sentilo.platform.server.http.RequestListenerThread" 
-		p:port="${port}" p:socketBufferSize="${socket.buffer.size}" p:socketMillisecondsTimeout="${socket.timeout.milliseconds}"
+	<bean id="listener" class="org.sentilo.platform.server.http.RequestListenerThread" p:port="${port}"
+		p:socketBufferSize="${socket.buffer.size}" p:socketMillisecondsTimeout="${socket.timeout.milliseconds}"
 		p:staleConnectionCheck="${stale.connection.check}" p:tcpNoDelay="${tcp.nodelay}" p:originServer="${origin.server}"
-		p:registeredURLs="${urls.registered}"/>						
+		p:registeredURLs="${urls.registered}" />
 
-	<bean id="threadPool" class="org.sentilo.platform.server.pool.ThreadPool" 
-		p:initialCapacity="${thread.pool.capacity.initial}" p:maxCapacity="${thread.pool.capacity.max}" 
-		p:shutdownSecondsTimeout="${thread.pool.shutdown.timeout.seconds}" 
-		p:queueSize="${thread.pool.queue.size}" p:groupId="${thread.pool.group.id}" 
-		p:groupName="${thread.pool.group.name}"/>	
-		
-	<task:annotation-driven scheduler="platformScheduler"/>
-	<task:scheduler id="platformScheduler" pool-size="10"/>
-			
+	<bean id="threadPool" class="org.sentilo.platform.server.pool.ThreadPool" p:initialCapacity="${thread.pool.capacity.initial}"
+		p:maxCapacity="${thread.pool.capacity.max}" p:shutdownSecondsTimeout="${thread.pool.shutdown.timeout.seconds}"
+		p:queueSize="${thread.pool.queue.size}" p:groupId="${thread.pool.group.id}" p:groupName="${thread.pool.group.name}" />
+
+	<task:annotation-driven scheduler="platformScheduler" />
+	<task:scheduler id="platformScheduler" pool-size="10" />
+
 </beans>

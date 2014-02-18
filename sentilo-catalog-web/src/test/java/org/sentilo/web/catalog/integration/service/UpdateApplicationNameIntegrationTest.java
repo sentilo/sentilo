@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.integration.service;
 
@@ -41,68 +36,67 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:spring/test-mongodb-service-context.xml")
 public class UpdateApplicationNameIntegrationTest {
 
-	@Autowired
-	private PermissionService permissionService;
+  @Autowired
+  private PermissionService permissionService;
 
-	@Autowired
-	private ApplicationService applicationService;
+  @Autowired
+  private ApplicationService applicationService;
 
-	@Autowired
-	private ProviderService providerService;
+  @Autowired
+  private ProviderService providerService;
 
-	private final static Permission.Type type = Permission.Type.WRITE;
+  private final static Permission.Type type = Permission.Type.WRITE;
 
-	/**
-	 * Este es el procedimiento para actualizar el nombre de la aplicación.
-	 * 
-	 * 
-	 */
-	//@Test
-	public void updateApplicationName() {
+  /**
+   * Este es el procedimiento para actualizar el nombre de la aplicación.
+   * 
+   * 
+   */
+  // @Test
+  public void updateApplicationName() {
 
-		final String oldName = "connecta-catalog";
-		final String newName = "connecta-catalog";
+    final String oldName = "connecta-catalog";
+    final String newName = "connecta-catalog";
 
-		removeAllPermissions(oldName);
-		addCatalogPermissions(newName);
-		addPermissionsToAllApplications(newName);
-		addPermissionsToAllProviders(newName);
-	}
+    removeAllPermissions(oldName);
+    addCatalogPermissions(newName);
+    addPermissionsToAllApplications(newName);
+    addPermissionsToAllProviders(newName);
+  }
 
-	private void addCatalogPermissions(String source) {
-		permissionService.create(new Permission(source));
-	}
+  private void addCatalogPermissions(final String source) {
+    permissionService.create(new Permission(source));
+  }
 
-	private void addPermissionsToAllApplications(String source) {
-		for (Application application : applicationService.findAll()) {
-			if (notSameApplication(source, application)) {
-				Permission permission = new Permission(source, application.getId(), type);
-				permissionService.create(permission);
-			}
-		}
-	}
+  private void addPermissionsToAllApplications(final String source) {
+    for (final Application application : applicationService.findAll()) {
+      if (notSameApplication(source, application)) {
+        final Permission permission = new Permission(source, application.getId(), type);
+        permissionService.create(permission);
+      }
+    }
+  }
 
-	private boolean notSameApplication(String source, Application application) {
-		return !source.equals(application.getId());
-	}
+  private boolean notSameApplication(final String source, final Application application) {
+    return !source.equals(application.getId());
+  }
 
-	private void addPermissionsToAllProviders(String source) {
-		for (Provider provider : providerService.findAll()) {
-			Permission permission = new Permission(source, provider.getId(), type);
-			permissionService.create(permission);
-		}
-	}
+  private void addPermissionsToAllProviders(final String source) {
+    for (final Provider provider : providerService.findAll()) {
+      final Permission permission = new Permission(source, provider.getId(), type);
+      permissionService.create(permission);
+    }
+  }
 
-	private void removeAllPermissions(final String source) {
-		for (Permission permission : permissionService.findAll()) {
-			if (source.equals(permission.getSource())) {
-				permissionService.delete(permission);
-			}
-		}
-	}
+  private void removeAllPermissions(final String source) {
+    for (final Permission permission : permissionService.findAll()) {
+      if (source.equals(permission.getSource())) {
+        permissionService.delete(permission);
+      }
+    }
+  }
 }

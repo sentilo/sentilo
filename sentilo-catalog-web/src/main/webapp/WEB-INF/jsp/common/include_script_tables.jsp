@@ -1,12 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:message code="datatables.sPrevious" var="sPrevious"/>
-<spring:message code="datatables.sNext" var="sNext"/>
-<spring:message code="datatables.sInfo" var="sInfo"/>
-<spring:message code="datatables.sSearch" var="sSearch"/>
-<spring:message code="datatables.sLengthMenu" var="sLengthMenu"/>
-<spring:message code="datatables.sEmptyTable" var="sEmptyTable"/>
+<spring:message code="datatables.sPrevious" var="sPrevious" />
+<spring:message code="datatables.sNext" var="sNext" />
+<spring:message code="datatables.sInfo" var="sInfo" />
+<spring:message code="datatables.sSearch" var="sSearch" />
+<spring:message code="datatables.sLengthMenu" var="sLengthMenu" />
+<spring:message code="datatables.sEmptyTable" var="sEmptyTable" />
 
 <script type="text/javascript">
 
@@ -142,7 +142,7 @@ function makeTableAsync(sAjaxSource, selector, detailPrefix, detailLink, firstCo
 </script>
 
 
-<spring:url value="/static/js/DT_bootstrap.js" var="dtBootstrapJS"/>
+<spring:url value="/static/js/DT_bootstrap.js" var="dtBootstrapJS" />
 <script type="text/javascript" src="${dtBootstrapJS}"></script>
 
 

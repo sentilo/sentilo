@@ -4,10 +4,10 @@
 <c:if test="${mode == 'edit' }">
 
 	<c:if test="${not empty provider.id}">
-		<spring:url value="/api/identity/PROVIDER/${provider.id}/renew" var="renewIdentityKeyURL"/>
+		<spring:url value="/api/identity/PROVIDER/${provider.id}/renew" var="renewIdentityKeyURL" />
 	</c:if>
 	<c:if test="${not empty application.id}">
-		<spring:url value="/api/identity/APPLICATION/${application.id}/renew" var="renewIdentityKeyURL"/>
+		<spring:url value="/api/identity/APPLICATION/${application.id}/renew" var="renewIdentityKeyURL" />
 	</c:if>
 
 	<script type="text/javascript">
@@ -17,14 +17,14 @@
 		});
 	}
 	</script>
-	
+
 	<div class="control-group">
 		<form:label path="token" class="control-label">
 			<spring:message code="token" />
 		</form:label>
 		<div class="controls">
-			<form:input path="token" readonly="true" id="placeholder_identity_key" cssClass="input-xxlarge"/>
-			<form:errors path="token" cssClass="text-error" htmlEscape="false"/>
+			<form:input path="token" readonly="true" id="placeholder_identity_key" cssClass="input-xxlarge" />
+			<form:errors path="token" cssClass="text-error" htmlEscape="false" />
 		</div>
 	</div>
 </c:if>

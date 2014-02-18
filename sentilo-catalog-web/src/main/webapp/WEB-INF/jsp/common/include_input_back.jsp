@@ -2,5 +2,5 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <button type="button" onclick="history.back(-1);" class="btn">
-	<spring:message code="button.back"/>
+	<spring:message code="button.back" />
 </button>

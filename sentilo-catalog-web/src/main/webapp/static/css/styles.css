@@ -188,7 +188,8 @@ body {
 }
 
 .main {
-	/*background: url("../img/logo-connecta-url.png") no-repeat scroll -268px	-2px transparent;*/
+	background: url("../img/logo-connecta-url.png") no-repeat scroll -268px
+		-2px transparent;
 	height: 50px;
 	margin: 0px -20px;
 	width: 400px;
@@ -199,9 +200,10 @@ body {
 	transition: all 0.5s linear;
 }
 
-/*.main:hover {
-	background: url("../img/logo-connecta-url.png") no-repeat scroll 50px -2px transparent;
-}*/
+.main:hover {
+	background: url("../img/logo-connecta-url.png") no-repeat scroll 110px
+		-2px transparent;
+}
 
 .navbar .brand {
 	color: #777777;
@@ -209,7 +211,7 @@ body {
 	float: left;
 	font-size: 20px;
 	font-weight: 200;
-	margin-left: 80px;
+	margin-left: 100px;
 	padding: 12px 20px;
 	text-shadow: 0 1px 0 #FFFFFF;
 }

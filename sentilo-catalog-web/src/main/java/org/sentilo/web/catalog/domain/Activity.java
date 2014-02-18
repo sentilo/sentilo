@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.domain;
 
@@ -37,148 +32,146 @@ import org.sentilo.common.utils.DateUtils;
 import org.sentilo.web.catalog.domain.Statistics.Events;
 import org.springframework.data.annotation.Id;
 
+public class Activity implements CatalogDocument, Comparable<Activity> {
 
-public class Activity implements CatalogDocument, Comparable<Activity>{		
-	private static final long serialVersionUID = 1L;
-	
-	@JsonIgnore
-	@Id
-	private int id;
-	private long observations;
-	@JsonIgnore
-	private long totalObservations;
-	private long alarms;	
-	@JsonIgnore
-	private long totalAlarms;	
-	private long orders;
-	@JsonIgnore
-	private long totalOrders;
-	private long timestamp;	
-	
-	public Activity(){
-		super();
-		
-		timestamp = System.currentTimeMillis();
-	}
-	
-	public Activity(Events events, Activity lastActivity){
-		this();
-		this.totalObservations = events.getObservations();
-		this.totalOrders = events.getOrders();
-		this.totalAlarms = events.getAlarms();
-		
-		this.observations = totalObservations - lastActivity.getTotalObservations();
-		this.alarms = totalAlarms - lastActivity.getTotalAlarms();
-		this.orders = totalOrders - lastActivity.getTotalOrders();
-		
-		this.id = getNextId(lastActivity.id);
-		
-		
-	}
-	
-	public Activity(Events events){
-		this(events, new Activity());		
-	}
-	
-	private int getNextId(int lastId){
-//		if(StringUtils.hasText(lastId)){
-//			int iNextId = Integer.parseInt(lastId) + 1;
-//			return Integer.toString(iNextId);
-//		}else{
-//			return "1";
-//		}
-		
-		return lastId+1;
-		
-	}
-	
-	public String getTimestampToString() {
-		return DateUtils.toStringTimestamp(new Date(timestamp));
-	}
-	
-	@Override
-	public String getId() {		
-		return Integer.toString(id);
-	}
+  private static final long serialVersionUID = 1L;
 
-	@Override
-	public void setUpdateAt(Date date) {		
-	}
+  @JsonIgnore
+  @Id
+  private int id;
+  private long observations;
+  @JsonIgnore
+  private long totalObservations;
+  private long alarms;
+  @JsonIgnore
+  private long totalAlarms;
+  private long orders;
+  @JsonIgnore
+  private long totalOrders;
+  private long timestamp;
 
-	@Override
-	public void setCreatedAt(Date date) {		
-	}
+  public Activity() {
+    super();
 
-	@JsonIgnore
-	@Override
-	public Date getCreatedAt() {
-		return null;
-	}
+    timestamp = System.currentTimeMillis();
+  }
 
-	public long getObservations() {
-		return observations;
-	}
+  public Activity(final Events events, final Activity lastActivity) {
+    this();
+    totalObservations = events.getObservations();
+    totalOrders = events.getOrders();
+    totalAlarms = events.getAlarms();
 
-	public void setObservations(long observations) {
-		this.observations = observations;
-	}
-	
-	public long getTotalObservations() {
-		return totalObservations;
-	}
+    observations = totalObservations - lastActivity.getTotalObservations();
+    alarms = totalAlarms - lastActivity.getTotalAlarms();
+    orders = totalOrders - lastActivity.getTotalOrders();
 
-	public void setTotalObservations(long totalObservations) {
-		this.totalObservations = totalObservations;
-	}
+    id = getNextId(lastActivity.id);
 
-	public long getAlarms() {
-		return alarms;
-	}
+  }
 
-	public void setAlarms(long alarms) {
-		this.alarms = alarms;
-	}
+  public Activity(final Events events) {
+    this(events, new Activity());
+  }
 
-	public long getTotalAlarms() {
-		return totalAlarms;
-	}
+  private int getNextId(final int lastId) {
+    // if(StringUtils.hasText(lastId)){
+    // int iNextId = Integer.parseInt(lastId) + 1;
+    // return Integer.toString(iNextId);
+    // }else{
+    // return "1";
+    // }
 
-	public void setTotalAlarms(long totalAlarms) {
-		this.totalAlarms = totalAlarms;
-	}
+    return lastId + 1;
 
-	public long getOrders() {
-		return orders;
-	}
+  }
 
-	public void setOrders(long orders) {
-		this.orders = orders;
-	}
+  public String getTimestampToString() {
+    return DateUtils.toStringTimestamp(new Date(timestamp));
+  }
 
-	public long getTotalOrders() {
-		return totalOrders;
-	}
+  @Override
+  public String getId() {
+    return Integer.toString(id);
+  }
 
-	public void setTotalOrders(long totalOrders) {
-		this.totalOrders = totalOrders;
-	}
+  @Override
+  public void setUpdateAt(final Date date) {
+  }
 
-	public long getTimestamp() {
-		return timestamp;
-	}
+  @Override
+  public void setCreatedAt(final Date date) {
+  }
 
-	public void setTimestamp(long timestamp) {
-		this.timestamp = timestamp;
-	}
+  @JsonIgnore
+  @Override
+  public Date getCreatedAt() {
+    return null;
+  }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public long getObservations() {
+    return observations;
+  }
 
-	@Override
-	public int compareTo(Activity o1) {				
-		return (new Long(timestamp)).compareTo(new Long(o1.getTimestamp()));
-	}
-	
-		
+  public void setObservations(final long observations) {
+    this.observations = observations;
+  }
+
+  public long getTotalObservations() {
+    return totalObservations;
+  }
+
+  public void setTotalObservations(final long totalObservations) {
+    this.totalObservations = totalObservations;
+  }
+
+  public long getAlarms() {
+    return alarms;
+  }
+
+  public void setAlarms(final long alarms) {
+    this.alarms = alarms;
+  }
+
+  public long getTotalAlarms() {
+    return totalAlarms;
+  }
+
+  public void setTotalAlarms(final long totalAlarms) {
+    this.totalAlarms = totalAlarms;
+  }
+
+  public long getOrders() {
+    return orders;
+  }
+
+  public void setOrders(final long orders) {
+    this.orders = orders;
+  }
+
+  public long getTotalOrders() {
+    return totalOrders;
+  }
+
+  public void setTotalOrders(final long totalOrders) {
+    this.totalOrders = totalOrders;
+  }
+
+  public long getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(final long timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  public void setId(final int id) {
+    this.id = id;
+  }
+
+  @Override
+  public int compareTo(final Activity o1) {
+    return (new Long(timestamp)).compareTo(new Long(o1.getTimestamp()));
+  }
+
 }

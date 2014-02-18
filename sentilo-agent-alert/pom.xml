@@ -8,15 +8,7 @@
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
 		<version>1.0.0-RC1</version>		
-  </parent>
-  
-  <properties>		
-		<org.springframework.data.mongodb.version>1.1.1.RELEASE</org.springframework.data.mongodb.version>
-		<org.springframework.data.redis.version>1.0.6.RELEASE</org.springframework.data.redis.version>
-		<hibernate.version>3.2.1.ga</hibernate.version>
-		<commons.codec.version>1.7</commons.codec.version>
-		<jedis.version>2.1.0</jedis.version>						
-   </properties>				
+  </parent>    	
 
 	<build>
 		<plugins>			

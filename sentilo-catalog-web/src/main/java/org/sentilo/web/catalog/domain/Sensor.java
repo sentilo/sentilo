@@ -1,32 +1,27 @@
 /*
  * Sentilo
- *   
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de  Barcelona.
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.domain;
 
@@ -47,233 +42,233 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
-
 @Document
 public class Sensor implements CatalogDocument {
 
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	public enum DataType {
-		NUMBER, BOOLEAN, TEXT,
-	}
+  public enum DataType {
+    NUMBER, BOOLEAN, TEXT,
+  }
 
-	@Id
-	private String id;
+  @Id
+  private String id;
 
-	@NotBlank
-	@Pattern(regexp = Constants.VALIDATION_ENTITY_NAME_REGEXP)
-	private String sensorId;
+  @NotBlank
+  @Pattern(regexp = Constants.VALIDATION_ENTITY_NAME_REGEXP)
+  private String sensorId;
 
-	@NotBlank
-	private String providerId;
-	
-	@NotBlank
-	private String componentId;
+  @NotBlank
+  private String providerId;
 
-	private String description;
-	
-	private DataType dataType;
+  @NotBlank
+  private String componentId;
 
-	@DateTimeFormat(pattern = Constants.DATE_FORMAT)
-	private Date createdAt;
+  private String description;
 
-	@DateTimeFormat(pattern = Constants.DATE_FORMAT)
-	private Date updateAt;
+  private DataType dataType;
 
-	@NotBlank
-	private String type;
+  @DateTimeFormat(pattern = Constants.DATE_FORMAT)
+  private Date createdAt;
 
-	private String unit;
-	
-	private String validTime;
-	
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String tags;
-	
-	private Boolean publicAccess = Boolean.FALSE;
-	
-	@JsonSerialize(include=Inclusion.NON_EMPTY)
-	private String metaData;
-	
-	//Additional info
-	@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-	private Map<String,String> additionalInfo;		
+  @DateTimeFormat(pattern = Constants.DATE_FORMAT)
+  private Date updateAt;
 
-	public Sensor() {
+  @NotBlank
+  private String type;
 
-	}
+  private String unit;
 
-	public Sensor(String id) {
-		this();
-		this.id = id;
-	}
-	
-	
-	public Sensor(String providerId, String componentId, String sensorId){
-		this();
-		this.providerId = providerId;
-		this.sensorId = sensorId;
-		this.componentId = componentId;
-		this.id = getId();
-	}
+  private String validTime;
 
-	
-	public static String buildId(String componentId, String sensorId){				
-		return CompoundKeyBuilder.buildCompoundKey(componentId,sensorId);							
-	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result*super.hashCode();
-	}
+  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  private String tags;
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Sensor other = (Sensor) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
-	}
-	
-	
+  private Boolean publicAccess = Boolean.FALSE;
 
-	public String getId() {
-		if (!StringUtils.hasText(this.id) && StringUtils.hasText(sensorId) && StringUtils.hasText(componentId)) {
-			this.id = buildId(componentId, sensorId);
-		}
+  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  private String metaData;
 
-		return this.id;
-	}
+  // Additional info
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Map<String, String> additionalInfo;
 
-	public String getType() {
-		return type;
-	}
+  public Sensor() {
 
-	public void setType(String type) {
-		this.type = type;
-	}
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public Sensor(final String id) {
+    this();
+    this.id = id;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  public Sensor(final String providerId, final String componentId, final String sensorId) {
+    this();
+    this.providerId = providerId;
+    this.sensorId = sensorId;
+    this.componentId = componentId;
+    id = getId();
+  }
 
-	public DataType getDataType() {
-		return dataType;
-	}
+  public static String buildId(final String componentId, final String sensorId) {
+    return CompoundKeyBuilder.buildCompoundKey(componentId, sensorId);
+  }
 
-	public void setDataType(DataType dataType) {
-		this.dataType = dataType;
-	}
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    return result * super.hashCode();
+  }
 
-	public String getUnit() {
-		return unit;
-	}
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final Sensor other = (Sensor) obj;
+    if (id == null) {
+      if (other.id != null) {
+        return false;
+      }
+    } else if (!id.equals(other.id)) {
+      return false;
+    }
+    return true;
+  }
 
-	public void setUnit(String unit) {
-		this.unit = unit;
-	}
+  public String getId() {
+    if (!StringUtils.hasText(id) && StringUtils.hasText(sensorId) && StringUtils.hasText(componentId)) {
+      id = buildId(componentId, sensorId);
+    }
 
-	public String getValidTime() {
-		return validTime;
-	}
+    return id;
+  }
 
-	public void setValidTime(String validTime) {
-		this.validTime = validTime;
-	}
+  public String getType() {
+    return type;
+  }
 
-	public String getProviderId() {
-		return providerId;
-	}
+  public void setType(final String type) {
+    this.type = type;
+  }
 
-	public void setProviderId(String providerId) {
-		this.providerId = providerId;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public void setSensorId(String sensorId) {
-		this.sensorId = sensorId;
-	}
+  public void setDescription(final String description) {
+    this.description = description;
+  }
 
-	public String getSensorId() {
-		return sensorId;
-	}
+  public DataType getDataType() {
+    return dataType;
+  }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+  public void setDataType(final DataType dataType) {
+    this.dataType = dataType;
+  }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+  public String getUnit() {
+    return unit;
+  }
 
-	public void setUpdateAt(Date updateAt) {
-		this.updateAt = updateAt;
-	}
+  public void setUnit(final String unit) {
+    this.unit = unit;
+  }
 
-	public Date getUpdateAt() {
-		return updateAt;
-	}	
+  public String getValidTime() {
+    return validTime;
+  }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  public void setValidTime(final String validTime) {
+    this.validTime = validTime;
+  }
 
-	public String getTags() {
-		return tags;
-	}
+  public String getProviderId() {
+    return providerId;
+  }
 
-	public List<String> getTagsAsList() {
-		return TagUtils.toStringList(tags);
-	}
+  public void setProviderId(final String providerId) {
+    this.providerId = providerId;
+  }
 
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
+  public void setSensorId(final String sensorId) {
+    this.sensorId = sensorId;
+  }
 
-	public Boolean getPublicAccess() {
-		return publicAccess;
-	}
+  public String getSensorId() {
+    return sensorId;
+  }
 
-	public void setPublicAccess(Boolean publicAccess) {
-		this.publicAccess = publicAccess;
-	}
+  public void setCreatedAt(final Date createdAt) {
+    this.createdAt = createdAt;
+  }
 
-	public String getComponentId() {
-		return componentId;
-	}
+  public Date getCreatedAt() {
+    return createdAt;
+  }
 
-	public void setComponentId(String componentId) {
-		this.componentId = componentId;
-	}
+  public void setUpdateAt(final Date updateAt) {
+    this.updateAt = updateAt;
+  }
 
-	public void setAdditionalInfo(Map<String,String> additionalInfo) {
-		this.additionalInfo = additionalInfo;
-	}
+  public Date getUpdateAt() {
+    return updateAt;
+  }
 
-	public Map<String,String> getAdditionalInfo() {
-		return additionalInfo;
-	}
+  public void setId(final String id) {
+    this.id = id;
+  }
 
-	public void setMetaData(String metaData) {
-		this.metaData = metaData;
-	}
+  public String getTags() {
+    return tags;
+  }
 
-	public String getMetaData() {
-		return metaData;
-	}
+  public List<String> getTagsAsList() {
+    return TagUtils.toStringList(tags);
+  }
+
+  public void setTags(final String tags) {
+    this.tags = tags;
+  }
+
+  public Boolean getPublicAccess() {
+    return publicAccess;
+  }
+
+  public void setPublicAccess(final Boolean publicAccess) {
+    this.publicAccess = publicAccess;
+  }
+
+  public String getComponentId() {
+    return componentId;
+  }
+
+  public void setComponentId(final String componentId) {
+    this.componentId = componentId;
+  }
+
+  public void setAdditionalInfo(final Map<String, String> additionalInfo) {
+    this.additionalInfo = additionalInfo;
+  }
+
+  public Map<String, String> getAdditionalInfo() {
+    return additionalInfo;
+  }
+
+  public void setMetaData(final String metaData) {
+    this.metaData = metaData;
+  }
+
+  public String getMetaData() {
+    return metaData;
+  }
 }
