@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sentilo</groupId>
   <artifactId>sentilo-parent-pom</artifactId>
-  <version>1.0.0-RC1</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
   <name>sentilo-parent-pom</name>
   <description>Parent pom for the Sentilo's modules</description>
@@ -20,7 +20,7 @@
 		<jackson.version>1.9.11</jackson.version>
 		<junit.version>4.11</junit.version>
 		<mockito.version>1.9.5</mockito.version>
-		<platform.version>1.0.0-RC1</platform.version>				
+		<platform.version>1.0.0</platform.version>				
 		<maven.compiler.source>1.6</maven.compiler.source>
 	    <maven.compiler.target>1.6</maven.compiler.target>		
   </properties>
