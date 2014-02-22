@@ -226,11 +226,11 @@
 	        <artifactId>mysql-connector-java</artifactId>
 	        <version>${mysql.jdbc.driver.version}</version>
 	    </dependency>			
-	    <dependency>
+	    <!--dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>ojdbc6</artifactId>
 			<version>${oracle.jdbc.driver.version}</version>
-		</dependency>
+		</dependency -->
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-jdbc</artifactId>
