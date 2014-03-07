@@ -29,6 +29,7 @@ import org.sentilo.platform.service.dao.JedisKeysBuilder;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.dao.JedisTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 public abstract class AbstractPlatformServiceImpl {
 
@@ -49,6 +50,9 @@ public abstract class AbstractPlatformServiceImpl {
 
   @Autowired
   protected JedisTemplate<String, String> jedisTemplate;
+
+  @Value("${redis.expire.data.seconds}")
+  protected int expireSeconds;
 
   public JedisKeysBuilder getKeysBuilder() {
     return keysBuilder;

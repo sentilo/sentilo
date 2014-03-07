@@ -23,30 +23,21 @@
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
-package org.sentilo.platform.server.validation;
+package org.sentilo.platform.server.parser;
 
-import org.sentilo.platform.common.domain.SubscribeInputMessage;
-import org.sentilo.platform.common.domain.Subscription;
-import org.sentilo.platform.server.exception.MessageValidationException;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import java.io.ByteArrayOutputStream;
 
-public class SubscribeValidator extends AbstractRequestMessageValidator<SubscribeInputMessage> {
+import org.sentilo.common.exception.MessageNotWritableException;
+import org.sentilo.platform.common.exception.JsonConverterException;
+import org.sentilo.platform.server.dto.ErrorMessage;
 
-  @Override
-  public void validateRequestMessageOnPut(final SubscribeInputMessage requestMessage) throws MessageValidationException {
+public class ErrorParser extends PlatformJsonMessageConverter {
 
-    Assert.notNull(requestMessage);
-    Assert.notNull(requestMessage.getSubscription());
-    final Subscription subscription = requestMessage.getSubscription();
-    if (subscription.getType() == null) {
-      throw new MessageValidationException("To do a subscription is mandatory to inform the type of the subscription");
+  public ByteArrayOutputStream writeInternal(ErrorMessage object) throws JsonConverterException {
+    try {
+      return super.writeInternal(object);
+    } catch (final MessageNotWritableException ex) {
+      throw new JsonConverterException("Could not write JSON: " + ex.getMessage(), ex, false);
     }
-
-    if (!StringUtils.hasText(subscription.getEndpoint())) {
-      throw new MessageValidationException("To do a subscription is mandatory to inform the endpoint of the subscription");
-    }
-
-    super.validateRequestMessageOnPut(requestMessage);
   }
 }

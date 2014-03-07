@@ -11,7 +11,7 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.0.0</version>		
+		<version>1.1.0</version>		
 	</parent>
 
 	<properties>				
@@ -225,12 +225,7 @@
 	        <groupId>mysql</groupId>
 	        <artifactId>mysql-connector-java</artifactId>
 	        <version>${mysql.jdbc.driver.version}</version>
-	    </dependency>			
-	    <dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc6</artifactId>
-			<version>${oracle.jdbc.driver.version}</version>
-		</dependency>
+	    </dependency>				    
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-jdbc</artifactId>

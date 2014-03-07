@@ -242,6 +242,15 @@ public class JedisTemplate<K, V> {
     });
   }
 
+  public Long expire(final String key, final int seconds) {
+    return execute(new JedisCallback<Long>() {
+
+      public Long doInRedis(final Jedis connection) {
+        return connection.expire(key, seconds);
+      }
+    });
+  }
+
   public void setJedisPoolUtils(final JedisPoolUtils jedisPoolUtils) {
     this.jedisPoolUtils = jedisPoolUtils;
   }

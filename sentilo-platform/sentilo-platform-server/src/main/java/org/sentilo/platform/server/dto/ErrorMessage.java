@@ -23,30 +23,41 @@
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
-package org.sentilo.platform.server.validation;
+package org.sentilo.platform.server.dto;
 
-import org.sentilo.platform.common.domain.SubscribeInputMessage;
-import org.sentilo.platform.common.domain.Subscription;
-import org.sentilo.platform.server.exception.MessageValidationException;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-public class SubscribeValidator extends AbstractRequestMessageValidator<SubscribeInputMessage> {
+public class ErrorMessage {
 
-  @Override
-  public void validateRequestMessageOnPut(final SubscribeInputMessage requestMessage) throws MessageValidationException {
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private int code;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String message;
 
-    Assert.notNull(requestMessage);
-    Assert.notNull(requestMessage.getSubscription());
-    final Subscription subscription = requestMessage.getSubscription();
-    if (subscription.getType() == null) {
-      throw new MessageValidationException("To do a subscription is mandatory to inform the type of the subscription");
-    }
-
-    if (!StringUtils.hasText(subscription.getEndpoint())) {
-      throw new MessageValidationException("To do a subscription is mandatory to inform the endpoint of the subscription");
-    }
-
-    super.validateRequestMessageOnPut(requestMessage);
+  public ErrorMessage() {
+    super();
   }
+
+  public ErrorMessage(int code, String message) {
+    this();
+    this.code = code;
+    this.message = message;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
+  public int getCode() {
+    return code;
+  }
+
+  public void setCode(int code) {
+    this.code = code;
+  }
+
 }

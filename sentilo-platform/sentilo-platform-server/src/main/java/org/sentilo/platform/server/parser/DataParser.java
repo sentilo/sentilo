@@ -175,7 +175,8 @@ public class DataParser extends PlatformJsonMessageConverter {
     return parseObservationsMessageToDomain(inputMessage.getObservations(), globalLocation, providerId, sensorId);
   }
 
-  private List<Observation> parseObservationsMessageToDomain(final List<ObservationMessage> inputMessage, final String globalLocation, final String providerId, final String sensorId) throws PlatformException {
+  private List<Observation> parseObservationsMessageToDomain(final List<ObservationMessage> inputMessage, final String globalLocation,
+      final String providerId, final String sensorId) throws PlatformException {
     final List<Observation> observations = new ArrayList<Observation>();
 
     for (final ObservationMessage message : inputMessage) {

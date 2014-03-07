@@ -64,7 +64,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     }
   }
 
-  public Long parseTimestamp(final String timestamp) throws JsonConverterException {
+  protected Long parseTimestamp(final String timestamp) throws JsonConverterException {
     try {
       return DateUtils.parseTimestamp(timestamp);
     } catch (final IllegalArgumentException e) {
@@ -72,7 +72,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     }
   }
 
-  public Date parseDate(final String date) throws JsonConverterException {
+  protected Date parseDate(final String date) throws JsonConverterException {
     try {
       return DateUtils.stringToDate(date);
     } catch (final IllegalArgumentException e) {
@@ -80,7 +80,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     }
   }
 
-  public Integer parseInteger(final String integer) throws JsonConverterException {
+  protected Integer parseInteger(final String integer) throws JsonConverterException {
     try {
       return (StringUtils.hasText(integer) ? Integer.valueOf(integer) : null);
     } catch (final NumberFormatException e) {

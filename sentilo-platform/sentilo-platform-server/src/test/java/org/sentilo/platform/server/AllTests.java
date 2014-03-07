@@ -40,15 +40,17 @@ import org.sentilo.platform.server.parser.AlarmParserTest;
 import org.sentilo.platform.server.parser.CatalogAlertParserTest;
 import org.sentilo.platform.server.parser.CatalogParserTest;
 import org.sentilo.platform.server.parser.DataParserTest;
+import org.sentilo.platform.server.parser.ErrorParserTest;
 import org.sentilo.platform.server.parser.OrderParserTest;
 import org.sentilo.platform.server.parser.SubscribeParserTest;
+import org.sentilo.platform.server.request.SentiloRequestHandlerTest;
 import org.sentilo.platform.server.request.SentiloResourceTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({SentiloResourceTest.class, AlarmParserTest.class, OrderParserTest.class, DataParserTest.class, SubscribeParserTest.class,
     CatalogParserTest.class, CatalogAlertParserTest.class, AdminParserTest.class, HandlerLocatorTest.class, AlarmHandlerTest.class,
     OrderHandlerTest.class, SubscribeHandlerTest.class, DataHandlerTest.class, CatalogHandlerTest.class, CatalogAlertHandlerTest.class,
-    AdminHandlerTest.class})
+    AdminHandlerTest.class, ErrorParserTest.class, SentiloRequestHandlerTest.class})
 public class AllTests {
 
 }

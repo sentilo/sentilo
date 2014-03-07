@@ -54,7 +54,8 @@ public class SubscribeServiceOperationsIntegrationTest {
 
   @Test
   public void _1_subscribe() throws Exception {
-    final SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, new Endpoint("http://dev.connecta.cat"), "testApp", "sensor1");
+    final SubscribeInputMessage message =
+        SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, new Endpoint("http://dev.connecta.cat"), "testApp_provider", "sensor1");
     platformTemplate.getSubscribeOps().subscribe(message);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", true);
   }

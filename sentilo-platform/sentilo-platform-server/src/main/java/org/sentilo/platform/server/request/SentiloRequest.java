@@ -36,17 +36,19 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.exception.UnauthorizedException;
-import org.sentilo.platform.server.http.ContentType;
 import org.sentilo.platform.server.http.HttpHeader;
 import org.sentilo.platform.server.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class SentiloRequest {
 
@@ -118,11 +120,13 @@ public class SentiloRequest {
   }
 
   private void parseContentType() {
-    contentType = ContentType.fromString(extractHeader(HttpHeader.CONTENT_TYPE));
-    logger.debug("Parsed Content-type: {}", contentType);
-    if (contentType == null) {
+    String contentTypeValue = extractHeader(HttpHeader.CONTENT_TYPE);    
+    try {
+      contentType = (StringUtils.hasText(contentTypeValue) ? ContentType.parse(extractHeader(HttpHeader.CONTENT_TYPE)) : getDefaultContentType());
+    } catch (ParseException pe) {
       contentType = getDefaultContentType();
     }
+    logger.debug("Parsed Content-type: {}", contentTypeValue);    
   }
 
   private void parseUri() {
@@ -174,7 +178,7 @@ public class SentiloRequest {
   }
 
   private ContentType getDefaultContentType() {
-    return ContentType.JSON;
+    return ContentType.APPLICATION_JSON;
   }
 
   public HttpMethod getMethod() {

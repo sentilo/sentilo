@@ -59,7 +59,7 @@ public abstract class AbstractHandler {
 
   public final void manageRequest(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
 
-    logger.debug("Manage {} request", request.getMethod());
+    getLogger().debug("Manage {} request", request.getMethod());
 
     switch (request.getMethod()) {
       case DELETE:
@@ -89,6 +89,16 @@ public abstract class AbstractHandler {
     }
   }
 
+  protected void validateSourceCanAdminTarget(final String source, final String target) throws ForbiddenAccessException {
+    // source could admin target's resources iff source is equals to catalog app or source and
+    // target are equals
+    if (!getCatalogId().equals(source) && !source.equals(target)) {
+      final String errorMessage = String.format("You are not %s entity. Review token identity or request path content.", target);
+      throw new ForbiddenAccessException(errorMessage);
+    }
+
+  }
+
   protected void validateAdminAccess(final String source) throws ForbiddenAccessException {
     // solo la aplicacion catalogo puede invocar a este servicio
     if (!StringUtils.hasText(source) || !source.equals(getCatalogId())) {
@@ -113,10 +123,14 @@ public abstract class AbstractHandler {
   }
 
   protected void debug(final SentiloRequest request) {
-    logger.debug(request.toString());
+    getLogger().debug(request.toString());
   }
 
   public void setAuthorizationService(final AuthorizationService authorizationService) {
     this.authorizationService = authorizationService;
+  }
+
+  public Logger getLogger() {
+    return logger;
   }
 }

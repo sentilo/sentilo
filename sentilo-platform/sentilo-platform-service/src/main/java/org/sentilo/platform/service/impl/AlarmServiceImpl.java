@@ -137,12 +137,19 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
 
     final Long timestamp = System.currentTimeMillis();
 
+    final String alarmKey = keysBuilder.getMessageKey(amid);
+
     // Guardamos una hash de clave amid:{amid} y valores source, message y timestamp.
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put(SENDER, message.getSender());
     fields.put(MESSAGE, message.getMessage());
     fields.put(TIMESTAMP, timestamp.toString());
-    jedisTemplate.hmSet(keysBuilder.getMessageKey(amid), fields);
+    jedisTemplate.hmSet(alarmKey, fields);
+
+    // if expireSeconds is defined and !=0, set the expire time to key
+    if (expireSeconds != 0) {
+      jedisTemplate.expire(alarmKey, expireSeconds);
+    }
 
     return amid;
   }

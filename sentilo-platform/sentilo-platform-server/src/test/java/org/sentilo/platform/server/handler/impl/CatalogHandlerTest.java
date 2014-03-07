@@ -54,6 +54,7 @@ import org.sentilo.platform.server.response.SentiloResponse;
 public class CatalogHandlerTest extends AbstractBaseHandlerTest {
 
   private static final String PROVIDER1 = "provider1";
+  private static final String PROVIDER2 = "provider2";
   private CatalogHandler handler;
   @Mock
   private CatalogService service;
@@ -112,6 +113,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePostRequest(request)).thenReturn(message);
     when(message.getSensors()).thenReturn(sensors);
     when(message.getBody()).thenReturn(body);
+    when(message.getProviderId()).thenReturn(PROVIDER1);
 
     simulateRequest(HttpMethod.POST, PROVIDER1, "/catalog/provider1");
     handler.manageRequest(request, response);
@@ -123,6 +125,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
   @Test
   public void deleteRequest() throws Exception {
     when(parser.parseDeleteRequest(request, false)).thenReturn(deleteMessage);
+    when(deleteMessage.getProviderId()).thenReturn(PROVIDER1);
     // when(deleteMessage.getBody()).thenReturn(body);
 
     simulateRequest(HttpMethod.DELETE, PROVIDER1, "/catalog/provider1");
@@ -152,6 +155,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePostRequest(request)).thenReturn(message);
     when(message.getSensors()).thenReturn(sensors);
     when(message.getBody()).thenReturn(body);
+    when(message.getProviderId()).thenReturn(PROVIDER1);
     when(service.insertSensors(message)).thenReturn(responseMessage);
 
     simulateRequest(HttpMethod.POST, PROVIDER1, "/catalog/provider1");
@@ -169,6 +173,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePutRequest(request)).thenReturn(message);
     when(message.getSensors()).thenReturn(sensors);
     when(message.getBody()).thenReturn(body);
+    when(message.getProviderId()).thenReturn(PROVIDER1);
 
     simulateRequest(HttpMethod.PUT, PROVIDER1, "/catalog/provider1");
     handler.manageRequest(request, response);
@@ -180,6 +185,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
   @Test
   public void putRequestWithoutEntities() throws Exception {
     when(parser.parsePutRequest(request)).thenReturn(message);
+    when(message.getProviderId()).thenReturn(PROVIDER1);
 
     simulateRequest(HttpMethod.PUT, PROVIDER1, "/catalog/provider1");
     try {
@@ -197,6 +203,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePutRequest(request)).thenReturn(message);
     when(message.getSensors()).thenReturn(sensors);
     when(message.getBody()).thenReturn(body);
+    when(message.getProviderId()).thenReturn(PROVIDER1);
     when(service.updateSensorsOrComponents(message)).thenReturn(responseMessage);
 
     simulateRequest(HttpMethod.PUT, PROVIDER1, "/catalog/provider1");
@@ -204,6 +211,19 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
       handler.manageRequest(request, response);
     } catch (final PlatformException e) {
       assertInternalServerError(e);
+    }
+  }
+
+  @Test
+  public void putRequestWithoutPermission() throws Exception {
+    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(message.getProviderId()).thenReturn(PROVIDER1);
+
+    simulateRequest(HttpMethod.PUT, PROVIDER2, "/catalog/provider1");
+    try {
+      handler.manageRequest(request, response);
+    } catch (final PlatformException e) {
+      assertForbiddenCall(e);
     }
   }
 

@@ -33,22 +33,12 @@ import org.springframework.util.CollectionUtils;
 public class DataValidator extends AbstractRequestMessageValidator<DataInputMessage> {
 
   @Override
-  public void validateRequestMessageOnDelete(final DataInputMessage requestMessage) throws MessageValidationException {
-    super.validateRequestMessageOnDelete(requestMessage);
-  }
-
-  @Override
   public void validateRequestMessageOnPut(final DataInputMessage requestMessage) throws MessageValidationException {
     Assert.notNull(requestMessage);
     if (CollectionUtils.isEmpty(requestMessage.getObservations())) {
       throw new MessageValidationException("To send data is mandatory to inform the observations");
     }
     super.validateRequestMessageOnPut(requestMessage);
-  }
-
-  @Override
-  public void validateRequestMessageOnGet(final DataInputMessage requestMessage) throws MessageValidationException {
-    super.validateRequestMessageOnGet(requestMessage);
   }
 
 }

@@ -61,13 +61,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
    * @see org.sentilo.platform.server.auth.AuthenticationService#getIdentity(java.lang.String)
    */
   public String getIdentity(final String credential) throws UnauthorizedException {
-    if (isValidCredential(credential)) {
-      return activeCredentials.get(credential);
-    }
-
-    logger.warn("No valid credential associated to token {}", credential);
-
-    return null;
+    validateCredential(credential);
+    return activeCredentials.get(credential);
   }
 
   /*
@@ -90,12 +85,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     activeCredentials.remove(identity);
   }
 
-  private boolean isValidCredential(final String credential) throws UnauthorizedException {
+  private void validateCredential(final String credential) throws UnauthorizedException {
     if (!activeCredentials.containsKey(credential)) {
       throw new UnauthorizedException("Invalid credential " + credential);
     }
-
-    return true;
   }
 
   @Scheduled(initialDelay = 1000, fixedRate = 300000)

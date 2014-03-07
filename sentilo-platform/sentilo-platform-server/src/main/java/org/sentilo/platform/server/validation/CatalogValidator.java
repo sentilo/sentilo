@@ -33,21 +33,6 @@ import org.springframework.util.CollectionUtils;
 public class CatalogValidator extends AbstractRequestMessageValidator<CatalogInputMessage> {
 
   @Override
-  public void validateRequestMessageOnDelete(final CatalogInputMessage requestMessage) throws MessageValidationException {
-    super.validateRequestMessageOnDelete(requestMessage);
-  }
-
-  @Override
-  public void validateRequestMessageOnPut(final CatalogInputMessage requestMessage) throws MessageValidationException {
-    super.validateRequestMessageOnPut(requestMessage);
-  }
-
-  @Override
-  public void validateRequestMessageOnGet(final CatalogInputMessage requestMessage) throws MessageValidationException {
-    super.validateRequestMessageOnGet(requestMessage);
-  }
-
-  @Override
   public void validateRequestMessageOnPost(final CatalogInputMessage requestMessage) throws MessageValidationException {
     Assert.notNull(requestMessage);
 

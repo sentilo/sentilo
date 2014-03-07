@@ -31,6 +31,7 @@ import java.util.List;
 import org.sentilo.web.catalog.domain.Application;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Provider;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 
 public class PermissionsDTO extends AbstractListDTO {
 
@@ -68,10 +69,12 @@ public class PermissionsDTO extends AbstractListDTO {
 
   private List<Permission> toPermissionList(final String[] selectedIds) {
     final List<Permission> permissions = new ArrayList<Permission>();
-    for (final String id : selectedIds) {
-      final Permission permission = new Permission();
-      permission.setId(id);
-      permissions.add(permission);
+    if (!CatalogUtils.arrayIsEmpty(selectedIds)) {
+      for (final String id : selectedIds) {
+        final Permission permission = new Permission();
+        permission.setId(id);
+        permissions.add(permission);
+      }
     }
     return permissions;
   }

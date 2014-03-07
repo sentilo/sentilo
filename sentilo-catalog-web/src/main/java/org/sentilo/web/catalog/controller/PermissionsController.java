@@ -95,7 +95,8 @@ public class PermissionsController extends SearchController<Permission> {
   }
 
   @RequestMapping(value = "/application/{id}/add", method = RequestMethod.POST)
-  public String addApplicationPermissions(@Valid final PermissionsDTO permissions, final BindingResult result, @PathVariable final String id, final Model model) {
+  public String addApplicationPermissions(@Valid final PermissionsDTO permissions, final BindingResult result, @PathVariable final String id,
+      final Model model) {
 
     createPermissions(id, permissions.getSelectedProvidersIds(), permissions.getPermissionType());
     createPermissions(id, permissions.getSelectedApplicationsIds(), permissions.getPermissionType());
@@ -104,7 +105,8 @@ public class PermissionsController extends SearchController<Permission> {
   }
 
   @RequestMapping(value = "/application/{id}/remove", method = RequestMethod.POST)
-  public String removeApplicationPermissions(@Valid final PermissionsDTO permissions, final BindingResult result, @PathVariable final String id, final Model model) {
+  public String removeApplicationPermissions(@Valid final PermissionsDTO permissions, final BindingResult result, @PathVariable final String id,
+      final Model model) {
 
     permissionService.delete(permissions.getSelectedPermissions());
     return viewApplicationDetail(id, model, "permission.deleted");
@@ -112,7 +114,8 @@ public class PermissionsController extends SearchController<Permission> {
 
   @RequestMapping("/application/{id}")
   @ResponseBody
-  public DataTablesDTO getApplicationPermissions(final HttpServletRequest request, final Model model, final Pageable pageable, @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam(required = false) final String search) {
+  public DataTablesDTO getApplicationPermissions(final HttpServletRequest request, final Model model, final Pageable pageable,
+      @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam(required = false) final String search) {
     return getPageList(model, request, pageable, sEcho, search);
   }
 
@@ -120,7 +123,9 @@ public class PermissionsController extends SearchController<Permission> {
   protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
     final String id = SearchFilterUtils.getUriVariableValue(request, "/permissions/application/{id}", "id");
     if (StringUtils.hasText(id)) {
-      filter.addParam("source", id);
+      // To find all permissions associate to an entity with id identity we must get all permissions
+      // with source equal to identity
+      filter.addAndParam("source", id);
     }
   }
 

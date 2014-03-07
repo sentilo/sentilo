@@ -23,29 +23,29 @@
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
-package org.sentilo.platform.server.http;
+package org.sentilo.platform.server.parser;
 
-public enum ContentType {
+import java.io.ByteArrayOutputStream;
 
-  JSON("application/json;charset=utf-8"), XML("application/xml;charset=utf-8");
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.sentilo.platform.server.dto.ErrorMessage;
 
-  private String contentType;
+public class ErrorParserTest {
 
-  private ContentType(final String contentType) {
-    this.contentType = contentType;
+  private ErrorParser errorParser;
+
+  @Before
+  public void setUp() throws Exception {
+    errorParser = new ErrorParser();
   }
 
-  @Override
-  public String toString() {
-    return contentType;
-  }
+  @Test
+  public void writeInternal() throws Exception {
+    ErrorMessage message = new ErrorMessage(400, "Bad request");
+    ByteArrayOutputStream baos = errorParser.writeInternal(message);
 
-  public static ContentType fromString(final String contentType) {
-    for (final ContentType type : values()) {
-      if (type.toString().equals(contentType)) {
-        return type;
-      }
-    }
-    return null;
+    Assert.assertEquals("{\"code\":400,\"message\":\"Bad request\"}", baos.toString());
   }
 }

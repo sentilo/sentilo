@@ -34,7 +34,7 @@ $(document).ready(function() {
 });
 </script>
 
-<form:form method="post" modelAttribute="${modelAttribute}" action="${removePermissionURL}">
+<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="${modelAttribute}" action="${removePermissionURL}">
 
 	<c:if test="${not empty applicationId}">
 		<input type="hidden" name="applicationId" value="${applicationId}" />
@@ -56,8 +56,11 @@ $(document).ready(function() {
 	<br />
 	<div class="control-group pull-right">
 		<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-		<a href="#" onclick="unassignSelected('${modelAttribute}');" class="btn btn-danger"> <spring:message
-				code="permission.remove" /> </a> <a href="#" onclick="window.location.href='${addPermissionURL}';" class="btn"> <spring:message
-				code="permission.add" /> </a>
+		<a href="#" onclick="unassignSelected('${modelAttribute}');" class="btn btn-danger"> 
+			<spring:message code="permission.remove" /> 
+		</a> 
+		<a href="#" onclick="window.location.href='${addPermissionURL}';" class="btn"> 
+			<spring:message code="permission.add" /> 
+		</a>
 	</div>
 </form:form>

@@ -47,18 +47,21 @@ import org.sentilo.platform.client.core.domain.CatalogOutputMessage;
 import org.sentilo.platform.client.core.exception.PlatformClientAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:spring/sentilo-platform-client-integration.xml")
+@TestExecutionListeners(listeners = {BackupAlertsCollectionHook.class, DependencyInjectionTestExecutionListener.class})
 public class CatalogServiceOperationsIntegrationTest {
 
   static String PROVIDER_ID = "testApp_provider";
   static String APP_ID = "testApp";
-  static String tokenApp = "646967a9f99ae76cfb836026d0015c4b80f8c0e1efbd3d261250156efd8fb96f";
-  static String tokenProv = "563093ec5252147edc8860c2d667be5db0c010325b6953ed5b323724bcc00e05";
+  static String tokenApp = "e41fe42e03ca8d12d98e924a85eed0e883e6223228e5f8f86f3dda30d4a31ae1";
+  static String tokenProv = "4d578b2c0a47130bd2c9fe80801eccdefebd7f34be725f2cb8fb5a5472f6824a";
 
   @Autowired
   protected PlatformClientOperations platformTemplate;

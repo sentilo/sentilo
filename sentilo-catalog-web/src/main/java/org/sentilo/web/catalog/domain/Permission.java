@@ -28,6 +28,7 @@ package org.sentilo.web.catalog.domain;
 import java.util.Date;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.sentilo.web.catalog.utils.Constants;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -67,9 +68,8 @@ public class Permission implements CatalogDocument {
   }
 
   private void buildId() {
-    // El identificador interno de un permiso esta formado por la concatenacion del source y el
-    // target
-    id = source + "@" + target;
+    // Internal ID has the following format source@target
+    id = source + Constants.PERMISSION_TOKEN_SPLITTER + target;
   }
 
   @Override

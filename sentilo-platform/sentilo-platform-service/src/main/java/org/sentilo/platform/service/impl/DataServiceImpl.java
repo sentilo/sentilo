@@ -239,12 +239,18 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     final String location = (StringUtils.hasText(data.getLocation()) ? data.getLocation() : "");
     // Guardamos una hash de clave sdid:{sdid} y valores sid, data (aleatorio), timestamp y
     // location.
+    String obsKey = keysBuilder.getObservationKey(sdid);
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put(SID, Long.toString(sid));
     fields.put(DATA, data.getValue());
     fields.put(TIMESTAMP, timestamp.toString());
     fields.put(LOCATION, location);
     jedisTemplate.hmSet(keysBuilder.getObservationKey(sdid), fields);
+
+    // if expireSeconds is defined and !=0, set the expire time to key
+    if (expireSeconds != 0) {
+      jedisTemplate.expire(obsKey, expireSeconds);
+    }
 
     // Y definimos una reverse lookup key con la cual recuperar rapidamente las observaciones de un
     // sensor

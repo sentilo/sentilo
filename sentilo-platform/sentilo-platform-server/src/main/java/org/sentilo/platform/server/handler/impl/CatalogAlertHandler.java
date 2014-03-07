@@ -66,7 +66,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     logger.debug("Executing catalog alert DELETE request");
     debug(request);
 
-    _onDelete(request, response, false);
+    _onDelete(request, false);
   }
 
   @Override
@@ -81,7 +81,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parseGetRequest(request);
     validator.validateRequestMessageOnGet(inputMessage);
-    validateEntityAndTokenAreEquals(inputMessage, request);
+    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
 
     // Aqui no tiene sentido hacer ninguna validación de autorizacion ya que se aplica sobre la
     // misma entidad que hace la peticion
@@ -104,7 +104,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parsePostRequest(request);
     validator.validateRequestMessageOnPost(inputMessage);
-    validateEntityAndTokenAreEquals(inputMessage, request);
+    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
     validateAuthorization(inputMessage, request);
 
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
@@ -121,24 +121,24 @@ public class CatalogAlertHandler extends AbstractHandler {
 
     final String method = request.getRequestParameter("method");
     if (StringUtils.hasText(method) && method.equals("delete")) {
-      _onDelete(request, response, true);
+      _onDelete(request, true);
     } else {
-      _onPut(request, response);
+      _onPut(request);
     }
 
   }
 
-  private void _onDelete(final SentiloRequest request, final SentiloResponse response, final boolean simulate) throws PlatformException {
+  private void _onDelete(final SentiloRequest request, final boolean simulate) throws PlatformException {
     logger.debug("Executing catalog alert DELETE request");
     debug(request);
 
-    // La peticion sólo puede ser de la sigiente manera
+    // La peticion sólo puede ser de la siguiente manera
     // DELETE /catalog/alert/<entity>
 
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parseDeleteRequest(request, simulate);
     validator.validateRequestMessageOnDelete(inputMessage);
-    validateEntityAndTokenAreEquals(inputMessage, request);
+    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
 
     final CatalogResponseMessage responseMessage = catalogService.deleteAlerts(inputMessage);
     if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
@@ -147,7 +147,7 @@ public class CatalogAlertHandler extends AbstractHandler {
 
   }
 
-  public void _onPut(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
+  private void _onPut(final SentiloRequest request) throws PlatformException {
     logger.debug("Executing catalog alert PUT request");
     debug(request);
 
@@ -157,22 +157,12 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parsePutRequest(request);
     validator.validateRequestMessageOnPut(inputMessage);
-    validateEntityAndTokenAreEquals(inputMessage, request);
+    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
     validateAuthorization(inputMessage, request);
 
     final CatalogResponseMessage responseMessage = catalogService.updateAlerts(inputMessage);
     if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
       throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
-  }
-
-  protected void validateEntityAndTokenAreEquals(final CatalogAlertInputMessage inputMessage, final SentiloRequest request)
-      throws ForbiddenAccessException {
-    // If token entity not correspond to catalog app then token entity and resource entity must be
-    // equals
-    if (!getCatalogId().equals(request.getEntitySource()) && !inputMessage.getEntityId().equals(request.getEntitySource())) {
-      final String errorMessage = String.format("You are not %s entity. Review token identity or request path content.", inputMessage.getEntityId());
-      throw new ForbiddenAccessException(errorMessage);
     }
   }
 

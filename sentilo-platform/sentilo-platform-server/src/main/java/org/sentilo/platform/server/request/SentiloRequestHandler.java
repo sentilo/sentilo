@@ -25,6 +25,8 @@
  */
 package org.sentilo.platform.server.request;
 
+import java.io.ByteArrayOutputStream;
+
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -33,11 +35,14 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
+import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.server.auth.AuthenticationService;
+import org.sentilo.platform.server.dto.ErrorMessage;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
 import org.sentilo.platform.server.http.HttpHeader;
+import org.sentilo.platform.server.parser.ErrorParser;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +53,12 @@ public class SentiloRequestHandler implements HttpRequestHandler {
 
   private final HandlerLocator handlerLocator;
   private final AuthenticationService authenticationService;
+  private final ErrorParser errorParser;
 
   public SentiloRequestHandler(final HandlerLocator handlerLocator, final AuthenticationService authService) {
     this.handlerLocator = handlerLocator;
     authenticationService = authService;
+    errorParser = new ErrorParser();
   }
 
   @Override
@@ -74,13 +81,18 @@ public class SentiloRequestHandler implements HttpRequestHandler {
   }
 
   private void prepareErrorResponse(final HttpResponse response, final PlatformException e) {
-    if (e.getHttpStatus() != 0) {
-      response.setStatusCode(e.getHttpStatus());
-      // Actualizamos el motivo del error con la info de la excepcion en el body de la respuesta
-      final String reason = e.getMessage();
-      response.setEntity(new ByteArrayEntity(reason.getBytes()));
-    } else {
-      response.setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    final int errorCode = (e.getHttpStatus() != 0 ? e.getHttpStatus() : HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    final String errorMessage = e.getMessage();
+    ErrorMessage message = new ErrorMessage(errorCode, errorMessage);
+
+    try {
+      ByteArrayOutputStream baos = errorParser.writeInternal(message);
+      response.setStatusCode(errorCode);
+      response.setEntity(new ByteArrayEntity(baos.toByteArray(), ErrorParser.DEFAULT_CONTENT_TYPE));
+      response.setHeader(HttpHeader.CONTENT_TYPE.toString(), ErrorParser.DEFAULT_CONTENT_TYPE.toString());
+    } catch (JsonConverterException jce) {
+      response.setStatusCode(errorCode);
+      response.setEntity(new ByteArrayEntity(jce.getMessage().getBytes()));
     }
   }
 

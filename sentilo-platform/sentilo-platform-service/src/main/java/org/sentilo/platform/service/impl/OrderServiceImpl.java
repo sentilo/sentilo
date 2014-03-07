@@ -219,12 +219,19 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
 
     final Long timestamp = System.currentTimeMillis();
 
+    final String orderKey = keysBuilder.getOrderKey(soid);
+
     // Guardamos una hash de clave soid:{soid} y valores sender, order y timestamp.
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put(SENDER, message.getSender());
     fields.put(ORDER, message.getOrder());
     fields.put(TIMESTAMP, timestamp.toString());
-    jedisTemplate.hmSet(keysBuilder.getOrderKey(soid), fields);
+    jedisTemplate.hmSet(orderKey, fields);
+
+    // if expireSeconds is defined and !=0, set the expire time to key
+    if (expireSeconds != 0) {
+      jedisTemplate.expire(orderKey, expireSeconds);
+    }
 
     return soid;
   }

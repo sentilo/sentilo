@@ -42,12 +42,15 @@ import org.sentilo.platform.client.core.domain.CatalogAlertOutputMessage;
 import org.sentilo.platform.client.core.exception.PlatformClientAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:spring/sentilo-platform-client-integration.xml")
+@TestExecutionListeners(listeners = {BackupAlertsCollectionHook.class, DependencyInjectionTestExecutionListener.class})
 public class CatalogAlertServiceOperationsIntegrationTest {
 
   static String PROVIDER_ID = "testApp_provider";
@@ -129,6 +132,7 @@ public class CatalogAlertServiceOperationsIntegrationTest {
     }
 
   }
+
 
   private void deleteAlerts() {
     final CatalogAlertInputMessage message = new CatalogAlertInputMessage(PROVIDER_ID);

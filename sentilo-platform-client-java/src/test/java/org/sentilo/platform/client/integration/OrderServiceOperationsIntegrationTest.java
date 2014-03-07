@@ -52,14 +52,14 @@ public class OrderServiceOperationsIntegrationTest {
 
   @Test
   public void _01_publish() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp", "sensor1", new OrderMessage("stop"));
+    final OrderInputMessage message = new OrderInputMessage("testApp_provider", "sensor1", new OrderMessage("stop"));
     platformTemplate.getOrderOps().publish(message);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", true);
   }
 
   @Test
   public void _02_publishWithoutOrderMessage() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp");
+    final OrderInputMessage message = new OrderInputMessage("testApp_provider");
     boolean error = false;
     try {
       platformTemplate.getOrderOps().publish(message);
@@ -83,7 +83,7 @@ public class OrderServiceOperationsIntegrationTest {
 
   @Test
   public void _04_getLastOrdersFromSensor() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp", "sensor1");
+    final OrderInputMessage message = new OrderInputMessage("testApp_provider", "sensor1");
     final OrdersOutputMessage response = platformTemplate.getOrderOps().getLastOrders(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getOrders()));
     assertEquals(1, response.getOrders().size());
@@ -91,7 +91,7 @@ public class OrderServiceOperationsIntegrationTest {
 
   @Test
   public void _05_getLastOrdersFromProvider() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp");
+    final OrderInputMessage message = new OrderInputMessage("testApp_provider");
     final OrdersOutputMessage response = platformTemplate.getOrderOps().getLastOrders(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getSensors()));
     assertEquals(1, response.getSensors().size());

@@ -147,6 +147,7 @@ public final class Constants {
   public static final String DEFAULT_COMPONENT_TYPE = "generic";
 
   public static final String DEFAULT_KEY_TOKEN_SPLITTER = ".";
+  public static final String PERMISSION_TOKEN_SPLITTER = "@";
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

@@ -120,7 +120,7 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
   @Override
   public List<Permission> getActivePermissions(final String entityId) {
     final SearchFilter filter = new SearchFilter();
-    filter.addParam("source", entityId);
+    filter.addAndParam("source", entityId);
     return super.search(filter).getContent();
   }
 

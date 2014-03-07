@@ -35,11 +35,7 @@
 
 	<logger name="org.sentilo.web.catalog.logging.exceptions" level="warn" />
 
-	<logger name="org.springframework.data.mongodb.core.mapping.event.LoggingEventListener" level="info" />
-
-	<logger name="org.springframework" level="DEBUG" additivity="false">
-		<appender-ref ref="STDOUT" />
-	</logger>
+	<logger name="org.springframework.data.mongodb.core.mapping.event.LoggingEventListener" level="info" />	
 		
 	<root level="WARN">
 		<appender-ref ref="STDOUT" />
