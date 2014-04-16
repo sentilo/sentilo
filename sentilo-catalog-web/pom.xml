@@ -11,21 +11,28 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.1.0</version>		
+		<version>1.2.0</version>		
 	</parent>
 
 	<properties>				
 		<org.springframework.security.version>3.1.2.RELEASE</org.springframework.security.version>
 		<validation.api.version>1.0.0.GA</validation.api.version>
-		<hibernate.validator.version>4.3.1.Final</hibernate.validator.version>									
-		<mysql.jdbc.driver.version>5.1.15</mysql.jdbc.driver.version>				
-		<tomcat.jdbc.version>7.0.47</tomcat.jdbc.version>	
+		<hibernate.validator.version>4.3.1.Final</hibernate.validator.version>												
 	</properties>
 
 	<build>
-	    <!-- The war name must be connecta-catalog web and not the default value sentilo-catalog-web-1.0.0-RC1.war -->	
+	    <!-- The war name must be sentilo-catalog web and not the default value sentilo-catalog-web-1.0.0-RC1.war -->	
 		<finalName>sentilo-catalog-web</finalName>
-	</build>
+		<plugins>
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-war-plugin</artifactId>			
+	        <configuration>
+	        	<attachClasses>true</attachClasses>
+	        </configuration>
+	      </plugin>	      
+	    </plugins>
+	</build>		
 
 	<dependencies>		
 		<dependency>
@@ -209,33 +216,7 @@
 					<groupId>org.springframework</groupId>
 			 </exclusion>
 		 </exclusions>
-	    </dependency>		    
-	    <!-- Dependencies for relational DB -->
-	    <dependency>
-	    	<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>	
-		<dependency>
-	    	<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>		   
-	    <dependency>
-	        <groupId>mysql</groupId>
-	        <artifactId>mysql-connector-java</artifactId>
-	        <version>${mysql.jdbc.driver.version}</version>
-	    </dependency>				    	    
-	    <!--dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>ojdbc6</artifactId>
-			<version>${oracle.jdbc.driver.version}</version>
-		</dependency -->
-		<dependency>
-			<groupId>org.apache.tomcat</groupId>
-			<artifactId>tomcat-jdbc</artifactId>
-			<version>${tomcat.jdbc.version}</version>
-		</dependency>	
+	    </dependency>		    	    
 		<!-- Added to remove stupid JSP validations errors like pageContext not found, ...-->	    	    
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>

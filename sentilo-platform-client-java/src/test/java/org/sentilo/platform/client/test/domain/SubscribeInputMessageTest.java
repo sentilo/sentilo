@@ -91,14 +91,26 @@ public class SubscribeInputMessageTest {
   }
 
   @Test
-  public void buildOrderSubscription() {
-    final String[] resources = {SENSOR_ID};
+  public void buildProviderOrdersSubscription() {
+    final String[] resources = {PROVIDER_ID};
     final SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, endpoint, resources);
-    assertEquals(message.getType(), SubscribeType.ORDER);
+    assertEquals(SubscribeType.ORDER, message.getType());
     assertNotNull(message.getEndpoint());
-    assertEquals(message.getEndpoint().getEndpoint(), ENDPOINT_URL);
-    assertEquals(message.getResources().size(), 1);
-    assertEquals(message.getResources().get(SubscribeInputMessage.SENSOR_ID_KEY), SENSOR_ID);
+    assertEquals(ENDPOINT_URL, message.getEndpoint().getEndpoint());
+    assertEquals(1, message.getResources().size());
+    assertEquals(PROVIDER_ID, message.getResources().get(SubscribeInputMessage.PROVIDER_ID_KEY));
+  }
+
+  @Test
+  public void buildProviderSensorOrdersSubscription() {
+    final String[] resources = {PROVIDER_ID, SENSOR_ID};
+    final SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, endpoint, resources);
+    assertEquals(SubscribeType.ORDER, message.getType());
+    assertNotNull(message.getEndpoint());
+    assertEquals(ENDPOINT_URL, message.getEndpoint().getEndpoint());
+    assertEquals(2, message.getResources().size());
+    assertEquals(PROVIDER_ID, message.getResources().get(SubscribeInputMessage.PROVIDER_ID_KEY));
+    assertEquals(SENSOR_ID, message.getResources().get(SubscribeInputMessage.SENSOR_ID_KEY));
   }
 
   @Test

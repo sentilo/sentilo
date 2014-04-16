@@ -33,11 +33,11 @@ import org.sentilo.platform.server.dto.ErrorMessage;
 
 public class ErrorParser extends PlatformJsonMessageConverter {
 
-  public ByteArrayOutputStream writeInternal(ErrorMessage object) throws JsonConverterException {
+  public ByteArrayOutputStream writeInternal(ErrorMessage errorMessage) throws JsonConverterException {
     try {
-      return super.writeInternal(object);
+      return super.writeInternal(errorMessage);
     } catch (final MessageNotWritableException ex) {
-      throw new JsonConverterException("Could not write JSON: " + ex.getMessage(), ex, false);
+      throw buildMarshalJsonException(errorMessage, ex);
     }
   }
 }

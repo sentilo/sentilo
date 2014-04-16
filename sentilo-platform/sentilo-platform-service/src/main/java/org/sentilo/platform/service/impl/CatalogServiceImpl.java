@@ -31,6 +31,7 @@ import org.sentilo.common.domain.CatalogInputMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.CredentialsMessage;
 import org.sentilo.platform.common.domain.PermissionsMessage;
 import org.sentilo.platform.common.exception.CatalogAccessException;
@@ -60,7 +61,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public PermissionsMessage getPermissions() {
     try {
-      final String response = restClient.get(buildApiPath("permissions"));
+      final String response = restClient.get(buildApiPath(SentiloConstants.PERMISSIONS_TOKEN));
       return parser.parsePermissions(response);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
@@ -74,7 +75,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CredentialsMessage getCredentials() {
     try {
-      final String response = restClient.get(buildApiPath("credentials"));
+      final String response = restClient.get(buildApiPath(SentiloConstants.CREDENTIALS_TOKEN));
       return parser.parseCredentials(response);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
@@ -91,7 +92,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogResponseMessage insertSensors(final CatalogInputMessage message) {
     try {
-      final String path = buildApiPath("provider", message.getProviderId());
+      final String path = buildApiPath(SentiloConstants.PROVIDER_TOKEN, message.getProviderId());
       final String response = restClient.post(path, message.getBody());
       return parser.parseCatalogResponse(response);
     } catch (final NestedRuntimeException rce) {
@@ -108,7 +109,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogResponseMessage updateSensorsOrComponents(final CatalogInputMessage message) {
     try {
-      final String path = buildApiPath("provider", message.getProviderId());
+      final String path = buildApiPath(SentiloConstants.PROVIDER_TOKEN, message.getProviderId());
       final String response = restClient.put(path, message.getBody());
       return parser.parseCatalogResponse(response);
     } catch (final NestedRuntimeException rce) {
@@ -126,7 +127,7 @@ public class CatalogServiceImpl implements CatalogService {
   public CatalogResponseMessage getAuthorizedProviders(final CatalogInputMessage message) {
     try {
       final RequestParameters parameters = new RequestParameters();
-      final String path = buildApiPath("authorized", "provider", message.getEntityId());
+      final String path = buildApiPath(SentiloConstants.AUTHORIZED_TOKEN, SentiloConstants.PROVIDER_TOKEN, message.getEntityId());
 
       if (!CollectionUtils.isEmpty(message.getParameters())) {
         parameters.put(message.getParameters());
@@ -148,7 +149,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogResponseMessage deleteProvider(final CatalogInputMessage message) {
     try {
-      final String path = buildApiPath("delete", "provider", message.getProviderId());
+      final String path = buildApiPath(SentiloConstants.DELETE_TOKEN, SentiloConstants.PROVIDER_TOKEN, message.getProviderId());
       final String response = restClient.put(path, message.getBody());
       return parser.parseCatalogResponse(response);
     } catch (final NestedRuntimeException rce) {
@@ -163,7 +164,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogAlertResponseMessage getAlertsOwners() {
     try {
-      final String response = restClient.get(buildApiPath("alert", "owners"));
+      final String response = restClient.get(buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.OWNERS_TOKEN));
       return parser.parseCatalogAlertResponse(response);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
@@ -180,7 +181,7 @@ public class CatalogServiceImpl implements CatalogService {
   public CatalogAlertResponseMessage getAuthorizedAlerts(final CatalogAlertInputMessage message) {
     try {
       final RequestParameters parameters = new RequestParameters();
-      final String path = buildApiPath("alert", "entity", message.getEntityId());
+      final String path = buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId());
 
       if (!CollectionUtils.isEmpty(message.getParameters())) {
         parameters.put(message.getParameters());
@@ -201,7 +202,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogAlertResponseMessage insertAlerts(final CatalogAlertInputMessage message) {
     try {
-      final String path = buildApiPath("alert", "entity", message.getEntityId());
+      final String path = buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId());
       final String response = restClient.post(path, message.getBody());
       return parser.parseCatalogAlertResponse(response);
     } catch (final NestedRuntimeException rce) {
@@ -217,7 +218,7 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogAlertResponseMessage updateAlerts(final CatalogAlertInputMessage message) {
     try {
-      final String path = buildApiPath("alert", "entity", message.getEntityId());
+      final String path = buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId());
       final String response = restClient.put(path, message.getBody());
       return parser.parseCatalogAlertResponse(response);
     } catch (final NestedRuntimeException rce) {
@@ -233,7 +234,8 @@ public class CatalogServiceImpl implements CatalogService {
    */
   public CatalogAlertResponseMessage deleteAlerts(final CatalogAlertInputMessage message) {
     try {
-      final String path = buildApiPath("alert", "entity", message.getEntityId(), "delete");
+      final String path =
+          buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId(), SentiloConstants.DELETE_TOKEN);
       final String response = restClient.put(path, message.getBody());
       return parser.parseCatalogAlertResponse(response);
     } catch (final NestedRuntimeException rce) {
@@ -241,12 +243,11 @@ public class CatalogServiceImpl implements CatalogService {
     }
   }
 
-
   private String buildApiPath(final String... pathTokens) {
-    final StringBuilder sb = new StringBuilder("api");
+    final StringBuilder sb = new StringBuilder(SentiloConstants.API_TOKEN);
 
     for (final String pathToken : pathTokens) {
-      sb.append("/").append(pathToken);
+      sb.append(SentiloConstants.SLASH).append(pathToken);
     }
 
     return sb.toString();

@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
 
 public class BaseJsonMessageConverter {
 
-  private final Logger logger = LoggerFactory.getLogger(BaseJsonMessageConverter.class);
+  protected final Logger logger = LoggerFactory.getLogger(BaseJsonMessageConverter.class);
 
   protected static final JsonEncoding DEFAULT_ENCODING = JsonEncoding.UTF8;
   private final ObjectMapper objectMapper = new ObjectMapper();

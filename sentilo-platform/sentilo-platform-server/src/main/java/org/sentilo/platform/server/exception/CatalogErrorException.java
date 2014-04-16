@@ -25,6 +25,8 @@
  */
 package org.sentilo.platform.server.exception;
 
+import java.util.List;
+
 import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.exception.PlatformException;
 
@@ -38,5 +40,9 @@ public class CatalogErrorException extends PlatformException {
 
   public CatalogErrorException(final String errorCode, final String message) {
     super(Integer.parseInt(errorCode), message);
+  }
+
+  public CatalogErrorException(final String errorCode, final String message, final List<String> errorDetails) {
+    super(Integer.parseInt(errorCode), message, errorDetails);
   }
 }

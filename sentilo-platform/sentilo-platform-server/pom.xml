@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.sentilo.platform</groupId>
 		<artifactId>sentilo-platform</artifactId>
-		<version>1.1.0</version>			
+		<version>1.2.0</version>			
 	</parent>
 	
 	<dependencies>
@@ -75,7 +75,10 @@
 						<program>
 							<mainClass>org.sentilo.platform.server.SentiloServer</mainClass>
 							<name>sentilo-server</name>
-							<jvmSettings>			                
+							<jvmSettings>	
+								<systemProperties>
+				                  <systemProperty>user.timezone=UTC</systemProperty>				                
+				                </systemProperties>			                
 				                <extraArguments>
 				                  <extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>			                  
 				                </extraArguments>

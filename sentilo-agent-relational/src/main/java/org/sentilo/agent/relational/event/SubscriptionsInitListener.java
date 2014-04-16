@@ -38,7 +38,6 @@ import org.sentilo.agent.relational.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -49,12 +48,9 @@ import org.springframework.util.StringUtils;
 /**
  * Este proceso solo se ejecuta una vez: cuando la aplicación arranca. Se encarga de
  * inicializar/registrar las subscripciones definidas en el fichero de propiedades y a las cuales
- * debe estar subscrito este agente. Tiene definida la restricción de que el registro no se lleve a
- * cabo en el entorno de desarrollo, para asi evitar conflictos con el entorno local y las
- * estaciones de trabajo de los desarrolladores.
+ * debe estar subscrito este agente.
  */
 @Component
-@Profile("dev")
 public class SubscriptionsInitListener implements org.springframework.context.ApplicationListener<org.springframework.context.event.ContextRefreshedEvent> {
 
   private final Logger logger = LoggerFactory.getLogger(SubscriptionsInitListener.class);

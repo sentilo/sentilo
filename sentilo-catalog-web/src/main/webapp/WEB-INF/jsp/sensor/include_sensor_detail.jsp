@@ -84,6 +84,12 @@
 						</div>
 						<div class="row-fluid">
 							<div class="span4">
+								<strong><spring:message code="sensor.timeZone" /> </strong>
+							</div>
+							<div class="span8">${sensor.timeZone}</div>
+						</div>											
+						<div class="row-fluid">
+							<div class="span4">
 								<strong><spring:message code="sensor.validTime" /> </strong>
 							</div>
 							<div class="span8">${sensor.validTime}</div>

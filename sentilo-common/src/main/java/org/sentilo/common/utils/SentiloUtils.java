@@ -25,8 +25,11 @@
  */
 package org.sentilo.common.utils;
 
-import org.springframework.util.StringUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import org.springframework.util.StringUtils;
 
 public abstract class SentiloUtils {
 
@@ -36,5 +39,31 @@ public abstract class SentiloUtils {
 
   public static boolean stringIsNotEmptyOrNull(final String value) {
     return StringUtils.hasText(value) && !value.toLowerCase().equals("null");
+  }
+
+  public static String buildNewInternalErrorCode(final String prefix) {
+    // Internal error codes have the format: prefix-timestamp
+    return prefix + "-" + System.currentTimeMillis();
+  }
+
+  /**
+   * Add the specified values to the beginning of the list.
+   * 
+   * @param baseList
+   * @param values
+   */
+  public static List<String> addValuesToBeginningList(List<String> baseList, String... values) {
+    List<String> result = new ArrayList<String>();
+
+    if (!arrayIsEmpty(values)) {
+      List<String> valuesList = Arrays.asList(values);
+      result.addAll(valuesList);
+      // Collections.reverse(valuesList);
+      // for (String value : valuesList) {
+      // result.add(0, value);
+      // }
+    }
+    result.addAll(baseList);
+    return result;
   }
 }

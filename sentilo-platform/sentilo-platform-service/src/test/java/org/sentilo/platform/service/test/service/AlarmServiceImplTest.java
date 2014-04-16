@@ -34,6 +34,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -97,6 +98,21 @@ public class AlarmServiceImplTest {
     verify(message, times(2)).getAlertId();
     verify(jedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
     verify(jedisTemplate, times(amids.size())).hGetAll(anyString());
+  }
+
+  @Test
+  public void getEmptyLastMessagesFromAlarm() {
+    final String alarm = "alarm1";
+
+    when(message.getAlertId()).thenReturn(alarm);
+    when(jedisSequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
+    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(Collections.<String>emptySet());
+
+    service.getLastMessages(message);
+
+    verify(message, times(1)).getAlertId();
+    verify(jedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
+    verify(jedisTemplate, times(0)).hGetAll(anyString());
   }
 
   private Set<String> buildAmids() {

@@ -37,6 +37,7 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TagUtils;
+import org.sentilo.web.catalog.validator.ValidTimeZone;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -80,6 +81,9 @@ public class Sensor implements CatalogDocument {
   private String unit;
 
   private String validTime;
+
+  @ValidTimeZone
+  private String timeZone;
 
   @JsonSerialize(include = Inclusion.NON_EMPTY)
   private String tags;
@@ -270,5 +274,13 @@ public class Sensor implements CatalogDocument {
 
   public String getMetaData() {
     return metaData;
+  }
+
+  public void setTimeZone(String timeZone) {
+    this.timeZone = timeZone;
+  }
+
+  public String getTimeZone() {
+    return timeZone;
   }
 }

@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.repository.AlertRepository;
+import org.sentilo.web.catalog.utils.ApiTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Validator;
@@ -38,24 +39,24 @@ public class ApiAlertValidator extends ApiBaseValidator<Alert> {
 
   @Autowired
   private AlertValidator validator;
-  
+
   @Autowired
   private AlertRepository repository;
 
   public void validate(final List<Alert> alerts, final ApiValidationResults results, boolean isUpdateAction) {
     for (final Alert alert : alerts) {
-      validate(results, alert, alert.getId(), "Alert");
+      validate(results, alert, alert.getId(), "Alert", ApiTranslator.ALERT_DOMAIN_FIELDS);
     }
-        
+
     if (!isUpdateAction && !results.hasErrors()) {
       validateKeys(results, alerts);
-    }        
+    }
   }
 
   protected EntityKeyValidator buildEntityKeyValidator() {
     return new DefaultEntityKeyValidatorImpl(Alert.class, repository);
   }
-  
+
   protected String buildIntegrityKeyErrorMessage(final Alert alert) {
     return String.format("Alert %s : alert with the same id already exists.", alert.getId());
   }

@@ -26,15 +26,17 @@
 package org.sentilo.platform.server.parser;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.http.entity.ContentType;
-import org.sentilo.common.exception.MessageNotReadableException;
 import org.sentilo.common.exception.MessageNotWritableException;
 import org.sentilo.common.parser.BaseJsonMessageConverter;
 import org.sentilo.common.utils.DateUtils;
+import org.sentilo.common.utils.SentiloConstants;
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
@@ -44,23 +46,25 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
 
   public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
   public static final ContentType DEFAULT_CONTENT_TYPE = ContentType.APPLICATION_JSON;
+  public static final String UNMARSHAL_JSON_ERROR_TEMPLATE =
+      "%s  Bad request data: could not read JSON payload. Please review the following error and try again";
+  public static final String UNMARSHAL_JSON_FIELD_ERROR_TEMPLATE = "Wrong %s value: %s";
+  public static final String MARSHAL_JSON_ERROR_TEMPLATE = SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE;
 
-  protected void writeInternal(final Object o, final SentiloResponse response) throws IOException, JsonConverterException {
+  protected void writeInternal(final Object obj, final SentiloResponse response) throws JsonConverterException {
     try {
-      final ByteArrayOutputStream out = super.writeInternal(o);
+      final ByteArrayOutputStream out = super.writeInternal(obj);
       response.setBody(out, DEFAULT_CONTENT_TYPE);
     } catch (final MessageNotWritableException ex) {
-      throw new JsonConverterException("Could not write JSON: " + ex.getMessage(), ex, false);
+      throw buildMarshalJsonException(obj, ex);
     }
   }
 
   protected Object readInternal(final Class<?> clazz, final SentiloRequest request) throws JsonConverterException {
     try {
       return super.readInternal(clazz, request.getBody());
-    } catch (final IOException ex) {
-      throw new JsonConverterException("Could not write JSON: " + ex.getMessage(), ex, true);
-    } catch (final MessageNotReadableException mne) {
-      throw new JsonConverterException("Could not write JSON: " + mne.getMessage(), mne, true);
+    } catch (final Exception ex) {
+      throw buildUnmarshallJsonException(clazz, ex);
     }
   }
 
@@ -68,7 +72,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     try {
       return DateUtils.parseTimestamp(timestamp);
     } catch (final IllegalArgumentException e) {
-      throw new JsonConverterException("Error while parsing timestamp " + timestamp, e, true);
+      throw buildJsonFieldError("timestamp", timestamp, e);
     }
   }
 
@@ -76,7 +80,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     try {
       return DateUtils.stringToDate(date);
     } catch (final IllegalArgumentException e) {
-      throw new JsonConverterException("Error while parsing date " + date, e, true);
+      throw buildJsonFieldError("date", date, e);
     }
   }
 
@@ -84,8 +88,34 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     try {
       return (StringUtils.hasText(integer) ? Integer.valueOf(integer) : null);
     } catch (final NumberFormatException e) {
-      throw new JsonConverterException("Error while parsing integer " + integer, e, true);
+      throw buildJsonFieldError("integer", integer, e);
     }
+  }
+
+  protected JsonConverterException buildJsonFieldError(String type, String value, Throwable cause) {
+    String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
+    logger.error("{} - Error unmarshalling JSON payload. Wrong {} value: {}.", internalErrorCode, type, value, cause);
+    String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
+    List<String> errorDetails = new ArrayList<String>();
+    errorDetails.add(String.format(UNMARSHAL_JSON_FIELD_ERROR_TEMPLATE, type, value));
+
+    return new JsonConverterException(errorMessage, errorDetails);
+  }
+
+  protected JsonConverterException buildMarshalJsonException(Object obj, Throwable cause) {
+    String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_MARSHAL_ERROR);
+    logger.error("{} - Error marshalling object of type {} to JSON.", internalErrorCode, obj.getClass().getName(), cause);
+
+    String errorMessage = String.format(MARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
+    return new JsonConverterException(errorMessage);
+  }
+
+  protected JsonConverterException buildUnmarshallJsonException(final Class<?> clazz, final Throwable cause) {
+    String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
+    logger.error("{} - Error unmarshalling JSON payload to class {}.", internalErrorCode, clazz.getName(), cause);
+
+    String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
+    return new JsonConverterException(errorMessage, cause);
   }
 
   public String timestampToString(final Long timestamp) {

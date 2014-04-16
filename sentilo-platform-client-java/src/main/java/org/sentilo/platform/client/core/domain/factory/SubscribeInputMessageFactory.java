@@ -49,7 +49,8 @@ public abstract class SubscribeInputMessageFactory {
     return buildSubscription(type, null, resources);
   }
 
-  public static SubscribeInputMessage buildSubscription(final SubscribeType type, final Endpoint endpoint, final String... resources) throws IllegalArgumentException {
+  public static SubscribeInputMessage buildSubscription(final SubscribeType type, final Endpoint endpoint, final String... resources)
+      throws IllegalArgumentException {
     if (type == null) {
       throw new IllegalArgumentException("Param type is mandatory");
     }
@@ -98,15 +99,29 @@ public abstract class SubscribeInputMessageFactory {
 
   static class OrderSubscription extends SubscribeInputMessage {
 
+    private final String providerId;
     private final String sensorId;
 
     public OrderSubscription(final Endpoint endpoint, final String... resources) {
       super(SubscribeType.ORDER);
       this.endpoint = endpoint;
-      sensorId = getArrayValue(resources, 0);
+      providerId = getArrayValue(resources, 0);
+      sensorId = getArrayValue(resources, 1);
+
+      if (StringUtils.hasText(providerId)) {
+        addResource(PROVIDER_ID_KEY, providerId);
+      }
+
       if (StringUtils.hasText(sensorId)) {
+        if (providerId == null) {
+          throw new IllegalArgumentException("Provider value is mandatory");
+        }
         addResource(SENSOR_ID_KEY, sensorId);
       }
+    }
+
+    public String getProviderId() {
+      return providerId;
     }
 
     public String getSensorId() {
@@ -131,7 +146,7 @@ public abstract class SubscribeInputMessageFactory {
 
       if (StringUtils.hasText(sensorId)) {
         if (providerId == null) {
-          throw new IllegalArgumentException("Si el identificador del sensor está informado también debe estarlo el del proveedor");
+          throw new IllegalArgumentException("Provider value is mandatory");
         }
         addResource(SENSOR_ID_KEY, sensorId);
       }

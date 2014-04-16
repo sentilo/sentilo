@@ -25,7 +25,6 @@
  */
 package org.sentilo.platform.server.parser;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
@@ -55,7 +54,8 @@ public class SubscribeParser extends PlatformJsonMessageConverter {
     return parseRequest(request, defaultSubsType, false);
   }
 
-  private Subscription parseRequest(final SentiloRequest request, final SubscribeType defaultSubsType, final boolean isBasicRequest) throws PlatformException {
+  private Subscription parseRequest(final SentiloRequest request, final SubscribeType defaultSubsType, final boolean isBasicRequest)
+      throws PlatformException {
     final boolean resourceHasEvent = resourceHasEvent(request);
     final SubscribeType subscribeType = (resourceHasEvent ? getSubscribeType(request) : defaultSubsType);
 
@@ -79,7 +79,7 @@ public class SubscribeParser extends PlatformJsonMessageConverter {
           final String alertId = request.getResourcePart(1);
           return new AlarmSubscription(entityId, null, endpoint, alertId);
         default:
-          throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Illegal subscribe event type:" + subscribeType);
+          throw new PlatformException(HttpStatus.SC_BAD_REQUEST, "Illegal subscribe event type:" + subscribeType);
       }
     } else {
       // TODO Mikel: Revisar ya que ahora fijamos source / target al mismo entityId. Por aqui solo
@@ -91,13 +91,8 @@ public class SubscribeParser extends PlatformJsonMessageConverter {
 
   public void writeResponse(final SentiloResponse response, final List<Subscription> subscriptions) throws PlatformException {
     // transformar a objeto de tipo SubscriptionsMessage
-    final Object message = parseSubscriptionListToSubscriptionsMessage(subscriptions);
-
-    try {
-      writeInternal(message, response);
-    } catch (final IOException ex) {
-      throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex);
-    }
+    final SubscriptionsMessage message = parseSubscriptionListToSubscriptionsMessage(subscriptions);
+    writeInternal(message, response);
   }
 
   private SubscriptionsMessage parseSubscriptionListToSubscriptionsMessage(final List<Subscription> subscriptionsList) {

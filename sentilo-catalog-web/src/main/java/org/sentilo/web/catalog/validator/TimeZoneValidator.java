@@ -23,34 +23,34 @@
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
-package org.sentilo.web.catalog.utils;
+package org.sentilo.web.catalog.validator;
 
-/**
- * Thread local que nos proporciona un backend en el cual mantener el nombre del ds a utilizar a la
- * hora de persistir la info en la Situation Room. Este backend es utilizado en la clase
- * {@link SentiloRoutingDataSource} para poder hacer el lookup del ds correspondiente.
- * 
- * @see SentiloRoutingDataSource
- */
-public abstract class ThreadLocalProperties {
+import java.util.TimeZone;
 
-  public static final ThreadLocal<String> DS_THREAD_LOCAL = new ThreadLocal<String>();
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-  public static void set(final String dsName) {
-    DS_THREAD_LOCAL.set(dsName);
+import org.springframework.util.StringUtils;
+
+public class TimeZoneValidator implements ConstraintValidator<ValidTimeZone, String> {
+
+  @Override
+  public void initialize(ValidTimeZone constraintAnnotation) {
   }
 
-  public static void unset() {
-    DS_THREAD_LOCAL.remove();
-  }
+  @Override
+  public boolean isValid(String timeZoneId, ConstraintValidatorContext context) {
+    boolean valid = true;
+    if (StringUtils.hasText(timeZoneId)) {
+      TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
 
-  public static String get() {
-    return DS_THREAD_LOCAL.get();
-  }
+      // TimeZone.getTimeZone _always_ returns GMT for unrecognized strings.
+      if (timeZone.getID().equals("GMT") && !timeZoneId.equals("GMT")) {
+        valid = false;
+      }
+    }
 
-  private ThreadLocalProperties() {
-    // this prevents even the native class from calling this ctor as well :
-    throw new AssertionError();
+    return valid;
   }
 
 }

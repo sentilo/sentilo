@@ -73,9 +73,10 @@ public class JedisTemplate<K, V> {
   public <T> T execute(final JedisCallback<T> action) {
     Assert.notNull(action, "Callback object must not be null");
 
-    final Jedis conn = jedisPoolUtils.getResource();
+    Jedis conn = null;
     boolean broken = false;
     try {
+      conn = jedisPoolUtils.getResource();
       return action.doInRedis(conn);
     } catch (final Exception e) {
       if (e instanceof JedisConnectionException) {

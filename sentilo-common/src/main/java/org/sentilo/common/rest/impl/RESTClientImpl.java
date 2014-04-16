@@ -165,10 +165,12 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   private void validateResponse(final HttpResponse response) throws RESTClientException {
     if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
       final StatusLine line = response.getStatusLine();
-      final StringBuilder sb = new StringBuilder(line.getReasonPhrase());
+      final StringBuilder sb = new StringBuilder();
       try {
         if (response.getEntity() != null) {
-          sb.append(EntityUtils.toString(response.getEntity()) + ". ");
+          sb.append(EntityUtils.toString(response.getEntity()));
+        } else {
+          sb.append(line.getReasonPhrase());
         }
       } catch (final Exception e) {
         // Ignored

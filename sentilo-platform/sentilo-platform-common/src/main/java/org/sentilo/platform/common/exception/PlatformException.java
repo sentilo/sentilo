@@ -25,26 +25,34 @@
  */
 package org.sentilo.platform.common.exception;
 
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class PlatformException extends Exception {
 
   private int httpStatus;
 
-  public PlatformException(final int status, final String message) {
-    super(message);
-    httpStatus = status;
+  private List<String> errorDetails;
+
+  public PlatformException() {
   }
 
   public PlatformException(final int status) {
     httpStatus = status;
   }
 
-  public PlatformException() {
-  }
-
   public PlatformException(final String message) {
     super(message);
+  }
+
+  public PlatformException(final int status, final String message) {
+    super(message);
+    httpStatus = status;
+  }
+
+  public PlatformException(final int status, final String message, final List<String> errorDetails) {
+    this(status, message);
+    this.errorDetails = errorDetails;
   }
 
   public PlatformException(final Throwable cause) {
@@ -66,5 +74,13 @@ public class PlatformException extends Exception {
 
   public void setHttpStatus(final int httpStatus) {
     this.httpStatus = httpStatus;
+  }
+
+  public void setErrorDetails(List<String> errorDetails) {
+    this.errorDetails = errorDetails;
+  }
+
+  public List<String> getErrorDetails() {
+    return errorDetails;
   }
 }

@@ -35,11 +35,18 @@ import org.springframework.util.StringUtils;
 public abstract class DateUtils {
 
   private static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
+  private static final String TIMEZONE_TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ssZ";
+  private static final String UTC_SUFFIX = "+0000";
+  // DateFormat to use to format output timestamps
   private static final DateFormat PSAB_DF;
+  // DateFormat to use to parser incoming timestamps
+  private static final DateFormat TZ_PSAB_DF;
 
   static {
     PSAB_DF = new SimpleDateFormat(TIMESTAMP_PATTERN);
     PSAB_DF.setLenient(false);
+    TZ_PSAB_DF = new SimpleDateFormat(TIMEZONE_TIMESTAMP_PATTERN);
+    TZ_PSAB_DF.setLenient(false);
   }
 
   private DateUtils() {
@@ -50,13 +57,19 @@ public abstract class DateUtils {
     return PSAB_DF.format(date);
   }
 
+  public static String timestampToString(final Long timestamp) {
+    return (timestamp == null ? null : PSAB_DF.format(timestamp));
+  }
+
   public static long toMillis(final String timestamp) {
     return stringToDate(timestamp).getTime();
   }
 
   public static Date stringToDate(final String date) {
     try {
-      return (StringUtils.hasText(date) ? PSAB_DF.parse(date) : null);
+      // First, validate that localTime has TZ defined. If not defined, we will treat it as a UTC
+      // date (+0000)
+      return (StringUtils.hasText(date) ? TZ_PSAB_DF.parse(formatToUTC(date)) : null);
     } catch (final ParseException e) {
       throw new IllegalArgumentException("Error parsing date", e);
     }
@@ -67,8 +80,10 @@ public abstract class DateUtils {
     return (date != null ? date.getTime() : null);
   }
 
-  public static String timestampToString(final Long timestamp) {
-    return (timestamp == null ? null : PSAB_DF.format(timestamp));
+  private static String formatToUTC(final String localTime) {
+    // Returns localTime + '+0000' . There is no problem if timeZone token is duplicate because
+    // pattern only inspects the first occurrence of the timeZone in localTime
+    return localTime.concat(UTC_SUFFIX);
   }
 
 }

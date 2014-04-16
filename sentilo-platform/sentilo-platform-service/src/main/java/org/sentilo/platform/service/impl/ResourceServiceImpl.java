@@ -109,8 +109,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
     final Long pid = jedisSequenceUtils.getPid(providerId);
     if (pid == null) {
       // Si no hay identificador interno del proveedor, entonces este no esta registrado en Redis y
-      // por lo tanto
-      // no tiene ningun sensor asociado
+      // por lo tanto no tiene ningun sensor asociado
       return null;
     }
 

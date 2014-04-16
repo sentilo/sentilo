@@ -114,7 +114,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    */
   @Override
   public List<Observation> getLastObservations(final Sensor sensor) {
-    final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS));
+    final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
+    final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
     final ObservationsOutputMessage outMessage = platformTemplate.getDataOps().getLastObservations(message);
     return outMessage.getObservations();
     // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
@@ -129,7 +130,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    */
   @Override
   public Observation getLastObservation(final Sensor sensor) {
-    final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId());
+    final QueryFilterParams filterParams = new QueryFilterParams(1);
+    final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
     final ObservationsOutputMessage outMessage = platformTemplate.getDataOps().getLastObservations(message);
     return (CollectionUtils.isEmpty(outMessage.getObservations()) ? null : outMessage.getObservations().get(0));
     // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
@@ -163,7 +165,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
     final List<Alert> sensorAlerts = getSensorAlerts(sensor);
 
     for (final Alert alert : sensorAlerts) {
-      final AlarmInputMessage message = new AlarmInputMessage(alert.getId(), new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS));
+      final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
+      final AlarmInputMessage message = new AlarmInputMessage(alert.getId(), filterParams);
       final AlarmsOutputMessage outMessage = platformTemplate.getAlarmOps().getLastAlarmMessages(message);
       if (!CollectionUtils.isEmpty(outMessage.getAlarms())) {
         lastAlarmMessages.addAll(outMessage.getAlarms());
@@ -184,7 +187,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    */
   @Override
   public List<OrderMessage> getLastOrderMessages(final Sensor sensor) {
-    final OrderInputMessage message = new OrderInputMessage(sensor.getProviderId(), sensor.getSensorId(), new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS));
+    final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
+    final OrderInputMessage message = new OrderInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
     final OrdersOutputMessage outMessage = platformTemplate.getOrderOps().getLastOrders(message);
     return outMessage.getOrders();
     // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.

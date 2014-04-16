@@ -25,23 +25,15 @@
  */
 package org.sentilo.platform.server.parser;
 
-import java.io.IOException;
-
-import org.apache.http.HttpStatus;
 import org.sentilo.common.domain.CatalogDeleteInputMessage;
 import org.sentilo.common.domain.CatalogInputMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
-import org.sentilo.common.exception.MessageNotReadableException;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CatalogParser extends PlatformJsonMessageConverter {
-
-  private final Logger logger = LoggerFactory.getLogger(CatalogParser.class);
 
   public CatalogInputMessage parsePostRequest(final SentiloRequest request) throws PlatformException {
     final String providerId = request.getResourcePart(0);
@@ -71,37 +63,32 @@ public class CatalogParser extends PlatformJsonMessageConverter {
 
   public CatalogInputMessage parseDeleteRequest(final SentiloRequest request, final boolean deleteSimulate) throws PlatformException {
     final String providerId = request.getResourcePart(0);
-    final CatalogDeleteInputMessage inputMessage = (deleteSimulate ? (CatalogDeleteInputMessage) readInternal(request, CatalogDeleteInputMessage.class) : new CatalogDeleteInputMessage());
+    final CatalogDeleteInputMessage inputMessage =
+        (deleteSimulate ? (CatalogDeleteInputMessage) readInternal(request, CatalogDeleteInputMessage.class) : new CatalogDeleteInputMessage());
     inputMessage.setProviderId(providerId);
 
     return inputMessage;
   }
 
-  protected CatalogInputMessage readInternal(final SentiloRequest request, final Class<? extends CatalogInputMessage> clazz) throws JsonConverterException {
+  protected CatalogInputMessage readInternal(final SentiloRequest request, final Class<? extends CatalogInputMessage> clazz)
+      throws JsonConverterException {
     try {
+      // Input stream that contains request payload only could be read once time. Second time an
+      // IOException will be thrown.
       final String body = request.getBody();
-      logger.debug("Message: {}", body);
       final CatalogInputMessage message = (CatalogInputMessage) readInternal(clazz, body);
       message.setBody(body);
       return message;
-    } catch (final IOException ex) {
-      throw new JsonConverterException("Could not write JSON: " + ex.getMessage(), ex, true);
-    } catch (final MessageNotReadableException mne) {
-      throw new JsonConverterException("Could not write JSON: " + mne.getMessage(), mne, true);
+    } catch (final Exception ex) {
+      throw buildUnmarshallJsonException(clazz, ex);
     }
   }
 
-  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final CatalogResponseMessage message) throws PlatformException {
-
-    // Para no mostrar el codigo de retorno en la respuesta que se le da al cliente final, lo
-    // eliminamos de message
+  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final CatalogResponseMessage message)
+      throws PlatformException {
+    // To hide internal error code to client,we reset its value from the message
     message.setCode(null);
-
-    try {
-      writeInternal(message, response);
-    } catch (final IOException ex) {
-      throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex);
-    }
+    writeInternal(message, response);
   }
 
 }

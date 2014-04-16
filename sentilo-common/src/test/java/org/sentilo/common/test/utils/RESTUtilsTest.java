@@ -26,11 +26,13 @@
 package org.sentilo.common.test.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import org.apache.http.Header;
 import org.junit.Test;
 import org.sentilo.common.utils.RESTUtils;
 import org.sentilo.common.utils.SentiloConstants;
+import org.springframework.util.StringUtils;
 
 public class RESTUtilsTest {
 
@@ -45,5 +47,17 @@ public class RESTUtilsTest {
   @Test(expected = IllegalArgumentException.class)
   public void buildNullIdentityHeader() {
     RESTUtils.buildIdentityHeader(null);
+  }
+
+  @Test
+  public void buildEmptyPath() {
+    String[] tokens = {};
+    assertFalse(StringUtils.hasText(RESTUtils.buildPath(tokens)));
+  }
+
+  @Test
+  public void buildPath() {
+    String[] tokens = {"context", "resource", "id"};
+    assertEquals("/context/resource/id", RESTUtils.buildPath(tokens));
   }
 }

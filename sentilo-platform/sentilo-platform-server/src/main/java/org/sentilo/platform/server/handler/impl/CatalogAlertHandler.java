@@ -66,7 +66,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     logger.debug("Executing catalog alert DELETE request");
     debug(request);
 
-    _onDelete(request, false);
+    doRealOnDelete(request, false);
   }
 
   @Override
@@ -86,9 +86,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     // Aqui no tiene sentido hacer ninguna validación de autorizacion ya que se aplica sobre la
     // misma entidad que hace la peticion
     final CatalogResponseMessage responseMessage = catalogService.getAuthorizedAlerts(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
 
     parser.writeResponse(request, response, responseMessage);
   }
@@ -109,9 +107,7 @@ public class CatalogAlertHandler extends AbstractHandler {
 
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
     final CatalogResponseMessage responseMessage = catalogService.insertAlerts(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
   }
 
   @Override
@@ -121,14 +117,14 @@ public class CatalogAlertHandler extends AbstractHandler {
 
     final String method = request.getRequestParameter("method");
     if (StringUtils.hasText(method) && method.equals("delete")) {
-      _onDelete(request, true);
+      doRealOnDelete(request, true);
     } else {
-      _onPut(request);
+      doRealOnPut(request);
     }
 
   }
 
-  private void _onDelete(final SentiloRequest request, final boolean simulate) throws PlatformException {
+  private void doRealOnDelete(final SentiloRequest request, final boolean simulate) throws PlatformException {
     logger.debug("Executing catalog alert DELETE request");
     debug(request);
 
@@ -141,13 +137,11 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
 
     final CatalogResponseMessage responseMessage = catalogService.deleteAlerts(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
 
   }
 
-  private void _onPut(final SentiloRequest request) throws PlatformException {
+  private void doRealOnPut(final SentiloRequest request) throws PlatformException {
     logger.debug("Executing catalog alert PUT request");
     debug(request);
 
@@ -161,9 +155,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateAuthorization(inputMessage, request);
 
     final CatalogResponseMessage responseMessage = catalogService.updateAlerts(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
   }
 
   protected void validateAuthorization(final CatalogAlertInputMessage inputMessage, final SentiloRequest request) throws ForbiddenAccessException {
@@ -183,6 +175,7 @@ public class CatalogAlertHandler extends AbstractHandler {
    */
   protected Multimap<String, CatalogAlert> groupAlertsByType(List<CatalogAlert> alerts) {
     Function<CatalogAlert, String> internalFunction = new Function<CatalogAlert, String>() {
+
       @Override
       public String apply(final CatalogAlert alert) {
         // alert type could be null if it is wrong, so return empty string if it is null
@@ -190,5 +183,11 @@ public class CatalogAlertHandler extends AbstractHandler {
       }
     };
     return Multimaps.index(alerts, internalFunction);
+  }
+
+  private void checkCatalogResponseMessage(final CatalogResponseMessage responseMessage) throws CatalogErrorException {
+    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
+      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage(), responseMessage.getErrorDetails());
+    }
   }
 }

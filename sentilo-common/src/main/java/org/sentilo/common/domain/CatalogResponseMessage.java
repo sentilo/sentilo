@@ -44,10 +44,12 @@ public class CatalogResponseMessage {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private String errorMessage;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<String> errorDetails;
+
   public CatalogResponseMessage() {
     super();
     code = OK;
-    errorMessage = "";
   }
 
   public CatalogResponseMessage(final String errorMessage) {
@@ -58,7 +60,13 @@ public class CatalogResponseMessage {
 
   public CatalogResponseMessage(final String errorCode, final String errorMessage) {
     this(errorMessage);
+    this.code = errorCode;
+  }
+
+  public CatalogResponseMessage(final String errorCode, final String errorMessage, final List<String> errorDetails) {
+    this(errorMessage);
     code = errorCode;
+    this.errorDetails = errorDetails;
   }
 
   public CatalogResponseMessage(final List<AuthorizedProvider> providers) {
@@ -88,5 +96,13 @@ public class CatalogResponseMessage {
 
   public List<AuthorizedProvider> getProviders() {
     return providers;
+  }
+
+  public void setErrorDetails(List<String> errorDetails) {
+    this.errorDetails = errorDetails;
+  }
+
+  public List<String> getErrorDetails() {
+    return errorDetails;
   }
 }

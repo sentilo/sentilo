@@ -35,6 +35,7 @@ import org.sentilo.web.catalog.exception.builder.CompoundDuplicateKeyExceptionBu
 import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorTypesService;
+import org.sentilo.web.catalog.utils.ApiTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.Validator;
@@ -54,14 +55,15 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
   @Autowired
   private Validator validator;
 
-  public ApiValidationResults validateSensorsAndComponents(final List<Sensor> sensors, final List<Component> components, final boolean isUpdateAction) {
+  public ApiValidationResults
+      validateSensorsAndComponents(final List<Sensor> sensors, final List<Component> components, final boolean isUpdateAction) {
     final ApiValidationResults results = new ApiValidationResults();
     final List<SensorType> sensorTypes = sensorTypesService.findAll();
     final List<ComponentType> componentTypes = componentTypesService.findAll();
 
     if (!CollectionUtils.isEmpty(sensors)) {
       for (final Sensor sensor : sensors) {
-        validate(results, sensor, sensor.getSensorId(), "Sensor");
+        validate(results, sensor, sensor.getSensorId(), "Sensor", ApiTranslator.SENSOR_DOMAIN_FIELDS);
         validateSensorTypes(results, sensor, sensorTypes);
       }
 
@@ -72,7 +74,7 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
 
     if (!CollectionUtils.isEmpty(components)) {
       for (final Component component : components) {
-        validate(results, component, component.getName(), "Component");
+        validate(results, component, component.getName(), "Component", ApiTranslator.COMPONENT_DOMAIN_FIELDS);
         validateComponentTypes(results, component, componentTypes);
       }
     }
@@ -80,17 +82,16 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
     return results;
   }
 
-
   private void validateSensorTypes(final ApiValidationResults results, final Sensor sensor, final List<SensorType> sensorTypes) {
     if (!sensorTypes.contains(new SensorType(sensor.getType()))) {
-      final String errorMessage = String.format("Sensor %s : an invalid value was specified for type.", sensor.getSensorId());
+      final String errorMessage = String.format("Sensor %s : an invalid value was specified for type field.", sensor.getSensorId());
       results.addErrorMessage(errorMessage);
     }
   }
 
   private void validateComponentTypes(final ApiValidationResults results, final Component component, final List<ComponentType> componentTypes) {
     if (!componentTypes.contains(new ComponentType(component.getComponentType()))) {
-      final String errorMessage = String.format("Component %s : an invalid value was specified for componentType.", component.getName());
+      final String errorMessage = String.format("Component %s : an invalid value was specified for componentType field.", component.getName());
       results.addErrorMessage(errorMessage);
     }
   }

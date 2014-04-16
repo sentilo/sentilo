@@ -56,13 +56,19 @@ public class ApiValidationResults {
     return (hasErrors() ? errors.size() : 0);
   }
 
+  public List<String> getErrors() {
+    return errors;
+  }
+
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("Bad request data. Please review the following errors:");
+    int i = 0;
     for (final String error : errors) {
-      sb.append("\n\t" + error);
+      sb.append(" " + (++i) + ". " + error);
     }
 
     return sb.toString();
   }
+
 }

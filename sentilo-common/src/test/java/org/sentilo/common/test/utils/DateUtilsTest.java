@@ -32,10 +32,17 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.sentilo.common.utils.DateUtils;
 
 public class DateUtilsTest {
+
+  @Before
+  public void setUp() {
+    System.setProperty("user.timezone", "UTC");
+  }
 
   @Test
   public void formatAndParseDate() {
@@ -124,5 +131,13 @@ public class DateUtilsTest {
   public void toMillisTransposeTimestamp() {
     final String timestamp = "11/23/2013T23:12:23";
     DateUtils.toMillis(timestamp);
+  }
+
+  @Test
+  public void parseTimestampWithoutTimeZone() {
+    String timestampWithTZ = "01/04/2014T10:23:34+0200";
+    String timestampWithoutTZ = "01/04/2014T08:23:34";
+
+    Assert.assertEquals(DateUtils.parseTimestamp(timestampWithoutTZ), DateUtils.parseTimestamp(timestampWithTZ));
   }
 }

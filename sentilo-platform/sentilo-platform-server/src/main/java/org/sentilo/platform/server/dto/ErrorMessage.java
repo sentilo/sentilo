@@ -25,6 +25,8 @@
  */
 package org.sentilo.platform.server.dto;
 
+import java.util.List;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class ErrorMessage {
@@ -33,15 +35,22 @@ public class ErrorMessage {
   private int code;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String message;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<String> errorDetails;
 
   public ErrorMessage() {
     super();
   }
 
-  public ErrorMessage(int code, String message) {
+  public ErrorMessage(final int code, final String message) {
     this();
     this.code = code;
     this.message = message;
+  }
+
+  public ErrorMessage(final int code, final String message, final List<String> errorDetails) {
+    this(code, message);
+    this.errorDetails = errorDetails;
   }
 
   public String getMessage() {
@@ -58,6 +67,14 @@ public class ErrorMessage {
 
   public void setCode(int code) {
     this.code = code;
+  }
+
+  public void setErrorDetails(List<String> errorDetails) {
+    this.errorDetails = errorDetails;
+  }
+
+  public List<String> getErrorDetails() {
+    return errorDetails;
   }
 
 }

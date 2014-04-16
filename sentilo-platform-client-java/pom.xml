@@ -9,9 +9,9 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.1.0</version>		
+		<version>1.2.0</version>		
 	</parent>
-
+		
 	<properties>								
 		<commons.io.version>2.4</commons.io.version>
 		<org.aspectj.aspectjweaver-version>1.7.1</org.aspectj.aspectjweaver-version>	    
@@ -19,8 +19,26 @@
   		<sonar.java.target>1.5</sonar.java.target>
 	</properties>
 
+	<build>
+		<plugins>	      
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-jar-plugin</artifactId>
+	        <version>2.4</version>
+	        <executions>
+	          <execution>
+	            <goals>
+	              <goal>test-jar</goal>
+	            </goals>
+	          </execution>
+	        </executions>
+	      </plugin>	      	      
+	    </plugins>
+	</build>
+
+
 	<dependencies>				
-		<!-- Dependencias del proyecto -->	
+		<!-- Project dependencies -->	
 		<dependency>
 			<groupId>org.sentilo</groupId>
 			<artifactId>sentilo-common</artifactId>

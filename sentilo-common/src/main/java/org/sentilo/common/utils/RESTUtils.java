@@ -39,4 +39,16 @@ public abstract class RESTUtils {
     Assert.notNull(identityToken, "IdentityToken must not be null");
     return new BasicHeader(SentiloConstants.IDENTITY_KEY_HEADER, identityToken);
   }
+
+  public static String buildPath(final String... pathTokens) {
+    final StringBuilder sb = new StringBuilder();
+
+    if (!SentiloUtils.arrayIsEmpty(pathTokens)) {
+      for (final String pathToken : pathTokens) {
+        sb.append(SentiloConstants.SLASH).append(pathToken);
+      }
+    }
+
+    return sb.toString();
+  }
 }

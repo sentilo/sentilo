@@ -25,10 +25,11 @@
  */
 package org.sentilo.platform.common.exception;
 
-import org.springframework.core.NestedRuntimeException;
+import org.sentilo.common.exception.PlatformAccessException;
 
-public class CatalogAccessException extends NestedRuntimeException {
+public class CatalogAccessException extends PlatformAccessException {
 
+  /** Default serial version uid */
   private static final long serialVersionUID = 1L;
 
   public CatalogAccessException(final String msg, final Throwable cause) {

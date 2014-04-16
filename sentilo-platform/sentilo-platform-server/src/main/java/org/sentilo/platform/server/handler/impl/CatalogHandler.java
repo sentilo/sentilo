@@ -59,7 +59,7 @@ public class CatalogHandler extends AbstractHandler {
     logger.debug("Executing catalog DELETE request");
     debug(request);
 
-    _onDelete(request, false);
+    doRealOnDelete(request, false);
   }
 
   @Override
@@ -77,9 +77,7 @@ public class CatalogHandler extends AbstractHandler {
     // Aqui no tiene sentido hacer ninguna validación de autorizacion ya que se aplica sobre la
     // misma entidad que hace la peticion
     final CatalogResponseMessage responseMessage = catalogService.getAuthorizedProviders(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
 
     parser.writeResponse(request, response, responseMessage);
 
@@ -99,9 +97,7 @@ public class CatalogHandler extends AbstractHandler {
     validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getProviderId());
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
     final CatalogResponseMessage responseMessage = catalogService.insertSensors(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
 
   }
 
@@ -117,13 +113,13 @@ public class CatalogHandler extends AbstractHandler {
     debug(request);
     final String method = request.getRequestParameter("method");
     if (StringUtils.hasText(method) && method.equals("delete")) {
-      _onDelete(request, true);
+      doRealOnDelete(request, true);
     } else {
-      _onPut(request);
+      doRealOnPut(request);
     }
   }
 
-  private void _onDelete(final SentiloRequest request, final boolean simulate) throws PlatformException {
+  private void doRealOnDelete(final SentiloRequest request, final boolean simulate) throws PlatformException {
     logger.debug("Executing catalog DELETE request");
     debug(request);
 
@@ -136,12 +132,10 @@ public class CatalogHandler extends AbstractHandler {
     validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getProviderId());
 
     final CatalogResponseMessage responseMessage = catalogService.deleteProvider(inputMessage);
-    if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
-    }
+    checkCatalogResponseMessage(responseMessage);
   }
 
-  private void _onPut(final SentiloRequest request) throws PlatformException {
+  private void doRealOnPut(final SentiloRequest request) throws PlatformException {
     logger.debug("Executing catalog PUT request");
     debug(request);
 
@@ -154,8 +148,12 @@ public class CatalogHandler extends AbstractHandler {
     validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getProviderId());
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
     final CatalogResponseMessage responseMessage = catalogService.updateSensorsOrComponents(inputMessage);
+    checkCatalogResponseMessage(responseMessage);
+  }
+
+  private void checkCatalogResponseMessage(final CatalogResponseMessage responseMessage) throws CatalogErrorException {
     if (!responseMessage.getCode().equals(CatalogResponseMessage.OK)) {
-      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage());
+      throw new CatalogErrorException(responseMessage.getCode(), responseMessage.getErrorMessage(), responseMessage.getErrorDetails());
     }
   }
 

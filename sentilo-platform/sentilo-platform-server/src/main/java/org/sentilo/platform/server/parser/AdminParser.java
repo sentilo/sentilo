@@ -25,9 +25,6 @@
  */
 package org.sentilo.platform.server.parser;
 
-import java.io.IOException;
-
-import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
@@ -47,11 +44,7 @@ public class AdminParser extends PlatformJsonMessageConverter {
   }
 
   public void writeResponse(final SentiloRequest request, final SentiloResponse response, final Statistics stats) throws PlatformException {
-    try {
-      writeInternal(stats, response);
-    } catch (final IOException ex) {
-      throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex);
-    }
+    writeInternal(stats, response);
   }
 
   public AdminType getAdminType(final SentiloRequest request) {

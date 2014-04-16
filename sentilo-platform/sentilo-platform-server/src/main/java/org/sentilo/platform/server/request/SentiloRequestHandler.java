@@ -26,6 +26,8 @@
 package org.sentilo.platform.server.request;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -35,6 +37,9 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
+import org.sentilo.common.exception.PlatformAccessException;
+import org.sentilo.common.utils.SentiloConstants;
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.server.auth.AuthenticationService;
@@ -75,15 +80,33 @@ public class SentiloRequestHandler implements HttpRequestHandler {
 
       prepareResponse(httpResponse, request.getContentType().toString());
     } catch (final PlatformException e) {
-      prepareErrorResponse(httpResponse, e);
+      final int errorCode = (e.getHttpStatus() != 0 ? e.getHttpStatus() : HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+      prepareErrorResponse(httpResponse, errorCode, e.getMessage(), e.getErrorDetails());
+    } catch (final PlatformAccessException e) {
+      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_ACCESS_ERROR);
+      logger.error("{} - Internal access error.", internalErrorCode, e);
+      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+
+      prepareErrorResponse(httpResponse, errorCode, errorMessage);
+    } catch (final Throwable e) {
+      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_UNKNOWN_ERROR);
+      logger.error("{} - Internal server error.", internalErrorCode, e);
+      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+
+      prepareErrorResponse(httpResponse, errorCode, errorMessage);
     }
     debug(httpResponse);
   }
 
-  private void prepareErrorResponse(final HttpResponse response, final PlatformException e) {
-    final int errorCode = (e.getHttpStatus() != 0 ? e.getHttpStatus() : HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    final String errorMessage = e.getMessage();
-    ErrorMessage message = new ErrorMessage(errorCode, errorMessage);
+  private void prepareErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage) {
+    prepareErrorResponse(response, errorCode, errorMessage, Collections.<String>emptyList());
+  }
+
+  private void prepareErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage, final List<String> errorDetails) {
+    ErrorMessage message = new ErrorMessage(errorCode, errorMessage, errorDetails);
 
     try {
       ByteArrayOutputStream baos = errorParser.writeInternal(message);

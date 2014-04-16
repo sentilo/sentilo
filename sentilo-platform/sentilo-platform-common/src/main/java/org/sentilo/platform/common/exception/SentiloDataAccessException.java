@@ -25,9 +25,9 @@
  */
 package org.sentilo.platform.common.exception;
 
-import org.springframework.core.NestedRuntimeException;
+import org.sentilo.common.exception.PlatformAccessException;
 
-public class SentiloDataAccessException extends NestedRuntimeException {
+public class SentiloDataAccessException extends PlatformAccessException {
 
   /** Default serial version uid */
   private static final long serialVersionUID = 1L;

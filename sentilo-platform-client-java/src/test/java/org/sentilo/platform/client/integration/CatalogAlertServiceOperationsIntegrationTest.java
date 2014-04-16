@@ -41,6 +41,7 @@ import org.sentilo.platform.client.core.domain.CatalogAlertInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogAlertOutputMessage;
 import org.sentilo.platform.client.core.exception.PlatformClientAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -55,8 +56,11 @@ public class CatalogAlertServiceOperationsIntegrationTest {
 
   static String PROVIDER_ID = "testApp_provider";
   static String APP_ID = "testApp";
-  static String tokenApp = "e41fe42e03ca8d12d98e924a85eed0e883e6223228e5f8f86f3dda30d4a31ae1";
-  static String tokenProv = "4d578b2c0a47130bd2c9fe80801eccdefebd7f34be725f2cb8fb5a5472f6824a";
+
+  @Value("${testApp.token}")
+  private String tokenApp;
+  @Value("${testApp.provider.token}")
+  private String tokenProv;
 
   @Autowired
   protected PlatformClientOperations platformTemplate;
@@ -133,14 +137,11 @@ public class CatalogAlertServiceOperationsIntegrationTest {
 
   }
 
-
   private void deleteAlerts() {
     final CatalogAlertInputMessage message = new CatalogAlertInputMessage(PROVIDER_ID);
     message.setIdentityToken(tokenProv);
     platformTemplate.getCatalogOps().deleteAlerts(message);
   }
-
-
 
   private List<CatalogAlert> buildAlertsToUpdate() {
     final List<CatalogAlert> alerts = new ArrayList<CatalogAlert>();
@@ -151,8 +152,6 @@ public class CatalogAlertServiceOperationsIntegrationTest {
 
     return alerts;
   }
-
-
 
   private List<CatalogAlert> buildAlertsToRegister() {
     final List<CatalogAlert> alerts = new ArrayList<CatalogAlert>();

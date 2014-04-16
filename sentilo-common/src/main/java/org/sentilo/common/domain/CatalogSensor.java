@@ -46,6 +46,8 @@ public class CatalogSensor implements CatalogElement {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String unit;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String timeZone;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private Boolean publicAccess;
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
@@ -166,5 +168,13 @@ public class CatalogSensor implements CatalogElement {
 
   public Boolean getComponentPublicAccess() {
     return componentPublicAccess;
+  }
+
+  public void setTimeZone(String timeZone) {
+    this.timeZone = timeZone;
+  }
+
+  public String getTimeZone() {
+    return timeZone;
   }
 }

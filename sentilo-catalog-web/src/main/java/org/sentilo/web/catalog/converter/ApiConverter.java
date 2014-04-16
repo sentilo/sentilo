@@ -83,7 +83,9 @@ public abstract class ApiConverter {
     if (!CollectionUtils.isEmpty(catalogSensors)) {
       for (final CatalogSensor catalogSensor : catalogSensors) {
         final Sensor sensor = (isUpdateAction ? buildSensorToUpdate(catalogSensor, context) : buildNewSensor(catalogSensor, context));
-        sensors.add(sensor);
+        if (sensor != null) {
+          sensors.add(sensor);
+        }
       }
     }
 
@@ -120,6 +122,10 @@ public abstract class ApiConverter {
       sensor.setPublicAccess(catalogSensor.getPublicAccess());
     }
 
+    if (catalogSensor.getTimeZone() != null) {
+      sensor.setTimeZone(catalogSensor.getTimeZone());
+    }
+
     if (!CollectionUtils.isEmpty(catalogSensor.getAdditionalInfo())) {
       sensor.setAdditionalInfo(catalogSensor.getAdditionalInfo());
     }
@@ -150,6 +156,10 @@ public abstract class ApiConverter {
         sensor.setUnit(catalogSensor.getUnit());
       }
 
+      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getTimeZone())) {
+        sensor.setTimeZone(catalogSensor.getTimeZone());
+      }
+
       if (catalogSensor.getPublicAccess() != null) {
         sensor.setPublicAccess(catalogSensor.getPublicAccess());
       }
@@ -176,6 +186,7 @@ public abstract class ApiConverter {
     catalogSensor.setType(sensor.getType());
     catalogSensor.setDataType(sensor.getDataType().name());
     catalogSensor.setUnit(sensor.getUnit());
+    catalogSensor.setTimeZone(sensor.getTimeZone());
     catalogSensor.setPublicAccess(sensor.getPublicAccess());
 
     if (StringUtils.hasText(sensor.getDescription())) {

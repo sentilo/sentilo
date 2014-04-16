@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">	
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.sentilo.platform</groupId>
+	<artifactId>sentilo-platform</artifactId>	
+	<packaging>pom</packaging>
+	<name>sentilo-platform</name>
+	
+	<parent>
+		<artifactId>sentilo-parent-pom</artifactId>
+		<groupId>org.sentilo</groupId>
+		<version>1.1.0</version>		
+	</parent>
+
+	<properties>		
+		<httpcore.version>4.2.3</httpcore.version>
+		<commonspool.version>1.6</commonspool.version>									
+	</properties>		
+
+	<dependencies>			
+		<dependency>
+			<groupId>org.sentilo</groupId>
+			<artifactId>sentilo-common</artifactId>
+			<version>${platform.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${org.springframework.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>		
+	</dependencies>
+
+	<modules>		
+		<module>sentilo-platform-common</module>
+		<module>sentilo-platform-service</module>
+		<module>sentilo-platform-server</module>
+  </modules>
+	
+</project>

@@ -25,10 +25,8 @@
  */
 package org.sentilo.platform.server.parser;
 
-import java.io.IOException;
 import java.util.List;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.Alarm;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
 import org.sentilo.platform.common.exception.PlatformException;
@@ -64,16 +62,11 @@ public class AlarmParser extends PlatformJsonMessageConverter {
 
   public void writeResponse(final SentiloRequest request, final SentiloResponse response, final List<Alarm> alarmsList) throws PlatformException {
     // transformar a objeto de tipo AlarmsMessage
-    final Object message = parseAlarmsListToAlarmssMessage(alarmsList);
-
-    try {
-      writeInternal(message, response);
-    } catch (final IOException ex) {
-      throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex);
-    }
+    final AlarmsMessage message = parseAlarmsListToAlarmsMessage(alarmsList);
+    writeInternal(message, response);
   }
 
-  private AlarmsMessage parseAlarmsListToAlarmssMessage(final List<Alarm> alarmsList) {
+  private AlarmsMessage parseAlarmsListToAlarmsMessage(final List<Alarm> alarmsList) {
     final AlarmsMessage alarms = new AlarmsMessage();
     for (final Alarm alarm : alarmsList) {
       alarms.addAlarm(parseAlarmToAlarmMessage(alarm));

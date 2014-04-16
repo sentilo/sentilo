@@ -28,6 +28,7 @@ package org.sentilo.platform.server;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.sentilo.platform.server.handler.HandlerLocatorTest;
+import org.sentilo.platform.server.handler.impl.AbstractBaseHandlerTest;
 import org.sentilo.platform.server.handler.impl.AdminHandlerTest;
 import org.sentilo.platform.server.handler.impl.AlarmHandlerTest;
 import org.sentilo.platform.server.handler.impl.CatalogAlertHandlerTest;
@@ -43,6 +44,7 @@ import org.sentilo.platform.server.parser.DataParserTest;
 import org.sentilo.platform.server.parser.ErrorParserTest;
 import org.sentilo.platform.server.parser.OrderParserTest;
 import org.sentilo.platform.server.parser.SubscribeParserTest;
+import org.sentilo.platform.server.request.RequestUtilsTest;
 import org.sentilo.platform.server.request.SentiloRequestHandlerTest;
 import org.sentilo.platform.server.request.SentiloResourceTest;
 
@@ -50,7 +52,8 @@ import org.sentilo.platform.server.request.SentiloResourceTest;
 @Suite.SuiteClasses({SentiloResourceTest.class, AlarmParserTest.class, OrderParserTest.class, DataParserTest.class, SubscribeParserTest.class,
     CatalogParserTest.class, CatalogAlertParserTest.class, AdminParserTest.class, HandlerLocatorTest.class, AlarmHandlerTest.class,
     OrderHandlerTest.class, SubscribeHandlerTest.class, DataHandlerTest.class, CatalogHandlerTest.class, CatalogAlertHandlerTest.class,
-    AdminHandlerTest.class, ErrorParserTest.class, SentiloRequestHandlerTest.class})
+    AdminHandlerTest.class, ErrorParserTest.class, SentiloRequestHandlerTest.class, AbstractBaseHandlerTest.class, AlarmParserTest.class,
+    RequestUtilsTest.class})
 public class AllTests {
 
 }

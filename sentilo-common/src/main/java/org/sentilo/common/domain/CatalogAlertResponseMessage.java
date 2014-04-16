@@ -29,7 +29,6 @@ import java.util.List;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-
 public class CatalogAlertResponseMessage extends CatalogResponseMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
@@ -48,6 +47,10 @@ public class CatalogAlertResponseMessage extends CatalogResponseMessage {
 
   public CatalogAlertResponseMessage(final String errorCode, final String errorMessage) {
     super(errorCode, errorMessage);
+  }
+
+  public CatalogAlertResponseMessage(final String errorCode, final String errorMessage, final List<String> errors) {
+    super(errorCode, errorMessage, errors);
   }
 
   public List<CatalogAlert> getAlerts() {

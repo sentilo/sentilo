@@ -28,13 +28,16 @@ package org.sentilo.common.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.sentilo.common.test.parser.NotificationMessageConverterTest;
+import org.sentilo.common.test.rest.RESTClientImplTest;
 import org.sentilo.common.test.rest.RequestParametersTest;
 import org.sentilo.common.test.utils.DateUtilsTest;
 import org.sentilo.common.test.utils.RESTUtilsTest;
+import org.sentilo.common.test.utils.SentiloUtilsTest;
 import org.sentilo.common.test.utils.URIUtilsTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({NotificationMessageConverterTest.class, URIUtilsTest.class, RESTUtilsTest.class, DateUtilsTest.class, RequestParametersTest.class})
+@Suite.SuiteClasses({DateUtilsTest.class, NotificationMessageConverterTest.class, URIUtilsTest.class, RESTUtilsTest.class,
+    RequestParametersTest.class, SentiloUtilsTest.class, RESTClientImplTest.class})
 public class AllTests {
 
 }

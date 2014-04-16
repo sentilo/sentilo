@@ -25,12 +25,10 @@
  */
 package org.sentilo.platform.server.parser;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.common.domain.OrderMessage;
 import org.sentilo.common.domain.SensorOrdersMessage;
 import org.sentilo.platform.common.domain.Order;
@@ -73,12 +71,7 @@ public class OrderParser extends PlatformJsonMessageConverter {
     // transformar a objeto de tipo SensorsOrderMessage o OrdersMessage, depende del caso de la
     // petición
     final Object message = parseOrdersListToMessage(request, orders);
-
-    try {
-      writeInternal(message, response);
-    } catch (final IOException ex) {
-      throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex);
-    }
+    writeInternal(message, response);
   }
 
   private Object parseOrdersListToMessage(final SentiloRequest request, final List<Order> orders) {

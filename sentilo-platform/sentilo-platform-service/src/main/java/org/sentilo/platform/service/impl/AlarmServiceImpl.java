@@ -26,6 +26,7 @@
 package org.sentilo.platform.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -169,11 +170,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     // ZREVRANGEBYSCORE aid:{aid}:messages to from LIMIT 0 limit
 
     final Set<String> amids = jedisTemplate.zRevRangeByScore(keysBuilder.getAlarmMessagesKey(aid), to, from, 0, limit);
-    List<Alarm> alarmMessages = null;
-
-    if (!CollectionUtils.isEmpty(amids)) {
-      alarmMessages = getAlarms(amids, message.getAlertId());
-    }
+    List<Alarm> alarmMessages = (!CollectionUtils.isEmpty(amids) ? getAlarms(amids, message.getAlertId()) : Collections.<Alarm>emptyList());
 
     return alarmMessages;
   }

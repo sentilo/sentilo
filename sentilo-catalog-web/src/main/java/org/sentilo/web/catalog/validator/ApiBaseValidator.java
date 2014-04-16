@@ -33,22 +33,31 @@ import java.util.Map;
 
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.exception.DuplicateKeyException;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.Validator;
-
 
 public abstract class ApiBaseValidator<T extends CatalogDocument> {
 
-  protected void validate(final ApiValidationResults results, final Object obj, final String objId, final String objName) {
+  protected void validate(final ApiValidationResults results, final Object obj, final String objId, final String objName,
+      Map<String, String> dictionary) {
     final DataBinder binder = new DataBinder(obj);
     binder.setValidator(getValidator());
     binder.validate();
 
     final BindingResult result = binder.getBindingResult();
-
+    final String errorMessageTemplate = "%s %s has fields not filled in correctly. Please make sure following fields are filled in properly: [%s]";
     if (result.hasErrors()) {
-      final String errorMessage = String.format("%s %s has required fields not filled in.", objName, objId);
+      String[] rejectedFields = new String[result.getFieldErrors().size()];
+      int i = 0;
+      for (FieldError rejectedField : result.getFieldErrors()) {
+        String domainFieldName = rejectedField.getField();
+        rejectedFields[i++] = (dictionary.containsKey(domainFieldName) ? dictionary.get(domainFieldName) : domainFieldName);
+      }
+
+      final String errorMessage = String.format(errorMessageTemplate, objName, objId, StringUtils.arrayToCommaDelimitedString(rejectedFields));
       results.addErrorMessage(errorMessage);
     }
   }
@@ -108,6 +117,5 @@ public abstract class ApiBaseValidator<T extends CatalogDocument> {
   protected abstract Validator getValidator();
 
   protected abstract String getGroupKey(final T object);
-
 
 }

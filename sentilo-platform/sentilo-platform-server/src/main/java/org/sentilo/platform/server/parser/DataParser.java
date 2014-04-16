@@ -25,13 +25,11 @@
  */
 package org.sentilo.platform.server.parser;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.DataInputMessage;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.exception.PlatformException;
@@ -94,16 +92,12 @@ public class DataParser extends PlatformJsonMessageConverter {
     return new DataInputMessage(providerId, sensorId, parseDate(from), parseDate(to), parseInteger(limit));
   }
 
-  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final List<Observation> observations) throws PlatformException {
+  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final List<Observation> observations)
+      throws PlatformException {
     // transformar a objeto de tipo SensorsMessage o ObservationsMessage, depende del caso de la
     // petición
     final Object message = parseObservationsListToMessage(request, observations);
-
-    try {
-      writeInternal(message, response);
-    } catch (final IOException ex) {
-      throw new PlatformException(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex);
-    }
+    writeInternal(message, response);
   }
 
   private Object parseObservationsListToMessage(final SentiloRequest request, final List<Observation> observations) {

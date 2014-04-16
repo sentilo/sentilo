@@ -198,6 +198,15 @@ function emptyComponentSelect() {
 												</div>
 											</div>
 											<div class="control-group">
+												<form:label path="timeZone" class="control-label">
+													<spring:message code="sensor.timeZone" />
+												</form:label>
+												<div class="controls">
+													<form:input path="timeZone" />
+													<form:errors path="timeZone" cssClass="text-error" htmlEscape="false" />
+												</div>
+											</div>
+											<div class="control-group">
 												<form:label path="validTime" class="control-label">
 													<spring:message code="sensor.validTime" />
 												</form:label>

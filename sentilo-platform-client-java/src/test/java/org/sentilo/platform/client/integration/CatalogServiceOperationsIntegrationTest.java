@@ -46,6 +46,7 @@ import org.sentilo.platform.client.core.domain.CatalogInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogOutputMessage;
 import org.sentilo.platform.client.core.exception.PlatformClientAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -60,8 +61,11 @@ public class CatalogServiceOperationsIntegrationTest {
 
   static String PROVIDER_ID = "testApp_provider";
   static String APP_ID = "testApp";
-  static String tokenApp = "e41fe42e03ca8d12d98e924a85eed0e883e6223228e5f8f86f3dda30d4a31ae1";
-  static String tokenProv = "4d578b2c0a47130bd2c9fe80801eccdefebd7f34be725f2cb8fb5a5472f6824a";
+
+  @Value("${testApp.token}")
+  private String tokenApp;
+  @Value("${testApp.provider.token}")
+  private String tokenProv;
 
   @Autowired
   protected PlatformClientOperations platformTemplate;
@@ -155,7 +159,8 @@ public class CatalogServiceOperationsIntegrationTest {
     if (expectedSensorsSize == 0) {
       assertTrue(CollectionUtils.isEmpty(outputMessage.getProviders()));
     } else {
-      assertTrue("Expected " + expectedProvidersSize + " providers but found " + outputMessage.getProviders().size(), outputMessage.getProviders().size() == expectedProvidersSize);
+      assertTrue("Expected " + expectedProvidersSize + " providers but found " + outputMessage.getProviders().size(), outputMessage.getProviders()
+          .size() == expectedProvidersSize);
       int sensorsSize = 0;
       for (final AuthorizedProvider provider : outputMessage.getProviders()) {
         sensorsSize += provider.getSensors().size();
@@ -175,8 +180,12 @@ public class CatalogServiceOperationsIntegrationTest {
   private List<CatalogSensor> buildSensorsToRegister() {
     final List<CatalogSensor> sensors = new ArrayList<CatalogSensor>();
     final CatalogSensor sensor0 = buildSensor("TEST_REC0122", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 122", "number", "wind", "km/h");
-    final CatalogSensor sensor1 = buildSensor("TEST_REC0123", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 123", "number", "43.39950387509218 5.1809202294998613", "temperature", "C");
-    final CatalogSensor sensor2 = buildSensor("TEST_REC0124", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 124", "number", "43.39950387509218 5.1809202294998613", "temperature", "C");
+    final CatalogSensor sensor1 =
+        buildSensor("TEST_REC0123", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 123", "number", "43.39950387509218 5.1809202294998613", "temperature",
+            "C");
+    final CatalogSensor sensor2 =
+        buildSensor("TEST_REC0124", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 124", "number", "43.39950387509218 5.1809202294998613", "temperature",
+            "C");
     final CatalogSensor sensor3 = buildSensor("TEST_REC0125", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 125", "number", "wind", "km/h");
     final CatalogSensor sensor4 = buildSensor("TEST_REC0126", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 126", "number", "wind", "km/h");
     sensors.add(sensor0);
@@ -212,11 +221,13 @@ public class CatalogServiceOperationsIntegrationTest {
     return components;
   }
 
-  private CatalogSensor buildSensor(final String sensor, final String component, final String provider, final String description, final String dataType, final String type, final String unit) {
+  private CatalogSensor buildSensor(final String sensor, final String component, final String provider, final String description,
+      final String dataType, final String type, final String unit) {
     return buildSensor(sensor, component, provider, description, dataType, null, type, unit);
   }
 
-  private CatalogSensor buildSensor(final String sensor, final String component, final String provider, final String description, final String dataType, final String location, final String type, final String unit) {
+  private CatalogSensor buildSensor(final String sensor, final String component, final String provider, final String description,
+      final String dataType, final String location, final String type, final String unit) {
     final CatalogSensor catalogSensor = new CatalogSensor();
     catalogSensor.setSensor(sensor);
     catalogSensor.setComponent(component);
