@@ -6,6 +6,8 @@
 <spring:message code="select.one" var="selectOneErrorMessage" />
 <spring:message code="ok" var="okButtonLabel" />
 
+<spring:url value="/" var="homeURL" />
+
 <script type="text/javascript">
 function openDetail(url) {
 	window.location.href = url;
@@ -98,6 +100,33 @@ function formatTimestamp(timestamp) {
 
 function isValidDecimalNumber(number) {
 	 return (/^([0-9])*[.]?[0-9]*$/.test(number));
+}
+
+function changeLocale(locale) {
+
+        /* 
+        
+          Let's do a background request via ajax/jquery, so:
+
+          1) We avoid to get the "?locale=xx" variable in the browser's URL, that's so inelegant...
+          2) We avoid some GET method problems in pages that allow only POST method. If an user changes the language in such pages, his browser will ask to reload the page.
+        
+        */
+
+        $.ajax({
+                'type' : 'GET',
+                'url' : '${homeURL}?locale=' + locale,
+                'async' : false,
+                'cache' : false        
+        });
+
+        /* 
+        
+          Locale setting has been changed, so we can simply reload our page.
+
+        */
+
+        window.location.reload(true);
 }
 
 </script>
