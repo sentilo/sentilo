@@ -19,6 +19,7 @@
 				<%@include file="/WEB-INF/jsp/common/menu_about.jsp"%>
 				<%@include file="/WEB-INF/jsp/common/menu_explore.jsp"%>
 				<div class="pull-right">
+					<%@include file="/WEB-INF/jsp/common/menu_locale.jsp"%>
 					<security:authorize access="isAuthenticated()">
 						<%@include file="/WEB-INF/jsp/common/menu_search.jsp"%>
 						<%@include file="/WEB-INF/jsp/common/menu_profile.jsp"%>
