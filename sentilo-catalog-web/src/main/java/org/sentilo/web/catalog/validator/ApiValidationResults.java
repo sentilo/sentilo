@@ -32,8 +32,6 @@ import org.springframework.util.CollectionUtils;
 
 public class ApiValidationResults {
 
-  private static final long serialVersionUID = 1L;
-
   private List<String> errors;
 
   public ApiValidationResults() {

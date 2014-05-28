@@ -115,7 +115,6 @@ public class CatalogMessageConverterTest {
   private CatalogSensor buildSensor(final String sensor, final String provider, final String description, final String dataType, final String location, final String type, final String unit) {
     final CatalogSensor catalogSensor = new CatalogSensor();
     catalogSensor.setSensor(sensor);
-    catalogSensor.setProvider(provider);
     catalogSensor.setDescription(description);
     catalogSensor.setDataType(dataType);
     catalogSensor.setLocation(location);

@@ -30,8 +30,4 @@ import org.sentilo.platform.server.exception.UnauthorizedException;
 public interface AuthenticationService {
 
   String getIdentity(String credential) throws UnauthorizedException;
-
-  void addCredential(String identity, String credential);
-
-  void removeCredential(String identity);
 }

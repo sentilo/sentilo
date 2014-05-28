@@ -94,7 +94,7 @@ public class CatalogHandler extends AbstractHandler {
     validateResourceNumberParts(request, 1, 1);
     final CatalogInputMessage inputMessage = parser.parsePostRequest(request);
     validator.validateRequestMessageOnPost(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getProviderId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getProviderId());
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
     final CatalogResponseMessage responseMessage = catalogService.insertSensors(inputMessage);
     checkCatalogResponseMessage(responseMessage);
@@ -129,7 +129,7 @@ public class CatalogHandler extends AbstractHandler {
     validateResourceNumberParts(request, 1, 1);
     final CatalogDeleteInputMessage inputMessage = (CatalogDeleteInputMessage) parser.parseDeleteRequest(request, simulate);
     validator.validateRequestMessageOnDelete(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getProviderId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getProviderId());
 
     final CatalogResponseMessage responseMessage = catalogService.deleteProvider(inputMessage);
     checkCatalogResponseMessage(responseMessage);
@@ -145,7 +145,7 @@ public class CatalogHandler extends AbstractHandler {
     validateResourceNumberParts(request, 1, 1);
     final CatalogInputMessage inputMessage = parser.parsePutRequest(request);
     validator.validateRequestMessageOnPut(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getProviderId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getProviderId());
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
     final CatalogResponseMessage responseMessage = catalogService.updateSensorsOrComponents(inputMessage);
     checkCatalogResponseMessage(responseMessage);

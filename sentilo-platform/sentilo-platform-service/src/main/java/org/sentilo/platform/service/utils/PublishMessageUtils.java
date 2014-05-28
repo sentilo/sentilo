@@ -25,30 +25,61 @@
  */
 package org.sentilo.platform.service.utils;
 
+import org.sentilo.common.domain.EventMessage;
+import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.parser.EventMessageConverter;
 import org.sentilo.common.utils.DateUtils;
-import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.OrderInputMessage;
+import org.springframework.data.redis.listener.Topic;
 
 public abstract class PublishMessageUtils {
 
-  public static String buildContentToPublish(final AlarmInputMessage message) {
+  private static final EventMessageConverter converter = new EventMessageConverter();
+
+  public static String buildContentToPublish(final AlarmInputMessage message, final Topic topic) {
     final Long timestamp = System.currentTimeMillis();
-    return concatContentTokens(timestamp, message.getMessage());
+
+    EventMessage event = new EventMessage();
+    // event.setProvider(message.getProviderId());
+    // event.setSensor(message.getSensorId());
+    event.setAlert(message.getAlertId());
+    event.setMessage(message.getMessage());
+    event.setTimestamp(DateUtils.timestampToString(timestamp));
+    event.setSender(message.getSender());
+    event.setType(SubscribeType.ALARM.name());
+    event.setTopic(topic.getTopic());
+
+    return converter.marshall(event);
   }
 
-  public static String buildContentToPublish(final OrderInputMessage message) {
+  public static String buildContentToPublish(final OrderInputMessage message, final Topic topic) {
     final Long timestamp = System.currentTimeMillis();
-    return concatContentTokens(timestamp, message.getOrder());
+
+    EventMessage event = new EventMessage();
+    event.setProvider(message.getProviderId());
+    event.setSensor(message.getSensorId());
+    event.setMessage(message.getOrder());
+    event.setTimestamp(DateUtils.timestampToString(timestamp));
+    event.setSender(message.getSender());
+    event.setType(SubscribeType.ORDER.name());
+    event.setTopic(topic.getTopic());
+
+    return converter.marshall(event);
   }
 
-  public static String buildContentToPublish(final Observation message) {
-    return concatContentTokens(message.getTimestamp(), message.getValue());
-  }
+  public static String buildContentToPublish(final Observation message, final Topic topic) {
+    EventMessage event = new EventMessage();
+    event.setProvider(message.getProvider());
+    event.setSensor(message.getSensor());
+    event.setMessage(message.getValue());
+    event.setTimestamp(DateUtils.timestampToString(message.getTimestamp()));
+    event.setLocation(message.getLocation());
+    event.setType(SubscribeType.DATA.name());
+    event.setTopic(topic.getTopic());
 
-  private static String concatContentTokens(final Long timestamp, final String value) {
-    return DateUtils.timestampToString(timestamp) + SentiloConstants.NOTIFICATION_MESSAGE_TOKEN + value;
+    return converter.marshall(event);
   }
 
   private PublishMessageUtils() {

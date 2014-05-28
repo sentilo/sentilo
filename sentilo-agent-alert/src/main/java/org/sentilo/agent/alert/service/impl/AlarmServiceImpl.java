@@ -57,7 +57,7 @@ import org.springframework.util.CollectionUtils;
 public class AlarmServiceImpl implements AlarmService, ApplicationListener<CheckFrozenAlarmEvent> {
 
   private final Logger logger = LoggerFactory.getLogger(AlarmServiceImpl.class);
-  private static final String DUMMY_TOPIC = "trash:dummy";
+  private static final String DUMMY_TOPIC = "/trash/dummy";
 
   @Autowired
   private MongoOperations mongoOps;

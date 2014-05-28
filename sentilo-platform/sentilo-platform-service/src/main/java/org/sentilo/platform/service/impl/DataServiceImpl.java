@@ -264,7 +264,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
 
   private void publishSensorData(final Observation data) {
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, data.getProvider(), data.getSensor());
-    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(data));
+    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(data, topic));
   }
 
   private void registerProviderAndSensorIfNecessary(final Observation data) {

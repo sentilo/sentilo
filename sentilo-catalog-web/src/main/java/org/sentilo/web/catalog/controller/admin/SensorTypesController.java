@@ -91,9 +91,9 @@ public class SensorTypesController extends CrudController<SensorType> {
 
   @Override
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_SENSOR_TYPE_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_SENSOR_TYPE_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_SENSOR_TYPE);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_SENSOR_TYPE_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_SENSOR_TYPE_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_SENSOR_TYPE);
   }
 
   @Override

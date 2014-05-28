@@ -34,7 +34,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
+import javax.validation.ConstraintViolation;
+
+import org.hibernate.validator.HibernateValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -52,6 +56,7 @@ import org.sentilo.web.catalog.test.AbstractBaseTest;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
 import org.sentilo.web.catalog.validator.ApiValidator;
 import org.springframework.validation.Validator;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 public class ApiValidatorTest extends AbstractBaseTest {
 
@@ -59,6 +64,8 @@ public class ApiValidatorTest extends AbstractBaseTest {
   private final String componentName = "component1";
   private final String sensor1Id = "sensor1";
   private final String sensor2Id = "sensor2";
+  private final String invalidSensorId = "sensor.invalid";
+  private final String validSensorId = "sen2or:valid_id-Ok";
   private final String temperatureType = "temperature";
 
   @Mock
@@ -88,7 +95,7 @@ public class ApiValidatorTest extends AbstractBaseTest {
   }
 
   @Test
-  public void validateNokSensors() {
+  public void validateKoSensors() {
     final List<Sensor> sensors = getSensorsWithErrors();
     final ApiValidationResults result = apiValidator.validateSensorsAndComponents(sensors, null, false);
     assertTrue(result.hasErrors());
@@ -99,6 +106,28 @@ public class ApiValidatorTest extends AbstractBaseTest {
     final List<Sensor> sensors = getSensors();
     final ApiValidationResults result = apiValidator.validateSensorsAndComponents(sensors, null, false);
     assertTrue(!result.hasErrors());
+  }
+
+  @Test
+  public void validateKoSensorName() {    
+    LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+    validator.setProviderClass(HibernateValidator.class);
+    validator.afterPropertiesSet();
+    final Sensor sensor = getSensor(invalidSensorId);
+    Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
+    
+    assertTrue(result.size() == 1);
+  }
+
+  @Test
+  public void validateOkSensorName() {
+    LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+    validator.setProviderClass(HibernateValidator.class);
+    validator.afterPropertiesSet();
+    final Sensor sensor = getSensor(validSensorId);
+    Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
+
+    assertTrue(result.size() == 0);
   }
 
   private List<Sensor> getSensorsWithErrors() {
@@ -121,6 +150,20 @@ public class ApiValidatorTest extends AbstractBaseTest {
     sensors.add(sensor2);
 
     return sensors;
+  }
+
+  private Sensor getSensor(final String sensorId) {
+
+    final String componentId = Component.buildId(providerId, componentName);
+
+    final Sensor sensor = new Sensor(providerId, componentId, sensorId);
+    sensor.setDescription("Lorem ipsum dolor sit amet");
+    sensor.setUnit("C");
+    sensor.setType(temperatureType);
+    sensor.setDataType(Sensor.DataType.BOOLEAN);
+    sensor.setCreatedAt(new Date());
+
+    return sensor;
   }
 
   private List<Sensor> getSensors() {

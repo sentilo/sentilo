@@ -44,6 +44,7 @@ import org.sentilo.platform.client.core.domain.OrderInputMessage;
 import org.sentilo.platform.client.core.domain.OrdersOutputMessage;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.event.DeletePlatformResourcesEvent;
 import org.sentilo.web.catalog.exception.builder.CompoundDuplicateKeyExceptionBuilder;
 import org.sentilo.web.catalog.repository.SensorRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
@@ -77,9 +78,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * 
    * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#doAfterInit()
    */
-  @Override
   protected void doAfterInit() {
-    entityKeyValidator = new SensorEntityKeyValidatorImpl(this, new CompoundDuplicateKeyExceptionBuilder("error.sensor.duplicate.key"));
+    setEntityKeyValidator(new SensorEntityKeyValidatorImpl(this, new CompoundDuplicateKeyExceptionBuilder("error.sensor.duplicate.key")));
     super.doAfterInit();
   }
 
@@ -88,7 +88,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * 
    * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#getRepository()
    */
-  @Override
   public SensorRepository getRepository() {
     return repository;
   }
@@ -100,7 +99,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#getEntityId(org.sentilo.web.catalog
    * .domain.CatalogDocument)
    */
-  @Override
   public String getEntityId(final Sensor entity) {
     return entity.getId();
   }
@@ -112,7 +110,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * org.sentilo.web.catalog.service.SensorService#getLastObservations(org.sentilo.web.catalog.domain
    * .Sensor)
    */
-  @Override
   public List<Observation> getLastObservations(final Sensor sensor) {
     final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
     final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
@@ -128,7 +125,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * org.sentilo.web.catalog.service.SensorService#getLastObservation(org.sentilo.web.catalog.domain
    * .Sensor)
    */
-  @Override
   public Observation getLastObservation(final Sensor sensor) {
     final QueryFilterParams filterParams = new QueryFilterParams(1);
     final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
@@ -143,7 +139,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * @see org.sentilo.web.catalog.service.SensorService#updateMulti(java.util.Collection,
    * java.lang.String, java.lang.Object)
    */
-  @Override
   public void updateMulti(final Collection<String> sensorIds, final String param, final Object value) {
     final Update update = Update.update(param, value);
     getMongoOps().updateMulti(buildQueryForIdInCollection(sensorIds), update, Sensor.class);
@@ -156,7 +151,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * org.sentilo.web.catalog.service.SensorService#getLastAlarmsMessages(org.sentilo.web.catalog
    * .domain.Sensor)
    */
-  @Override
   public List<AlarmMessage> getLastAlarmsMessages(final Sensor sensor) {
     // Para recuperar las últimos alarmas asociadas a las alertas de un sensor, primero debemos
     // recuperar las alertas del sensor. Y despues, para cada alerta, recuperar sus ultimas alarmas.
@@ -185,7 +179,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * org.sentilo.web.catalog.service.SensorService#getLastOrderMessages(org.sentilo.web.catalog.
    * domain.Sensor)
    */
-  @Override
   public List<OrderMessage> getLastOrderMessages(final Sensor sensor) {
     final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
     final OrderInputMessage message = new OrderInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
@@ -199,13 +192,11 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * 
    * @see org.sentilo.web.catalog.service.SensorService#deleteSensors(java.lang.String[])
    */
-  @Override
   public void deleteSensors(final String[] sensorsNames) {
-    // Al borrar sensores, tambien hay que eliminar las alertas que tienen asociadas.
+    // If sensors are deleted, then also must be deleted the associated alerts
     final List<String> values = Arrays.asList(sensorsNames);
     final Query sensorIdFilter = buildQueryForParamInCollection("sensorId", values);
-    getMongoOps().remove(sensorIdFilter, Alert.class);
-    getMongoOps().remove(sensorIdFilter, Sensor.class);
+    deleteSensorsAndAlerts(sensorIdFilter);
   }
 
   /*
@@ -213,13 +204,12 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * 
    * @see org.sentilo.web.catalog.service.SensorService#deleteSensorsFromComponents(java.util.List)
    */
-  @Override
   public void deleteSensorsFromComponents(final List<String> componentsIds) {
-    // Al borrar sensores, tambien hay que eliminar las alertas que tienen asociadas.
+    // If sensors are deleted, then also must be deleted the associated alerts
     final Query componentIdFilter = buildQueryForParamInCollection("componentId", componentsIds);
-    getMongoOps().remove(componentIdFilter, Alert.class);
-    getMongoOps().remove(componentIdFilter, Sensor.class);
+    deleteSensorsAndAlerts(componentIdFilter);
   }
+
 
   /*
    * (non-Javadoc)
@@ -227,13 +217,43 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * @see org.sentilo.web.catalog.service.SensorService#findByName(java.lang.String,
    * java.lang.String)
    */
-  @Override
   public Sensor findByName(final String providerId, final String sensorId) {
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("providerId", providerId);
     filter.addAndParam("sensorId", sensorId);
 
     return getMongoOps().findOne(buildQuery(filter), Sensor.class);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(java.util.Collection)
+   */
+  public void delete(Collection<Sensor> sensors) {
+    Collection<String> ids = new ArrayList<String>();
+    for (Sensor sensor : sensors) {
+      ids.add(sensor.getId());
+    }
+    notifySensorsToDelete(buildQueryForIdInCollection(ids));
+
+    super.delete(sensors);
+  }
+
+  private void deleteSensorsAndAlerts(final Query query) {
+    // First, notify what sensors will be deleted
+    notifySensorsToDelete(query);
+    // Second, delete Sensor and Alerts that satisfies the query filter
+    getMongoOps().remove(query, Alert.class);
+    getMongoOps().remove(query, Sensor.class);
+  }
+
+  private void notifySensorsToDelete(final Query query) {
+    // Create new DeletePlatformResourceEvent to notify what sensors will be deleted
+    // Define a projection over the query to limit fields to retrieve
+    query.fields().include("providerId").include("sensorId");
+    List<Sensor> sensors = getMongoOps().find(query, Sensor.class);
+    getContext().publishEvent(new DeletePlatformResourcesEvent<Sensor>(this, sensors, Sensor.class));
   }
 
   private List<Alert> getSensorAlerts(final Sensor sensor) {

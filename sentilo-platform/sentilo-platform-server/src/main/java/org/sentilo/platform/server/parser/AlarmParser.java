@@ -44,8 +44,10 @@ public class AlarmParser extends PlatformJsonMessageConverter {
 
     final String alertId = request.getResourcePart(0);
 
-    inputMessage.setAlertId(alertId);
-    inputMessage.setSender(request.getEntitySource());
+    if (inputMessage != null) {
+      inputMessage.setAlertId(alertId);
+      inputMessage.setSender(request.getEntitySource());
+    }
 
     return inputMessage;
   }

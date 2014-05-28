@@ -67,22 +67,21 @@ public class ComponentController extends BaseComponentController {
 
   @ModelAttribute(Constants.MODEL_COMPONENT_TYPES)
   public List<ComponentType> getComponentTypes() {
-    return componentTypesService.findAll();
+    return getComponentTypesService().findAll();
   }
 
   @RequestMapping("/search/json")
   @ResponseBody
   public List<Component> search(final HttpServletRequest request, @RequestParam(required = true) final String providerId, final Model model) {
-    // TODO Este método se utiliza en el mantenimiento de alertas para seleccionar el sensor de la
-    // alerta
+    // Este método se utiliza en el mantenimiento de alertas para seleccionar el sensor de la alerta
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("providerId", providerId);
-    return componentService.search(filter).getContent();
+    return getComponentService().search(filter).getContent();
   }
 
   @RequestMapping(value = "/{id}/addComponents", method = RequestMethod.GET)
   public String addComponents(@PathVariable final String id, final Model model) {
-    final List<Component> components = componentService.findAll();
+    final List<Component> components = getComponentService().findAll();
     final ComponentComponentsDTO form = new ComponentComponentsDTO(id, components);
     model.addAttribute(Constants.MODEL_COMPONENT_COMPONENTS, form);
     return Constants.VIEW_ADD_COMPONENTS_TO_COMPONENT;
@@ -92,7 +91,7 @@ public class ComponentController extends BaseComponentController {
   public String assignComponents(@PathVariable final String id, @Valid final ComponentComponentsDTO componentComponents, final BindingResult result, final Model model) {
 
     if (!CatalogUtils.arrayIsEmpty(componentComponents.getSelectedIds())) {
-      componentService.updateMulti(Arrays.asList(componentComponents.getSelectedIds()), PARENT_ID_ATTRIBUTE, id);
+      getComponentService().updateMulti(Arrays.asList(componentComponents.getSelectedIds()), PARENT_ID_ATTRIBUTE, id);
     }
 
     ModelUtils.addConfirmationMessageTo(model, "component.assigned");
@@ -106,7 +105,7 @@ public class ComponentController extends BaseComponentController {
     final SearchFilter filter = new SearchFilter();
     filter.addParam(COMPONENT_ID_ATTRIBUTE, null);
     filter.addParam(COMPONENT_ID_ATTRIBUTE, "");
-    final List<Sensor> sensors = sensorService.search(filter).getContent();
+    final List<Sensor> sensors = getSensorService().search(filter).getContent();
     final ComponentSensorsDTO form = new ComponentSensorsDTO(id, sensors);
     model.addAttribute(Constants.MODEL_COMPONENT_SENSORS, form);
     return Constants.VIEW_ADD_SENSORS_TO_COMPONENT;
@@ -115,7 +114,7 @@ public class ComponentController extends BaseComponentController {
   @RequestMapping(value = "/{id}/removeComponents", method = RequestMethod.POST)
   public String removeComponents(@PathVariable final String id, @Valid final ComponentsDTO components, final BindingResult result, final Model model) {
     if (!CatalogUtils.arrayIsEmpty(components.getSelectedIds())) {
-      componentService.updateMulti(Arrays.asList(components.getSelectedIds()), PARENT_ID_ATTRIBUTE, null);
+      getComponentService().updateMulti(Arrays.asList(components.getSelectedIds()), PARENT_ID_ATTRIBUTE, null);
     }
 
     ModelUtils.addConfirmationMessageTo(model, "component.unassigned");
@@ -128,7 +127,7 @@ public class ComponentController extends BaseComponentController {
   public String addSensors(@PathVariable final String id, @Valid final ComponentSensorsDTO componentSensors, final BindingResult result, final Model model) {
 
     if (!CatalogUtils.arrayIsEmpty(componentSensors.getSelectedIds())) {
-      sensorService.updateMulti(Arrays.asList(componentSensors.getSelectedIds()), COMPONENT_ID_ATTRIBUTE, id);
+      getSensorService().updateMulti(Arrays.asList(componentSensors.getSelectedIds()), COMPONENT_ID_ATTRIBUTE, id);
     }
 
     ModelUtils.addConfirmationMessageTo(model, "sensor.assigned");
@@ -141,7 +140,7 @@ public class ComponentController extends BaseComponentController {
   public String removeSensors(@PathVariable final String id, @Valid final ComponentSensorsDTO sensors, final BindingResult result, final Model model) {
 
     if (!CatalogUtils.arrayIsEmpty(sensors.getSelectedIds())) {
-      sensorService.updateMulti(Arrays.asList(sensors.getSelectedIds()), COMPONENT_ID_ATTRIBUTE, null);
+      getSensorService().updateMulti(Arrays.asList(sensors.getSelectedIds()), COMPONENT_ID_ATTRIBUTE, null);
     }
 
     ModelUtils.addConfirmationMessageTo(model, "sensor.unassigned");
@@ -152,9 +151,9 @@ public class ComponentController extends BaseComponentController {
 
   @Override
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_COMPONENT_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_COMPONENT_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_COMPONENT);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_COMPONENT_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_COMPONENT_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_COMPONENT);
   }
 
   @Override

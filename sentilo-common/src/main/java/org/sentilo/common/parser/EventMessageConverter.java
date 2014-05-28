@@ -25,16 +25,17 @@
  */
 package org.sentilo.common.parser;
 
-import org.sentilo.common.domain.NotificationMessage;
+import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.exception.MessageNotWritableException;
 
-public class NotificationMessageConverter extends BaseJsonMessageConverter {
+public class EventMessageConverter extends BaseJsonMessageConverter {
 
-  public String marshall(final NotificationMessage message) throws MessageNotWritableException {
+  public String marshall(final EventMessage message) throws MessageNotWritableException {
     return writeInternalAndReturnString(message);
   }
 
-  public NotificationMessage unmarshall(final String body) throws MessageNotWritableException {
-    return (NotificationMessage) readInternal(NotificationMessage.class, body);
+  public EventMessage unmarshall(final String body) throws MessageNotWritableException {
+    return (EventMessage) readInternal(EventMessage.class, body);
   }
+
 }

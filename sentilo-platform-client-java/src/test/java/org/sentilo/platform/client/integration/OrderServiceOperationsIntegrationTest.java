@@ -47,19 +47,23 @@ import org.springframework.util.CollectionUtils;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class OrderServiceOperationsIntegrationTest {
 
+  static String PROVIDER_ID = "testApp_provider";
+  static String APP_ID = "testApp";
+  static String SENSOR1 = "sensor1";
+
   @Autowired
   protected PlatformClientOperations platformTemplate;
 
   @Test
   public void _01_publish() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp_provider", "sensor1", new OrderMessage("stop"));
+    final OrderInputMessage message = new OrderInputMessage(PROVIDER_ID, SENSOR1, new OrderMessage("stop"));
     platformTemplate.getOrderOps().publish(message);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", true);
   }
 
   @Test
   public void _02_publishWithoutOrderMessage() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp_provider");
+    final OrderInputMessage message = new OrderInputMessage(PROVIDER_ID);
     boolean error = false;
     try {
       platformTemplate.getOrderOps().publish(message);
@@ -83,7 +87,7 @@ public class OrderServiceOperationsIntegrationTest {
 
   @Test
   public void _04_getLastOrdersFromSensor() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp_provider", "sensor1");
+    final OrderInputMessage message = new OrderInputMessage(PROVIDER_ID, SENSOR1);
     final OrdersOutputMessage response = platformTemplate.getOrderOps().getLastOrders(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getOrders()));
     assertEquals(1, response.getOrders().size());
@@ -91,7 +95,7 @@ public class OrderServiceOperationsIntegrationTest {
 
   @Test
   public void _05_getLastOrdersFromProvider() throws Exception {
-    final OrderInputMessage message = new OrderInputMessage("testApp_provider");
+    final OrderInputMessage message = new OrderInputMessage(PROVIDER_ID);
     final OrdersOutputMessage response = platformTemplate.getOrderOps().getLastOrders(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getSensors()));
     assertEquals(1, response.getSensors().size());

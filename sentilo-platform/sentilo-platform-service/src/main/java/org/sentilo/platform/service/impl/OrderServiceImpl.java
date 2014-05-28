@@ -240,7 +240,7 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     // Y luego la publicamos.
     logger.debug("Publish order event {} related to provider {} and sensor {}", message.getOrder(), message.getProviderId(), message.getSensorId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.order, message.getProviderId(), message.getSensorId());
-    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message));
+    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
     logger.debug("Order published");
   }
 

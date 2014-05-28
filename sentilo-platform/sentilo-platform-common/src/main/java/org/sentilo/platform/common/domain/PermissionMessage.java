@@ -29,8 +29,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class PermissionMessage {
 
-  enum PermissionType {
-    WRITE, READ
+  public enum PermissionType {
+    ADMIN, WRITE, READ
   }
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
@@ -40,8 +40,14 @@ public class PermissionMessage {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String type;
 
-  public boolean isWritePermission() {
-    return PermissionType.WRITE.toString().equals(type);
+  public PermissionMessage() {
+    super();
+  }
+
+  public PermissionMessage(final String source, final String target, final String type) {
+    this.source = source;
+    this.target = target;
+    this.type = type;
   }
 
   public String getSource() {
@@ -60,8 +66,8 @@ public class PermissionMessage {
     this.target = target;
   }
 
-  public String getType() {
-    return type;
+  public PermissionType getType() {
+    return PermissionType.valueOf(type);
   }
 
   public void setType(final String type) {

@@ -32,7 +32,7 @@ import java.util.Map;
  * This class provides dictionaries to translate domain business fields into api fields when these
  * fields are not equals.
  */
-public class ApiTranslator {
+public abstract class ApiTranslator {
 
   /** Translates Sensor domain fields to CatalogSensor fields */
   public static final Map<String, String> SENSOR_DOMAIN_FIELDS = new HashMap<String, String>();
@@ -51,5 +51,10 @@ public class ApiTranslator {
 
     ALERT_DOMAIN_FIELDS.put("sensorId", "sensor");
     ALERT_DOMAIN_FIELDS.put("componentId", "component");
+  }
+
+  private ApiTranslator() {
+    // this prevents even the native class from calling this ctor as well :
+    throw new AssertionError();
   }
 }

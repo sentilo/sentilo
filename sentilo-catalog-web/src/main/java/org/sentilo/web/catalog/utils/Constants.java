@@ -116,7 +116,7 @@ public final class Constants {
 
   public static final String MODEL_ACTIVE_MENU = "activeMenu";
 
-  public static final String VALIDATION_ENTITY_NAME_REGEXP = "[0-9a-zA-Z-_]+";
+  public static final String VALIDATION_ENTITY_NAME_REGEXP = "[0-9a-zA-Z-_:]+";
 
   public static final String DATE_FORMAT = "dd/MM/yyyy";
   public static final String DATETIME_FORMAT = "dd/MM/yyyy hh:mm";
@@ -142,7 +142,7 @@ public final class Constants {
   public static final String MENU_ALERT = "/alert";
   public static final String MENU_COMPONENT_MAP = "/componentMap";
 
-  public static final Permission.Type CATALOG_PERMISSION_TYPE = Permission.Type.WRITE;
+  public static final Permission.Type CATALOG_PERMISSION_TYPE = Permission.Type.ADMIN;
 
   public static final String DEFAULT_COMPONENT_TYPE = "generic";
 

@@ -28,21 +28,16 @@ package org.sentilo.platform.server.handler.impl;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.server.AbstractBaseTest;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.RequestUtils;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
-import org.springframework.util.ReflectionUtils;
 
-public abstract class AbstractBaseHandlerTest {
+public abstract class AbstractBaseHandlerTest extends AbstractBaseTest {
 
   protected void simulateRequest(final HttpMethod method, final String tokenProvider, final String path) throws PlatformException {
     String resourcePath = RequestUtils.extractResource(path, getHandlerPath().getPath());
@@ -83,27 +78,6 @@ public abstract class AbstractBaseHandlerTest {
 
   protected void assertInternalServerError(final PlatformException e) {
     assertEquals("Must return 500 - Method not allowed", HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getHttpStatus());
-  }
-
-  protected <T> void injectField(final String fieldName, final Object valueToInject, final T instance, final Class<T> instanceClass) throws Exception {
-    final Field field = instanceClass.getDeclaredField(fieldName);
-    ReflectionUtils.makeAccessible(field);
-    field.set(instance, valueToInject);
-  }
-
-  protected <T> List<T> generateRandomList(final Class<T> clazz) throws InstantiationException, IllegalAccessException {
-    final Random randomGenerator = new Random();
-    int size = 0;
-    do {
-      size = randomGenerator.nextInt(5);
-    } while (size == 0);
-
-    final List<T> randomList = new ArrayList<T>();
-    for (int i = 0; i < size; i++) {
-      randomList.add(clazz.newInstance());
-    }
-
-    return randomList;
   }
 
   protected abstract HandlerPath getHandlerPath();

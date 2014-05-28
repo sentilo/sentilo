@@ -49,9 +49,11 @@ public class OrderParser extends PlatformJsonMessageConverter {
     final String providerId = request.getResourcePart(0);
     final String sensorId = request.getResourcePart(1);
 
-    inputMessage.setProviderId(providerId);
-    inputMessage.setSensorId(sensorId);
-    inputMessage.setSender(request.getEntitySource());
+    if (inputMessage != null) {
+      inputMessage.setProviderId(providerId);
+      inputMessage.setSensorId(sensorId);
+      inputMessage.setSender(request.getEntitySource());
+    }
 
     return inputMessage;
   }

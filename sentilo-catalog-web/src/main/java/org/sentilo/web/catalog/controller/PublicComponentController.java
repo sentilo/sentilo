@@ -64,7 +64,7 @@ public class PublicComponentController extends BaseComponentController {
     ModelUtils.addUpdateDateTo(model);
     // El listado de tipos de sensores se necesita para montar el desplegable del filtro
     // del mapa
-    model.addAttribute(Constants.MODEL_COMPONENT_TYPES, componentTypesService.findAll());
+    model.addAttribute(Constants.MODEL_COMPONENT_TYPES, getComponentTypesService().findAll());
     return Constants.VIEW_PUBLIC_COMPONENT_MAP;
   }
 
@@ -79,7 +79,7 @@ public class PublicComponentController extends BaseComponentController {
     }
     final Map<String, String> icons = getIconMap();
     final List<MapComponentDTO> result = new ArrayList<MapComponentDTO>();
-    for (final Component component : componentService.search(filter).getContent()) {
+    for (final Component component : getComponentService().search(filter).getContent()) {
       result.add(new MapComponentDTO(component, icons.get(component.getComponentType())));
     }
     return result;
@@ -91,10 +91,10 @@ public class PublicComponentController extends BaseComponentController {
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("componentId", id);
     filter.addAndParam("publicAccess", Boolean.TRUE);
-    final List<Sensor> sensors = sensorService.search(filter).getContent();
+    final List<Sensor> sensors = getSensorService().search(filter).getContent();
     final List<ObservationDTO> result = new ArrayList<ObservationDTO>();
     for (final Sensor sensor : sensors) {
-      final Observation observation = sensorService.getLastObservation(sensor);
+      final Observation observation = getSensorService().getLastObservation(sensor);
       translateAndEscapeSensorType(sensor);
       result.add(new ObservationDTO(sensor, observation));
     }
@@ -108,8 +108,8 @@ public class PublicComponentController extends BaseComponentController {
   }
 
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_PUBLIC_COMPONENT_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_PUBLIC_COMPONENT_DETAIL);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_PUBLIC_COMPONENT_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_PUBLIC_COMPONENT_DETAIL);
     // Se ha eliminado la vista de creación/edición a propósito.
   }
 
@@ -122,7 +122,7 @@ public class PublicComponentController extends BaseComponentController {
   private void addComponentSensorsTo(final Model model, final String componentId) {
     final SearchFilter filter = new SearchFilter();
     filter.addParam("componentId", componentId);
-    final List<Sensor> sensors = sensorService.search(filter).getContent();
+    final List<Sensor> sensors = getSensorService().search(filter).getContent();
 
     for (final Sensor sensor : sensors) {
       translateAndEscapeSensorType(sensor);
@@ -139,7 +139,7 @@ public class PublicComponentController extends BaseComponentController {
   }
 
   private Map<String, String> getIconMap() {
-    final List<ComponentType> componentTypes = componentTypesService.findAll();
+    final List<ComponentType> componentTypes = getComponentTypesService().findAll();
     final Map<String, String> images = new HashMap<String, String>();
     for (final ComponentType componentType : componentTypes) {
       images.put(componentType.getId(), componentType.getIcon());

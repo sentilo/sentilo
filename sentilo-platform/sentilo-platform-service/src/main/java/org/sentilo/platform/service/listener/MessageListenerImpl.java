@@ -63,27 +63,27 @@ public class MessageListenerImpl implements MessageListener {
     logger.debug("{} -->  Contenido del mensaje {}", name, info);
 
     final String endpoint = getEndpoint(channel);
-    notificator.sendNotification(endpoint, channel, info);
+    notificator.sendNotification(endpoint, info);
   }
 
   private String getEndpoint(final String channel) {
     // Para saber a que endpoint se debe notificar simplemente se debe recuperar el valor asociado a
-    // channel en el map
-    // de subscriptions, ya que este valor es el endpoint. Pero al recuperar se debe tener en cuenta
-    // que el listener puede
-    // estar subscrito a un Channel o a un Pattern
+    // channel en el map de subscriptions, ya que este valor es el endpoint.
+    // Pero al recuperar se debe tener en cuenta que el listener puede estar subscrito a un Channel
+    // o a un Pattern.
     // Es decir, se puede estar subscrito o bien a
-    // data:providerId:sensorId (Channel)
+    // /data/providerId/sensorId (Channel)
     // o
-    // data:providerId* (Pattern)
+    // /data/providerId* (Pattern)
 
     logger.debug("Search endpoint to channel {}", channel);
     String endpoint = subscriptions.get(channel);
     logger.debug("Found endpoint {} ", endpoint);
 
     if (!StringUtils.hasText(endpoint) && !ChannelUtils.isTopicPattern(channel)) {
-      logger.debug("Search endpoint for pattern {} ", ChannelUtils.channelToPattern(channel));
-      endpoint = subscriptions.get(ChannelUtils.channelToPattern(channel));
+      String channelToPattern = ChannelUtils.channelToPattern(channel);
+      logger.debug("Search endpoint for pattern {} ", channelToPattern);
+      endpoint = subscriptions.get(channelToPattern);
       logger.debug("Found endpoint {} ", endpoint);
     }
 
@@ -132,4 +132,13 @@ public class MessageListenerImpl implements MessageListener {
       return name.equals(other.name);
     }
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 37;
+    int result = 1;
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    return result * super.hashCode();
+  }
+
 }

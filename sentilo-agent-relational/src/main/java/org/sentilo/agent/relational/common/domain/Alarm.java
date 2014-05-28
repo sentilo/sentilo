@@ -32,7 +32,7 @@ import java.io.Serializable;
  */
 public class Alarm extends Data implements Serializable {
 
-  private static final long serialVersionUID = 6911350093988019331L;
+  private static final long serialVersionUID = 1L;
 
   private String alarm;
   private String message;

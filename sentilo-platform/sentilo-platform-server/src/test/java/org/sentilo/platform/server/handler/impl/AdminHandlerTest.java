@@ -37,6 +37,7 @@ import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.AdminService;
+import org.sentilo.platform.server.exception.MessageValidationException;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.parser.AdminParser;
@@ -73,7 +74,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(request.getResource()).thenReturn(resource);
   }
 
-  // @Test
+  @Test
   public void notAllowedStatsRequest() throws Exception {
     when(parser.parseGetRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.stats);
@@ -97,7 +98,43 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     handler.manageRequest(request, response);
 
     verify(parser).parseGetRequest(request);
-    verify(parser).writeResponse(request, response, stats);
+    verify(parser).writeStatsResponse(request, response, stats);
+  }
+
+  @Test(expected = MessageValidationException.class)
+  public void wrongPutRequest() throws Exception {
+    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.stats);
+
+    simulateRequest(HttpMethod.PUT, "sentilo-catalog", "/admin/stats");
+    handler.manageRequest(request, response);
+
+  }
+
+  @Test
+  public void notAllowedPutRequest() throws Exception {
+    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.delete);
+
+    simulateRequest(HttpMethod.PUT, PROVIDER1, "/admin/delete");
+    try {
+      handler.manageRequest(request, response);
+    } catch (final PlatformException e) {
+      assertForbiddenCall(e);
+    }
+
+  }
+
+  @Test
+  public void deleteRequest() throws Exception {
+    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.delete);
+
+    simulateRequest(HttpMethod.PUT, "sentilo-catalog", "/admin/delete");
+    handler.manageRequest(request, response);
+
+    verify(parser).parsePutRequest(request);
+    verify(service).delete(message);
   }
 
   @Override

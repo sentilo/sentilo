@@ -31,9 +31,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AbstractServiceOperationsImpl {
 
   @Autowired
-  protected RESTClient restClient;
+  private RESTClient restClient;
 
   public AbstractServiceOperationsImpl() {
     super();
+  }
+
+  protected RESTClient getRestClient() {
+    return restClient;
+  }
+
+  protected void setRestClient(RESTClient restClient) {
+    this.restClient = restClient;
   }
 }

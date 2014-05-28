@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.sentilo.common.domain.SubscribeType;
-import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.AlarmSubscription;
 import org.sentilo.platform.common.domain.DataSubscription;
 import org.sentilo.platform.common.domain.Observation;
@@ -50,14 +49,13 @@ public final class ChannelUtils {
     data, order, alarm
   };
 
-  static final String TOKEN = PubSubConstants.REDIS_KEY_TOKEN;
 
   private ChannelUtils() {
     throw new AssertionError();
   }
 
   public static PubSubChannelPrefix translateSubscriptionType(final SubscribeType subscribeType) {
-    return PubSubChannelPrefix.valueOf(subscribeType.toString().toLowerCase());
+    return PubSubChannelPrefix.valueOf(subscribeType.name().toLowerCase());
   }
 
   public static List<String> filterTopicsOfType(final Set<String> topics, final SubscribeType type) {
@@ -77,7 +75,8 @@ public final class ChannelUtils {
   }
 
   public static boolean isTopicOfType(final String topicName, final SubscribeType type) {
-    return (type != null && topicName.startsWith(type.toString().toLowerCase()));
+    String prefixToCompare = PubSubConstants.REDIS_CHANNEL_TOKEN.concat(type.name().toLowerCase());
+    return (type != null && topicName.startsWith(prefixToCompare));
   }
 
   public static Topic getChannel(final Observation observation) {
@@ -91,9 +90,11 @@ public final class ChannelUtils {
     Assert.notNull(subscription);
     switch (subscription.getType()) {
       case DATA:
-        return buildTopic(PubSubChannelPrefix.data, ((DataSubscription) subscription).getProviderId(), ((DataSubscription) subscription).getSensorId());
+        return buildTopic(PubSubChannelPrefix.data, ((DataSubscription) subscription).getProviderId(),
+            ((DataSubscription) subscription).getSensorId());
       case ORDER:
-        return buildTopic(PubSubChannelPrefix.order, ((OrderSubscription) subscription).getOwnerEntityId(), ((OrderSubscription) subscription).getSensorId());
+        return buildTopic(PubSubChannelPrefix.order, ((OrderSubscription) subscription).getOwnerEntityId(),
+            ((OrderSubscription) subscription).getSensorId());
       case ALARM:
         return buildTopic(PubSubChannelPrefix.alarm, ((AlarmSubscription) subscription).getAlertId());
       default:
@@ -104,32 +105,27 @@ public final class ChannelUtils {
   public static Subscription getSubscription(final String entityId, final String channel, final String endpoint) {
     Assert.notNull(channel);
 
-    final String[] tokens = channel.split(PubSubConstants.REDIS_KEY_TOKEN);
-    // La llamada a valueOf ya lanza una illegalArgumentException en caso de que el valor a
-    // transformar no corresponda
-    // a ningun valor de la enumeracion
-    final PubSubChannelPrefix type = PubSubChannelPrefix.valueOf(tokens[0]);
+    // channel follow the following format: /<type>/<resourceId1>/<resourceId2>
+    // where <resourceId2> is optional
+    // and <resouceId1> could represent a pattern (ends with *)
+
+    final String[] tokens = channel.split(PubSubConstants.REDIS_CHANNEL_TOKEN);
+    final PubSubChannelPrefix type = PubSubChannelPrefix.valueOf(tokens[1]);
     Subscription subscription = null;
     String providerId, sensorId;
     switch (type) {
       case data:
-        providerId = tokens[1]; // validar si es pattern, si viene el sensorId informado, ...
-        sensorId = null;
-        if (!providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 2) {
-          sensorId = tokens[2];
-        }
+        providerId = tokens[2];
+        sensorId = (!providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 3 ? tokens[3] : null);
         subscription = new DataSubscription(entityId, endpoint, providerId, sensorId);
         break;
       case order:
-        providerId = tokens[1]; // validar si es pattern, si viene el sensorId informado, ...
-        sensorId = null;
-        if (!providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 2) {
-          sensorId = tokens[2];
-        }
+        providerId = tokens[2];
+        sensorId = (!providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 3 ? tokens[3] : null);
         subscription = new OrderSubscription(entityId, providerId, sensorId, endpoint);
         break;
       case alarm:
-        final String alarmId = tokens[1];
+        final String alarmId = tokens[2];
         subscription = new AlarmSubscription(entityId, null, endpoint, alarmId);
         break;
     }
@@ -138,16 +134,16 @@ public final class ChannelUtils {
   }
 
   public static Topic buildTopic(final PubSubChannelPrefix prefix, final String... resources) {
-    // El atributo length puede tener 1 o 2 elementos. En caso de tener longitud 2 y que el segundo
-    // sea null
-    // este metodo debe retornar un Topic de tipo Pattern y no Channel, ya que significa que
-    // queremos construir un Topic
-    // para hacer una publicacion masiva.
+    // El atributo resources puede tener 1 o 2 elementos. En caso de tener longitud 2 y que el
+    // segundo sea null este metodo debe retornar un Topic de tipo Pattern y no Channel, ya que
+    // significa que queremos subscribirnos a todos los datos, de cierto tipo, publicados para
+    // un proveedor.
 
-    final StringBuilder sb = new StringBuilder(prefix.toString());
+    final StringBuilder sb = new StringBuilder(PubSubConstants.REDIS_CHANNEL_TOKEN);
+    sb.append(prefix.name());
     for (final String resource : resources) {
       if (StringUtils.hasText(resource)) {
-        sb.append(PubSubConstants.REDIS_KEY_TOKEN);
+        sb.append(PubSubConstants.REDIS_CHANNEL_TOKEN);
         sb.append(resource);
       } else if (resources.length == 2) {
         sb.append(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX);
@@ -170,33 +166,19 @@ public final class ChannelUtils {
   }
 
   public static String channelToPattern(final String channel) {
+
+    // This method transforms a channel with the format /<type>/<resourceId1>/<resourceId2>
+    // which represents (in a business sense) a subscription to any data of type <type>
+    // sent to the resource identify by <resourceId1>/<resourceId2>, in a parent pattern channel,
+    // i.e., a channel with the format /<type>/<resourceId1>*.
+
     String pattern = channel;
 
     if (!isTopicPattern(channel)) {
-      final int lastPos = channel.lastIndexOf(PubSubConstants.REDIS_KEY_TOKEN);
+      final int lastPos = channel.lastIndexOf(PubSubConstants.REDIS_CHANNEL_TOKEN);
       pattern = channel.substring(0, lastPos).concat(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX);
     }
 
     return pattern;
-  }
-
-  public static String buildSubscriptionPathFromTopic(final String topicName) {
-    // Este metodo reconstruye el path asociado a un topic, teniendo presente que los paths no
-    // tienen el catacter *
-    // lo que implica que deberemos eliminarlo de este.
-
-    final String[] tokens = topicName.split(PubSubConstants.REDIS_KEY_TOKEN);
-    final StringBuilder channelPath = new StringBuilder();
-    for (final String token : tokens) {
-      channelPath.append(SentiloConstants.SLASH);
-      if (token.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX)) {
-        // Eliminamos el caracter de patron
-        channelPath.append(token.substring(0, token.length() - 1));
-      } else {
-        channelPath.append(token);
-      }
-    }
-
-    return channelPath.toString();
   }
 }

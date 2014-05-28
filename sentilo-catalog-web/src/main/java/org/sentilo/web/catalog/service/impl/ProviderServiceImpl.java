@@ -25,12 +25,14 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.event.DeletePlatformResourcesEvent;
 import org.sentilo.web.catalog.repository.ProviderRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.PermissionService;
@@ -62,7 +64,7 @@ public class ProviderServiceImpl extends AbstractBaseServiceImpl<Provider> imple
 
   @Override
   protected void doAfterInit() {
-    entityKeyValidator = customEntityValidator;
+    setEntityKeyValidator(customEntityValidator);
     super.doAfterInit();
   }
 
@@ -83,8 +85,7 @@ public class ProviderServiceImpl extends AbstractBaseServiceImpl<Provider> imple
    */
   public Provider create(final Provider provider) {
     // El identificador se informa por pantalla (es obligatorio). El nombre, en caso de no estar
-    // informado, se rellena
-    // con el valor del identificador.
+    // informado, se rellena con el valor del identificador.
     if (!StringUtils.hasText(provider.getName())) {
       provider.setName(provider.getId());
     }
@@ -117,9 +118,10 @@ public class ProviderServiceImpl extends AbstractBaseServiceImpl<Provider> imple
    */
   public void delete(final Collection<Provider> providers) {
     super.delete(providers);
+    notifyProvidersToDelete(providers);
     for (final Provider provider : providers) {
       permissionService.deleteRelated(provider);
-      deleteChilds(provider);
+      deleteRelatedResources(provider);
     }
   }
 
@@ -131,8 +133,12 @@ public class ProviderServiceImpl extends AbstractBaseServiceImpl<Provider> imple
    * .domain.Provider)
    */
   public void deleteChilds(final Provider provider) {
-    // Debemos eliminar todos los componentes asociados al proveedor
-    // y por extension todos los sensores y alertas asociados a estos componentes.
+    notifyProviderToDelete(provider);
+    deleteRelatedResources(provider);
+  }
+
+  private void deleteRelatedResources(final Provider provider) {
+    // Must be remove all resources related to the provider: alerts, sensors and components
     final SearchFilter childFilter = new SearchFilter();
     childFilter.addAndParam("providerId", provider.getId());
     final Query childQuery = buildQuery(childFilter);
@@ -140,5 +146,14 @@ public class ProviderServiceImpl extends AbstractBaseServiceImpl<Provider> imple
     getMongoOps().remove(childQuery, Alert.class);
     getMongoOps().remove(childQuery, Sensor.class);
     getMongoOps().remove(childQuery, Component.class);
+  }
+
+  private void notifyProviderToDelete(final Provider provider) {
+    notifyProvidersToDelete(Arrays.asList(provider));
+  }
+
+  private void notifyProvidersToDelete(final Collection<Provider> providers) {
+    // Create new DeletePlatformResourceEvent to notify what providers will be deleted
+    getContext().publishEvent(new DeletePlatformResourcesEvent<Provider>(this, providers, Provider.class));
   }
 }

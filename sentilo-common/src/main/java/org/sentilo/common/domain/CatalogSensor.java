@@ -27,13 +27,12 @@ package org.sentilo.common.domain;
 
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class CatalogSensor implements CatalogElement {
 
   private String sensor;
-  @JsonIgnore
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String provider;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String description;

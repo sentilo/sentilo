@@ -332,6 +332,11 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
 	text-decoration: underline;
 }
 
+.mapInfoBox {
+    float: left;
+    min-width: 180px;
+}
+
 h1 small {
 	font-size: 18px;
 	font-weight: 300;
@@ -674,4 +679,26 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 .container-fluid {
 	max-width: 1280px;
 	margin: 0 auto;
+}
+
+/********** Responsive media queries ****************/
+@media (max-width: 979px) { 
+	.infobox,
+	.mapInfoBoxWrapper {
+		max-width: 188px;
+	}
+}
+
+@media (min-width: 980px) and (max-width: 1279px) { 
+	.infobox,
+	.mapInfoBoxWrapper {
+		max-width: 368px;
+	}
+}
+
+@media (min-width: 1280px) { 
+	.infobox,
+	.mapInfoBoxWrapper {
+		max-width: 548px;
+	}
 }

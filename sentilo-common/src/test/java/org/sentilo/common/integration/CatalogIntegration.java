@@ -27,23 +27,22 @@ package org.sentilo.common.integration;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.sentilo.common.rest.RESTClient;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = "classpath:spring/catalog-integration-context.xml")
 public class CatalogIntegration {
 
-  protected RESTClient httpRestClient;
+  @Autowired
+  private RESTClient httpRestClient;
 
-  public CatalogIntegration() {
-    init();
-  }
-
-  protected void init() {
-    final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring/catalog-integration-context.xml");
-    httpRestClient = context.getBean(RESTClient.class);
-  }
-
+  @Test
   public void validateApiPermissions() {
     final String uri = "api/permissions";
     final String response = httpRestClient.get(uri);
@@ -51,9 +50,11 @@ public class CatalogIntegration {
     // {"permissions":[{"source":"prov1","target":"prov1","type":"WRITE"},{"source":"prov2","target":"prov2","type":"WRITE"}]}
     System.out.println(response);
     assertTrue("No se ha realizado correctamente la llamada al catalogo", StringUtils.hasText(response));
-    assertTrue("La respuesta no tiene el formato esperado", response.contains("permissions") && response.contains("source") && response.contains("target") && response.contains("type"));
+    assertTrue("La respuesta no tiene el formato esperado",
+        response.contains("permissions") && response.contains("source") && response.contains("target") && response.contains("type"));
   }
 
+  @Test
   public void validateApiAuth() {
     final String uri = "api/credentials";
     final String response = httpRestClient.get(uri);
@@ -61,14 +62,8 @@ public class CatalogIntegration {
     // {"authorizations":[{"entity":"app1","token":"token3"},{"entity":"app2","token":"token4"},{"entity":"app3","token":"token5"}]}
     System.out.println(response);
     assertTrue("No se ha realizado correctamente la llamada al catalogo", StringUtils.hasText(response));
-    assertTrue("La respuesta no tiene el formato esperado", response.contains("authorizations") && response.contains("entity") && response.contains("token"));
-  }
-
-  public static void main(final String[] args) {
-    final CatalogIntegration driver = new CatalogIntegration();
-
-    driver.validateApiAuth();
-    driver.validateApiPermissions();
+    assertTrue("La respuesta no tiene el formato esperado",
+        response.contains("authorizations") && response.contains("entity") && response.contains("token"));
   }
 
 }

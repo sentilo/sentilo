@@ -25,6 +25,7 @@
  */
 package org.sentilo.platform.service.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -88,9 +89,8 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       jedisTemplate.sAdd(keysBuilder.getProviderSensorsKey(pid), sid.toString());
 
       // Y por ultimo añadimos una ultima reverse lookup key que nos permita recuperar rapidamente
-      // el sid de un sensor
-      // sabiendo el proveedor y el sensor, es decir, poder almacenar rapidamente el dato
-      // /provider1/sensor2/26
+      // el sid de un sensor sabiendo el proveedor y el sensor, es decir, poder almacenar
+      // rapidamente el dato: /provider1/sensor2/26
       jedisTemplate.set(keysBuilder.getReverseSensorKey(providerId, sensorId), sid.toString());
 
       logger.debug("Registered in Redis sensor {} from provider {} with sid {}", sensorId, providerId, sid);
@@ -107,13 +107,9 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public Set<String> getSensorsFromProvider(final String providerId) {
     final Long pid = jedisSequenceUtils.getPid(providerId);
-    if (pid == null) {
-      // Si no hay identificador interno del proveedor, entonces este no esta registrado en Redis y
-      // por lo tanto no tiene ningun sensor asociado
-      return null;
-    }
 
-    return jedisTemplate.sMembers(keysBuilder.getProviderSensorsKey(pid));
+    return getSensorsFromProvider(pid);
+
   }
 
   /*
@@ -176,6 +172,87 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
     }
 
     return aid;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.platform.common.service.ResourceService#removeProvider(java.lang.String)
+   */
+  public void removeProvider(String providerId) {
+    logger.debug("Deleting in Redis provider {} ", providerId);
+    final Long pid = jedisSequenceUtils.getPid(providerId);
+    if (pid != null) {
+      // Remove key pid:{pid}
+      jedisTemplate.del(keysBuilder.getProviderKey(pid));
+      // Remove key provider:{providerId}:pid
+      jedisTemplate.del(keysBuilder.getReverseProviderKey(providerId));
+
+      // Remove every sensor related to the provider.
+      Set<String> sids = getSensorsFromProvider(pid);
+      if (!CollectionUtils.isEmpty(sids)) {
+        for (String sid : sids) {
+          removeSensor(Long.valueOf(sid), providerId, pid);
+        }
+      }
+
+      // Remove key pid:{pid}:sensors
+      jedisTemplate.del(keysBuilder.getProviderSensorsKey(pid));
+
+      // Finally, remove {pid} from internal cache
+      jedisSequenceUtils.removePid(providerId);
+    }
+
+    logger.debug("Provider {} deleted", providerId);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.platform.common.service.ResourceService#removeSensor(java.lang.String,
+   * java.lang.String)
+   */
+  public void removeSensor(String sensorId, String providerId) {
+    logger.debug("Deleting in Redis sensor {} from provider {}", sensorId, providerId);
+    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+    if (sid != null) {
+      removeSensor(sid, providerId, null);
+    }
+
+    logger.debug("Sensor {} from provider {} deleted.", sensorId, providerId);
+  }
+
+  private void removeSensor(Long sid, String providerId, Long pid) {
+
+    if (sid != null) {
+      // Remove key sensor:{providerId}:{sensorId}:sid
+      String sensorId = jedisTemplate.hGet(keysBuilder.getSensorKey(sid), "sensor");
+      jedisTemplate.del(keysBuilder.getReverseSensorKey(providerId, sensorId));
+
+      // Remove key sid:{sid}:observations
+      jedisTemplate.del(keysBuilder.getSensorObservationsKey(sid));
+
+      // Remove key sid:{sid}:orders
+      jedisTemplate.del(keysBuilder.getSensorOrdersKey(sid));
+
+      // Remove key sid:{sid}
+      jedisTemplate.del(keysBuilder.getSensorKey(sid));
+      if (pid == null) {
+        // Solo si pid == null, i.e., no se esta borrando tb el proveedor,
+        // eliminamos la referencia al sensor de la lista keysBuilder.getProviderSensorsKey(pid)
+        pid = jedisSequenceUtils.getPid(providerId);
+        jedisTemplate.sRem(keysBuilder.getProviderSensorsKey(pid), sid.toString());
+      }
+
+      // inally, remove {sid} from the internal cache
+      jedisSequenceUtils.removeSid(providerId, sensorId);
+    }
+  }
+
+  private Set<String> getSensorsFromProvider(final Long pid) {
+    // Si no hay identificador interno del proveedor, entonces este no esta registrado en Redis y
+    // por lo tanto no tiene ningun sensor asociado
+    return (pid == null) ? Collections.<String>emptySet() : jedisTemplate.sMembers(keysBuilder.getProviderSensorsKey(pid));
   }
 
 }

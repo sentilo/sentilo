@@ -94,7 +94,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
 
   protected JsonConverterException buildJsonFieldError(String type, String value, Throwable cause) {
     String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
-    logger.error("{} - Error unmarshalling JSON payload. Wrong {} value: {}.", internalErrorCode, type, value, cause);
+    getLogger().error("{} - Error unmarshalling JSON payload. Wrong {} value: {}.", internalErrorCode, type, value, cause);
     String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
     List<String> errorDetails = new ArrayList<String>();
     errorDetails.add(String.format(UNMARSHAL_JSON_FIELD_ERROR_TEMPLATE, type, value));
@@ -104,7 +104,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
 
   protected JsonConverterException buildMarshalJsonException(Object obj, Throwable cause) {
     String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_MARSHAL_ERROR);
-    logger.error("{} - Error marshalling object of type {} to JSON.", internalErrorCode, obj.getClass().getName(), cause);
+    getLogger().error("{} - Error marshalling object of type {} to JSON.", internalErrorCode, obj.getClass().getName(), cause);
 
     String errorMessage = String.format(MARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
     return new JsonConverterException(errorMessage);
@@ -112,7 +112,7 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
 
   protected JsonConverterException buildUnmarshallJsonException(final Class<?> clazz, final Throwable cause) {
     String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
-    logger.error("{} - Error unmarshalling JSON payload to class {}.", internalErrorCode, clazz.getName(), cause);
+    getLogger().error("{} - Error unmarshalling JSON payload to class {}.", internalErrorCode, clazz.getName(), cause);
 
     String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
     return new JsonConverterException(errorMessage, cause);

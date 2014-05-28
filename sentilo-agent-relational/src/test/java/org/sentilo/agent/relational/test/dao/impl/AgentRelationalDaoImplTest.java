@@ -175,6 +175,7 @@ public class AgentRelationalDaoImplTest {
     when(observation.getProvider()).thenReturn("prov1");
     when(observation.getValue()).thenReturn("value1");
     when(observation.getTimestamp()).thenReturn("20130729T12:00:00");
+    when(observation.getLocation()).thenReturn("41.394131342886126 2.14171439409256");
   }
 
   private void setUpMockAlarm() {

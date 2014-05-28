@@ -44,7 +44,7 @@ public class DefaultDataServiceOperationsImpl extends AbstractServiceOperationsI
   @Override
   public ObservationsOutputMessage getLastObservations(final DataInputMessage message) {
     logger.debug("Retrieving last observations  {}", message);
-    final String response = restClient.get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
+    final String response = getRestClient().get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
     logger.debug("Retrieved last observations");
     return converter.unmarshall(response);
   }
@@ -52,7 +52,7 @@ public class DefaultDataServiceOperationsImpl extends AbstractServiceOperationsI
   @Override
   public void removeLastObservations(final DataInputMessage message) {
     logger.debug("Removing last observations  {}", message);
-    restClient.delete(RequestUtils.buildPath(message), message.getIdentityToken());
+    getRestClient().delete(RequestUtils.buildPath(message), message.getIdentityToken());
     logger.debug("Removed last observations");
   }
 
@@ -61,7 +61,7 @@ public class DefaultDataServiceOperationsImpl extends AbstractServiceOperationsI
     // Tenemos 3 opciones a la hora de hacer la llamada en función de como esté/esten informadas
     // las observaciones. Pero todas ellas solo afectan al contenido del body.
     logger.debug("Sending observations  {}", message);
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Observations has been sent");
   }
 

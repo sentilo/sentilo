@@ -27,7 +27,6 @@ package org.sentilo.web.catalog.service.impl;
 
 import java.util.Set;
 
-import org.sentilo.common.rest.RESTClient;
 import org.sentilo.web.catalog.domain.Application;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.PlatformStatsMessage;
@@ -39,9 +38,9 @@ import org.sentilo.web.catalog.domain.Statistics.Devices;
 import org.sentilo.web.catalog.domain.Statistics.Events;
 import org.sentilo.web.catalog.domain.Statistics.Performance;
 import org.sentilo.web.catalog.domain.User;
-import org.sentilo.web.catalog.parser.PlatformStatsParser;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ActivityService;
+import org.sentilo.web.catalog.service.PlatformService;
 import org.sentilo.web.catalog.service.StatsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -57,12 +56,10 @@ public class StatsServiceImpl implements StatsService {
   private MongoOperations mongoOps;
 
   @Autowired
-  private RESTClient restClient;
+  private PlatformService platformService;
 
   @Autowired
   private ActivityService activityService;
-
-  private final PlatformStatsParser parser = new PlatformStatsParser();
 
   private PlatformStatsMessage currentPlatformStats;
 
@@ -113,8 +110,7 @@ public class StatsServiceImpl implements StatsService {
 
   @Scheduled(initialDelay = 10000, fixedRate = 300000)
   public void getAndSavePlatformActivityAndStats() {
-    final String response = restClient.get("admin/stats");
-    currentPlatformStats = parser.unmarshall(response);
+    currentPlatformStats = platformService.getCurrentPlatformStats();
     final Events events = getEvents(currentPlatformStats);
     activityService.saveCurrentActivity(events);
   }

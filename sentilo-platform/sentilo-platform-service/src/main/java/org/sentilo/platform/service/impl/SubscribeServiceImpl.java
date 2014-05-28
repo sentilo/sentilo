@@ -60,7 +60,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   private final Map<String, MessageListenerImpl> listeners = new HashMap<String, MessageListenerImpl>();
 
   private boolean subscriptionsRegistered = false;
-  private static final String DUMMY_TOPIC = "trash:dummy";
+  private static final String DUMMY_TOPIC = "/trash/dummy";
 
   // @PostConstruct
   @Scheduled(initialDelay = 30000, fixedDelay = 300000)
@@ -100,8 +100,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
         for (final String subscriptionKey : subscriptions) {
           // Cada subscriptionKey corresponde a una entidad subscrita a N canales de la plataforma
           // Toda la información de cada una de estas subscripciones está almacenada en una hash,
-          // donde cada
-          // entrada corresponde a la info <canal,endpoint>
+          // donde cada entrada corresponde a la info <canal,endpoint>
           final Map<String, String> activeSubscriptions = jedisTemplate.hGetAll(subscriptionKey);
           if (CollectionUtils.isEmpty(activeSubscriptions)) {
             return;
@@ -122,6 +121,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   }
 
   private String listenerNameFromSubscriptionKey(final String subscriptionKey) {
+    // subscriptionKey has the expression subs:<listenerName> and
     final int pos = subscriptionKey.lastIndexOf(PubSubConstants.REDIS_KEY_TOKEN);
     return subscriptionKey.substring(pos + 1);
   }
@@ -129,19 +129,17 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   @Override
   public void subscribe(final Subscription subscription) {
     // Al subscribirse, no sólo se debe habilitar el listener correspondiente, sino que tb se debe
-    // persistir en Redis
-    // la subscripcion para la entidad de turno. De esta manera se podrá levantar los listeners ya
-    // existentes cuando se
-    // arranque este modulo.
+    // persistir en Redis la subscripcion para la entidad de turno. De esta manera se podrán
+    // iniciar los listeners asociados a las subscripciones ya existentes cuando se arranque
+    // este modulo.
 
     // Estos registros en Redis serán del tipo Hash y habrá uno para cada entidad.
-    // Es decir, para cada entidad que este subscrita a algun canal tendremos una Hash con:
-    // key igual a subs:<entityId>
-    // field: cada campo de la hash corresponderá a una subscripcion , por lo que el nombre del
-    // campo será el nombre del channel al cual esta subscrito.subscripcion igual a
-    // <event_type>:element_id, donde element_id es el identificador del recurso al cual se esta
-    // subscrito.
-    // value: el value del campo será el endpoint al cual se debe notificar via HTTP Callback.
+    // Es decir, para cada entidad que este subscrita a algun canal tendremos en Redis
+    // una Hash con key igual a subs:<entityId> y N entradas <field, value> donde:
+    // - field: cada campo de la hash corresponderá a una subscripcion , por lo que el nombre del
+    // campo identificará el canal al cual se está subscrito <event_type>/element_id, donde
+    // element_id es el identificador del recurso al cual se esta subscrito.
+    // - value: el value del campo será el endpoint al cual se debe notificar via HTTP Callback.
 
     final Topic topic = ChannelUtils.getChannel(subscription);
 
@@ -175,13 +173,13 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   @Override
   public void remove(final Subscription subscription) {
     // Al eliminar una subscripcion, no solo se deberá eliminar la relación listener - topic del
-    // contenedor de listeners,
-    // sino que también se deberá eliminar la subscripcion de este listener a este canal en Redis.
+    // contenedor de listeners, sino que también se deberá eliminar la subscripcion de este
+    // listener a este canal en Redis.
 
     // Este metodo puede invocarse para:
     // 1. eliminar una subscripcion en concreto (hdel pasando un field)
     // 2. todas las subscripciones de un tipo (hdel pasando más de un field)
-    // 3. todas las subscripcione (del de la key)
+    // 3. todas las subscripciones (de la entidad identificada por la key)
     // En cada caso el comportamiento es diferente.
 
     if (subscription.getType() == null) {
@@ -200,8 +198,6 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
 
     final MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
     if (listener != null) {
-      // Solo tiene sentido eliminar la subscripcion del contenedor de listeners si el listener esta
-      // activo
       listenerContainer.removeMessageListener(listener, topic);
       listener.removeSubscription(topic);
     }
@@ -213,19 +209,14 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   }
 
   private void removeAllSubscriptions(final Subscription subscription) {
-
     logger.debug("Removing all subscriptions for listener {}", subscription.getSourceEntityId());
 
-    // Recuperamos todos los canales a los cuales esta subscrito el listener.
-    final Set<String> topics = jedisTemplate.hKeys(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));
-
     final MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
-    if (listener != null && !CollectionUtils.isEmpty(topics)) {
-      final Iterator<String> it = topics.iterator();
-      while (it.hasNext()) {
-        final String topicName = it.next();
-        listenerContainer.removeMessageListener(listener, ChannelUtils.buildTopic(topicName));
-      }
+
+    if (listener != null) {
+      // Utilizamos el nuevo método expuesto lor el Container para eliminar
+      // a un listener de todas las subscripciones.
+      listenerContainer.removeMessageListener(listener);
 
       // Eliminamos el listener de la lista de listeners activos
       listeners.remove(subscription.getSourceEntityId());
@@ -242,9 +233,8 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // Esto implica en Redis recuperar primero todas las subscripciones de ese tipo y despues borrar
     // via un hdel
     // En el container se trata de recuperar todas las subscripciones que existen (holders) y para
-    // cada una, si se trata
-    // de una subscripcion del tipo indicado se pasa a eliminar el listener de su lista de
-    // listeners.
+    // cada una, si se trata de una subscripcion del tipo indicado se pasa a eliminar el listener
+    // de su lista de listeners.
 
     logger.debug("Removing all subscriptions of type {} for listener {}", subscription.getType(), subscription.getSourceEntityId());
 
@@ -276,8 +266,8 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   @Override
   public List<Subscription> get(final Subscription subscription) {
     // Las subscripciones de una entidad estan registradas bajo la clave subs:idEntity en el
-    // servidor Redis asociado a la pub/sub
-    // El valor asociado a la clave es una hash de pares <channel, endpoint>
+    // Redis. El valor asociado a la clave es una hash de pares <channel, endpoint>
+    // donde cada channel representa una subscripción activa de esa entidad.
 
     logger.debug("Retrieving subscriptions for entity {}", subscription.getSourceEntityId());
 

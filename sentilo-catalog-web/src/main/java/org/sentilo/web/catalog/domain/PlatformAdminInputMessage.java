@@ -23,15 +23,38 @@
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
-package org.sentilo.web.catalog.parser;
+package org.sentilo.web.catalog.domain;
 
-import org.sentilo.common.exception.MessageNotReadableException;
-import org.sentilo.common.parser.BaseJsonMessageConverter;
-import org.sentilo.web.catalog.domain.PlatformStatsMessage;
+import java.util.Collection;
 
-public class PlatformStatsParser extends BaseJsonMessageConverter {
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.sentilo.common.domain.CatalogProvider;
+import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.common.domain.PlatformInputMessage;
 
-  public PlatformStatsMessage unmarshall(final String message) throws MessageNotReadableException {
-    return (PlatformStatsMessage) readInternal(PlatformStatsMessage.class, message);
+
+public class PlatformAdminInputMessage implements PlatformInputMessage {
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Collection<CatalogSensor> sensors;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Collection<CatalogProvider> providers;
+
+  public Collection<CatalogSensor> getSensors() {
+    return sensors;
   }
+
+  public void setSensors(Collection<CatalogSensor> sensors) {
+    this.sensors = sensors;
+  }
+
+  public Collection<CatalogProvider> getProviders() {
+    return providers;
+  }
+
+  public void setProviders(Collection<CatalogProvider> providers) {
+    this.providers = providers;
+  }
+
 }

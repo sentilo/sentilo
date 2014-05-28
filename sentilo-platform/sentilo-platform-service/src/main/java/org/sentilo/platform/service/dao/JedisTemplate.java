@@ -153,6 +153,15 @@ public class JedisTemplate<K, V> {
     });
   }
 
+  public Long sRem(final String key, final String... members) {
+    return execute(new JedisCallback<Long>() {
+
+      public Long doInRedis(final Jedis connection) {
+        return connection.srem(key, members);
+      }
+    });
+  }
+
   public Set<String> zRevRangeByScore(final String key, final double max, final double min, final int offset, final int count) {
     return execute(new JedisCallback<Set<String>>() {
 
@@ -203,6 +212,15 @@ public class JedisTemplate<K, V> {
 
       public Map<String, String> doInRedis(final Jedis connection) {
         return connection.hgetAll(key);
+      }
+    });
+  }
+
+  public String hGet(final String key, final String field) {
+    return execute(new JedisCallback<String>() {
+
+      public String doInRedis(final Jedis connection) {
+        return connection.hget(key, field);
       }
     });
   }

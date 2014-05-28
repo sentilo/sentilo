@@ -33,12 +33,17 @@ import org.springframework.util.StringUtils;
 
 public abstract class SentiloUtils {
 
+  protected SentiloUtils() {
+    // this prevents even the native class from calling this ctor as well :
+    throw new AssertionError();
+  }
+
   public static boolean arrayIsEmpty(final Object[] source) {
     return (source == null) || (source.length == 0);
   }
 
   public static boolean stringIsNotEmptyOrNull(final String value) {
-    return StringUtils.hasText(value) && !value.toLowerCase().equals("null");
+    return StringUtils.hasText(value) && !value.equalsIgnoreCase("null");
   }
 
   public static String buildNewInternalErrorCode(final String prefix) {

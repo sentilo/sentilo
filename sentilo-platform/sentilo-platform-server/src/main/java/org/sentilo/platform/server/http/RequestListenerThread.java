@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
@@ -117,9 +119,14 @@ public class RequestListenerThread extends Thread {
     } catch (final Throwable t) {
       logger.error("Error while running sentilo server on port {}. {}", port, t);
     } finally {
-      stopThreadPool();
-      releaseSocketPort();
+      cleanUp();
     }
+  }
+
+  @PreDestroy
+  public void cleanUp() {
+    stopThreadPool();
+    releaseSocketPort();
   }
 
   private void initialize() throws IOException {
@@ -175,7 +182,9 @@ public class RequestListenerThread extends Thread {
   }
 
   private void registerURLS() {
-    final HttpProcessor httpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {new RequestExpectContinue()}, new HttpResponseInterceptor[] {new ResponseDate(), new ResponseServer(), new ResponseContent(), new ResponseConnControl()});
+    final HttpProcessor httpproc =
+        new ImmutableHttpProcessor(new HttpRequestInterceptor[] {new RequestExpectContinue()}, new HttpResponseInterceptor[] {new ResponseDate(),
+            new ResponseServer(), new ResponseContent(), new ResponseConnControl()});
     final HttpRequestHandlerRegistry reqistry = new HttpRequestHandlerRegistry();
     reqistry.register(getRegisteredURLs(), new SentiloRequestHandler(handlerLocator, authenticationService));
 

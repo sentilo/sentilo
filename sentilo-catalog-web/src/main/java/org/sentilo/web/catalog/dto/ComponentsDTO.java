@@ -34,7 +34,7 @@ public class ComponentsDTO extends AbstractListDTO {
 
   public List<Component> getComponents() {
     final List<Component> components = new ArrayList<Component>();
-    for (final String id : selectedIds) {
+    for (final String id : getSelectedIds()) {
       components.add(new Component(id));
     }
     return components;

@@ -55,19 +55,24 @@ import org.springframework.util.CollectionUtils;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DataServiceOperationsIntegrationTest {
 
+  static String PROVIDER_ID = "testApp_provider";
+  static String APP_ID = "testApp";
+  static String SENSOR1 = "sensor1";
+  static String SENSOR2 = "sensor2";
+
   @Autowired
   protected PlatformTemplate platformTemplate;
 
   @Test
   public void _01_sendSimpleObservation() throws Exception {
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1", "23");
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, "23");
     platformTemplate.getDataOps().sendObservations(message);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", true);
   }
 
   @Test
   public void _02_sendForbiddenSimpleObservation() throws Exception {
-    final DataInputMessage message = new DataInputMessage("testDemo", "sensor1", "23");
+    final DataInputMessage message = new DataInputMessage("testDemo", SENSOR1, "23");
     boolean error = false;
     try {
       platformTemplate.getDataOps().sendObservations(message);
@@ -79,8 +84,8 @@ public class DataServiceOperationsIntegrationTest {
 
   @Test
   public void _03_sendSensorObservations() throws Exception {
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1");
-    final SensorObservations sensorObservations = new SensorObservations("sensor1");
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1);
+    final SensorObservations sensorObservations = new SensorObservations(SENSOR1);
     sensorObservations.setObservations(getObservations());
     message.setSensorObservations(sensorObservations);
     platformTemplate.getDataOps().sendObservations(message);
@@ -89,7 +94,7 @@ public class DataServiceOperationsIntegrationTest {
 
   @Test
   public void _04_sendProviderObservations() throws Exception {
-    final DataInputMessage message = new DataInputMessage("testApp_provider");
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID);
     final ProviderObservations providerObservations = new ProviderObservations();
     providerObservations.setSensorsObservations(getSensorObservations());
     message.setProviderObservations(providerObservations);
@@ -99,7 +104,7 @@ public class DataServiceOperationsIntegrationTest {
 
   @Test
   public void _05_getLastObservationFromSensor() throws Exception {
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1");
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1);
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getObservations()));
     assertTrue(response.getObservations().size() == 1);
@@ -109,7 +114,7 @@ public class DataServiceOperationsIntegrationTest {
   public void _06_getLastObservationsFromSensor() throws Exception {
     final int num_observations = 3;
     final QueryFilterParams filterParams = new QueryFilterParams(3);
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, filterParams);
 
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getObservations()));
@@ -119,7 +124,7 @@ public class DataServiceOperationsIntegrationTest {
   @Test
   public void _07_getEmptyLastObservationsFromSensorInPeriod() throws Exception {
     final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() + 1000000), new Date(System.currentTimeMillis() + 2000000));
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, filterParams);
 
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && CollectionUtils.isEmpty(response.getObservations()));
@@ -128,7 +133,7 @@ public class DataServiceOperationsIntegrationTest {
   @Test
   public void _08_getLastObservationFromSensorInPeriod() throws Exception {
     final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() - 6000000), new Date());
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, filterParams);
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getObservations()));
     assertEquals(1, response.getObservations().size());
@@ -138,7 +143,7 @@ public class DataServiceOperationsIntegrationTest {
   public void _09_getLastObservationsFromSensorInPeriod() throws Exception {
     final int num_observations = 3;
     final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() - 6000000), new Date(), num_observations);
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, filterParams);
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getObservations()));
     assertEquals(num_observations, response.getObservations().size());
@@ -146,7 +151,7 @@ public class DataServiceOperationsIntegrationTest {
 
   @Test
   public void _10_getLastObservationFromProvider() throws Exception {
-    final DataInputMessage message = new DataInputMessage("testApp_provider");
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID);
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getSensors()));
     // La lista contiene almenos un registro, el del sensor utilizado en este test
@@ -159,7 +164,7 @@ public class DataServiceOperationsIntegrationTest {
   public void _11_getLastObservationsFromProvider() throws Exception {
     final int num_observations = 3;
     final QueryFilterParams filterParams = new QueryFilterParams(num_observations);
-    final DataInputMessage message = new DataInputMessage("testApp_provider", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams);
 
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getSensors()));
@@ -168,13 +173,13 @@ public class DataServiceOperationsIntegrationTest {
     assertTrue(response.getSensors().size() >= 2);
     // Y para cada sensor tenemos almenos 2 observaciones, las utilizadas en este test --> un minimo
     // de 4 observaciones en total
-    assertTrue(countObservations(response.getSensors()) > 4);
+    assertTrue(countObservations(response.getSensors()) >= 4);
   }
 
   @Test
   public void _12_getEmptyLastObservationsFromProviderInPeriod() throws Exception {
     final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() + 1000000), new Date(System.currentTimeMillis() + 2000000));
-    final DataInputMessage message = new DataInputMessage("testApp_provider", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams);
 
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && CollectionUtils.isEmpty(response.getSensors()));
@@ -183,7 +188,7 @@ public class DataServiceOperationsIntegrationTest {
   @Test
   public void _13_getLastObservationFromProviderInPeriod() throws Exception {
     final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() - 60000000), new Date());
-    final DataInputMessage message = new DataInputMessage("testApp_provider", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams);
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getSensors()));
     // La lista contiene almenos dos registros, uno para cada sensor del proveedor que hemos
@@ -197,7 +202,7 @@ public class DataServiceOperationsIntegrationTest {
   public void _14_getLastObservationsFromProviderInPeriod() throws Exception {
     final int num_observations = 3;
     final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() - 6000000), new Date(), num_observations);
-    final DataInputMessage message = new DataInputMessage("testApp_provider", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams);
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getSensors()));
     // La lista contiene almenos dos registros, uno para cada sensor del proveedor que hemos
@@ -213,7 +218,7 @@ public class DataServiceOperationsIntegrationTest {
     // El NUM_MAXIM_OBSERVATIONS simplemente es para indicar que retorne todas las observaciones
     // posibles
     final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
-    final DataInputMessage message = new DataInputMessage("testApp_provider", "sensor1", filterParams);
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, filterParams);
     final int countBeforeRemove = platformTemplate.getDataOps().getLastObservations(message).getObservations().size();
 
     platformTemplate.getDataOps().removeLastObservations(message);
@@ -228,7 +233,7 @@ public class DataServiceOperationsIntegrationTest {
     // El NUM_MAXIM_OBSERVATIONS simplemente es para indicar que retorne todas las observaciones
     // posibles
     final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
-    final DataInputMessage message = new DataInputMessage("testApp_provider", filterParams); // El
+    final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams); // El
                                                                                     // NUM_MAXIM_OBSERVATIONS
                                                                                     // simplemente
                                                                                     // es para
@@ -269,9 +274,9 @@ public class DataServiceOperationsIntegrationTest {
 
   private List<SensorObservations> getSensorObservations() {
     final List<SensorObservations> sensorObservations = new ArrayList<SensorObservations>();
-    final SensorObservations sensorObs1 = new SensorObservations("sensor1", "45.3 56.76");
+    final SensorObservations sensorObs1 = new SensorObservations(SENSOR1, "45.3 56.76");
     sensorObs1.setObservations(getObservations());
-    final SensorObservations sensorObs2 = new SensorObservations("sensor2");
+    final SensorObservations sensorObs2 = new SensorObservations(SENSOR2);
     sensorObs2.setObservations(getObservations());
 
     sensorObservations.add(sensorObs1);

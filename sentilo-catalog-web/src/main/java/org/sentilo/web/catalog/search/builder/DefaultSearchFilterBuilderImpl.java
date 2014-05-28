@@ -38,6 +38,19 @@ import org.springframework.util.StringUtils;
 
 public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
+  public static final String ID_COLUMN = "_id";
+  public static final String NAME_COLUMN = "name";
+  public static final String DESC_COLUMN = "description";
+  public static final String CREATED_COLUMN = "createdAt";
+  public static final String TYPE_COLUMN = "type";
+  public static final String SENSORID_COLUMN = "sensorId";
+  public static final String PROVIDERID_COLUMN = "providerId";
+  public static final String MOBILE_COLUMN = "mobile";
+  public static final String USER_NAME_COLUMN = "userName";
+  public static final String EMAIL_COLUMN = "email";
+  public static final String TARGET_COLUMN = "target";
+  
+     
   public DefaultSearchFilterBuilderImpl() {
     registerDataTableColumns();
   }
@@ -78,89 +91,89 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
   private void registerAlertDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("_id", true, true));
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("type", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(ID_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(TYPE_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("alert", columns);
   }
 
   private void registerProviderDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("_id", true, true));
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("description", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(ID_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(DESC_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("provider", columns);
   }
 
   private void registerApplicationDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("_id", true, true));
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("description", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(ID_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(DESC_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("application", columns);
   }
 
   private void registerSensorDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("sensorId", true, true));
-    columns.add(new Column("providerId", true, true));
-    columns.add(new Column("type", true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(SENSORID_COLUMN, true, true));
+    columns.add(new Column(PROVIDERID_COLUMN, true, true));
+    columns.add(new Column(TYPE_COLUMN, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("sensor", columns);
   }
 
   private void registerComponentDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("description", true, true));
-    columns.add(new Column("providerId", true, true));
-    columns.add(new Column("mobile", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(DESC_COLUMN, true, true));
+    columns.add(new Column(PROVIDERID_COLUMN, true, true));
+    columns.add(new Column(MOBILE_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("component", columns);
   }
 
   private void registerUserDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("userName", true, true));
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("email", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(USER_NAME_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(EMAIL_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("users", columns);
   }
 
   private void registerPermissionsDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("target", true, true));
-    columns.add(new Column("type", true));
+    columns.add(new Column(TARGET_COLUMN, true, true));
+    columns.add(new Column(TYPE_COLUMN, true));
 
     SearchFilterUtils.addListColumns("permissions", columns);
   }
 
   private void registerSensorTypesDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("_id", true, true));
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("description", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(ID_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(DESC_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("sensortypes", columns);
   }
 
   private void registerComponentTypesDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column("_id", true, true));
-    columns.add(new Column("name", true, true));
-    columns.add(new Column("description", true, true));
-    columns.add(new Column("createdAt", true));
+    columns.add(new Column(ID_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(DESC_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true));
 
     SearchFilterUtils.addListColumns("componenttypes", columns);
   }

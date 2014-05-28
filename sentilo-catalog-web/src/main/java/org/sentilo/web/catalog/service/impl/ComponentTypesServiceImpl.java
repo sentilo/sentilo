@@ -25,7 +25,6 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
-import java.util.Collection;
 import java.util.Set;
 
 import org.sentilo.web.catalog.domain.ComponentType;
@@ -56,30 +55,6 @@ public class ComponentTypesServiceImpl extends AbstractBaseServiceImpl<Component
   @Override
   public String getEntityId(final ComponentType entity) {
     return entity.getId();
-  }
-
-  @Override
-  // @CacheEvict(value="componentTypes", beforeInvocation=true, key="#entity.id")
-  public ComponentType update(final ComponentType entity) {
-    return super.update(entity);
-  }
-
-  @Override
-  // @CacheEvict(value="componentTypes", beforeInvocation=true, key="#entity.id")
-  public void delete(final ComponentType entity) {
-    super.delete(entity);
-  }
-
-  @Override
-  // @CacheEvict(value="componentTypes", allEntries=true)
-  public void delete(final Collection<ComponentType> entities) {
-    super.delete(entities);
-  }
-
-  @Override
-  // @Cacheable(value="componentTypes", key="#entity.id")
-  public ComponentType find(final ComponentType entity) {
-    return super.find(entity);
   }
 
   @Override

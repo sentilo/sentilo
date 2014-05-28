@@ -81,7 +81,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parseGetRequest(request);
     validator.validateRequestMessageOnGet(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getEntityId());
 
     // Aqui no tiene sentido hacer ninguna validación de autorizacion ya que se aplica sobre la
     // misma entidad que hace la peticion
@@ -102,7 +102,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parsePostRequest(request);
     validator.validateRequestMessageOnPost(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getEntityId());
     validateAuthorization(inputMessage, request);
 
     // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
@@ -134,7 +134,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parseDeleteRequest(request, simulate);
     validator.validateRequestMessageOnDelete(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getEntityId());
 
     final CatalogResponseMessage responseMessage = catalogService.deleteAlerts(inputMessage);
     checkCatalogResponseMessage(responseMessage);
@@ -151,7 +151,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parsePutRequest(request);
     validator.validateRequestMessageOnPut(inputMessage);
-    validateSourceCanAdminTarget(request.getEntitySource(), inputMessage.getEntityId());
+    validateAdminAcess(request.getEntitySource(), inputMessage.getEntityId());
     validateAuthorization(inputMessage, request);
 
     final CatalogResponseMessage responseMessage = catalogService.updateAlerts(inputMessage);

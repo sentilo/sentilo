@@ -26,21 +26,42 @@
 package org.sentilo.platform.service.test.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.CatalogProvider;
+import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
+import org.sentilo.platform.common.service.ResourceService;
+import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.impl.AdminServiceImpl;
 
 public class AdminServiceImplTest {
 
+  private static final String PROVIDER_ID = "provider1";
+  private static final String SENSOR_ID = "sensor1";
+
   @Mock
   private JedisSequenceUtils jedisSequenceUtils;
+  @Mock
+  private ResourceService resourceService;
+  @Mock
+  private AdminInputMessage message;
+  @Mock
+  private SubscribeService subscribeService;
 
   private AdminServiceImpl service;
 
@@ -49,7 +70,8 @@ public class AdminServiceImplTest {
     MockitoAnnotations.initMocks(this);
     service = new AdminServiceImpl();
     service.setJedisSequenceUtils(jedisSequenceUtils);
-
+    service.setResourceService(resourceService);
+    service.setSubscribeService(subscribeService);
   }
 
   @Test
@@ -75,5 +97,65 @@ public class AdminServiceImplTest {
     assertEquals(new Long(orders), stats.getEvents().getOrders());
     assertEquals(new Long(observations), stats.getEvents().getObservations());
 
+  }
+
+  @Test
+  public void deleteProviders() {
+    final List<CatalogProvider> providers = buildMockProviderList();
+    when(message.getProviders()).thenReturn(providers);
+
+    service.delete(message);
+
+    verify(message, times(2)).getProviders();
+    verify(message, times(0)).getSensors();
+    verify(resourceService, times(providers.size())).removeProvider(anyString());
+  }
+
+  @Test
+  public void deleteSensors() {
+    final List<CatalogSensor> sensors = buildMockSensorList();
+    when(message.getProviders()).thenReturn(Collections.<CatalogProvider>emptyList());
+    when(message.getSensors()).thenReturn(sensors);
+
+    service.delete(message);
+
+    verify(message, times(2)).getSensors();
+    verify(message, times(1)).getProviders();
+    verify(resourceService, times(sensors.size())).removeSensor(anyString(), anyString());
+  }
+
+  private List<CatalogProvider> buildMockProviderList() {
+    List<CatalogProvider> mockList = new ArrayList<CatalogProvider>();
+
+    for (int i = 0; i < getRandomSize(); i++) {
+      CatalogProvider provider = new CatalogProvider();
+      provider.setProvider(PROVIDER_ID);
+      mockList.add(provider);
+    }
+
+    return mockList;
+  }
+
+  private List<CatalogSensor> buildMockSensorList() {
+    List<CatalogSensor> mockList = new ArrayList<CatalogSensor>();
+
+    for (int i = 0; i < getRandomSize(); i++) {
+      CatalogSensor sensor = new CatalogSensor();
+      sensor.setProvider(PROVIDER_ID);
+      sensor.setSensor(SENSOR_ID);
+      mockList.add(sensor);
+    }
+
+    return mockList;
+  }
+
+  private int getRandomSize() {
+    final Random randomGenerator = new Random();
+    int size = 0;
+    do {
+      size = randomGenerator.nextInt(5);
+    } while (size == 0);
+
+    return size;
   }
 }

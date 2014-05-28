@@ -25,8 +25,6 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
-import java.util.Collection;
-
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.repository.SensorTypesRepository;
 import org.sentilo.web.catalog.service.SensorTypesService;
@@ -55,29 +53,5 @@ public class SensorTypesServiceImpl extends AbstractBaseServiceImpl<SensorType> 
   @Override
   public String getEntityId(final SensorType entity) {
     return entity.getId();
-  }
-
-  @Override
-  // @CacheEvict(value="sensorTypes", beforeInvocation=true, key="#entity.id")
-  public SensorType update(final SensorType entity) {
-    return super.update(entity);
-  }
-
-  @Override
-  // @CacheEvict(value="sensorTypes", beforeInvocation=true, key="#entity.id")
-  public void delete(final SensorType entity) {
-    super.delete(entity);
-  }
-
-  @Override
-  // @CacheEvict(value="sensorTypes", allEntries=true)
-  public void delete(final Collection<SensorType> entities) {
-    super.delete(entities);
-  }
-
-  @Override
-  // @Cacheable(value="sensorTypes", key="#entity.id")
-  public SensorType find(final SensorType entity) {
-    return super.find(entity);
   }
 }

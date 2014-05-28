@@ -29,11 +29,15 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
 
+import org.sentilo.common.domain.CatalogProvider;
+import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Statistics.Events;
 import org.sentilo.platform.common.domain.Statistics.Performance;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.AdminService;
+import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.slf4j.Logger;
@@ -41,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class AdminServiceImpl extends AbstractPlatformServiceImpl implements AdminService {
@@ -51,6 +56,9 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
 
   @Autowired
   private SubscribeService subscribeService;
+
+  @Autowired
+  private ResourceService resourceService;
 
   private Long lastTotalEvents = new Long(0);
   private Float maxAvgRate = new Float(0);
@@ -72,6 +80,37 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
   public List<Subscription> getSubscriptions(final String entityId) {
     final Subscription subscription = new Subscription(entityId);
     return subscribeService.get(subscription);
+  }
+
+  @Override
+  public void delete(AdminInputMessage message) {
+    // Este metodo debe eliminar todo lo almacenado en Redis relacionado con un proveedor o con un
+    // sensor
+    // Las observaciones, alarmas y ordenes no es necesario eliminarlos ya que al tener fijado
+    // un ttl el propio Redis se encarga de ello.
+    // Ademas, estos recursos quedarán huerfanos ya que al eliminar las listas que las referencian
+    // no podrán ser consultados via la API.
+    logger.debug("Delete service request");
+    if (!CollectionUtils.isEmpty(message.getProviders())) {
+      deleteProviders(message.getProviders());
+    } else if (!CollectionUtils.isEmpty(message.getSensors())) {
+      deleteSensors(message.getSensors());
+    }
+  }
+
+  private void deleteProviders(List<CatalogProvider> providers) {
+    for (CatalogProvider provider : providers) {
+      logger.debug("Deleting provider {}", provider.getProvider());
+      resourceService.removeProvider(provider.getProvider());
+      subscribeService.remove(new Subscription(provider.getProvider()));
+    }
+  }
+
+  private void deleteSensors(List<CatalogSensor> sensors) {
+    for (CatalogSensor sensor : sensors) {
+      logger.debug("Deleting sensor {} from provider {}", sensor.getSensor(), sensor.getProvider());
+      resourceService.removeSensor(sensor.getSensor(), sensor.getProvider());
+    }
   }
 
   private Events getEvents() {
@@ -130,6 +169,14 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
     }
 
     lastTotalEvents = totalEvents;
+  }
+
+  public void setResourceService(ResourceService resourceService) {
+    this.resourceService = resourceService;
+  }
+
+  public void setSubscribeService(SubscribeService subscribeService) {
+    this.subscribeService = subscribeService;
   }
 
 }

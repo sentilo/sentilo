@@ -51,7 +51,7 @@ public class ConnectionMonitorListener implements SmartLifecycle {
 
   private final Logger logger = LoggerFactory.getLogger(ConnectionMonitorListener.class);
 
-  private static final String MONITOR_CHANNEL = "MONITOR:RELATIONAL_AGENT*";
+  private static final String MONITOR_CHANNEL = "/MONITOR/RELATIONAL_AGENT*";
   private static final int INITIAL_DELAY = 120000;
   private static final int FIXED_DELAY = 30000;
 

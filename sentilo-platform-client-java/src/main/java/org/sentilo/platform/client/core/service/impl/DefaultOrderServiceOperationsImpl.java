@@ -44,14 +44,14 @@ public class DefaultOrderServiceOperationsImpl extends AbstractServiceOperations
   @Override
   public void publish(final OrderInputMessage message) {
     logger.debug("Publishing order message {}", message);
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Order published ");
   }
 
   @Override
   public OrdersOutputMessage getLastOrders(final OrderInputMessage message) {
     logger.debug("Retrieving last orders  {}", message);
-    final String response = restClient.get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
+    final String response = getRestClient().get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
     logger.debug("Retrieved last orders");
     return converter.unmarshall(response);
   }

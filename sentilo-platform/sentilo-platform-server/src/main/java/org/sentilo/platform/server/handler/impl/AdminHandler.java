@@ -29,7 +29,6 @@ import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.AdminInputMessage;
-import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.exception.PlatformException;
@@ -37,7 +36,6 @@ import org.sentilo.platform.common.service.AdminService;
 import org.sentilo.platform.server.exception.MessageValidationException;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.parser.AdminParser;
-import org.sentilo.platform.server.parser.SubscribeParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.AdminValidator;
@@ -46,7 +44,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 
+/**
+ * Methods published by this controller only could be invoked by the catalog user. These methods are
+ * used to synchronize the data between the PubSub server and the catalog.
+ */
 @Controller
 public class AdminHandler extends AbstractHandler {
 
@@ -56,8 +59,6 @@ public class AdminHandler extends AbstractHandler {
   private AdminService adminService;
 
   private AdminParser parser = new AdminParser();
-  private final SubscribeParser subscribeParser = new SubscribeParser();
-
   private final RequestMessageValidator<AdminInputMessage> validator = new AdminValidator();
 
   @Override
@@ -68,8 +69,10 @@ public class AdminHandler extends AbstractHandler {
 
   @Override
   public void onGet(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing order GET request");
-    // Este metodo es el punto de entrada a las diferentes operaciones del servicio admin:
+    logger.debug("Executing admin GET request");
+    debug(request);
+
+    // Este metodo permite al catalogo recuperar informacion sobre el estado del servidor PubSub:
     // estadisticas, subscripciones, ...
     // El formato de las peticiones será:
     // 1. /admin/stats
@@ -77,18 +80,22 @@ public class AdminHandler extends AbstractHandler {
     // ...
     // en funcion de la peticion, la respuesta será una u otra.
     validateResourceNumberParts(request, 1, 2);
-    validateAdminAccess(request.getEntitySource());
+    validateApiAdminInvoke(request.getEntitySource());
     final AdminInputMessage inputMessage = parser.parseGetRequest(request);
     validator.validateRequestMessageOnGet(inputMessage);
 
-    if (AdminType.stats.equals(inputMessage.getType())) {
-      final Statistics stats = adminService.getStatistics();
-      parser.writeResponse(request, response, stats);
-    } else if (AdminType.subscriptions.equals(inputMessage.getType())) {
-      final List<Subscription> subscriptions = adminService.getSubscriptions(inputMessage.getEntity());
-      subscribeParser.writeResponse(response, subscriptions);
-    } else {
-      throw new MessageValidationException(String.format("Request %s not supported", request.getUri()));
+    switch (inputMessage.getType()) {
+      case stats:
+        final Statistics stats = adminService.getStatistics();
+        parser.writeStatsResponse(request, response, stats);
+        break;
+      case subscriptions:
+        final List<Subscription> subscriptions = adminService.getSubscriptions(inputMessage.getEntity());
+        parser.writeSubscriptionsResponse(request, response, subscriptions);
+        break;
+      default:
+        throw new MessageValidationException(String.format("Request %s not supported", request.getUri()));
+
     }
   }
 
@@ -100,7 +107,27 @@ public class AdminHandler extends AbstractHandler {
 
   @Override
   public void onPut(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP PUT method not allowed for the requested resource");
+    logger.debug("Executing admin PUT request");
+    debug(request);
+
+    // Este metodo permite actualizar la información de Redis a partir de la actualización llevada a
+    // cabo en el catalago
+
+    validateResourceNumberParts(request, 1, 1);
+    validateApiAdminInvoke(request.getEntitySource());
+    final AdminInputMessage inputMessage = parser.parsePutRequest(request);
+    validator.validateRequestMessageOnPut(inputMessage);
+    logger.debug("Type message: {}", inputMessage.getType());
+    logger.debug("Sensors: {}", (!CollectionUtils.isEmpty(inputMessage.getSensors()) ? inputMessage.getSensors().size() : 0));
+    logger.debug("Providers: {}", (!CollectionUtils.isEmpty(inputMessage.getProviders()) ? inputMessage.getProviders().size() : 0));
+    switch (inputMessage.getType()) {
+      case delete:
+        adminService.delete(inputMessage);
+        break;
+      default:
+        throw new MessageValidationException(String.format("Request %s not supported", request.getUri()));
+
+    }
 
   }
 

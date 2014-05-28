@@ -70,8 +70,7 @@ public abstract class URIUtils {
         baseURI = host + path;
       }
 
-      final URI uri = new URI(baseURI);
-      return uri;
+      return new URI(baseURI);
     } catch (final URISyntaxException e) {
       throw buildIllegalArgumentException(host, path, e);
     } catch (final NullPointerException npe) {

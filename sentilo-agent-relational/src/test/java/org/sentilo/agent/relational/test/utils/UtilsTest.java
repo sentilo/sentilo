@@ -44,7 +44,7 @@ public class UtilsTest {
 
   @Test
   public void buildChannelTopic() {
-    final Topic topic = Utils.buildTopic("data:provider1:sensor1");
+    final Topic topic = Utils.buildTopic("data/provider1/sensor1");
     Assert.assertTrue(topic instanceof ChannelTopic);
   }
 
@@ -52,7 +52,7 @@ public class UtilsTest {
   public void isTopicPattern() {
     Assert.assertTrue(Utils.isTopicPattern(Constants.DATA));
     Assert.assertFalse(Utils.isTopicPattern(null));
-    Assert.assertFalse(Utils.isTopicPattern("data:prov1:sensor1"));
+    Assert.assertFalse(Utils.isTopicPattern("data/prov1/sensor1"));
   }
 
   @Test
@@ -65,10 +65,10 @@ public class UtilsTest {
 
   @Test
   public void isValidSubscription() {
-    Assert.assertTrue(Utils.isValidSubscription("data:prov1:sensor1"));
-    Assert.assertFalse(Utils.isValidSubscription("data"));
-    Assert.assertFalse(Utils.isValidSubscription("datarr:prov1:sensor1"));
-    Assert.assertFalse(Utils.isValidSubscription("data:prov1:sensor1:sensor2"));
+    Assert.assertTrue(Utils.isValidSubscription("/data/prov1/sensor1"));
+    Assert.assertFalse(Utils.isValidSubscription("/data"));
+    Assert.assertFalse(Utils.isValidSubscription("/datarr/prov1/sensor1"));
+    Assert.assertFalse(Utils.isValidSubscription("/data/prov1/sensor1/sensor2"));
     Assert.assertFalse(Utils.isValidSubscription(""));
   }
 }

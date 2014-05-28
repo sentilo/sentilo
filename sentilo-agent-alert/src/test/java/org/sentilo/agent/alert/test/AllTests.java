@@ -27,12 +27,12 @@ package org.sentilo.agent.alert.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import org.sentilo.agent.alert.test.listener.MessageListenerTest;
+import org.sentilo.agent.alert.test.listener.MessageListenerImplTest;
 import org.sentilo.agent.alert.test.service.AlarmServiceImplTest;
 import org.sentilo.agent.alert.test.trigger.TriggerEvaluatorTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({MessageListenerTest.class, TriggerEvaluatorTest.class, AlarmServiceImplTest.class})
+@Suite.SuiteClasses({MessageListenerImplTest.class, TriggerEvaluatorTest.class, AlarmServiceImplTest.class})
 public class AllTests {
 
 }

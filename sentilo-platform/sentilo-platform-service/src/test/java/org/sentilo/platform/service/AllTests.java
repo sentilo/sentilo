@@ -32,10 +32,12 @@ import org.sentilo.platform.service.test.service.AdminServiceImplTest;
 import org.sentilo.platform.service.test.service.AlarmServiceImplTest;
 import org.sentilo.platform.service.test.service.DataServiceImplTest;
 import org.sentilo.platform.service.test.service.OrderServiceImplTest;
+import org.sentilo.platform.service.test.service.ResourceServiceImplTest;
 import org.sentilo.platform.service.test.service.SubscribeServiceImplTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({AlarmServiceImplTest.class, DataServiceImplTest.class, OrderServiceImplTest.class, SubscribeServiceImplTest.class, CatalogServiceParserTest.class, AdminServiceImplTest.class})
+@Suite.SuiteClasses({AlarmServiceImplTest.class, DataServiceImplTest.class, OrderServiceImplTest.class, SubscribeServiceImplTest.class,
+    CatalogServiceParserTest.class, AdminServiceImplTest.class, ResourceServiceImplTest.class})
 public class AllTests {
 
 }

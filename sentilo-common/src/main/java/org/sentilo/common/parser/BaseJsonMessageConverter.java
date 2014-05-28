@@ -40,9 +40,9 @@ import org.springframework.util.StringUtils;
 
 public class BaseJsonMessageConverter {
 
-  protected final Logger logger = LoggerFactory.getLogger(BaseJsonMessageConverter.class);
-
   protected static final JsonEncoding DEFAULT_ENCODING = JsonEncoding.UTF8;
+
+  private final Logger logger = LoggerFactory.getLogger(BaseJsonMessageConverter.class);
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   protected ByteArrayOutputStream writeInternal(final Object o) throws MessageNotWritableException {
@@ -98,5 +98,9 @@ public class BaseJsonMessageConverter {
 
   protected JavaType getJavaType(final Class<?> clazz) {
     return objectMapper.getTypeFactory().constructType(clazz);
+  }
+
+  protected Logger getLogger() {
+    return logger;
   }
 }

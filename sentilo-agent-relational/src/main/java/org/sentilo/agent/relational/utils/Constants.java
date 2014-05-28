@@ -28,13 +28,14 @@ package org.sentilo.agent.relational.utils;
 public final class Constants {
 
   public static final String REDIS_KEY_TOKEN = ":";
+  public static final String REDIS_CHANNEL_TOKEN = "/";
   public static final String REDIS_CHANNEL_PATTERN_SUFFIX = "*";
 
   public static final String DATA = "data:*";
   public static final String ORDER = "order:*";
   public static final String ALARM = "alarm:*";
 
-  public static final String TOPIC_TOKEN = REDIS_KEY_TOKEN;
+  public static final String TOPIC_TOKEN = REDIS_CHANNEL_TOKEN;
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

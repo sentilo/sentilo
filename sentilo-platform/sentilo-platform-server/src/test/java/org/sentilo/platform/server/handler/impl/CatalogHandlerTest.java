@@ -85,6 +85,7 @@ public class CatalogHandlerTest extends AbstractBaseHandlerTest {
     when(request.getResource()).thenReturn(resource);
     when(authorizationService.hasAccessToRead(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToWrite(anyString(), anyString())).thenReturn(true);
+    when(authorizationService.hasAccessToAdmin(anyString(), anyString())).thenReturn(true);
     when(service.insertSensors(any(CatalogInputMessage.class))).thenReturn(responseMessage);
     when(service.updateSensorsOrComponents(any(CatalogInputMessage.class))).thenReturn(responseMessage);
     when(service.getAuthorizedProviders(any(CatalogInputMessage.class))).thenReturn(responseMessage);

@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <spring:message code="sure.delete" var="deleteConfirmMessage" />
 <spring:message code="sure.unassign" var="unassignConfirmMessage" />
@@ -115,3 +115,5 @@ function isValidDecimalNumber(number) {
 <script type="text/javascript" src="${jqueryDataTablesJS}"></script>
 <script type="text/javascript" src="${jqueryPinesNotifyJS}"></script>
 <script type="text/javascript" src="${jqueryTagsInputJS}"></script>
+
+<%@include file="/WEB-INF/jsp/common/customScripts.jsp"%>

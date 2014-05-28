@@ -32,8 +32,6 @@ public final class SentiloConstants {
 
   public static final String SLASH = "/";
 
-  public static final String NOTIFICATION_MESSAGE_TOKEN = "#@#";
-
   public static final String IDENTITY_KEY_HEADER = "IDENTITY_KEY";
 
   // Path tokens constants

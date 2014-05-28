@@ -25,6 +25,7 @@
  */
 package org.sentilo.platform.server;
 
+import org.sentilo.common.hook.SentiloShutdownHook;
 import org.sentilo.platform.server.http.RequestListenerThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,20 +36,25 @@ public final class SentiloServer {
   private SentiloServer() {
   }
 
-  private static Logger log = LoggerFactory.getLogger(SentiloServer.class);
+  private static Logger logger = LoggerFactory.getLogger(SentiloServer.class);
 
+  @SuppressWarnings("resource")
   public static void main(final String... args) {
     final String activeProfiles = System.getProperty("spring.profiles.active");
-    log.info("Starting server");
-    log.info("Active profile:{}", activeProfiles);
+    logger.info("Starting server");
+    logger.info("Active profile:{}", activeProfiles);
+
+    Runtime.getRuntime().addShutdownHook(new SentiloShutdownHook("server"));
+    logger.info("Sentilo shutdown hook registered");
 
     final GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
     ctx.getEnvironment().setActiveProfiles(activeProfiles);
+    ctx.registerShutdownHook();
     ctx.load("classpath:spring/platform-server-context.xml");
     ctx.refresh();
-
+    
     final RequestListenerThread t = (RequestListenerThread) ctx.getBean("listener");
     t.setDaemon(false);
-    t.start();
+    t.start();        
   }
 }

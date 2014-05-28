@@ -54,8 +54,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public abstract class SearchController<T extends CatalogDocument> implements SearchFilterResolver {
 
   protected static final String LIST_ACTION = "list";
-  protected SearchFilterBuilder searchFilterBuilder = new DefaultSearchFilterBuilderImpl();
-  protected Map<String, String> viewNames = new HashMap<String, String>();
+
+  private SearchFilterBuilder searchFilterBuilder = new DefaultSearchFilterBuilderImpl();
+  private Map<String, String> viewNames = new HashMap<String, String>();
 
   protected abstract CrudService<T> getService();
 
@@ -99,15 +100,19 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
   }
 
   protected String getNameOfViewToReturn(final String actionName) {
-    if (CollectionUtils.isEmpty(viewNames)) {
+    if (CollectionUtils.isEmpty(getViewNames())) {
       initViewNames();
     }
 
-    return viewNames.get(actionName);
+    return getViewNames().get(actionName);
   }
 
   protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
     // To override by subclasses.
+  }
+
+  protected Map<String, String> getViewNames() {
+    return viewNames;
   }
 
 }

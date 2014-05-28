@@ -25,24 +25,30 @@
  */
 package org.sentilo.agent.alert.server;
 
+import org.sentilo.common.hook.SentiloShutdownHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 public final class SentiloAgentServer {
 
+  private static Logger logger = LoggerFactory.getLogger(SentiloAgentServer.class);
+
   private SentiloAgentServer() {
   }
 
-  private static Logger logger = LoggerFactory.getLogger(SentiloAgentServer.class);
-
+  @SuppressWarnings("resource")
   public static void main(final String... args) {
     final String activeProfiles = System.getProperty("spring.profiles.active");
     logger.info("Starting server");
     logger.info("Active profile:{}", activeProfiles);
 
+    Runtime.getRuntime().addShutdownHook(new SentiloShutdownHook("alert agent"));
+    logger.info("Sentilo shutdown hook registered");
+
     final GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
     ctx.getEnvironment().setActiveProfiles(activeProfiles);
+    ctx.registerShutdownHook();
     ctx.load("classpath:spring/" + args[0]);
     ctx.refresh();
   }

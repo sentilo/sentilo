@@ -85,7 +85,7 @@ public abstract class SubscribeInputMessageFactory {
 
     public AlarmSubscription(final Endpoint endpoint, final String... resources) {
       super(SubscribeType.ALARM);
-      this.endpoint = endpoint;
+      setEndpoint(endpoint);
       alarmId = getArrayValue(resources, 0);
       if (StringUtils.hasText(alarmId)) {
         addResource(ALARM_ID_KEY, alarmId);
@@ -104,7 +104,7 @@ public abstract class SubscribeInputMessageFactory {
 
     public OrderSubscription(final Endpoint endpoint, final String... resources) {
       super(SubscribeType.ORDER);
-      this.endpoint = endpoint;
+      setEndpoint(endpoint);
       providerId = getArrayValue(resources, 0);
       sensorId = getArrayValue(resources, 1);
 
@@ -136,7 +136,7 @@ public abstract class SubscribeInputMessageFactory {
 
     public DataSubscription(final Endpoint endpoint, final String... resources) {
       super(SubscribeType.DATA);
-      this.endpoint = endpoint;
+      setEndpoint(endpoint);
       providerId = getArrayValue(resources, 0);
       sensorId = getArrayValue(resources, 1);
 

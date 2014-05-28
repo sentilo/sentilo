@@ -35,8 +35,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document
 public class Alarm {
 
-  private static final long serialVersionUID = 1L;
-
   @Id
   private String id;
 

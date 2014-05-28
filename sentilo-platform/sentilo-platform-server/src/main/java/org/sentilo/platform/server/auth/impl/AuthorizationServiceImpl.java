@@ -27,6 +27,8 @@ package org.sentilo.platform.server.auth.impl;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.sentilo.platform.common.domain.PermissionMessage;
 import org.sentilo.platform.common.domain.PermissionsMessage;
@@ -46,8 +48,11 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
   private final Logger logger = LoggerFactory.getLogger(AuthorizationServiceImpl.class);
 
+  private final Set<String> adminAccessSet = new HashSet<String>();
   private final Set<String> writesAccessSet = new HashSet<String>();
   private final Set<String> readsAccessSet = new HashSet<String>();
+
+  private Lock lock = new ReentrantLock();
 
   @Autowired
   private CatalogService catalogService;
@@ -63,8 +68,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
    * java.lang.String)
    */
   public boolean hasAccessToRead(final String source, final String target) {
-    final String keyAccess = buildKeyAccess(source, target);
-    return readsAccessSet.contains(keyAccess) || writesAccessSet.contains(keyAccess);
+    lock.lock();
+    try {
+      final String keyAccess = buildKeyAccess(source, target);
+      return readsAccessSet.contains(keyAccess) || writesAccessSet.contains(keyAccess) || adminAccessSet.contains(keyAccess);
+    } finally {
+      lock.unlock();
+    }
   }
 
   /*
@@ -74,7 +84,28 @@ public class AuthorizationServiceImpl implements AuthorizationService {
    * java.lang.String)
    */
   public boolean hasAccessToWrite(final String source, final String target) {
-    return writesAccessSet.contains(buildKeyAccess(source, target));
+    lock.lock();
+    try {
+      final String keyAccess = buildKeyAccess(source, target);
+      return writesAccessSet.contains(keyAccess) || adminAccessSet.contains(keyAccess);
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.platform.server.auth.AuthorizationService#hasAccessToAdmin(java.lang.String,
+   * java.lang.String)
+   */
+  public boolean hasAccessToAdmin(final String source, final String target) {
+    lock.lock();
+    try {
+      return adminAccessSet.contains(buildKeyAccess(source, target));
+    } finally {
+      lock.unlock();
+    }
   }
 
   private String buildKeyAccess(final String source, final String target) {
@@ -89,32 +120,50 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     try {
       logger.debug("Actualizando cache de permisos");
       final PermissionsMessage permissions = catalogService.getPermissions();
+      final Set<String> auxAdminAccessSet = new HashSet<String>();
       final Set<String> auxWritesAccessSet = new HashSet<String>();
       final Set<String> auxReadsAccessSet = new HashSet<String>();
 
       if (permissions != null && !CollectionUtils.isEmpty(permissions.getPermissions())) {
         for (final PermissionMessage permission : permissions.getPermissions()) {
           final String key = buildKeyAccess(permission.getSource(), permission.getTarget());
-          if (permission.isWritePermission()) {
-            auxWritesAccessSet.add(key);
-          } else {
-            auxReadsAccessSet.add(key);
+          switch (permission.getType()) {
+            case ADMIN:
+              auxAdminAccessSet.add(key);
+              break;
+            case WRITE:
+              auxWritesAccessSet.add(key);
+              break;
+            case READ:
+              auxReadsAccessSet.add(key);
+              break;
+            default:
+              break;
           }
         }
       }
 
-      replaceActivePermissions(auxWritesAccessSet, auxReadsAccessSet);
+      replaceActivePermissions(auxAdminAccessSet, auxWritesAccessSet, auxReadsAccessSet);
 
     } catch (final CatalogAccessException e) {
       logger.warn("Error al llamar al catalogo para recuperar la lista de autorizaciones", e);
     }
   }
 
-  private void replaceActivePermissions(final Set<String> updateWritesAccesSet, final Set<String> updateReadsAccesSet) {
-    writesAccessSet.clear();
-    readsAccessSet.clear();
-    writesAccessSet.addAll(updateWritesAccesSet);
-    readsAccessSet.addAll(updateReadsAccesSet);
+  private void replaceActivePermissions(final Set<String> updateAdminsAccesSet, final Set<String> updateWritesAccesSet,
+      final Set<String> updateReadsAccesSet) {
+
+    lock.lock();
+    try {
+      adminAccessSet.clear();
+      writesAccessSet.clear();
+      readsAccessSet.clear();
+      adminAccessSet.addAll(updateAdminsAccesSet);
+      writesAccessSet.addAll(updateWritesAccesSet);
+      readsAccessSet.addAll(updateReadsAccesSet);
+    } finally {
+      lock.unlock();
+    }
   }
 
 }

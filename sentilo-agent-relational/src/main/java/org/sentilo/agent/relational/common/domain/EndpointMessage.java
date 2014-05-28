@@ -26,7 +26,8 @@
 package org.sentilo.agent.relational.common.domain;
 
 import org.sentilo.agent.relational.utils.Constants;
-import org.sentilo.common.utils.SentiloConstants;
+import org.sentilo.common.domain.EventMessage;
+import org.springframework.util.StringUtils;
 
 /**
  * Representa un missatge que es rep per una subscripció
@@ -36,13 +37,14 @@ public class EndpointMessage {
   private String message;
   private String timestamp;
   private String topic;
+  private EventMessage event;
 
-  public EndpointMessage(final String info, final String topic) {
+  public EndpointMessage(final EventMessage eventMessage, final String topic) {
     super();
-    final String[] parts = info.split(SentiloConstants.NOTIFICATION_MESSAGE_TOKEN);
-    timestamp = parts[0];
-    message = parts[1];
+    this.timestamp = eventMessage.getTimestamp();
+    this.message = eventMessage.getMessage();
     this.topic = topic;
+    this.event = eventMessage;
   }
 
   public String getMessage() {
@@ -77,16 +79,21 @@ public class EndpointMessage {
   public Observation getObservation() {
     final Observation obs = new Observation();
 
-    // El topic siempre tiene el formato data:provider:sensor
+    // El topic siempre tiene el formato /data/provider/sensor
     final String[] ids = topic.split(Constants.TOPIC_TOKEN);
 
-    obs.setProvider(ids[1]);
-    if (ids.length == 3) {
-      obs.setSensor(ids[2]);
+    obs.setProvider(ids[2]);
+    if (ids.length == 4) {
+      obs.setSensor(ids[3]);
     }
 
     obs.setValue(message);
     obs.setTimestamp(timestamp);
+    
+    if (StringUtils.hasText(event.getLocation())) {
+      obs.setLocation(event.getLocation());
+    }
+    
     return obs;
   }
 
@@ -98,7 +105,7 @@ public class EndpointMessage {
   public Alarm getAlarm() {
     final Alarm alarm = new Alarm();
     final String[] ids = topic.split(Constants.TOPIC_TOKEN);
-    alarm.setAlarm(ids[1]);
+    alarm.setAlarm(ids[2]);
     alarm.setMessage(message);
     alarm.setTimestamp(timestamp);
     return alarm;
@@ -112,9 +119,9 @@ public class EndpointMessage {
   public Order getOrder() {
     final Order order = new Order();
     final String[] ids = topic.split(Constants.TOPIC_TOKEN);
-    order.setProvider(ids[1]);
-    if (ids.length == 3) {
-      order.setSensor(ids[2]);
+    order.setProvider(ids[2]);
+    if (ids.length == 4) {
+      order.setSensor(ids[3]);
     }
 
     order.setMessage(message);
