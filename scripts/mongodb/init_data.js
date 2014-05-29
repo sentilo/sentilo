@@ -9,4 +9,4 @@ db.user.insert({ "_id" : "platform_user", "_class" : "org.sentilo.web.catalog.do
 
 // Insert permissions
 print("Load permissions");
-db.permission.insert({ "_id" : "sentilo-catalog@sentilo-catalog", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "sentilo-catalog", "type" : "WRITE" });
+db.permission.insert({ "_id" : "sentilo-catalog@sentilo-catalog", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "sentilo-catalog", "type" : "ADMIN" });
