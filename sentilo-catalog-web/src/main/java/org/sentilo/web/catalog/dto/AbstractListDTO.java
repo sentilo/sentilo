@@ -27,7 +27,7 @@ package org.sentilo.web.catalog.dto;
 
 public abstract class AbstractListDTO {
 
-  protected String[] selectedIds;
+  private String[] selectedIds;
 
   public String[] getSelectedIds() {
     return selectedIds;

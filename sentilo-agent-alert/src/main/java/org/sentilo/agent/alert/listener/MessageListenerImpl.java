@@ -32,7 +32,8 @@ import org.sentilo.agent.alert.domain.Alarm;
 import org.sentilo.agent.alert.trigger.TriggerEvaluator;
 import org.sentilo.agent.alert.trigger.TriggerResult;
 import org.sentilo.agent.alert.utils.AlertUtils;
-import org.sentilo.common.utils.SentiloConstants;
+import org.sentilo.common.domain.EventMessage;
+import org.sentilo.common.parser.EventMessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
@@ -49,6 +50,7 @@ public class MessageListenerImpl implements MessageListener {
 
   private final String name;
   private final RedisSerializer<String> serializer = new StringRedisSerializer();
+  private final EventMessageConverter eventConverter = new EventMessageConverter();
 
   private RedisTemplate<String, String> redisTemplate;
   private final TriggerEvaluator triggerEvaluator;
@@ -81,11 +83,10 @@ public class MessageListenerImpl implements MessageListener {
     // En cada mensaje recibido debemos volver a inicializar el valor de este flag
     validValue = true;
 
-    // El mensaje tiene el formato timestamp#@#value por lo que debemos extraer el valor del mensaje
-    // recibido
-    // para poder evaluar las diferentes expresiones de las alarmas.
-    final String[] parts = info.split(SentiloConstants.NOTIFICATION_MESSAGE_TOKEN);
-    final String value = parts[1];
+    // El mensaje recibido corresponde a una representación en JSON de un objeto de tipo
+    // EventMessage.
+    final EventMessage eventMessage = eventConverter.unmarshall(info);
+    final String value = eventMessage.getMessage();
 
     // Cada mensaje recibido debe ser evaluado por cada una de las alarmas asociadas al listener
     if (!CollectionUtils.isEmpty(getAlarms())) {
@@ -160,7 +161,7 @@ public class MessageListenerImpl implements MessageListener {
 
   private void buildAndSendMessage(final Alarm alarm, final TriggerResult result) {
     final String channel = AlertUtils.buildTopicToPublishAlarm(alarm);
-    final String message = AlertUtils.buildMessageToPublish(result.getAlarmMessage());
+    final String message = AlertUtils.buildMessageToPublish(alarm, result.getAlarmMessage(), channel);
     logger.debug("Publish alarm message [{}] into channel [{}]", message, channel);
     redisTemplate.convertAndSend(channel, message);
   }

@@ -54,8 +54,8 @@ public abstract class Utils {
   }
 
   /**
-   * Valida el format de la subscripcio. És a dir, valida que tingui un format vàlid per a la PSAB,
-   * i.e., que el format sigui subscription_type: resourceid1:resourceid2 on
+   * Valida el format de la subscripcio. És a dir, valida que tingui un format vàlid per a Sentilo,
+   * i.e., que el format sigui /subscription_type/resourceid1/resourceid2 on
    * <ul>
    * <li>subscription_type ha de ser data, alarm o order</li>
    * <li>resourceid1 i resourceid2 són opcionals i permeten afitar més a quin recurs és vol fer la
@@ -71,8 +71,8 @@ public abstract class Utils {
     if (StringUtils.hasText(subscription)) {
       try {
         final String[] tokens = subscription.split(Constants.TOPIC_TOKEN);
-        if (tokens.length > 1 && tokens.length < 4) {
-          SubscribeType.valueOf(tokens[0].toUpperCase());
+        if (tokens.length > 2 && tokens.length < 5) {
+          SubscribeType.valueOf(tokens[1].toUpperCase());
           valid = true;
         }
       } catch (final IllegalArgumentException e) {

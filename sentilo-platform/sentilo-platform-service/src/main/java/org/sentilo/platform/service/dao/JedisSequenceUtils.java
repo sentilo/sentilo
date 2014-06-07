@@ -58,8 +58,8 @@ public class JedisSequenceUtils {
     // Al recuperar un valor de un secuencial, puede pasar:
     // 1. Exista en la cache, y por lo tanto no hace falta acceder a Redis
     // 2. No exista en la cache. Si no existe en la cache, se debe acceder a Redis para recuperar el
-    // valor
-    // de la key "provider:"+providerId+":pid". Puede ocurrir:
+    // valor de la key "provider:"+providerId+":pid".
+    // Puede ocurrir:
     // 2.1 Que exista, y por lo tanto se retorne el valor numerico.
     // 2.2 No exista, y por lo tanto se retorne NULL.
     final String internalKey = providerId;
@@ -81,6 +81,10 @@ public class JedisSequenceUtils {
     }
 
     return pids.get(internalKey);
+  }
+
+  public void removePid(final String providerId) {
+    pids.remove(providerId);
   }
 
   public Long getSid(final String providerId, final String sensorId) {
@@ -105,6 +109,11 @@ public class JedisSequenceUtils {
     return sids.get(internalKey);
   }
 
+  public void removeSid(final String providerId, final String sensorId) {
+    final String internalKey = providerId + "#" + sensorId;
+    sids.remove(internalKey);
+  }
+
   public Long getAid(final String alarmId) {
     final String internalKey = alarmId;
     if (!aids.containsKey(internalKey)) {
@@ -125,6 +134,10 @@ public class JedisSequenceUtils {
     }
 
     return aids.get(internalKey);
+  }
+
+  public void removeAid(final String aid) {
+    aids.remove(aid);
   }
 
   public Long getSdid() {

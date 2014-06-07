@@ -49,7 +49,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 public class ConnectionMonitorListener implements SmartLifecycle {
 
   private final Logger logger = LoggerFactory.getLogger(ConnectionMonitorListener.class);
-  private static final String MONITOR_CHANNEL = "MONITOR:PSAB*";
+  private static final String MONITOR_CHANNEL = "/MONITOR/SENTILO*";
 
   @Autowired
   private RedisMessageListenerContainer listenerContainer;

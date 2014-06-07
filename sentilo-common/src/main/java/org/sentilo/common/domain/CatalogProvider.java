@@ -25,59 +25,22 @@
  */
 package org.sentilo.common.domain;
 
-import org.sentilo.common.utils.SentiloConstants;
 
-/**
- * Aquesta classe conté l'estructura del missatge que s'envia als clients de les subscripcions a la
- * plataforma.
- */
-public class NotificationMessage {
+public class CatalogProvider implements CatalogElement {
 
-  private String message;
-  private String timestamp;
-  private String topic;
+  private String provider;
 
-  public NotificationMessage() {
-
+  public CatalogProvider() {
+    super();
   }
 
-  public NotificationMessage(final String info, final String topic) {
-    final String[] parts = info.split(SentiloConstants.NOTIFICATION_MESSAGE_TOKEN);
-    timestamp = parts[0];
-    message = parts[1];
-    this.topic = topic;
+  public String getProvider() {
+    return provider;
   }
 
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("\n--- Notification --- ");
-    sb.append("\n\t message:" + message);
-    sb.append("\n\t timestamp:" + timestamp);
-    sb.append("\n\t topic:" + topic);
-    return sb.toString();
+  public void setProvider(String provider) {
+    this.provider = provider;
   }
 
-  public String getMessage() {
-    return message;
-  }
-
-  public void setMessage(final String message) {
-    this.message = message;
-  }
-
-  public String getTopic() {
-    return topic;
-  }
-
-  public void setTopic(final String topic) {
-    this.topic = topic;
-  }
-
-  public String getTimestamp() {
-    return timestamp;
-  }
-
-  public void setTimestamp(final String timestamp) {
-    this.timestamp = timestamp;
-  }
 
 }

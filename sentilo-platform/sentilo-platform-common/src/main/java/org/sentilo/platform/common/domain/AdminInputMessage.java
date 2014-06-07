@@ -25,20 +25,35 @@
  */
 package org.sentilo.platform.common.domain;
 
+import java.util.List;
+
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.sentilo.common.domain.CatalogProvider;
+import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformInputMessage;
 
 public class AdminInputMessage implements PlatformInputMessage {
 
   public static enum AdminType {
-    stats, subscriptions
+    stats, subscriptions, delete
   };
 
   private String entity;
-  private final AdminType type;
+  private AdminType type;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<CatalogSensor> sensors;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<CatalogProvider> providers;
+
+  public AdminInputMessage() {
+    super();
+  }
 
   public AdminInputMessage(final AdminType type) {
-    super();
-    this.type = type;
+    this();
+    this.setType(type);
   }
 
   public String getEntity() {
@@ -51,6 +66,26 @@ public class AdminInputMessage implements PlatformInputMessage {
 
   public AdminType getType() {
     return type;
+  }
+
+  public void setType(AdminType type) {
+    this.type = type;
+  }
+
+  public List<CatalogSensor> getSensors() {
+    return sensors;
+  }
+
+  public void setSensors(List<CatalogSensor> sensors) {
+    this.sensors = sensors;
+  }
+
+  public List<CatalogProvider> getProviders() {
+    return providers;
+  }
+
+  public void setProviders(List<CatalogProvider> providers) {
+    this.providers = providers;
   }
 
 }

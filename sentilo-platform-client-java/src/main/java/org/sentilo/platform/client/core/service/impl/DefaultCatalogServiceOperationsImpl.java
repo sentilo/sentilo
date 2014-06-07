@@ -63,7 +63,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
       parameters.put(message.getParameters());
     }
 
-    final String response = restClient.get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
+    final String response = getRestClient().get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
     logger.debug("Sensors retrieved ");
 
     return converter.unmarshall(response);
@@ -80,7 +80,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void registerSensors(final CatalogInputMessage message) {
     logger.debug("Registering sensors");
-    restClient.post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Sensors registered ");
   }
 
@@ -94,7 +94,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void updateSensors(final CatalogInputMessage message) {
     logger.debug("Updating sensors");
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Sensors updated");
   }
 
@@ -108,7 +108,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void updateComponents(final CatalogInputMessage message) {
     logger.debug("Updating components");
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Components updated");
 
   }
@@ -123,7 +123,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void deleteProvider(final CatalogDeleteInputMessage message) {
     logger.debug("Deleting provider components/sensors");
-    restClient.delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Provider components/sensors deleted");
   }
 
@@ -142,7 +142,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
       parameters.put(message.getParameters());
     }
 
-    final String response = restClient.get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
+    final String response = getRestClient().get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
     logger.debug("alerts retrieved ");
 
     return alertConverter.unmarshall(response);
@@ -157,7 +157,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   public void registerAlerts(CatalogAlertInputMessage message) {
     logger.debug("Registering alerts");
-    restClient.post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alerts registered ");
   }
 
@@ -170,7 +170,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   public void updateAlerts(CatalogAlertInputMessage message) {
     logger.debug("Updating alerts");
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alerts updated ");
 
   }
@@ -184,7 +184,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   public void deleteAlerts(CatalogAlertInputMessage message) {
     logger.debug("Deleting alerts");
-    restClient.delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alerts deleted ");
 
   }

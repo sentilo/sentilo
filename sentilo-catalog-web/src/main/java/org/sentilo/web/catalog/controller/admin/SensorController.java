@@ -166,9 +166,9 @@ public class SensorController extends CrudController<Sensor> {
 
   @Override
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_SENSOR_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_SENSOR_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_SENSOR);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_SENSOR_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_SENSOR_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_SENSOR);
   }
 
   @Override
@@ -221,44 +221,6 @@ public class SensorController extends CrudController<Sensor> {
     if (StringUtils.hasText(componentId)) {
       filter.addAndParam("componentId", componentId);
     }
-  }
-
-  @Override
-  protected void doAfterDeleteResource(final HttpServletRequest request, final Model model) {
-
-    // TODO Mikel: ver que hacer con esto que es simplemente para controlar la vista a la cual
-    // retornar
-    // String origin = request.getParameter("origin");
-    // String providerId = request.getParameter("providerId");
-
-    // if (Constants.ORIGIN_PROVIDER.equals(origin) && StringUtils.hasText(providerId)) {
-    // ModelUtils.addOpenedTabTo(model, 2);
-    // addProviderDetailToModel(providerId, model);
-    // ModelUtils.addActiveMenuTo(model, Constants.MENU_PROVIDER);
-    // return Constants.VIEW_PROVIDER_DETAIL;
-    // }
-  }
-
-  @Override
-  protected void doAfterCreateResource(final Model model) {
-    // TODO Mikel: mismo caso que antes. Como implementar la logica de la navegacion
-    // if (Constants.ORIGIN_PROVIDER.equals(origin)) {
-    // ModelUtils.addOpenedTabTo(model, 2);
-    // ModelUtils.addActiveMenuTo(model, Constants.MENU_PROVIDER);
-    // addProviderDetailToModel(sensor.getProviderId(), model);
-    // return Constants.VIEW_PROVIDER_DETAIL;
-    // }
-  }
-
-  @Override
-  protected void doAfterUpdateResource(final Model model) {
-    // TODO Mikel: mismo caso que antes. Como implementar la logica de la navegacion
-    // if (Constants.ORIGIN_PROVIDER.equals(origin)) {
-    // ModelUtils.addOpenedTabTo(model, 2);
-    // ModelUtils.addActiveMenuTo(model, Constants.MENU_PROVIDER);
-    // addProviderDetailToModel(sensor.getProviderId(), model);
-    // return Constants.VIEW_PROVIDER_DETAIL;
-    // }
   }
 
   private List<Provider> addProviderListTo(final Model model) {

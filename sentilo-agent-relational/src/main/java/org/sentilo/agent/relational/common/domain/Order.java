@@ -32,7 +32,7 @@ import java.io.Serializable;
  */
 public class Order extends Data implements Serializable {
 
-  private static final long serialVersionUID = 1637331552646595678L;
+  private static final long serialVersionUID = 1L;
 
   private String provider;
   private String sensor;

@@ -71,9 +71,9 @@ public class AlertController extends CrudController<Alert> {
 
   @Override
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_ALERT_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_ALERT_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_ALERT);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_ALERT_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_ALERT_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_ALERT);
   }
 
   @Override

@@ -27,7 +27,6 @@ package org.sentilo.web.catalog.service.impl;
 
 import java.util.List;
 
-import org.sentilo.web.catalog.converter.PermissionConverter;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Permissions;
@@ -56,7 +55,7 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
 
   @Override
   protected void doAfterInit() {
-    entityKeyValidator = new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder("error.permission.duplicate.key"));
+    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder("error.permission.duplicate.key")));
     super.doAfterInit();
   }
 
@@ -129,7 +128,7 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
   }
 
   private void createOwnPermission(final CatalogDocument entity) {
-    create(PermissionConverter.fromCatalogDocument(entity));
+    create(new Permission(entity.getId()));
   }
 
   private Permission buildCatalogPermissionFor(final CatalogDocument entity) {

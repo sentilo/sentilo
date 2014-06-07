@@ -25,11 +25,8 @@
  */
 package org.sentilo.platform.service.listener;
 
-import org.sentilo.common.domain.NotificationMessage;
-import org.sentilo.common.parser.NotificationMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.impl.RESTClientImpl;
-import org.sentilo.platform.service.utils.ChannelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +35,6 @@ public class NotificationSender {
   private final Logger logger = LoggerFactory.getLogger(NotificationSender.class);
 
   private final RESTClient restClient = new RESTClientImpl();
-  private final NotificationMessageConverter converter = new NotificationMessageConverter();
 
   public NotificationSender() {
     try {
@@ -48,10 +44,8 @@ public class NotificationSender {
     }
   }
 
-  public void sendNotification(final String endpoint, final String channel, final String info) {
-    final NotificationMessage notification = new NotificationMessage(info, ChannelUtils.buildSubscriptionPathFromTopic(channel));
+  public void sendNotification(final String endpoint, final String body) {
     ((RESTClientImpl) restClient).setHost(endpoint);
-    final String body = converter.marshall(notification);
     logger.debug("Enviando notificacion {} a endpoint {}", body, endpoint);
     restClient.post("", body);
   }

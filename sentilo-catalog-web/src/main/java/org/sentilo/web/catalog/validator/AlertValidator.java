@@ -110,6 +110,8 @@ public class AlertValidator implements Validator {
         case EQ:
           validateIfExpressionValueIsEmpty(alert, errors);
           break;
+        case CHANGE:
+          break;
       }
     } else {
       errors.reject("alert.error.unknown.trigger", new Object[] {alert.getTrigger()}, "");

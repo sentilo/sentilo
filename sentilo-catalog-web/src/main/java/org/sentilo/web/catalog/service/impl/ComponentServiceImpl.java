@@ -112,7 +112,7 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
     // 1. Borrar sensores asociados
     // 2. Borrar los componentes
     // 3. Eliminar referencias en componentes que lo tengan como padre
-    final List<String> componentsIds = getComponetsIdsFromNames(componentsNames);
+    final List<String> componentsIds = getComponentsIdsFromNames(componentsNames);
     deleteComponentsAndChilds(componentsIds);
   }
 
@@ -129,7 +129,7 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
     return getMongoOps().findOne(buildQuery(filter), Component.class);
   }
 
-  private List<String> getComponetsIdsFromNames(final String[] componentsNames) {
+  private List<String> getComponentsIdsFromNames(final String[] componentsNames) {
     final List<String> values = Arrays.asList(componentsNames);
     final Query nameFilter = buildQueryForParamInCollection("name", values);
     final List<Component> components = getMongoOps().find(nameFilter, Component.class);

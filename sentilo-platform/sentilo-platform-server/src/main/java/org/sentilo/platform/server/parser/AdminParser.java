@@ -25,15 +25,20 @@
  */
 package org.sentilo.platform.server.parser;
 
+import java.util.List;
+
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
+import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.springframework.util.StringUtils;
 
 public class AdminParser extends PlatformJsonMessageConverter {
+
+  private SubscribeParser subscribeParser = new SubscribeParser();
 
   public AdminInputMessage parseGetRequest(final SentiloRequest request) throws PlatformException {
     final AdminType type = getAdminType(request);
@@ -43,8 +48,20 @@ public class AdminParser extends PlatformJsonMessageConverter {
     return inputMessage;
   }
 
-  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final Statistics stats) throws PlatformException {
+  public AdminInputMessage parsePutRequest(final SentiloRequest request) throws PlatformException {
+    final AdminType type = getAdminType(request);
+    final AdminInputMessage inputMessage = (AdminInputMessage) readInternal(AdminInputMessage.class, request);
+    inputMessage.setType(type);
+    return inputMessage;
+  }
+
+  public void writeStatsResponse(final SentiloRequest request, final SentiloResponse response, final Statistics stats) throws PlatformException {
     writeInternal(stats, response);
+  }
+
+  public void writeSubscriptionsResponse(final SentiloRequest request, final SentiloResponse response, final List<Subscription> subscriptions)
+      throws PlatformException {
+    subscribeParser.writeResponse(response, subscriptions);
   }
 
   public AdminType getAdminType(final SentiloRequest request) {

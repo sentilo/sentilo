@@ -30,4 +30,6 @@ public interface AuthorizationService {
   boolean hasAccessToRead(String source, String target);
 
   boolean hasAccessToWrite(String source, String target);
+
+  boolean hasAccessToAdmin(String source, String target);
 }

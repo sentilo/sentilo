@@ -25,9 +25,12 @@
  */
 package org.sentilo.platform.service.utils;
 
+import org.sentilo.common.utils.SentiloConstants;
+
 public final class PubSubConstants {
 
   public static final String REDIS_KEY_TOKEN = ":";
+  public static final String REDIS_CHANNEL_TOKEN = SentiloConstants.SLASH;
   public static final String REDIS_CHANNEL_PATTERN_SUFFIX = "*";
   public static final String REDIS_SUBS_PREFIX_KEY = "subs" + PubSubConstants.REDIS_KEY_TOKEN;
   public static final String REDIS_SUBS_PATTERN_KEY = REDIS_SUBS_PREFIX_KEY + REDIS_CHANNEL_PATTERN_SUFFIX;

@@ -27,6 +27,8 @@ package org.sentilo.platform.server.auth.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.sentilo.platform.common.domain.CredentialMessage;
 import org.sentilo.platform.common.domain.CredentialsMessage;
@@ -51,6 +53,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   @Autowired
   private CatalogService catalogService;
 
+  private Lock lock = new ReentrantLock();
+
   public AuthenticationServiceImpl() {
     super();
   }
@@ -61,33 +65,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
    * @see org.sentilo.platform.server.auth.AuthenticationService#getIdentity(java.lang.String)
    */
   public String getIdentity(final String credential) throws UnauthorizedException {
-    validateCredential(credential);
-    return activeCredentials.get(credential);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.sentilo.platform.server.auth.AuthenticationService#addCredential(java.lang.String,
-   * java.lang.String)
-   */
-  public void addCredential(final String identity, final String credential) {
-    activeCredentials.put(identity, credential);
-
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.sentilo.platform.server.auth.AuthenticationService#removeCredential(java.lang.String)
-   */
-  public void removeCredential(final String identity) {
-    activeCredentials.remove(identity);
-  }
-
-  private void validateCredential(final String credential) throws UnauthorizedException {
-    if (!activeCredentials.containsKey(credential)) {
-      throw new UnauthorizedException("Invalid credential " + credential);
+    lock.lock();
+    logger.debug("Init getIdentity thread {}", Thread.currentThread().getName());
+    try {
+      validateCredential(credential);
+      return activeCredentials.get(credential);
+    } finally {
+      logger.debug("Finish getIdentity thread {}", Thread.currentThread().getName());
+      lock.unlock();
     }
   }
 
@@ -110,8 +95,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
   }
 
+  private void validateCredential(final String credential) throws UnauthorizedException {
+    if (!activeCredentials.containsKey(credential)) {
+      throw new UnauthorizedException("Invalid credential " + credential);
+    }
+  }
+
   private void replaceActiveCredentials(final Map<String, String> updateCredentials) {
-    activeCredentials.clear();
-    activeCredentials.putAll(updateCredentials);
+    lock.lock();
+    try {
+      logger.debug("Replace credenciales thread {}", Thread.currentThread().getName());
+      activeCredentials.clear();
+      activeCredentials.putAll(updateCredentials);
+      logger.debug("Replaced credenciales thread {}", Thread.currentThread().getName());
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  public void setCatalogService(CatalogService catalogService) {
+    this.catalogService = catalogService;
   }
 }

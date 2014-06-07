@@ -162,7 +162,6 @@ public class SubscribeServiceImplTest {
 
     service.remove(dataSubscription);
 
-    verify(jedisTemplate).hKeys(key);
     verify(jedisTemplate).del(key);
 
   }
@@ -214,8 +213,8 @@ public class SubscribeServiceImplTest {
 
   private Set<String> getTopics() {
     final Set<String> topics = new HashSet<String>();
-    topics.add("data:provider1:sensor1");
-    topics.add("data:provider2*");
+    topics.add("/data/provider1/sensor1");
+    topics.add("/data/provider2*");
     return topics;
   }
 
@@ -225,8 +224,8 @@ public class SubscribeServiceImplTest {
 
   private Map<String, String> buildSubscriptions() {
     final Map<String, String> subscriptions = new HashMap<String, String>();
-    subscriptions.put("data:provider1:sensor1", "endpoint1");
-    subscriptions.put("data:provider2*", "endpoint2");
+    subscriptions.put("/data/provider1/sensor1", "endpoint1");
+    subscriptions.put("/data/provider2*", "endpoint2");
     return subscriptions;
   }
 }

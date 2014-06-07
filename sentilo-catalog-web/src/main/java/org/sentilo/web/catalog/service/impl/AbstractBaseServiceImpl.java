@@ -44,6 +44,8 @@ import org.sentilo.web.catalog.validator.EntityKeyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -54,16 +56,18 @@ import org.springframework.util.StringUtils;
 
 import com.mongodb.MongoException;
 
-public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> implements CrudService<T> {
+public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> implements CrudService<T>, ApplicationContextAware {
 
   private final Logger logger = LoggerFactory.getLogger(AbstractBaseServiceImpl.class);
 
   @Autowired
   private MongoOperations mongoOps;
 
+  private ApplicationContext context;
+
   private final Class<T> type;
-  protected EntityKeyValidator entityKeyValidator;
-  protected ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder;
+  private EntityKeyValidator entityKeyValidator;
+  private ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder;
 
   public AbstractBaseServiceImpl(final Class<T> type) {
     this.type = type;
@@ -71,8 +75,8 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
 
   @PostConstruct
   public final void init() {
-    this.entityKeyValidator = new DefaultEntityKeyValidatorImpl(type, getRepository());
-    this.resourceNotFoundExceptionBuilder = new DefaultCatalogBuilderExceptionImpl(type);
+    this.setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(type, getRepository()));
+    this.setResourceNotFoundExceptionBuilder(new DefaultCatalogBuilderExceptionImpl(type));
     doAfterInit();
   }
 
@@ -83,6 +87,18 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
   public abstract MongoRepository<T, String> getRepository();
 
   public abstract String getEntityId(T entity);
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework
+   * .context.ApplicationContext)
+   */
+  public void setApplicationContext(final ApplicationContext applicationContext) {
+    context = applicationContext;
+  }
+  
 
   /*
    * (non-Javadoc)
@@ -175,7 +191,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
   public T findAndThrowErrorIfNotExist(final T entity) {
     final T entityToReturn = find(entity);
     if (entityToReturn == null) {
-      resourceNotFoundExceptionBuilder.buildResourceNotFoundException(entity.getId());
+      getResourceNotFoundExceptionBuilder().buildResourceNotFoundException(entity.getId());
     }
     return entityToReturn;
   }
@@ -229,7 +245,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
   }
 
   protected void checkIntegrityKey(final String idToCheck) {
-    entityKeyValidator.checkIntegrityKey(idToCheck);
+    getEntityKeyValidator().checkIntegrityKey(idToCheck);
   }
 
   protected Query buildQuery(final SearchFilter filter) {
@@ -328,5 +344,24 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
     return mongoOps;
   }
 
+  protected ApplicationContext getContext() {
+    return context;
+  }
+
+  protected EntityKeyValidator getEntityKeyValidator() {
+    return entityKeyValidator;
+  }
+
+  protected void setEntityKeyValidator(EntityKeyValidator entityKeyValidator) {
+    this.entityKeyValidator = entityKeyValidator;
+  }
+
+  protected ResourceNotFoundExceptionBuilder getResourceNotFoundExceptionBuilder() {
+    return resourceNotFoundExceptionBuilder;
+  }
+
+  protected void setResourceNotFoundExceptionBuilder(ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder) {
+    this.resourceNotFoundExceptionBuilder = resourceNotFoundExceptionBuilder;
+  }
 
 }

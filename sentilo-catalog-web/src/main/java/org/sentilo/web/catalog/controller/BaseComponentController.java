@@ -49,16 +49,16 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 public abstract class BaseComponentController extends CrudController<Component> {
 
   @Autowired
-  protected ComponentService componentService;
+  private ComponentService componentService;
 
   @Autowired
-  protected ComponentTypesService componentTypesService;
+  private ComponentTypesService componentTypesService;
 
   @Autowired
-  protected MessageSource messageSource;
+  private MessageSource messageSource;
 
   @Autowired
-  protected SensorService sensorService;
+  private SensorService sensorService;
 
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
@@ -73,9 +73,9 @@ public abstract class BaseComponentController extends CrudController<Component> 
     row.add(component.getDescription());
     row.add(component.getProviderId());
     if (component.isMobileComponent()) {
-      row.add(FormatUtils.label(messageSource.getMessage("mobile", null, Locale.getDefault())));
+      row.add(FormatUtils.label(getMessageSource().getMessage("mobile", null, Locale.getDefault())));
     } else {
-      row.add(FormatUtils.label(messageSource.getMessage("static", null, Locale.getDefault())));
+      row.add(FormatUtils.label(getMessageSource().getMessage("static", null, Locale.getDefault())));
     }
     row.add(FormatUtils.formatDate(component.getCreatedAt()));
     return row;
@@ -83,7 +83,7 @@ public abstract class BaseComponentController extends CrudController<Component> 
 
   @Override
   protected CrudService<Component> getService() {
-    return componentService;
+    return getComponentService();
   }
 
   @Override
@@ -116,12 +116,28 @@ public abstract class BaseComponentController extends CrudController<Component> 
    * @param componentId
    */
   protected void addComponentIconTo(final Model model, final String componentId) {
-    final Component component = componentService.find(new Component(componentId));
+    final Component component = getComponentService().find(new Component(componentId));
     if (component != null) {
-      final ComponentType type = componentTypesService.find(new ComponentType(component.getComponentType()));
+      final ComponentType type = getComponentTypesService().find(new ComponentType(component.getComponentType()));
       if (type != null) {
         model.addAttribute(Constants.MODEL_COMPONENT_ICON, type.getIcon());
       }
     }
+  }
+
+  protected ComponentService getComponentService() {
+    return componentService;
+  }
+
+  protected ComponentTypesService getComponentTypesService() {
+    return componentTypesService;
+  }
+
+  protected MessageSource getMessageSource() {
+    return messageSource;
+  }
+
+  protected SensorService getSensorService() {
+    return sensorService;
   }
 }

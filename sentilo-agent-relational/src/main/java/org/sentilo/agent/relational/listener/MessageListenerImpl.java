@@ -32,7 +32,10 @@ import org.sentilo.agent.relational.common.domain.Observation;
 import org.sentilo.agent.relational.common.domain.Order;
 import org.sentilo.agent.relational.utils.Constants;
 import org.sentilo.agent.relational.utils.ThreadLocalProperties;
+import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.exception.MessageNotWritableException;
+import org.sentilo.common.parser.EventMessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -52,6 +55,7 @@ public class MessageListenerImpl implements MessageListener {
    */
   private final String name;
   private final RedisSerializer<String> serializer = new StringRedisSerializer();
+  private final EventMessageConverter eventConverter = new EventMessageConverter();
   private DataTrackService dataTrackService;
 
   public MessageListenerImpl(final String name) {
@@ -75,9 +79,9 @@ public class MessageListenerImpl implements MessageListener {
     ThreadLocalProperties.unset();
     ThreadLocalProperties.set(name);
 
-    final EndpointMessage endpointMessage = new EndpointMessage(info, channel);
-
     try {
+      final EventMessage eventMessage = eventConverter.unmarshall(info);
+      final EndpointMessage endpointMessage = new EndpointMessage(eventMessage, channel);
 
       switch (getTopicType(channel)) {
         case DATA:
@@ -99,12 +103,14 @@ public class MessageListenerImpl implements MessageListener {
 
     } catch (final DataAccessException e) {
       logger.error("Error processing message {}. Error: {} ", info, e);
+    } catch (final MessageNotWritableException mnwe) {
+      logger.error("Error unmarshalling message {}. Error: {} ", info, mnwe);
     }
   }
 
   private SubscribeType getTopicType(final String topic) {
-    final String[] tokens = topic.split(Constants.REDIS_KEY_TOKEN);
-    return SubscribeType.valueOf(tokens[0].toUpperCase());
+    final String[] tokens = topic.split(Constants.REDIS_CHANNEL_TOKEN);
+    return SubscribeType.valueOf(tokens[1].toUpperCase());
   }
 
   protected String getInfo(final Message message) {

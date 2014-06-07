@@ -74,9 +74,9 @@ public class ApplicationController extends CrudController<Application> {
 
   @Override
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_APPLICATION_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_APPLICATION_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_APPLICATION);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_APPLICATION_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_APPLICATION_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_APPLICATION);
   }
 
   @Override

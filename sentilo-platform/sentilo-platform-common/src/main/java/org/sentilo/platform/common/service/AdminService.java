@@ -27,6 +27,7 @@ package org.sentilo.platform.common.service;
 
 import java.util.List;
 
+import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
 
@@ -35,4 +36,7 @@ public interface AdminService {
   Statistics getStatistics();
 
   List<Subscription> getSubscriptions(String entityId);
+
+  void delete(AdminInputMessage message);
+
 }

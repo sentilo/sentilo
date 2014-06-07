@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c" 
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
@@ -9,11 +10,15 @@
 
 	<!-- Enables the Spring MVC @Controller programming model -->
 	<annotation-driven validator="validator">
-		<argument-resolvers>
+		<argument-resolvers>			
 			<!-- Pageable argument resolver -->
-			<beans:bean class="org.sentilo.web.catalog.search.resolver.CatalogPageableArgumentResolver" />
+			<beans:bean class="org.springframework.data.web.PageableHandlerMethodArgumentResolver" 
+			 	c:sortResolver-ref="catalogSortResolver" p:prefix="page." p:oneIndexedParameters="true">				
+			</beans:bean>							
 		</argument-resolvers>
 	</annotation-driven>
+	
+	<beans:bean id="catalogSortResolver" class="org.sentilo.web.catalog.search.resolver.CatalogSortHandlerMethodArgumentResolver"/>
 
 	<!-- Declare the meta-validator bean -->
 	<beans:bean id="validator" class="org.sentilo.web.catalog.validator.ValidatorComponentAnnotationValidator"
@@ -46,8 +51,7 @@
 
 
 	<!-- Define exception resolvers -->
-	<beans:bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExceptionResolver"
-		p:order="1" />
+	<beans:bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" p:order="1" />
 
 	<!-- This bean resolves specific types of exceptions to corresponding logical - view names for error views. The default 
 		behaviour of DispatcherServlet is to propagate all exceptions to the servlet container: this will happen here with all other 

@@ -51,7 +51,7 @@ public class DefaultAlarmServiceOperationsImpl extends AbstractServiceOperations
   @Override
   public void publish(final AlarmInputMessage message) {
     logger.debug("Publishing alarm message {}", message);
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alarm published ");
   }
 
@@ -65,7 +65,7 @@ public class DefaultAlarmServiceOperationsImpl extends AbstractServiceOperations
   @Override
   public AlarmsOutputMessage getLastAlarmMessages(final AlarmInputMessage message) {
     logger.debug("Retrieving last alarm messages  {}", message);
-    final String response = restClient.get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
+    final String response = getRestClient().get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
     logger.debug("Retrieved last alarm messages");
     return converter.unmarshall(response);
   }

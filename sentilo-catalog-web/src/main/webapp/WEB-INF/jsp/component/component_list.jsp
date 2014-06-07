@@ -55,7 +55,7 @@ $(document).ready(function() {
 							</table>
 							<br />
 							<div class="control-group pull-right">
-								<a href="#" onclick="deleteSelected('components','${deleteComponentConfirmMessage}');" class="btn btn-danger">
+								<a href="#" onclick="deleteSelected('components','<spring:escapeBody>${deleteComponentConfirmMessage}</spring:escapeBody>');" class="btn btn-danger">
 									<spring:message code="component.delete.title" /> </a> <a href="#"
 									onclick="window.location.href='${newComponentLink}';" class="btn"> <spring:message
 										code="component.new.title" /> </a>

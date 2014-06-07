@@ -40,6 +40,9 @@ import org.sentilo.agent.relational.common.domain.Observation;
 import org.sentilo.agent.relational.common.domain.Order;
 import org.sentilo.agent.relational.listener.MessageListenerImpl;
 import org.sentilo.agent.relational.utils.Constants;
+import org.sentilo.common.domain.EventMessage;
+import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.parser.EventMessageConverter;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -58,11 +61,13 @@ public class MessageListenerImplTest {
 
   private MessageListenerImpl listener;
   private RedisSerializer<String> serializer;
+  private EventMessageConverter eventConverter;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     serializer = new StringRedisSerializer();
+    eventConverter = new EventMessageConverter();
     order = ArgumentCaptor.forClass(Order.class);
     observation = ArgumentCaptor.forClass(Observation.class);
     alarm = ArgumentCaptor.forClass(Alarm.class);
@@ -72,8 +77,8 @@ public class MessageListenerImplTest {
   public void onDataMessage() {
     listener = new MessageListenerImpl(dsName, dataTrackService);
 
-    final String channel = "data:provider1:sensor1";
-    final String value = "09/09/2013T15:55:17#@#43";
+    final String channel = "/data/provider1/sensor1";
+    final String value = eventConverter.marshall(buildDataEventMessage());
     final String pattern = Constants.DATA;
 
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -93,8 +98,8 @@ public class MessageListenerImplTest {
   public void onOrderMessage() {
     listener = new MessageListenerImpl(dsName, dataTrackService);
 
-    final String channel = "order:provider1:sensor1";
-    final String value = "09/09/2013T15:55:17#@#test order message";
+    final String channel = "/order/provider1/sensor1";
+    final String value = eventConverter.marshall(buildOrderEventMessage());
     final String pattern = Constants.ORDER;
 
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -113,8 +118,8 @@ public class MessageListenerImplTest {
   public void onAlarmMessage() {
     listener = new MessageListenerImpl(dsName, dataTrackService);
 
-    final String channel = "alarm:alarm1";
-    final String value = "09/09/2013T15:55:17#@#test alarm message";
+    final String channel = "/alarm/alarm1";
+    final String value = eventConverter.marshall(buildAlarmEventMessage());
     final String pattern = Constants.ALARM;
 
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -127,6 +132,43 @@ public class MessageListenerImplTest {
     assertEquals("alarm1", alarm.getValue().getAlarm());
     assertEquals("test alarm message", alarm.getValue().getMessage());
 
+  }
+
+  private EventMessage buildDataEventMessage() {
+    EventMessage event = new EventMessage();
+    event.setProvider("provider1");
+    event.setSensor("sensor1");
+    event.setMessage("43");
+    event.setTimestamp("09/09/2013T15:55:17");
+    event.setType(SubscribeType.DATA.name());
+    event.setTopic("/data/provider1/sensor1");
+
+    return event;
+  }
+
+  private EventMessage buildOrderEventMessage() {
+    EventMessage event = new EventMessage();
+    event.setProvider("provider1");
+    event.setSensor("sensor1");
+    event.setMessage("test order message");
+    event.setTimestamp("09/09/2013T15:55:17");
+    event.setSender("provider1");
+    event.setType(SubscribeType.ORDER.name());
+    event.setTopic("/order/provider1/sensor1");
+
+    return event;
+  }
+
+  private EventMessage buildAlarmEventMessage() {
+    EventMessage event = new EventMessage();
+    event.setAlert("alarm1");
+    event.setMessage("test alarm message");
+    event.setTimestamp("09/09/2013T15:55:17");
+    event.setSender("app demo");
+    event.setType(SubscribeType.ALARM.name());
+    event.setTopic("/alarm/alarm1");
+
+    return event;
   }
 
 }

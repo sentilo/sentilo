@@ -158,7 +158,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   private void publish(final AlarmInputMessage message) {
     logger.debug("Publish alarm event message {} associated with alarm {}", message.getMessage(), message.getAlertId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, message.getAlertId());
-    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message));
+    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
   }
 
   private List<Alarm> getLastAlarms(final Long aid, final AlarmInputMessage message) {

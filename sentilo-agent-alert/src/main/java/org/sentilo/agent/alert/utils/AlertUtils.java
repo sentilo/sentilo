@@ -26,25 +26,48 @@
 package org.sentilo.agent.alert.utils;
 
 import org.sentilo.agent.alert.domain.Alarm;
+import org.sentilo.common.domain.EventMessage;
+import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.parser.EventMessageConverter;
 import org.sentilo.common.utils.DateUtils;
-import org.sentilo.common.utils.SentiloConstants;
 
 public abstract class AlertUtils {
+
+  private static final EventMessageConverter converter = new EventMessageConverter();
 
   private AlertUtils() {
     throw new AssertionError();
   }
 
   public static String buildDataTopicAssociateToAlarm(final Alarm alarm) {
-    return Constants.DATA + Constants.REDIS_KEY_TOKEN + alarm.getProviderId() + Constants.REDIS_KEY_TOKEN + alarm.getSensorId();
+    String[] tokens = {Constants.DATA, alarm.getProviderId(), alarm.getSensorId()};
+    return buildTopic(tokens);
   }
 
   public static String buildTopicToPublishAlarm(final Alarm alarm) {
-    return Constants.ALARM + Constants.REDIS_KEY_TOKEN + alarm.getId();
+    String[] tokens = {Constants.ALARM, alarm.getId()};
+    return buildTopic(tokens);
   }
 
-  public static String buildMessageToPublish(final String value) {
+  public static String buildMessageToPublish(final Alarm alarm, final String value, final String topic) {
     final Long timestamp = System.currentTimeMillis();
-    return DateUtils.timestampToString(timestamp) + SentiloConstants.NOTIFICATION_MESSAGE_TOKEN + value;
+
+    EventMessage event = new EventMessage();
+    event.setAlert(alarm.getId());
+    event.setMessage(value);
+    event.setTimestamp(DateUtils.timestampToString(timestamp));
+    event.setSender("SENTILO");
+    event.setType(SubscribeType.ALARM.name());
+    event.setTopic(topic);
+
+    return converter.marshall(event);
+  }
+
+  private static String buildTopic(String[] tokens) {
+    StringBuilder sb = new StringBuilder();
+    for (String token : tokens) {
+      sb.append(Constants.REDIS_CHANNEL_TOKEN).append(token);
+    }
+    return sb.toString();
   }
 }

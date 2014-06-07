@@ -44,14 +44,14 @@ public class DefaultSubscribeServiceOperationsImpl extends AbstractServiceOperat
   @Override
   public void remove(final SubscribeInputMessage message) {
     logger.debug("Removing subscription message {}", message);
-    restClient.delete(RequestUtils.buildPath(message), message.getIdentityToken());
+    getRestClient().delete(RequestUtils.buildPath(message), message.getIdentityToken());
     logger.debug("Subscription removed");
   }
 
   @Override
   public SubscriptionsOutputMessage get(final SubscribeInputMessage message) {
     logger.debug("Retrieving subscriptions {}", message);
-    final String response = restClient.get(RequestUtils.buildPath(message), message.getIdentityToken());
+    final String response = getRestClient().get(RequestUtils.buildPath(message), message.getIdentityToken());
     logger.debug("Subscriptions retrieved");
     return converter.unmarshall(response);
 
@@ -60,7 +60,7 @@ public class DefaultSubscribeServiceOperationsImpl extends AbstractServiceOperat
   @Override
   public void subscribe(final SubscribeInputMessage message) {
     logger.debug("Adding subscription message {}", message);
-    restClient.put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("Subscription added");
   }
 

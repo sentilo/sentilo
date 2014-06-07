@@ -62,7 +62,7 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
   @PostConstruct
   public void init() throws Exception {
     if (StringUtils.hasText(tables_prefix) && !tables_prefix.startsWith("$")) {
-      observation_ps = "insert into " + tables_prefix + "_observations (provider, sensor, value, timestamp) values (?,?,?,?)";
+      observation_ps = "insert into " + tables_prefix + "_observations (provider, sensor, value, timestamp, location) values (?,?,?,?,?)";
       order_ps = "insert into " + tables_prefix + "_orders (provider, sensor, message, timestamp) values (?,?,?,?)";
       alarm_ps = "insert into " + tables_prefix + "_alarms (alarm, message, timestamp) values (?,?,?)";
     } else {
@@ -94,7 +94,8 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
   public void save(final Observation observation) {
     final JdbcTemplate jdbcTemplate = getJdbcTemplate(observation);
     if (jdbcTemplate != null) {
-      jdbcTemplate.update(observation_ps, observation.getProvider(), observation.getSensor(), observation.getValue(), observation.getTimestamp());
+      jdbcTemplate.update(observation_ps, observation.getProvider(), observation.getSensor(), observation.getValue(), observation.getTimestamp(),
+          observation.getLocation());
     }
   }
 

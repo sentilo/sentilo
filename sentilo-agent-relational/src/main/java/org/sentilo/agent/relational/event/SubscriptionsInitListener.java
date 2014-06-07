@@ -72,10 +72,9 @@ public class SubscriptionsInitListener implements org.springframework.context.Ap
 
   void subscribe() {
     // Este proceso lee las subscripciones definidas en el fichero subscription.properties y las
-    // agrupa por Ds
-    // a utilizar para definir para persistir los datos. Para cada grupo define un MessageListener
-    // que se subscribirá
-    // a cada una de las subscripciones definidas.
+    // agrupa por el Ds a utilizar para persistir los datos.
+    // Para cada grupo define un MessageListener que se subscribirá cada una de las subscripciones
+    // definidas.
     logger.info("Initializing relational agent subscriptions");
     if (!CollectionUtils.isEmpty(subscriptionsDef)) {
       logger.debug("Found {} subscriptions to register", subscriptionsDef.size());

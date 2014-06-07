@@ -29,9 +29,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({AlarmServiceOperationsIntegrationTest.class, CatalogServiceOperationsIntegrationTest.class,
-    DataServiceOperationsIntegrationTest.class, OrderServiceOperationsIntegrationTest.class, SubscribeServiceOperationsIntegrationTest.class,
-    CatalogAlertServiceOperationsIntegrationTest.class})
+@Suite.SuiteClasses({AlarmServiceOperationsIntegrationTest.class, DataServiceOperationsIntegrationTest.class,
+    OrderServiceOperationsIntegrationTest.class, SubscribeServiceOperationsIntegrationTest.class, CatalogAlertServiceOperationsIntegrationTest.class,
+    CatalogServiceOperationsIntegrationTest.class})
 public class AllIntegrationTests {
 
 }

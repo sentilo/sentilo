@@ -57,7 +57,7 @@ public class ApplicationServiceImpl extends AbstractBaseServiceImpl<Application>
 
   @Override
   protected void doAfterInit() {
-    entityKeyValidator = customEntityValidator;
+    setEntityKeyValidator(customEntityValidator);
     super.doAfterInit();
   }
 
@@ -74,8 +74,7 @@ public class ApplicationServiceImpl extends AbstractBaseServiceImpl<Application>
   @Override
   public Application create(final Application application) {
     // El identificador se informa por pantalla (es obligatorio). El nombre, en caso de no estar
-    // informado, se rellena
-    // con el valor del identificador.
+    // informado, se rellena con el valor del identificador.
     if (!StringUtils.hasText(application.getName())) {
       application.setName(application.getId());
     }

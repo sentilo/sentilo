@@ -26,6 +26,7 @@
 package org.sentilo.platform.server.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +45,7 @@ import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Statistics.Events;
 import org.sentilo.platform.common.domain.Statistics.Performance;
+import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
@@ -66,9 +68,7 @@ public class AdminParserTest {
 
   @Test
   public void parseStatsRequest() throws Exception {
-    final String type = "stats";
-
-    when(sentiloRequest.getResourcePart(0)).thenReturn(type);
+    when(sentiloRequest.getResourcePart(0)).thenReturn(AdminType.stats.name());
 
     final AdminInputMessage message = parser.parseGetRequest(sentiloRequest);
 
@@ -83,12 +83,51 @@ public class AdminParserTest {
     final Statistics stats = new Statistics(events, performance);
 
     final SentiloResponse response = SentiloResponse.build(new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_0, 200, "")));
-    parser.writeResponse(sentiloRequest, response, stats);
+    parser.writeStatsResponse(sentiloRequest, response, stats);
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ((ByteArrayEntity) response.getHttpResponse().getEntity()).writeTo(baos);
     final String expected = "{\"events\":{\"total\":10,\"observations\":4,\"alarms\":3,\"orders\":3},\"performance\":{\"instantAvg\":54.84,\"dailyAvg\":14.65,\"maxAvg\":784.84}}";
     assertEquals(expected, baos.toString());
   }
+
+  @Test(expected = JsonConverterException.class)
+  public void parseWrongDeleteRequest() throws Exception {
+    final String json = "{\"resources\":[\"RE001\",\"RE002\",\"RE003\"]}";
+
+    when(sentiloRequest.getBody()).thenReturn(json);
+    when(sentiloRequest.getResourcePart(0)).thenReturn(AdminType.delete.name());
+
+    parser.parsePutRequest(sentiloRequest);
+  }
+
+  @Test
+  public void parseDeleteSensorsRequest() throws Exception {
+    final String json = "{\"sensors\":[{\"provider\":\"PRV001\",\"sensor\":\"RE001\"},{\"provider\":\"PRV001\",\"sensor\":\"RE002\"}]}";
+
+    when(sentiloRequest.getBody()).thenReturn(json);
+    when(sentiloRequest.getResourcePart(0)).thenReturn(AdminType.delete.name());
+
+    final AdminInputMessage message = (AdminInputMessage) parser.parsePutRequest(sentiloRequest);
+
+    assertNotNull(message.getSensors());
+    assertNull(message.getProviders());
+    assertEquals(2, message.getSensors().size());
+  }
+
+  @Test
+  public void parseDeleteProvidersRequest() throws Exception {
+    final String json = "{\"providers\":[{\"provider\":\"PRV001\"},{\"provider\":\"PRV002\"}]}";
+
+    when(sentiloRequest.getBody()).thenReturn(json);
+    when(sentiloRequest.getResourcePart(0)).thenReturn(AdminType.delete.name());
+
+    final AdminInputMessage message = (AdminInputMessage) parser.parsePutRequest(sentiloRequest);
+
+    assertNotNull(message.getProviders());
+    assertNull(message.getSensors());
+    assertEquals(2, message.getProviders().size());
+  }
+
 
 }

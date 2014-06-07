@@ -39,10 +39,13 @@ import org.sentilo.agent.alert.listener.MessageListenerImpl;
 import org.sentilo.agent.alert.utils.enums.AlarmTriggerType;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-public class MessageListenerTest {
+public class MessageListenerImplTest {
 
   private MessageListenerImpl messageListener;
+  private RedisSerializer<String> serializer;
 
   @Mock
   private RedisTemplate<String, String> redisTemplate;
@@ -52,6 +55,7 @@ public class MessageListenerTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
+    serializer = new StringRedisSerializer();
     messageListener = new MessageListenerImpl("test");
     messageListener.setRedisTemplate(redisTemplate);
 
@@ -69,10 +73,11 @@ public class MessageListenerTest {
 
   @Test
   public void publishAlarm() {
-    final String info = "25/07/2013T13:41:59#@#21";
+    final String info = buildDataEventMessage();
     final String channel = "data:provider1:sensor1";
-    when(message.getBody()).thenReturn(info.getBytes());
-    when(message.getChannel()).thenReturn(channel.getBytes());
+
+    when(message.getBody()).thenReturn(serializer.serialize(info));
+    when(message.getChannel()).thenReturn(serializer.serialize(channel));
 
     messageListener.onMessage(message, null);
 
@@ -81,7 +86,7 @@ public class MessageListenerTest {
 
   @Test
   public void publishTwoAlarms() {
-    final String info = "25/07/2013T13:41:59#@#36";
+    final String info = buildDataEventMessage();
     final String channel = "data:provider1:sensor1";
 
     final Alarm alarm3 = new Alarm("alarmLT");
@@ -90,12 +95,18 @@ public class MessageListenerTest {
 
     messageListener.addAlarm(alarm3);
 
-    when(message.getBody()).thenReturn(info.getBytes());
-    when(message.getChannel()).thenReturn(channel.getBytes());
+    when(message.getBody()).thenReturn(serializer.serialize(info));
+    when(message.getChannel()).thenReturn(serializer.serialize(channel));
 
     messageListener.onMessage(message, null);
 
     verify(redisTemplate, times(2)).convertAndSend(anyString(), anyString());
   }
 
+  private String buildDataEventMessage() {
+    String event =
+        "{\"message\":\"36\",\"timestamp\":\"28/04/2014T11:37:44\",\"topic\":\"data:app_demo_provider:appdemo_sensor_test\",\"type\":\"DATA\",\"sensor\":\"appdemo_sensor_test\",\"provider\":\"app_demo_provider\"}";
+
+    return event;
+  }
 }

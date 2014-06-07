@@ -72,9 +72,9 @@ public class QueryFilterParams {
     final StringBuffer sb = new StringBuffer();
     sb.append("\n--- QueryFilterParams ---");
 
-    sb.append("\n\t from:" + from);
-    sb.append("\n\t to:" + to);
-    sb.append("\n\t limit:" + limit);
+    sb.append("\n\t from:").append(from);
+    sb.append("\n\t to:").append(to);
+    sb.append("\n\t limit:").append(limit);
 
     return sb.toString();
   }

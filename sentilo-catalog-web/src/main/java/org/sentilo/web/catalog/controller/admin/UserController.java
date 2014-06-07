@@ -57,9 +57,9 @@ public class UserController extends CrudController<User> {
   }
 
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_USER_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_USER_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_USER);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_USER_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_USER_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_USER);
   }
 
   @Override

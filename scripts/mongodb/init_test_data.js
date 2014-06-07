@@ -11,11 +11,11 @@ db.provider.insert({ "_id" : "testApp_provider", "_class" : "org.sentilo.web.cat
 
 // Insert permissions
 print("Load permissions");
-db.permission.insert({ "_id" : "testApp_provider@testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "testApp_provider", "target" : "testApp_provider", "type" : "WRITE" });
-db.permission.insert({ "_id" : "sentilo-catalog@testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "testApp_provider", "type" : "WRITE" });
-db.permission.insert({ "_id" : "sentilo-catalog@testApp", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "testApp", "type" : "WRITE" });
+db.permission.insert({ "_id" : "testApp_provider@testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "testApp_provider", "target" : "testApp_provider", "type" : "ADMIN" });
+db.permission.insert({ "_id" : "sentilo-catalog@testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "testApp_provider", "type" : "ADMIN" });
+db.permission.insert({ "_id" : "sentilo-catalog@testApp", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "testApp", "type" : "ADMIN" });
 db.permission.insert({ "_id" : "testApp@testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "testApp", "target" : "testApp_provider", "type" : "READ" });
-db.permission.insert({ "_id" : "testApp@testApp", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "testApp", "target" : "testApp", "type" : "WRITE" });
+db.permission.insert({ "_id" : "testApp@testApp", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "testApp", "target" : "testApp", "type" : "ADMIN" });
 
 // Insert component types
 print("Load component types");

@@ -91,9 +91,9 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
   @Override
   protected void initViewNames() {
-    viewNames.put(LIST_ACTION, Constants.VIEW_COMPONENT_TYPE_LIST);
-    viewNames.put(DETAIL_ACTION, Constants.VIEW_COMPONENT_TYPE_DETAIL);
-    viewNames.put(NEW_ACTION, Constants.VIEW_NEW_COMPONENT_TYPE);
+    getViewNames().put(LIST_ACTION, Constants.VIEW_COMPONENT_TYPE_LIST);
+    getViewNames().put(DETAIL_ACTION, Constants.VIEW_COMPONENT_TYPE_DETAIL);
+    getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_COMPONENT_TYPE);
   }
 
   @Override

@@ -41,19 +41,19 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
   public static final String SENSOR_ID_KEY = "sensorId";
 
   /** Endpoint al cual se debera enviar las notificaciones mediante Http callback */
-  protected Endpoint endpoint;
+  private Endpoint endpoint;
 
   /** Tipo de subscripcion. */
-  protected SubscribeType type;
+  private SubscribeType type;
 
   /**
    * Identificadores del recurso al cual esta asociado la subscripción: providerId, sensorId o
    * alarmId.
    */
-  protected final Map<String, String> resources = new HashMap<String, String>();
+  private final Map<String, String> resources = new HashMap<String, String>();
 
   /** Lista ordenada de los identificadores que forman el path del recurso. */
-  protected final List<String> resourcesValues = new ArrayList<String>();
+  private final List<String> resourcesValues = new ArrayList<String>();
 
   private String identityToken;
 
@@ -100,6 +100,10 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
     }
 
     return sb.toString();
+  }
+
+  protected void setEndpoint(Endpoint endpoint) {
+    this.endpoint = endpoint;
   }
 
   public Endpoint getEndpoint() {

@@ -37,7 +37,8 @@ import org.springframework.util.PathMatcher;
 import org.springframework.web.util.UrlPathHelper;
 
 /**
- * Utility class.
+ * Utility class that lets translate view sort columns (which are represented by numbers 1,2.----)
+ * in logic sort columns (i.e. field domain object names).
  */
 public abstract class SearchFilterUtils {
 

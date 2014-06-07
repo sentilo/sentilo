@@ -23,32 +23,21 @@
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
-package org.sentilo.web.catalog.converter;
+package org.sentilo.web.catalog.parser;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.sentilo.common.exception.MessageNotReadableException;
+import org.sentilo.common.exception.MessageNotWritableException;
+import org.sentilo.common.parser.BaseJsonMessageConverter;
+import org.sentilo.web.catalog.domain.PlatformAdminInputMessage;
+import org.sentilo.web.catalog.domain.PlatformStatsMessage;
 
-import org.sentilo.web.catalog.domain.Application;
-import org.sentilo.web.catalog.domain.CatalogDocument;
-import org.sentilo.web.catalog.domain.Permission;
+public class PlatformMessageParser extends BaseJsonMessageConverter {
 
-public abstract class PermissionConverter {
-
-  public static List<Permission> fromApplications(final List<Application> applications) {
-    final List<Permission> permissions = new ArrayList<Permission>();
-    for (final Application application : applications) {
-      permissions.add(fromCatalogDocument(application));
-    }
-    return permissions;
-
+  public PlatformStatsMessage unmarshallStatsMessage(final String message) throws MessageNotReadableException {
+    return (PlatformStatsMessage) readInternal(PlatformStatsMessage.class, message);
   }
 
-  public static Permission fromCatalogDocument(final CatalogDocument entity) {
-    return new Permission(entity.getId());
-  }
-
-  private PermissionConverter() {
-    // this prevents even the native class from calling this ctor as well :
-    throw new AssertionError();
+  public String marshall(final PlatformAdminInputMessage message) throws MessageNotWritableException {
+    return writeInternalAndReturnString(message);
   }
 }

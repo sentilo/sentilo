@@ -52,7 +52,7 @@
 				background: "transparent",
 				color: "#ffffff",
 				opacity: 0.9,
-			//	width: "160px",
+				width: "auto",
 				padding: "4px",
 				borderRadius: "4px",
 				fontSize: "11px",
@@ -191,14 +191,26 @@
 	function closeInfoWindow() {
     	if (infowindow) {
     		infowindow.close(map, this);
+    		infowindow = null;
     	}
     };
 
     function retrieveLastObservations(poi, observationDiv) {
+    	var numObsCol = 5;
     	var url = '<spring:url value="/component/"/>' + poi.componentId + '/lastOb/';
 		jsonGET(url, [], function(observations) {
-			html = '';				
+			html = '';
+
+			var divIsOpen = false;		
 			for(var i = 0; i < observations.length; i++) {
+				if (i%numObsCol==0) {
+					if (divIsOpen) {
+						html += '</div>';
+						vidIsOpen = false;
+					} 
+					html += '<div class="mapInfoBox">';
+					divIsOpen = true;
+				}
 				var observation = observations[i];
 				if (observation.found) {						
 					if (observation.dataType === 'BOOLEAN') {
@@ -209,6 +221,10 @@
 					html += '<h1><spring:message code="component.sensor.observation.not.found"/> ' + observation.unit + '</h1><span class="label label-info">' + observation.sensorType + '</span>';
 				}
 			}
+
+			html += '</div>';
+			html += '<div style="clear: both;"></div>';
+			
 			var ph = $('#' + observationDiv);
 			ph.append(html);
     	});
@@ -216,16 +232,20 @@
     
     function fillInfoWindow(poi) {
     	var content = '<div class="infobox">';
-
     	var observationDiv = '' + new Date().getTime();
-		content += '<div id="' + observationDiv + '"></div><br/>';
-		var detailUrl = '<spring:url value="/component/" />' + poi.componentId + '/detail';
+    	var detailUrl = '<spring:url value="/component/" />' + poi.componentId + '/detail';
+    	content += '<a href="' + detailUrl + '">Veure detalls</a>';
+		content += '<div class="mapInfoBoxWrapper" id="' + observationDiv + '"></div><br/>';
 		if(window.alternative) detailUrl = detailUrl+"?alternative=true"; 
 		
-		content += '<a href="' + detailUrl + '">Veure detalls</a>';
     	content += '</div>';    	
     	
-		retrieveLastObservations(poi, observationDiv);			
+		retrieveLastObservations(poi, observationDiv);
+
+		if(!infowindow){
+	    	infowindow = new InfoBox(boxOptions);
+		}
+					
     	infowindow.setContent(content);
     };
 	
@@ -361,11 +381,14 @@
 	    	});		    	
 	    };
 
-		function initElements(){
+	    function initElements(){
 			oms.addListener('click', function(poi) {							
 		    	closeInfoWindow();
-		    	fillInfoWindow(poi);			    		        		           	
-		    	infowindow.open(map, poi);
+		    	map.setCenter(poi.getPosition());
+		    	window.setTimeout(function(event) {
+					fillInfoWindow(poi);
+					infowindow.open(map, poi);
+				}, 500);
 	   		});
 
 			mc.repaint();

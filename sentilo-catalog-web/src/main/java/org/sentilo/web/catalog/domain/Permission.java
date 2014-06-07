@@ -49,14 +49,14 @@ public class Permission implements CatalogDocument {
   private Date updateAt;
 
   public enum Type {
-    READ, WRITE;
+    READ, WRITE, ADMIN;
   }
 
   public Permission() {
   }
 
   public Permission(final String source) {
-    this(source, source, Type.WRITE);
+    this(source, source, Type.ADMIN);
   }
 
   public Permission(final String source, final String target, final Type type) {

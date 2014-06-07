@@ -32,12 +32,13 @@ import java.io.Serializable;
  */
 public class Observation extends Data implements Serializable {
 
-  private static final long serialVersionUID = -2319540872832027756L;
+  private static final long serialVersionUID = 1L;
 
   private String provider;
   private String sensor;
   private String value;
   private String timestamp;
+  private String location;
 
   public String getProvider() {
     return provider;
@@ -69,5 +70,13 @@ public class Observation extends Data implements Serializable {
 
   public String getTimestamp() {
     return timestamp;
+  }
+
+  public String getLocation() {
+    return location;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
   }
 }

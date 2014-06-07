@@ -89,18 +89,15 @@ public abstract class AbstractHandler {
     }
   }
 
-  protected void validateSourceCanAdminTarget(final String source, final String target) throws ForbiddenAccessException {
-    // source could admin target's resources iff source is equals to catalog app or source and
-    // target are equals
-    if (!getCatalogId().equals(source) && !source.equals(target)) {
-      final String errorMessage = String.format("You are not %s entity. Review token identity or request path content.", target);
-      throw new ForbiddenAccessException(errorMessage);
+  protected void validateAdminAcess(final String source, final String target) throws ForbiddenAccessException {
+    if (!authorizationService.hasAccessToAdmin(source, target)) {
+      throw new ForbiddenAccessException(source, target, "ADMIN");
     }
 
   }
 
-  protected void validateAdminAccess(final String source) throws ForbiddenAccessException {
-    // solo la aplicacion catalogo puede invocar a este servicio
+  protected void validateApiAdminInvoke(final String source) throws ForbiddenAccessException {
+    // Only catalog app entity could invoke api admin services
     if (!StringUtils.hasText(source) || !source.equals(getCatalogId())) {
       throw new ForbiddenAccessException(String.format("Entity %s has not permission to call admin service", source));
     }

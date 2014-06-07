@@ -42,4 +42,8 @@ public interface ResourceService {
   Set<String> getSensorsToInspect(String providerId, String sensorId);
 
   Long registerAlarmIfNecessary(String alarmId);
+
+  void removeProvider(String providerId);
+
+  void removeSensor(String sensorId, String providerId);
 }

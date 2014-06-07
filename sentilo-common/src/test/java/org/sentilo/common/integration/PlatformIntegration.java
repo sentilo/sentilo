@@ -27,43 +27,36 @@ package org.sentilo.common.integration;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.sentilo.common.rest.RESTClient;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = "classpath:spring/platform-integration-context.xml")
 public class PlatformIntegration {
 
-  protected RESTClient httpRestClient;
+  @Autowired
+  private RESTClient httpRestClient;
 
-  public PlatformIntegration() {
-    init();
-  }
-
-  protected void init() {
-    final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath:spring/platform-integration-context.xml");
-    httpRestClient = context.getBean(RESTClient.class);
-  }
-
+  @Test
   public void validateGetObservations() {
     // api/permissions
     final String uri = "data/provider35";
     final String response = httpRestClient.get(uri);
-    System.out.println(response);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", StringUtils.hasText(response));
   }
 
+  @Test
   public void setInvalidTokenProgrammatically() {
     // api/permissions
     final String invalidToken = "abcdef";
     final String uri = "data/provider35";
     final String response = httpRestClient.get(uri, invalidToken);
-    System.out.println(response);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", StringUtils.hasText(response));
   }
 
-  public static void main(final String[] args) {
-    final PlatformIntegration driver = new PlatformIntegration();
-    driver.validateGetObservations();
-    // driver.setInvalidTokenProgrammatically();
-  }
 }

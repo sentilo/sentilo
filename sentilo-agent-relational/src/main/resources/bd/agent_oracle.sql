@@ -5,6 +5,7 @@ CREATE TABLE sentilo_observations (
 	sensor VARCHAR(128),
 	value VARCHAR(512) NOT NULL,
 	timestamp varchar(20) NOT NULL,
+	location varchar(50),
 	PRIMARY KEY(id));
 
 CREATE TABLE sentilo_orders (
