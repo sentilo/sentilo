@@ -2,3 +2,10 @@
 # Configure Travis CI service to build Sentilo platform, http://github.com/sentilo/sentilo
 #
 language: java
+
+jdk:
+  - oraclejdk7
+  - openjdk6
+  
+after_success:
+  - mvn clean test jacoco:report coveralls:jacoco
