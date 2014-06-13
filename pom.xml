@@ -63,11 +63,23 @@
 	            <groupId>org.jacoco</groupId>
 	            <artifactId>jacoco-maven-plugin</artifactId>
 	            <version>0.7.1.201405082137</version>
+	            <executions>
+			        <execution>
+			            <id>prepare-agent</id>
+			            <goals>
+			                <goal>prepare-agent</goal>
+			            </goals>
+			        </execution>
+			    </executions>
 	          </plugin>
 	          <plugin>
 	            <groupId>org.eluder.coveralls</groupId>
 	            <artifactId>coveralls-maven-plugin</artifactId>
 	            <version>2.2.0</version>
+	            <configuration>	
+					<sourceEncoding>UTF-8</sourceEncoding>
+					<coverallsFile>/home/travis/build/sentilo/sentilo/coveralls.json</coverallsFile>	
+				</configuration>
 	          </plugin>
 	        </plugins>
 	      </build>
