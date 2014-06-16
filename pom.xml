@@ -79,6 +79,7 @@
 	            <configuration>	
 					<sourceEncoding>UTF-8</sourceEncoding>
 					<coverallsFile>/home/travis/build/sentilo/sentilo/coveralls.json</coverallsFile>	
+					<jacocoFile>/home/travis/build/sentilo/sentilo/jacoco.xml</jacocoFile>
 				</configuration>
 	          </plugin>
 	        </plugins>
