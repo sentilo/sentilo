@@ -60,18 +60,15 @@
 	      <build>
 	        <plugins>
 	          <plugin>
-	            <groupId>org.jacoco</groupId>
-	            <artifactId>jacoco-maven-plugin</artifactId>
-	            <version>0.7.1.201405082137</version>
-	            <executions>
-			        <execution>
-			            <id>prepare-agent</id>
-			            <goals>
-			                <goal>prepare-agent</goal>
-			            </goals>
-			        </execution>
-			    </executions>
-	          </plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>cobertura-maven-plugin</artifactId>
+		        <version>2.5.2</version>
+		        <configuration>
+		          <format>xml</format>
+		          <maxmem>256m</maxmem>
+		          <aggregate>true</aggregate>
+		        </configuration>
+		  </plugin>
 	          <plugin>
 	            <groupId>org.eluder.coveralls</groupId>
 	            <artifactId>coveralls-maven-plugin</artifactId>
@@ -79,8 +76,7 @@
 	            <configuration>	
 					<sourceEncoding>UTF-8</sourceEncoding>
 					<coverallsFile>/home/travis/build/sentilo/sentilo/coveralls.json</coverallsFile>	
-					<jacocoFile>/home/travis/build/sentilo/sentilo/jacoco.xml</jacocoFile>
-				</configuration>
+		   </configuration>
 	          </plugin>
 	        </plugins>
 	      </build>
