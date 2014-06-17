@@ -234,7 +234,7 @@
     	var content = '<div class="infobox">';
     	var observationDiv = '' + new Date().getTime();
     	var detailUrl = '<spring:url value="/component/" />' + poi.componentId + '/detail';
-    	content += '<a href="' + detailUrl + '">Veure detalls</a>';
+    	content += '<a href="' + detailUrl + '"><spring:message code="component.map.component.details.show" /></a>';
 		content += '<div class="mapInfoBoxWrapper" id="' + observationDiv + '"></div><br/>';
 		if(window.alternative) detailUrl = detailUrl+"?alternative=true"; 
 		

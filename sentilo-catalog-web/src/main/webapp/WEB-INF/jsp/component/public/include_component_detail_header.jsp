@@ -33,7 +33,7 @@ $(document).ready(function() {
 		<div class="pull-right">
 			<spring:url value="/component/map" var="publicMapURL" />
 			<a href="${publicMapURL}<c:if test="${alternative eq 'true'}">?alternative=true</c:if>" class="btn btn-danger"><i
-				class="icon-remove icon-white"></i> Close</a>
+				class="icon-remove icon-white"></i> <spring:message code="component.map.component.details.hide" /></a>
 		</div>
 		<br />
 		<div class="">
