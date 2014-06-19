@@ -33,6 +33,10 @@ public final class SentiloConstants {
   public static final String SLASH = "/";
 
   public static final String IDENTITY_KEY_HEADER = "IDENTITY_KEY";
+  public static final String HMAC_HEADER = "Sentilo-Content-Hmac";
+  public static final String DATE_HEADER = "Sentilo-Date";
+
+  public static final String SENTILO_INTERNAL_TOKEN = "#@#";
 
   // Path tokens constants
   public static final String API_TOKEN = "api";

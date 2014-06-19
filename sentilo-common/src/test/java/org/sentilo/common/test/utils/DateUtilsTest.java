@@ -70,6 +70,19 @@ public class DateUtilsTest {
   }
 
   @Test
+  public void timeZoneTimestampToDate() {
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10CET"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10CEST"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10GMT"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10UTC"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10+0200"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10-0200"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10GMT-02:00"));
+    assertNotNull(DateUtils.stringToDate("12/12/12014T23:34:10AST"));
+  }
+
+  @Test
   public void timestampToString() {
     final Date currentDate = new Date();
     final Long currentTimestamp = currentDate.getTime();

@@ -25,6 +25,8 @@
  */
 package org.sentilo.common.rest.impl;
 
+import java.security.GeneralSecurityException;
+
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -47,7 +49,10 @@ import org.apache.http.util.EntityUtils;
 import org.sentilo.common.exception.RESTClientException;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
+import org.sentilo.common.rest.hmac.HMACBuilder;
+import org.sentilo.common.utils.DateUtils;
 import org.sentilo.common.utils.RESTUtils;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.URIUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +72,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   private HttpRequestInterceptor[] interceptors;
 
   private String host;
+  private String secretKey;
 
   public RESTClientImpl() {
   }
@@ -157,8 +163,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   public void destroy() throws Exception {
     // Tal y como recomienda la API de HttpClient, al destruir la clase cliente cerramos el
-    // connectionManager asociado a la
-    // clase HttpClient.
+    // connectionManager asociado a la clase HttpClient.
     httpClient.getConnectionManager().shutdown();
   }
 
@@ -193,6 +198,11 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
       if (StringUtils.hasText(identityToken)) {
         httpRequest.addHeader(RESTUtils.buildIdentityHeader(identityToken));
       }
+
+      if (StringUtils.hasText(secretKey)) {
+        addSignedHeader(httpRequest, body);
+      }
+
       final HttpResponse response = httpClient.execute(httpRequest);
       validateResponse(response);
       return EntityUtils.toString(response.getEntity());
@@ -202,6 +212,15 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
       final String msg = String.format("Error while executing http call: %s ", httpRequest.toString());
       throw new RESTClientException(msg, e);
     }
+  }
+
+  private void addSignedHeader(final HttpRequestBase httpRequest, final String body) throws GeneralSecurityException {
+    String currentDate = DateUtils.timestampToString(System.currentTimeMillis());
+    String hmac = HMACBuilder.buildHeader(body, host, secretKey, currentDate);
+    httpRequest.addHeader(SentiloConstants.HMAC_HEADER, hmac);
+    httpRequest.addHeader(SentiloConstants.DATE_HEADER, currentDate);
+    logger.debug("Add header {} with value {}", SentiloConstants.HMAC_HEADER, hmac);
+    logger.debug("Add header {} with value {}", SentiloConstants.DATE_HEADER, currentDate);
   }
 
   /**
@@ -248,4 +267,9 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   public void setCredentials(final Credentials credentials) {
     this.credentials = credentials;
   }
+
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
+  }
+
 }

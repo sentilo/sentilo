@@ -39,7 +39,7 @@ public class DefaultSubscribeServiceOperationsImpl extends AbstractServiceOperat
 
   private final Logger logger = LoggerFactory.getLogger(DefaultSubscribeServiceOperationsImpl.class);
 
-  private final SubscribeMessageConverter converter = new SubscribeMessageConverter();
+  private SubscribeMessageConverter converter = new SubscribeMessageConverter();
 
   @Override
   public void remove(final SubscribeInputMessage message) {

@@ -41,6 +41,12 @@ public class Subscription {
    */
   private String endpoint;
 
+  /**
+   * Secret used to build the HMAC-SHA signature header for every callback related to this
+   * subscription.
+   */
+  private String secretCallbackKey;
+
   /** Tipo de subscripcion. */
   private SubscribeType type;
 
@@ -88,5 +94,13 @@ public class Subscription {
 
   public SubscribeType getType() {
     return type;
+  }
+
+  public String getSecretCallbackKey() {
+    return secretCallbackKey;
+  }
+
+  public void setSecretCallbackKey(String secretCallbackKey) {
+    this.secretCallbackKey = secretCallbackKey;
   }
 }

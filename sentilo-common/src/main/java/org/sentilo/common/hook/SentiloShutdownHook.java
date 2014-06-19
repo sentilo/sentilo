@@ -34,16 +34,20 @@ import org.slf4j.LoggerFactory;
 public class SentiloShutdownHook extends Thread {
 
   private final Logger logger = LoggerFactory.getLogger(SentiloShutdownHook.class);
-  private final String name;
+  private final String hookName;
 
   public SentiloShutdownHook(String name) {
     super();
-    this.name = name;
+    this.hookName = name;
+  }
+
+  public String getHookName() {
+    return this.hookName;
   }
 
   @Override
   public void run() {
-    logger.warn("Closing sentilo {} process ....", name);
+    logger.warn("Closing sentilo {} process ....", hookName);
   }
 
 }

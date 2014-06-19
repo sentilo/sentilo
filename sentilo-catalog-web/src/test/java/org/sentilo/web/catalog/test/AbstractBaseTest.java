@@ -25,21 +25,12 @@
  */
 package org.sentilo.web.catalog.test;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.springframework.util.ReflectionUtils;
-
 public abstract class AbstractBaseTest {
-
-  protected <T> void injectField(final String fieldName, final Object valueToInject, final T instance, final Class<T> instanceClass) throws Exception {
-    final Field field = instanceClass.getDeclaredField(fieldName);
-    ReflectionUtils.makeAccessible(field);
-    field.set(instance, valueToInject);
-  }
-
+  
   protected <T> List<T> generateRandomList(final Class<T> clazz) throws InstantiationException, IllegalAccessException {
     final Random randomGenerator = new Random();
     int size = 0;

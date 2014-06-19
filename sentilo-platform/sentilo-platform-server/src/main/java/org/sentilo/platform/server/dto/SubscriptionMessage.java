@@ -41,6 +41,9 @@ public class SubscriptionMessage {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String alert;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String secretCallbackKey;
+
   public String getEndpoint() {
     return endpoint;
   }
@@ -79,5 +82,13 @@ public class SubscriptionMessage {
 
   public void setAlert(final String alert) {
     this.alert = alert;
+  }
+
+  public String getSecretCallbackKey() {
+    return secretCallbackKey;
+  }
+
+  public void setSecretCallbackKey(String secretCallbackKey) {
+    this.secretCallbackKey = secretCallbackKey;
   }
 }

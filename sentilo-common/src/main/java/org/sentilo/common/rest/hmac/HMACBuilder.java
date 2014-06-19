@@ -1,0 +1,95 @@
+/*
+ * Sentilo
+ * 
+ * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
+ */
+package org.sentilo.common.rest.hmac;
+
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.http.entity.ContentType;
+
+/**
+ * Utility class to build an HMAC value from request content to use as header in notification
+ * callbacks.
+ * 
+ */
+public abstract class HMACBuilder {
+
+  private final static String DIGEST_ALGORITHM = "MD5";
+  private final static String MAC_ALGORITHM = "HmacSHA512";
+  private final static String HTTP_VERB = "POST";
+  private final static String TOKEN = "\n";
+
+  public static String buildHeader(final String body, final String endpoint, final String secret, final String currentDate)
+      throws GeneralSecurityException {
+    String contentMd5 = calculateMD5(body);
+    String toSign = getContentToSign(HTTP_VERB, contentMd5, ContentType.APPLICATION_JSON.getMimeType(), currentDate, endpoint);
+    return calculateHMAC(secret, toSign.toString());
+  }
+
+  private static String getContentToSign(String... values) {
+    StringBuilder content = new StringBuilder();
+    boolean first = true;
+
+    for (String value : values) {
+      if (!first) {
+        content.append(TOKEN);
+      }
+
+      content.append(value);
+
+      first = false;
+    }
+
+    return content.toString();
+  }
+
+  private static String calculateHMAC(String secret, String data) throws GeneralSecurityException {
+      SecretKeySpec signingKey = new SecretKeySpec(secret.getBytes(), MAC_ALGORITHM);
+
+      Mac mac = Mac.getInstance(MAC_ALGORITHM);
+      mac.init(signingKey);
+
+      byte[] rawHmac = mac.doFinal(data.getBytes());
+    return new String(Base64.encodeBase64(rawHmac));
+  }
+
+  private static String calculateMD5(String contentToEncode) throws NoSuchAlgorithmException {
+    MessageDigest digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
+    digest.update(contentToEncode.getBytes());
+    return new String(Base64.encodeBase64(digest.digest()));
+  }
+
+  private HMACBuilder() {
+    throw new AssertionError();
+  }
+
+}
+

@@ -38,7 +38,6 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 public class MessageListenerImpl implements MessageListener {
 
@@ -46,7 +45,7 @@ public class MessageListenerImpl implements MessageListener {
 
   private final String name;
   private final RedisSerializer<String> serializer = new StringRedisSerializer();
-  private final Map<String, String> subscriptions = new HashMap<String, String>();
+  private final Map<String, NotificationParams> subscriptions = new HashMap<String, NotificationParams>();
   private final NotificationSender notificator = new NotificationSender();
 
   public MessageListenerImpl(final String name) {
@@ -62,13 +61,14 @@ public class MessageListenerImpl implements MessageListener {
     logger.debug("{} -->  Recibido mensaje en el canal {}", name, channel);
     logger.debug("{} -->  Contenido del mensaje {}", name, info);
 
-    final String endpoint = getEndpoint(channel);
-    notificator.sendNotification(endpoint, info);
+    final NotificationParams params = getEndpoint(channel);
+    notificator.sendNotification(params, info);
   }
 
-  private String getEndpoint(final String channel) {
-    // Para saber a que endpoint se debe notificar simplemente se debe recuperar el valor asociado a
-    // channel en el map de subscriptions, ya que este valor es el endpoint.
+  private NotificationParams getEndpoint(final String channel) {
+    // Para saber que parametros utilizar para enviar la notificacion simplemente se debe recuperar
+    // el valor asociado a
+    // channel en el map de subscriptions, ya que este valor contiene los parámetros.
     // Pero al recuperar se debe tener en cuenta que el listener puede estar subscrito a un Channel
     // o a un Pattern.
     // Es decir, se puede estar subscrito o bien a
@@ -76,18 +76,18 @@ public class MessageListenerImpl implements MessageListener {
     // o
     // /data/providerId* (Pattern)
 
-    logger.debug("Search endpoint to channel {}", channel);
-    String endpoint = subscriptions.get(channel);
-    logger.debug("Found endpoint {} ", endpoint);
+    logger.debug("Search notification params for channel {}", channel);
+    NotificationParams params = subscriptions.get(channel);
+    logger.debug("Found params {} ", params);
 
-    if (!StringUtils.hasText(endpoint) && !ChannelUtils.isTopicPattern(channel)) {
+    if (params == null && !ChannelUtils.isPatternTopic(channel)) {
       String channelToPattern = ChannelUtils.channelToPattern(channel);
-      logger.debug("Search endpoint for pattern {} ", channelToPattern);
-      endpoint = subscriptions.get(channelToPattern);
-      logger.debug("Found endpoint {} ", endpoint);
+      logger.debug("Search notification params for pattern {} ", channelToPattern);
+      params = subscriptions.get(channelToPattern);
+      logger.debug("Found params {} ", params);
     }
 
-    return endpoint;
+    return params;
   }
 
   protected String getInfo(final Message message) {
@@ -99,12 +99,12 @@ public class MessageListenerImpl implements MessageListener {
   }
 
   public void addSubscription(final Topic topic, final Subscription subscription) {
-    addSubscription(topic, subscription.getEndpoint());
+    addSubscription(topic, new NotificationParams(subscription.getEndpoint(), subscription.getSecretCallbackKey()));
   }
 
-  public void addSubscription(final Topic topic, final String endpoint) {
-    // Si el listener ya estaba subscrito a un canal, sobreescribimos la información del endpoint.
-    subscriptions.put(topic.getTopic(), endpoint);
+  public void addSubscription(final Topic topic, final NotificationParams params) {
+    // Si el listener ya estaba subscrito a un canal, sobreescribimos la información de notificacion
+    subscriptions.put(topic.getTopic(), params);
   }
 
   public void removeSubscription(final Topic topic) {
@@ -140,5 +140,5 @@ public class MessageListenerImpl implements MessageListener {
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     return result * super.hashCode();
   }
-
+   
 }

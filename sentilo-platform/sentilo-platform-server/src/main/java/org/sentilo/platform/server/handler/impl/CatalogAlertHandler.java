@@ -58,8 +58,8 @@ public class CatalogAlertHandler extends AbstractHandler {
   @Autowired
   private CatalogService catalogService;
 
-  private final CatalogAlertParser parser = new CatalogAlertParser();
-  private final RequestMessageValidator<CatalogAlertInputMessage> validator = new CatalogAlertValidator();
+  private CatalogAlertParser parser = new CatalogAlertParser();
+  private RequestMessageValidator<CatalogAlertInputMessage> validator = new CatalogAlertValidator();
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {

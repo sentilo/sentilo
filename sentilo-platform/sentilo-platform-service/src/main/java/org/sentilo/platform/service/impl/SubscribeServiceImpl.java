@@ -34,10 +34,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.listener.MessageListenerImpl;
 import org.sentilo.platform.service.listener.MockMessageListenerImpl;
+import org.sentilo.platform.service.listener.NotificationParams;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.PubSubConstants;
 import org.slf4j.Logger;
@@ -48,6 +50,7 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Service
 public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements SubscribeService {
@@ -139,20 +142,35 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // - field: cada campo de la hash corresponderá a una subscripcion , por lo que el nombre del
     // campo identificará el canal al cual se está subscrito <event_type>/element_id, donde
     // element_id es el identificador del recurso al cual se esta subscrito.
-    // - value: el value del campo será el endpoint al cual se debe notificar via HTTP Callback.
+    // - value: el value del campo contiene la informacion necesaria para realizar la notificacion
+    // via HTTP Callback (estos datos son el endpoint, la secretKey a utilizar, ...)
 
     final Topic topic = ChannelUtils.getChannel(subscription);
 
+    String notificationParamsChain = buildNotificationParams(subscription);
+
     // Habilitamos listener
-    doRegisterSubscription(subscription.getSourceEntityId(), topic, subscription.getEndpoint());
+    doRegisterSubscription(subscription.getSourceEntityId(), topic, notificationParamsChain);
 
     // Persistimos en Redis la subscripcion
-    jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(), subscription.getEndpoint());
+    jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(), notificationParamsChain);
 
     logger.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
   }
+  
+  private String buildNotificationParams(final Subscription subscription) {
+    // Como el valor en las hash es un String, definimos un formato con el cual almacenar un String
+    // que contenga todos los parametros necesarios para realizar la notificacion (via callback):
+    // value = param1#@#param2#@#...#@#paramN
+    StringBuilder sb = new StringBuilder(subscription.getEndpoint());
+    if (StringUtils.hasText(subscription.getSecretCallbackKey())) {
+      sb.append(SentiloConstants.SENTILO_INTERNAL_TOKEN).append(subscription.getSecretCallbackKey());
+    }
 
-  private void doRegisterSubscription(final String listenerName, final Topic topic, final String endpoint) {
+    return sb.toString();
+  }
+
+  private void doRegisterSubscription(final String listenerName, final Topic topic, final String notificationParamsChain) {
     MessageListenerImpl listener = listeners.get(listenerName);
     if (listener == null) {
       listener = new MessageListenerImpl(listenerName);
@@ -162,7 +180,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     logger.debug("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
 
     listenerContainer.addMessageListener(listener, topic);
-    listener.addSubscription(topic, endpoint);
+    listener.addSubscription(topic, new NotificationParams(notificationParamsChain));
   }
 
   private void doRegisterMockSubscription() {
@@ -266,7 +284,8 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   @Override
   public List<Subscription> get(final Subscription subscription) {
     // Las subscripciones de una entidad estan registradas bajo la clave subs:idEntity en el
-    // Redis. El valor asociado a la clave es una hash de pares <channel, endpoint>
+    // Redis. El valor asociado a la clave es una hash de pares <channel, notificationParamsChain
+    // --> endpoint#@#secret>
     // donde cada channel representa una subscripción activa de esa entidad.
 
     logger.debug("Retrieving subscriptions for entity {}", subscription.getSourceEntityId());

@@ -46,10 +46,10 @@ public class CredentialDTO {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
+ // Hashcode return must be consistent with the equals method
+    final int prime = 73;
     int result = 1;
-    result = prime * result + ((entity == null) ? 0 : entity.hashCode());
-    result = prime * result + ((token == null) ? 0 : token.hashCode());
+    result = prime * result + ((entity == null) ? 0 : entity.hashCode());    
     return result;
   }
 

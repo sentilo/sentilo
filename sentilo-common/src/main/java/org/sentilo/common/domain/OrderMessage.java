@@ -64,7 +64,7 @@ public class OrderMessage {
 
   @JsonIgnore
   public Long getTimestampToMillis() {
-    return DateUtils.toMillis(getTimestamp());
+    return (timestamp != null ? DateUtils.toMillis(getTimestamp()) : null);
   }
 
   public String getTimestamp() {

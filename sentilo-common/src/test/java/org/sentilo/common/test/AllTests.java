@@ -27,7 +27,12 @@ package org.sentilo.common.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.sentilo.common.test.domain.CommonDomainTest;
+import org.sentilo.common.test.exception.SentiloExceptionsTest;
+import org.sentilo.common.test.hook.SentiloShutdownHookTest;
 import org.sentilo.common.test.parser.EventMessageConverterTest;
+import org.sentilo.common.test.rest.HMACBuilderTest;
+import org.sentilo.common.test.rest.IdentityKeyInterceptorTest;
 import org.sentilo.common.test.rest.RESTClientImplTest;
 import org.sentilo.common.test.rest.RequestParametersTest;
 import org.sentilo.common.test.utils.DateUtilsTest;
@@ -37,7 +42,9 @@ import org.sentilo.common.test.utils.URIUtilsTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({DateUtilsTest.class, EventMessageConverterTest.class, URIUtilsTest.class, RESTUtilsTest.class, 
-    RequestParametersTest.class, SentiloUtilsTest.class, RESTClientImplTest.class})
+ RequestParametersTest.class,
+    SentiloUtilsTest.class, RESTClientImplTest.class, HMACBuilderTest.class, IdentityKeyInterceptorTest.class, SentiloShutdownHookTest.class,
+    SentiloExceptionsTest.class, CommonDomainTest.class})
 public class AllTests {
 
 }

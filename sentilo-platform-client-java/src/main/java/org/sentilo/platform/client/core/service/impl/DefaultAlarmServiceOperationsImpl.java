@@ -39,7 +39,7 @@ public class DefaultAlarmServiceOperationsImpl extends AbstractServiceOperations
 
   private final Logger logger = LoggerFactory.getLogger(DefaultAlarmServiceOperationsImpl.class);
 
-  private final AlarmMessageConverter converter = new AlarmMessageConverter();
+  private AlarmMessageConverter converter = new AlarmMessageConverter();
 
   /*
    * (non-Javadoc)

@@ -34,7 +34,7 @@ public class NotificationSender {
 
   private final Logger logger = LoggerFactory.getLogger(NotificationSender.class);
 
-  private final RESTClient restClient = new RESTClientImpl();
+  private RESTClient restClient = new RESTClientImpl();
 
   public NotificationSender() {
     try {
@@ -44,9 +44,12 @@ public class NotificationSender {
     }
   }
 
-  public void sendNotification(final String endpoint, final String body) {
-    ((RESTClientImpl) restClient).setHost(endpoint);
-    logger.debug("Enviando notificacion {} a endpoint {}", body, endpoint);
+  public void sendNotification(final NotificationParams params, final String body) {
+    ((RESTClientImpl) restClient).setHost(params.getEndpoint());
+    // Previous secret key must be overridden at every call to force that every notification
+    // uses his assigned secret.
+    ((RESTClientImpl) restClient).setSecretKey(params.getSecretCallbackKey());
+    logger.debug("Enviando notificacion {} a endpoint {}", body, params.getEndpoint());
     restClient.post("", body);
   }
 }

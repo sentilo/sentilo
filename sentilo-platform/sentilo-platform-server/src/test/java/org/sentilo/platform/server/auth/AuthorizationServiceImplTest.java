@@ -32,6 +32,7 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.PermissionMessage;
@@ -50,6 +51,7 @@ public class AuthorizationServiceImplTest extends AbstractBaseTest {
   private final static String APPCLIENT2 = "appClient2";
   private final static String APPCLIENT3 = "appClient3";
 
+  @InjectMocks
   private AuthorizationServiceImpl service;
 
   @Mock
@@ -58,8 +60,7 @@ public class AuthorizationServiceImplTest extends AbstractBaseTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    service = new AuthorizationServiceImpl();
-    injectField("catalogService", catalogService, service, AuthorizationServiceImpl.class);
+
     when(catalogService.getPermissions()).thenReturn(getPermissions());
     service.loadActivePermissions();
   }

@@ -270,10 +270,6 @@ public class JedisTemplate<K, V> {
     });
   }
 
-  public void setJedisPoolUtils(final JedisPoolUtils jedisPoolUtils) {
-    this.jedisPoolUtils = jedisPoolUtils;
-  }
-
   // Definir en esta clase cada uno de los métodos de Jedis que estamos invocando.
   // Definir package dao en el cual añadir todas las clases de Jedis
   // Agrupar las operaciones por tipo de comando

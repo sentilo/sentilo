@@ -85,10 +85,11 @@ public class User implements CatalogDocument {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
+ // Hashcode return must be consistent with the equals method
+    final int prime = 71;
     int result = 1;
     result = prime * result + ((userName == null) ? 0 : userName.hashCode());
-    return result * super.hashCode();
+    return result;
   }
 
   @Override

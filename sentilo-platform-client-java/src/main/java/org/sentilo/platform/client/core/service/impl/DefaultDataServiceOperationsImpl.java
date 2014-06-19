@@ -39,7 +39,7 @@ public class DefaultDataServiceOperationsImpl extends AbstractServiceOperationsI
 
   private final Logger logger = LoggerFactory.getLogger(DefaultDataServiceOperationsImpl.class);
 
-  private final DataMessageConverter converter = new DataMessageConverter();
+  private DataMessageConverter converter = new DataMessageConverter();
 
   @Override
   public ObservationsOutputMessage getLastObservations(final DataInputMessage message) {

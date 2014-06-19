@@ -63,29 +63,39 @@ public class SubscribeParser extends PlatformJsonMessageConverter {
 
     final String entityId = request.getEntitySource();
     final String endpoint = (inputMessage != null ? inputMessage.getEndpoint() : null);
+    final String secret = (inputMessage != null ? inputMessage.getSecretCallbackKey() : null);
 
     String providerId, sensorId;
+    Subscription subscription;
     if (subscribeType != null) {
       switch (subscribeType) {
         case DATA:
           providerId = (resourceHasEvent ? request.getResourcePart(1) : request.getResourcePart(0));
           sensorId = (resourceHasEvent ? request.getResourcePart(2) : request.getResourcePart(1));
-          return new DataSubscription(entityId, endpoint, providerId, sensorId);
+          subscription = new DataSubscription(entityId, endpoint, providerId, sensorId);
+          subscription.setSecretCallbackKey(secret);
+          break;
         case ORDER:
           providerId = request.getResourcePart(1);
           sensorId = request.getResourcePart(2);
-          return new OrderSubscription(entityId, providerId, sensorId, endpoint);
+          subscription = new OrderSubscription(entityId, providerId, sensorId, endpoint);
+          subscription.setSecretCallbackKey(secret);
+          break;
         case ALARM:
           final String alertId = request.getResourcePart(1);
-          return new AlarmSubscription(entityId, null, endpoint, alertId);
+          subscription = new AlarmSubscription(entityId, null, endpoint, alertId);
+          subscription.setSecretCallbackKey(secret);
+          break;
         default:
           throw new PlatformException(HttpStatus.SC_BAD_REQUEST, "Illegal subscribe event type:" + subscribeType);
       }
     } else {
       // TODO Mikel: Revisar ya que ahora fijamos source / target al mismo entityId. Por aqui solo
       // pasaran subscripciones del tipo GET o DELETE
-      return new Subscription(entityId, entityId, endpoint);
+      subscription = new Subscription(entityId, entityId, endpoint);
     }
+
+    return subscription;
 
   }
 

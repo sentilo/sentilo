@@ -45,8 +45,8 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
 
   private final Logger logger = LoggerFactory.getLogger(DefaultCatalogServiceOperationsImpl.class);
 
-  private final CatalogMessageConverter converter = new CatalogMessageConverter();
-  private final CatalogAlertMessageConverter alertConverter = new CatalogAlertMessageConverter();
+  private CatalogMessageConverter converter = new CatalogMessageConverter();
+  private CatalogAlertMessageConverter alertConverter = new CatalogAlertMessageConverter();
 
   /*
    * (non-Javadoc)

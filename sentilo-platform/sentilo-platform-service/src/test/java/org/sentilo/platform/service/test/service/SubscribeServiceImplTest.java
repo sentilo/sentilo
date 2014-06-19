@@ -25,6 +25,7 @@
  */
 package org.sentilo.platform.service.test.service;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,6 +42,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.AlarmSubscription;
 import org.sentilo.platform.common.domain.DataSubscription;
 import org.sentilo.platform.common.domain.OrderSubscription;
@@ -178,6 +180,9 @@ public class SubscribeServiceImplTest {
 
     verify(jedisTemplate).hGetAll(key);
     assertTrue(subscriptions.size() == buildSubscriptions().size());
+    for (Subscription subscription : subscriptions) {
+      assertNull(subscription.getSecretCallbackKey());
+    }
 
   }
 
@@ -195,10 +200,9 @@ public class SubscribeServiceImplTest {
   }
 
   private void initSubscription(final Subscription subscription) {
-    final String entityId = "prov1";
-    final String endpoint = "http://www.opentrends.net/endpoint";
-    when(subscription.getSourceEntityId()).thenReturn(entityId);
-    when(subscription.getEndpoint()).thenReturn(endpoint);
+    when(subscription.getSourceEntityId()).thenReturn("prov1");
+    when(subscription.getEndpoint()).thenReturn("http://127.0.0.1/endpoint");
+    when(subscription.getSecretCallbackKey()).thenReturn("ABCDEFGH");
   }
 
   private void verifySubscribe(final Subscription subscription) {
@@ -208,7 +212,8 @@ public class SubscribeServiceImplTest {
 
     service.subscribe(subscription);
 
-    verify(jedisTemplate).hSet(key, topic.getTopic(), subscription.getEndpoint());
+    verify(jedisTemplate).hSet(key, topic.getTopic(),
+        subscription.getEndpoint() + SentiloConstants.SENTILO_INTERNAL_TOKEN + subscription.getSecretCallbackKey());
   }
 
   private Set<String> getTopics() {
@@ -224,7 +229,7 @@ public class SubscribeServiceImplTest {
 
   private Map<String, String> buildSubscriptions() {
     final Map<String, String> subscriptions = new HashMap<String, String>();
-    subscriptions.put("/data/provider1/sensor1", "endpoint1");
+    subscriptions.put("/data/provider1/sensor1", "endpoint1#@#ABCDEFGH");
     subscriptions.put("/data/provider2*", "endpoint2");
     return subscriptions;
   }

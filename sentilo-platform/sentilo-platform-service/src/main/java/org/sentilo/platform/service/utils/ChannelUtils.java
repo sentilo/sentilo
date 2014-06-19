@@ -36,6 +36,7 @@ import org.sentilo.platform.common.domain.DataSubscription;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.OrderSubscription;
 import org.sentilo.platform.common.domain.Subscription;
+import org.sentilo.platform.service.listener.NotificationParams;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.Topic;
@@ -102,15 +103,18 @@ public final class ChannelUtils {
     }
   }
 
-  public static Subscription getSubscription(final String entityId, final String channel, final String endpoint) {
+  public static Subscription getSubscription(final String entityId, final String channel, final String notificationParamsChain) {
     Assert.notNull(channel);
 
     // channel follow the following format: /<type>/<resourceId1>/<resourceId2>
     // where <resourceId2> is optional
     // and <resouceId1> could represent a pattern (ends with *)
+    // notificationParamsChain --> endpoint#@#secret
 
     final String[] tokens = channel.split(PubSubConstants.REDIS_CHANNEL_TOKEN);
     final PubSubChannelPrefix type = PubSubChannelPrefix.valueOf(tokens[1]);
+    final NotificationParams notificationParams = new NotificationParams(notificationParamsChain);
+    String endpoint = notificationParams.getEndpoint();
     Subscription subscription = null;
     String providerId, sensorId;
     switch (type) {
@@ -154,14 +158,14 @@ public final class ChannelUtils {
   }
 
   public static Topic buildTopic(final String topicName) {
-    if (isTopicPattern(topicName)) {
+    if (isPatternTopic(topicName)) {
       return new PatternTopic(topicName);
     } else {
       return new ChannelTopic(topicName);
     }
   }
 
-  public static boolean isTopicPattern(final String topic) {
+  public static boolean isPatternTopic(final String topic) {
     return StringUtils.hasText(topic) && topic.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX);
   }
 
@@ -174,7 +178,7 @@ public final class ChannelUtils {
 
     String pattern = channel;
 
-    if (!isTopicPattern(channel)) {
+    if (!isPatternTopic(channel)) {
       final int lastPos = channel.lastIndexOf(PubSubConstants.REDIS_CHANNEL_TOKEN);
       pattern = channel.substring(0, lastPos).concat(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX);
     }
