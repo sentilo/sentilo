@@ -54,6 +54,7 @@ import org.sentilo.platform.server.response.SentiloResponse;
 
 public class SubscribeParserTest {
 
+
   private SubscribeParser parser;
   @Mock
   private SentiloRequest sentiloRequest;
@@ -78,7 +79,7 @@ public class SubscribeParserTest {
     final String sensorId = "sensor1";
     final String endpoint = "www.opentrends.net";
 
-    final String json = "{\"endpoint\":\"www.opentrends.net\"}";
+    final String json = "{\"endpoint\":\"www.opentrends.net\", \"secretCallbackKey\":\"ABCDEFGH\"}";
 
     when(sentiloRequest.getBody()).thenReturn(json);
     when(sentiloRequest.getResourcePart(0)).thenReturn(eventType);
@@ -87,11 +88,12 @@ public class SubscribeParserTest {
 
     final Subscription message = parser.parseRequest(sentiloRequest);
 
-    assertEquals(message.getEndpoint(), endpoint);
-    assertEquals(message.getSourceEntityId(), identityKeyProvider);
+    assertEquals(endpoint, message.getEndpoint());
+    assertEquals(identityKeyProvider, message.getSourceEntityId());
     assertTrue(message instanceof DataSubscription);
-    assertEquals(((DataSubscription) message).getProviderId(), providerId);
-    assertEquals(((DataSubscription) message).getSensorId(), sensorId);
+    assertEquals(providerId, ((DataSubscription) message).getProviderId());
+    assertEquals(sensorId, ((DataSubscription) message).getSensorId());
+    assertEquals("ABCDEFGH", message.getSecretCallbackKey());
   }
 
   @Test
@@ -109,11 +111,12 @@ public class SubscribeParserTest {
 
     final Subscription message = parser.parseRequest(sentiloRequest, SubscribeType.DATA);
 
-    assertEquals(message.getEndpoint(), endpoint);
-    assertEquals(message.getSourceEntityId(), identityKeyProvider);
+    assertEquals(endpoint, message.getEndpoint());
+    assertEquals(identityKeyProvider, message.getSourceEntityId());
     assertTrue(message instanceof DataSubscription);
-    assertEquals(((DataSubscription) message).getProviderId(), providerId);
-    assertEquals(((DataSubscription) message).getSensorId(), sensorId);
+    assertEquals(providerId, ((DataSubscription) message).getProviderId());
+    assertEquals(sensorId, ((DataSubscription) message).getSensorId());
+    assertNull(message.getSecretCallbackKey());
   }
 
   @Test
@@ -137,6 +140,7 @@ public class SubscribeParserTest {
     assertTrue(message instanceof AlarmSubscription);
     assertEquals(alarmId, ((AlarmSubscription) message).getAlertId());
     assertNull(message.getOwnerEntityId());
+    assertNull(message.getSecretCallbackKey());
   }
 
   @Test
@@ -160,6 +164,7 @@ public class SubscribeParserTest {
     assertEquals(identityKeyProvider, message.getSourceEntityId());
     assertEquals(providerId, message.getOwnerEntityId());
     assertTrue(message instanceof OrderSubscription);
+    assertNull(message.getSecretCallbackKey());
   }
 
   @Test

@@ -381,8 +381,12 @@
 	    	});		    	
 	    };
 
-	    function initElements(){
-			oms.addListener('click', function(poi) {							
+	    function initElements(){			
+	    	// Can only be one listener registered and associated with the click event, therefore, before registering
+            // a new listener, we must do a call to remove all previous listeners on the specified event.
+        	oms.clearListeners('click');
+	    	
+	    	oms.addListener('click', function(poi) {							
 		    	closeInfoWindow();
 		    	map.setCenter(poi.getPosition());
 		    	window.setTimeout(function(event) {

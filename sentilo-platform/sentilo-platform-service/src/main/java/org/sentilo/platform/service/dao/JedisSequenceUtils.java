@@ -177,9 +177,4 @@ public class JedisSequenceUtils {
     final String value = jedisTemplate.get(key);
     return (NIL.equals(value) || value == null ? new Long(0) : Long.valueOf(value));
   }
-
-  public void setJedisTemplate(final JedisTemplate<String, String> jedisTemplate) {
-    this.jedisTemplate = jedisTemplate;
-  }
-
 }

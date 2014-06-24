@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.web.catalog.domain.Alert;
@@ -56,13 +57,12 @@ public class AlertValidatorTest extends AbstractBaseTest {
   @Mock
   private Errors errors;
 
+  @InjectMocks
   private AlertValidator alertValidator;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    alertValidator = new AlertValidator();
-    injectMocks();
   }
 
   @Test
@@ -145,9 +145,4 @@ public class AlertValidatorTest extends AbstractBaseTest {
 
     verify(errors).reject(anyString());
   }
-
-  private void injectMocks() throws Exception {
-    injectField("sensorService", sensorService, alertValidator, AlertValidator.class);
-  }
-
 }

@@ -27,12 +27,17 @@ package org.sentilo.agent.alert.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.sentilo.agent.alert.test.domain.AlarmTest;
+import org.sentilo.agent.alert.test.listener.ConnectionMonitorListenerTest;
 import org.sentilo.agent.alert.test.listener.MessageListenerImplTest;
+import org.sentilo.agent.alert.test.scheduler.CheckFrozenAlarmJobTest;
+import org.sentilo.agent.alert.test.scheduler.SubscribeInternalAlarmsJobTest;
 import org.sentilo.agent.alert.test.service.AlarmServiceImplTest;
 import org.sentilo.agent.alert.test.trigger.TriggerEvaluatorTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({MessageListenerImplTest.class, TriggerEvaluatorTest.class, AlarmServiceImplTest.class})
+@Suite.SuiteClasses({MessageListenerImplTest.class, TriggerEvaluatorTest.class, AlarmServiceImplTest.class, CheckFrozenAlarmJobTest.class,
+    SubscribeInternalAlarmsJobTest.class, AlarmTest.class, ConnectionMonitorListenerTest.class})
 public class AllTests {
 
 }

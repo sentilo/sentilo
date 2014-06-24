@@ -10,7 +10,7 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.3.0</version>		
+		<version>1.4.0</version>		
 	</parent>
 
 	<properties>		

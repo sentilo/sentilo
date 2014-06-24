@@ -28,6 +28,7 @@ package org.sentilo.agent.relational.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.sentilo.agent.relational.test.dao.impl.AgentRelationalDaoImplTest;
+import org.sentilo.agent.relational.test.event.SubscriptionsInitListenerTest;
 import org.sentilo.agent.relational.test.jdbc.SentiloRoutingDataSourceTest;
 import org.sentilo.agent.relational.test.service.impl.DataTrackServiceImplTest;
 import org.sentilo.agent.relational.test.service.listener.ConnectionMonitorListenerTest;
@@ -36,7 +37,9 @@ import org.sentilo.agent.relational.test.service.listener.MonitorMessageListener
 import org.sentilo.agent.relational.test.utils.UtilsTest;
 
 @RunWith(Suite.class)
-@Suite.SuiteClasses({AgentRelationalDaoImplTest.class, DataTrackServiceImplTest.class, MessageListenerImplTest.class, SentiloRoutingDataSourceTest.class, MonitorMessageListenerImplTest.class, ConnectionMonitorListenerTest.class, UtilsTest.class})
+@Suite.SuiteClasses({AgentRelationalDaoImplTest.class, DataTrackServiceImplTest.class, MessageListenerImplTest.class,
+    SentiloRoutingDataSourceTest.class, MonitorMessageListenerImplTest.class, ConnectionMonitorListenerTest.class, UtilsTest.class,
+    SubscriptionsInitListenerTest.class})
 public class AllTests {
 
 }

@@ -49,8 +49,4 @@ public class RESTClientException extends NestedRuntimeException {
   public int getStatus() {
     return status;
   }
-
-  public void setStatus(final int status) {
-    this.status = status;
-  }
 }

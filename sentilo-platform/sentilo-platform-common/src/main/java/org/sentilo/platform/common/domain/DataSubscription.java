@@ -30,16 +30,16 @@ import org.springframework.util.StringUtils;
 
 public class DataSubscription extends Subscription {
 
-  private final String providerId;
-  private final String sensorId;
+  private String providerId;
+  private String sensorId;
 
   public DataSubscription(final String entityId, final String endpoint, final String providerId) {
-    this(entityId, endpoint, providerId, null);
+    super(entityId, providerId, endpoint, SubscribeType.DATA);
+    this.providerId = providerId;
   }
 
   public DataSubscription(final String entityId, final String endpoint, final String providerId, final String sensorId) {
-    super(entityId, providerId, endpoint, SubscribeType.DATA);
-    this.providerId = providerId;
+    this(entityId, endpoint, providerId);
     this.sensorId = sensorId;
   }
 

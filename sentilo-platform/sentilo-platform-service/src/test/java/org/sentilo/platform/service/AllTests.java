@@ -27,6 +27,13 @@ package org.sentilo.platform.service;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.sentilo.platform.service.test.dao.JedisKeysBuilderTest;
+import org.sentilo.platform.service.test.dao.JedisPoolUtilsTest;
+import org.sentilo.platform.service.test.dao.JedisSequenceUtilsTest;
+import org.sentilo.platform.service.test.dao.JedisTemplateTest;
+import org.sentilo.platform.service.test.listener.ConnectionMonitorListenerTest;
+import org.sentilo.platform.service.test.listener.MonitorMessageListenerImplTest;
+import org.sentilo.platform.service.test.listener.NotificationSenderTest;
 import org.sentilo.platform.service.test.parser.CatalogServiceParserTest;
 import org.sentilo.platform.service.test.service.AdminServiceImplTest;
 import org.sentilo.platform.service.test.service.AlarmServiceImplTest;
@@ -37,7 +44,9 @@ import org.sentilo.platform.service.test.service.SubscribeServiceImplTest;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({AlarmServiceImplTest.class, DataServiceImplTest.class, OrderServiceImplTest.class, SubscribeServiceImplTest.class,
-    CatalogServiceParserTest.class, AdminServiceImplTest.class, ResourceServiceImplTest.class})
+    CatalogServiceParserTest.class, AdminServiceImplTest.class, ResourceServiceImplTest.class, ConnectionMonitorListenerTest.class,
+    MonitorMessageListenerImplTest.class, NotificationSenderTest.class, JedisKeysBuilderTest.class, JedisPoolUtilsTest.class,
+    JedisSequenceUtilsTest.class, JedisTemplateTest.class})
 public class AllTests {
 
 }

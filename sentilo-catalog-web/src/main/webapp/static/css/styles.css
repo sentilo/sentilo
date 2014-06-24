@@ -224,6 +224,10 @@ body {
 	padding: 14px 15px 11px;
 }
 
+navbar .nav > li > a {
+    text-shadow: none;
+}
+
 .navbar .btn,.navbar .btn-group,.navbar .navbar-search {
 	margin-top: 7px;
 }
@@ -296,30 +300,41 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
 }
 
 .infobox {
-	text-align: center;
+	text-align: right;
 	color: #000;
 	z-index: 1000;
 	padding: 5px;
-	margin: 2px 0 0;
+	margin: -10px auto;
 	background-color: #ffffff;
-	border: 1px solid #ccc;
-	border: 1px solid rgba(0, 0, 0, 0.2);
+	border: 5px solid #ccc;
+	border: 5px solid rgba(0, 0, 0, 0.2);
 	-webkit-border-radius: 6px;
 	-moz-border-radius: 6px;
 	border-radius: 6px;
-	-webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-	-moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+	-webkit-box-shadow:none;
+	-moz-box-shadow:none;
+	box-shadow:none;
 	-webkit-background-clip: padding-box;
 	-moz-background-clip: padding;
 	background-clip: padding-box;
 	min-width: 180px;
+	max-height: 310px;
+	width:100%;
+	overflow-y: hidden;
 }
 
 .infobox h1 {
 	font-size: 24px;
 	margin: 0px;
-	text-align: center
+	text-align: right;
+	padding-right: 15px;
+	padding-left: 15px;
+	padding-top: 15px;
+	line-height:26px;
+	font-weight: lighter;
+	max-width:180px;
+	text-overflow:ellipsis;	
+	overflow:hidden;
 }
 
 .infobox h2 {
@@ -329,12 +344,32 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
 }
 
 .infobox a {
-	text-decoration: underline;
+	text-decoration: none;
+	text-align: center;
+	display: block;
 }
 
+.infobox .label-info {
+	background-color: transparent;
+	margin-top:-10px;
+	padding: 0px 15px;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 14px;
+	color: #aaa;
+	text-shadow: none;
+	white-space: nowrap;
+	vertical-align: baseline;
+	text-align: right;
+	max-width:120px;
+	text-overflow:ellipsis;	
+	overflow:hidden;
+}
+
+
+
 .mapInfoBox {
-    float: left;
-    min-width: 180px;
+    float: right;
 }
 
 h1 small {

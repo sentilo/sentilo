@@ -39,7 +39,7 @@ public class DefaultOrderServiceOperationsImpl extends AbstractServiceOperations
 
   private final Logger logger = LoggerFactory.getLogger(DefaultOrderServiceOperationsImpl.class);
 
-  private final OrderMessageConverter converter = new OrderMessageConverter();
+  private OrderMessageConverter converter = new OrderMessageConverter();
 
   @Override
   public void publish(final OrderInputMessage message) {

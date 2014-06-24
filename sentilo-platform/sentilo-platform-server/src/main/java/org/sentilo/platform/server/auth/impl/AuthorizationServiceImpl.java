@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.PermissionMessage;
 import org.sentilo.platform.common.domain.PermissionsMessage;
 import org.sentilo.platform.common.exception.CatalogAccessException;
@@ -112,7 +113,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     Assert.notNull(source);
     Assert.notNull(target);
 
-    return source + "#@#" + target;
+    return source + SentiloConstants.SENTILO_INTERNAL_TOKEN + target;
   }
 
   @Scheduled(initialDelay = 1000, fixedRate = 300000)

@@ -47,6 +47,7 @@ import org.sentilo.web.catalog.test.AbstractBaseTest;
 import org.sentilo.web.catalog.validator.AlertValidator;
 import org.sentilo.web.catalog.validator.ApiAlertValidator;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class ApiAlertValidatorTest extends AbstractBaseTest {
 
@@ -67,7 +68,10 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
     MockitoAnnotations.initMocks(this);
     apiAlertValidator = new ApiAlertValidator();
     validator = new AlertValidator();
-    injectMocks();
+    
+    ReflectionTestUtils.setField(apiAlertValidator, "repository", repository);
+    ReflectionTestUtils.setField(apiAlertValidator, "validator", validator);
+    ReflectionTestUtils.setField(validator, "sensorService", sensorService);
   }
 
   @Test
@@ -124,12 +128,6 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(!results.hasErrors());
-  }
-
-  private void injectMocks() throws Exception {
-    injectField("repository", repository, apiAlertValidator, ApiAlertValidator.class);
-    injectField("validator", validator, apiAlertValidator, ApiAlertValidator.class);
-    injectField("sensorService", sensorService, validator, AlertValidator.class);
   }
 
   private List<Alert> generateRandomAlerts(boolean withErrors, Type type) throws Exception {

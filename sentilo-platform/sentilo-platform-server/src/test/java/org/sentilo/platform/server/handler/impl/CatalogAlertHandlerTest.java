@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.CatalogAlert;
@@ -53,6 +54,8 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
 
   private static final String PROVIDER1 = "provider1";
   private static final String PROVIDER2 = "provider2";
+
+  @InjectMocks
   private CatalogAlertHandler handler;
   @Mock
   private CatalogService service;
@@ -75,17 +78,16 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    handler = new CatalogAlertHandler();
 
-    injectMocks();
     handler.setAuthorizationService(authorizationService);
     when(request.getResource()).thenReturn(resource);
     when(message.getEntityId()).thenReturn(PROVIDER1);
     when(authorizationService.hasAccessToRead(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToWrite(anyString(), anyString())).thenReturn(true);
+    when(authorizationService.hasAccessToAdmin(anyString(), anyString())).thenReturn(true);
   }
 
-  // @Test
+  @Test
   public void onGet() throws Exception {
     when(parser.parseGetRequest(request)).thenReturn(message);
     when(service.getAuthorizedAlerts(message)).thenReturn(responseMessage);
@@ -99,7 +101,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     verify(parser).writeResponse(any(SentiloRequest.class), any(SentiloResponse.class), any(CatalogAlertResponseMessage.class));
   }
 
-  // @Test
+  @Test
   public void onPost() throws Exception {
     List<CatalogAlert> alerts = getAlerts();
     when(parser.parsePostRequest(request)).thenReturn(message);
@@ -114,7 +116,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     verify(service).insertAlerts(message);
   }
 
-  // @Test
+  @Test
   public void onDelete() throws Exception {
     when(parser.parseDeleteRequest(request, false)).thenReturn(message);
     when(service.deleteAlerts(message)).thenReturn(responseMessage);
@@ -127,7 +129,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     verify(service).deleteAlerts(message);
   }
 
-  // @Test
+  @Test
   public void onPostWithBadRequest() throws Exception {
     when(parser.parsePostRequest(request)).thenReturn(message);
     when(responseMessage.getCode()).thenReturn(CatalogAlertResponseMessage.BAD_REQUEST);
@@ -140,7 +142,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     }
   }
 
-  // @Test
+  @Test
   public void onPostWithInternalServerError() throws Exception {
     final List<CatalogAlert> alerts = getAlerts();    
     when(parser.parsePostRequest(request)).thenReturn(message);
@@ -156,7 +158,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     }
   }
 
-  // @Test
+  @Test
   public void onPostUnauthorizedAlerts() throws Exception {
     final List<CatalogAlert> alerts = getInternalAlerts();
     when(parser.parsePostRequest(request)).thenReturn(message);
@@ -170,7 +172,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     }
   }
 
-  // @Test
+  @Test
   public void onPut() throws Exception {
     List<CatalogAlert> alerts = getAlerts();
     when(parser.parsePutRequest(request)).thenReturn(message);
@@ -185,7 +187,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     verify(service).updateAlerts(message);
   }
 
-  // @Test
+  @Test
   public void onPutWithBadRequest() throws Exception {
     when(parser.parsePutRequest(request)).thenReturn(message);
     when(responseMessage.getCode()).thenReturn(CatalogAlertResponseMessage.BAD_REQUEST);
@@ -198,7 +200,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     }
   }
 
-  // @Test
+  @Test
   public void onPutWithInternalServerError() throws Exception {
     final List<CatalogAlert> alerts = getAlerts();
 
@@ -221,6 +223,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
 
     when(parser.parsePutRequest(request)).thenReturn(message);
     when(message.getAlerts()).thenReturn(alerts);
+    when(authorizationService.hasAccessToAdmin(PROVIDER2, PROVIDER1)).thenReturn(false);
 
     simulateRequest(HttpMethod.PUT, PROVIDER1);
     try {
@@ -246,10 +249,6 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     return alerts;
   }
 
-  private void injectMocks() throws Exception {
-    injectField("catalogService", service, handler, CatalogAlertHandler.class);
-    injectField("parser", parser, handler, CatalogAlertHandler.class);
-  }
 
   private void simulateRequest(final HttpMethod method, final String tokenProvider) throws PlatformException{
     simulateRequest(method, tokenProvider, HandlerPath.CATALOG_ALERT.getPath() + "/" + PROVIDER1);

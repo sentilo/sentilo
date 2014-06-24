@@ -41,6 +41,7 @@ import javax.validation.ConstraintViolation;
 import org.hibernate.validator.HibernateValidator;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.web.catalog.domain.Component;
@@ -80,13 +81,12 @@ public class ApiValidatorTest extends AbstractBaseTest {
   @Mock
   private Validator validator;
 
+  @InjectMocks
   private ApiValidator apiValidator;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    apiValidator = new ApiValidator();
-    injectMocks();
 
     when(sensorTypesService.findAll()).thenReturn(getSensorTypes());
     when(componentTypesService.findAll()).thenReturn(Collections.<ComponentType>emptyList());
@@ -187,10 +187,4 @@ public class ApiValidatorTest extends AbstractBaseTest {
     return Arrays.asList(sensorTypes);
   }
 
-  private void injectMocks() throws Exception {
-    injectField("sensorService", sensorService, apiValidator, ApiValidator.class);
-    injectField("sensorTypesService", sensorTypesService, apiValidator, ApiValidator.class);
-    injectField("componentTypesService", componentTypesService, apiValidator, ApiValidator.class);
-    injectField("validator", validator, apiValidator, ApiValidator.class);
-  }
 }

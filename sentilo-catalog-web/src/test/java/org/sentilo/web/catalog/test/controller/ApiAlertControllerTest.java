@@ -41,6 +41,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -69,6 +70,7 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
   private static final String MOCK_ENTITY = "mockEntity";
   private static final String MOCK_ERROR_MSG = "mockMessage";
 
+  @InjectMocks
   ApiAlertController controller;
 
   @Mock
@@ -89,8 +91,6 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    controller = new ApiAlertController();
-    injectMocks();
   }
 
   @Test
@@ -307,13 +307,6 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     verify(alertService).deleteOwnAlerts(MOCK_ENTITY);
     verify(alertService, times(0)).delete(Matchers.<Collection<Alert>>any());
     Assert.assertEquals(CatalogAlertResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
-  }
-
-  private void injectMocks() throws Exception {
-    injectField("permissionService", permissionService, controller, ApiAlertController.class);
-    injectField("alertService", alertService, controller, ApiAlertController.class);
-    injectField("providerService", providerService, controller, ApiAlertController.class);
-    injectField("validator", validator, controller, ApiAlertController.class);
   }
 
   public class MockDataAccessException extends DataAccessException {

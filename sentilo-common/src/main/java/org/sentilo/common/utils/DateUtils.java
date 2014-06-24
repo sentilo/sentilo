@@ -81,9 +81,16 @@ public abstract class DateUtils {
   }
 
   private static String formatToUTC(final String localTime) {
-    // Returns localTime + '+0000' . There is no problem if timeZone token is duplicate because
-    // pattern only inspects the first occurrence of the timeZone in localTime
-    return localTime.concat(UTC_SUFFIX);
+    // If localTime has the timeZone filled in, returns localTime unmodified. Otherwise, returns
+    // localTime + '+0000'
+    // To check if timeZone is filled in, we try to parse localTime with the TZ_PSAB_DF format
+    try {
+      TZ_PSAB_DF.parse(localTime);
+      return localTime;
+    } catch (final ParseException e) {
+      return localTime.concat(UTC_SUFFIX);
+    }
+
   }
 
 }
