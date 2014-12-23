@@ -2107,7 +2107,7 @@
 				}
 				
 				/* Now do the filter */
-				if ( val != oPreviousSearch.sSearch )
+				if ( val != oPreviousSearch.sSearch && e.keyCode == 13)
 				{
 					_fnFilterComplete( oSettings, { 
 						"sSearch": val, 

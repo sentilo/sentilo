@@ -53,7 +53,8 @@ public abstract class QueryFilterParamsUtils {
     if (!message.hasQueryFilters() || message.getQueryFilters().getLimit() == null) {
       return SentiloConstants.DEFAULT_NUM_ELEMENTS;
     } else {
-      return (message.getQueryFilters().getLimit() > SentiloConstants.NUM_MAXIM_ELEMENTS ? SentiloConstants.NUM_MAXIM_ELEMENTS : message.getQueryFilters().getLimit());
+      return (message.getQueryFilters().getLimit() > SentiloConstants.NUM_MAXIM_ELEMENTS ? SentiloConstants.NUM_MAXIM_ELEMENTS : message
+          .getQueryFilters().getLimit());
     }
   }
 

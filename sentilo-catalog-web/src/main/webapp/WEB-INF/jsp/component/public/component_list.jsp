@@ -5,18 +5,19 @@
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
 <spring:url value="/component/" var="detailPrefix" />
-<spring:url value="/component/list/json" var="sAjaxSource" />
+<spring:url value="/component/list/json" var="sAjaxSourceComp" />
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
 <script type="text/javascript">
-var firstColumnRenderDelegate = function (data, type, row) {
-	return '';
-}; 
 
-$(document).ready(function() {	
-	makeTableAsync('${sAjaxSource}', '#componentTable', '${detailPrefix}', false, firstColumnRenderDelegate);
-});
+	$(document).ready(function() {	
+		var firstColumnRenderDelegate = function (data, type, row) {
+			return '';
+		}; 
+
+		makeTableAsync('${sAjaxSourceComp}', '#componentTable',);
+	});
 </script>
 
 <div class="container-fluid">
@@ -32,23 +33,7 @@ $(document).ready(function() {
 					<br />
 				</h1>
 
-				<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="components"
-					action="${deleteURL}">
-					<table class="table table-striped" id="componentTable">
-						<thead>
-							<tr>
-								<td>&nbsp;
-								</th>
-								<td><strong><spring:message code="component.id" /> </strong></td>
-								<td><strong><spring:message code="component.name" /> </strong></td>
-								<td><strong><spring:message code="component.description" /> </strong></td>
-								<td><strong><spring:message code="component.location" /> </strong></td>
-								<td><strong><spring:message code="component.createdAt" /> </strong></td>
-							</tr>
-						</thead>
-						<tbody />
-					</table>
-				</form:form>
+				<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
 			</div>
 		</div>
 	</div>

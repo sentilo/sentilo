@@ -81,7 +81,7 @@ public class MessageListenerImpl implements MessageListener {
     logger.debug("Found params {} ", params);
 
     if (params == null && !ChannelUtils.isPatternTopic(channel)) {
-      String channelToPattern = ChannelUtils.channelToPattern(channel);
+      final String channelToPattern = ChannelUtils.channelToPattern(channel);
       logger.debug("Search notification params for pattern {} ", channelToPattern);
       params = subscriptions.get(channelToPattern);
       logger.debug("Found params {} ", params);
@@ -140,5 +140,5 @@ public class MessageListenerImpl implements MessageListener {
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     return result * super.hashCode();
   }
-   
+
 }

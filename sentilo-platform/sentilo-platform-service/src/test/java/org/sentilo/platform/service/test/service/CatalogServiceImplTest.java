@@ -182,7 +182,6 @@ public class CatalogServiceImplTest {
     service.updateAlerts(alertMessage);
   }
 
-
   @Test
   public void deleteAlerts() {
     final String path = "api/alert/entity/" + alertMessage.getEntityId() + "/delete";
@@ -195,10 +194,8 @@ public class CatalogServiceImplTest {
   @Test(expected = CatalogAccessException.class)
   public void badRequestDeleteAlerts() {
     doThrow(RestClientException.class).when(restClient).put(any(String.class), any(String.class));
-    
+
     service.deleteAlerts(alertMessage);
   }
 
-
 }
-

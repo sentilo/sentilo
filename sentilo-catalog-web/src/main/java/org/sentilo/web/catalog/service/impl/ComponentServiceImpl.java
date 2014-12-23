@@ -28,20 +28,29 @@ package org.sentilo.web.catalog.service.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.repository.ComponentRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
+import org.sentilo.web.catalog.search.SearchFilterResult;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.SensorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.geo.Box;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> implements ComponentService {
+
+  private final Logger logger = LoggerFactory.getLogger(ComponentServiceImpl.class);
 
   @Autowired
   private ComponentRepository repository;
@@ -64,7 +73,10 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
 
   /*
    * (non-Javadoc)
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#getEntityId(org.sentilo.web.catalog.domain.CatalogDocument)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#getEntityId(org.sentilo.web.catalog
+   * .domain.CatalogDocument)
    */
   public String getEntityId(final Component entity) {
     return entity.getId();
@@ -72,7 +84,9 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
 
   /*
    * (non-Javadoc)
-   * @see org.sentilo.web.catalog.service.ComponentService#updateMulti(java.util.Collection, java.lang.String, java.lang.Object)
+   * 
+   * @see org.sentilo.web.catalog.service.ComponentService#updateMulti(java.util.Collection,
+   * java.lang.String, java.lang.Object)
    */
   public void updateMulti(final Collection<String> componentsIds, final String param, final Object value) {
     final Update update = Update.update(param, value);
@@ -81,7 +95,10 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
 
   /*
    * (non-Javadoc)
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(org.sentilo.web.catalog.domain.CatalogDocument)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(org.sentilo.web.catalog
+   * .domain.CatalogDocument)
    */
   public void delete(final Component entity) {
     final List<Component> components = new ArrayList<Component>();
@@ -91,6 +108,7 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(java.util.Collection)
    */
   public void delete(final Collection<Component> entities) {
@@ -104,6 +122,7 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
 
   /*
    * (non-Javadoc)
+   * 
    * @see org.sentilo.web.catalog.service.ComponentService#deleteComponents(java.lang.String[])
    */
   public void deleteComponents(final String[] componentsNames) {
@@ -119,7 +138,8 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.ComponentService#findByName(java.lang.String, java.lang.String)
+   * @see org.sentilo.web.catalog.service.ComponentService#findByName(java.lang.String,
+   * java.lang.String)
    */
   public Component findByName(final String providerId, final String name) {
     final SearchFilter filter = new SearchFilter();
@@ -127,6 +147,48 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
     filter.addAndParam("name", name);
 
     return getMongoOps().findOne(buildQuery(filter), Component.class);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.ComponentService#geoSpatialSearch(org.sentilo.web.catalog.search
+   * .SearchFilter)
+   */
+  public SearchFilterResult<Component> geoSpatialSearch(final SearchFilter filter) {
+    if (SentiloUtils.arrayIsEmpty(filter.getBounds())) {
+      return super.search(filter);
+    }
+
+    // bounds = [lat_lo_left,lng_lo_left,lat_hi_west,lng_hi_west]
+    final String[] mapBounds = filter.getBounds();
+    final double[] lowerLeft = {Double.parseDouble(mapBounds[1]), Double.parseDouble(mapBounds[0])};
+    final double[] upperRight = {Double.parseDouble(mapBounds[3]), Double.parseDouble(mapBounds[2])};
+    final Box mapBox = new Box(lowerLeft, upperRight);
+    final Criteria geoSpatialCriteria = Criteria.where("location.centroid").within(mapBox);
+
+    final Query query = buildQuery(filter, false, geoSpatialCriteria);
+    logger.debug("GeoSpatial Search - query: {}", query);
+
+    final List<Component> content = getMongoOps().find(query, Component.class);
+
+    return new SearchFilterResult<Component>(content, filter, content.size());
+
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.service.ComponentService#changeAccessType(java.lang.String[],
+   * boolean)
+   */
+  public void changeAccessType(final String[] componentsIds, final boolean isPublicAccess) {
+    final List<String> values = Arrays.asList(componentsIds);
+    final Query query = buildQueryForIdInCollection(values);
+    final Update update = Update.update("publicAccess", isPublicAccess).set("updateAt", new Date());
+    getMongoOps().updateMulti(query, update, Component.class);
+
   }
 
   private List<String> getComponentsIdsFromNames(final String[] componentsNames) {
@@ -158,4 +220,5 @@ public class ComponentServiceImpl extends AbstractBaseServiceImpl<Component> imp
     final Update update = Update.update("parentId", null);
     getMongoOps().updateMulti(idsFilter, update, Component.class);
   }
+
 }

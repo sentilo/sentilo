@@ -60,7 +60,7 @@ public class CatalogResponseMessage {
 
   public CatalogResponseMessage(final String errorCode, final String errorMessage) {
     this(errorMessage);
-    this.code = errorCode;
+    code = errorCode;
   }
 
   public CatalogResponseMessage(final String errorCode, final String errorMessage, final List<String> errorDetails) {
@@ -98,7 +98,7 @@ public class CatalogResponseMessage {
     return providers;
   }
 
-  public void setErrorDetails(List<String> errorDetails) {
+  public void setErrorDetails(final List<String> errorDetails) {
     this.errorDetails = errorDetails;
   }
 

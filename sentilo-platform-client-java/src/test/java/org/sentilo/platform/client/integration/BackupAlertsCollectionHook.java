@@ -52,14 +52,14 @@ public class BackupAlertsCollectionHook extends AbstractTestExecutionListener {
 
   private List<CatalogAlert> alertsBackup;
 
-  public void beforeTestClass(TestContext testContext) throws Exception {
+  public void beforeTestClass(final TestContext testContext) throws Exception {
     final CatalogAlertInputMessage message = new CatalogAlertInputMessage();
     // message.setIdentityToken(tokenApp);
     final CatalogAlertOutputMessage outputMessage = getPlatformTemplate(testContext).getCatalogOps().getAuthorizedAlerts(message);
     alertsBackup = outputMessage.getAlerts();
   }
 
-  public void afterTestClass(TestContext testContext) throws Exception {
+  public void afterTestClass(final TestContext testContext) throws Exception {
     if (!CollectionUtils.isEmpty(alertsBackup)) {
       final CatalogAlertInputMessage message = new CatalogAlertInputMessage(PROVIDER_ID);
       message.setAlerts(alertsBackup);
@@ -67,7 +67,7 @@ public class BackupAlertsCollectionHook extends AbstractTestExecutionListener {
     }
   }
 
-  private PlatformClientOperations getPlatformTemplate(TestContext testContext) {
+  private PlatformClientOperations getPlatformTemplate(final TestContext testContext) {
     if (platformTemplate == null) {
       platformTemplate = testContext.getApplicationContext().getBean(PlatformClientOperations.class);
     }

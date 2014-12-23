@@ -6,6 +6,9 @@
 
 <spring:url value="/static/img" var="iconPrefix" />
 
+<c:set var="sensorTypeTableId"  value="sensorTypeDetailSensorTypeTable" />
+<spring:url value="/admin/sensortypes/list?nameTableRecover=sensorTypeTable&fromBack=true" var="backURL" />
+
 <div class="container-fluid">
 	<div class="content">
 		<div class="row-fluid">

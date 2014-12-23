@@ -3,6 +3,11 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <spring:url value="/admin/application/${application.id}/edit" var="editApplicationLink" />
+<spring:url value="/admin/application/list?nameTableRecover=applicationTable&fromBack=true" var="backURL" />
+
+
+<c:set var="providerTableId"  value="applicationDetailProviderTable" />
+
 
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
 
@@ -29,6 +34,8 @@
 											code="application.detail.title" /> </a></li>
 								<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message
 											code="application.permissions" /> </a></li>
+								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message
+											code="application.active.subscriptions" /> </a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="${tab1PaneClass}" id="tab1">
@@ -96,6 +103,13 @@
 								<div class="${tab2PaneClass}" id="tab2">
 									<c:set var="applicationId" scope="request" value="${application.id}" />
 									<jsp:include page="/WEB-INF/jsp/common/include_list_permission.jsp" />
+								</div>
+								<div class="${tab3PaneClass}" id="tab3">
+									<c:set var="applicationId" scope="request" value="${application.id}" />
+									<jsp:include page="/WEB-INF/jsp/application/include_application_subscriptions.jsp" />
+									<div class="control-group pull-right">
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									</div>
 								</div>
 							</div>
 						</div>

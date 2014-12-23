@@ -51,13 +51,13 @@ public class RESTUtilsTest {
 
   @Test
   public void buildEmptyPath() {
-    String[] tokens = {};
+    final String[] tokens = {};
     assertFalse(StringUtils.hasText(RESTUtils.buildPath(tokens)));
   }
 
   @Test
   public void buildPath() {
-    String[] tokens = {"context", "resource", "id"};
+    final String[] tokens = {"context", "resource", "id"};
     assertEquals("/context/resource/id", RESTUtils.buildPath(tokens));
   }
 }

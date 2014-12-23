@@ -5,6 +5,8 @@
 
 <spring:url value="/admin/sensor/lastObs/${sensor.id}/" var="lastObservationsRESTURL" />
 
+
+
 <script type="text/javascript">
 $(document).ready(function() {
 	

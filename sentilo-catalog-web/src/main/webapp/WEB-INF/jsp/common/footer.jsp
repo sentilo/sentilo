@@ -4,8 +4,7 @@
 <footer>
 <div class="row-fluid">
 	<div class="span6">
-		<spring:message code="footer.copy" htmlEscape="false" />
-		<!-- br><a><spring:message code="footer.contact"/></a> | <a><spring:message code="footer.terms"/></a> | <a><spring:message code="footer.privacy"/></a><br-->
+		<spring:message code="footer.copy" htmlEscape="false" />		
 		<br>
 	</div>
 </div>

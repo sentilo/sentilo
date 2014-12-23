@@ -30,6 +30,7 @@ import java.util.Date;
 import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.NotBlank;
+import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.utils.Constants;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -42,10 +43,6 @@ public class Alert implements CatalogDocument {
 
   public enum Type {
     EXTERNAL, INTERNAL;
-  }
-
-  public enum Trigger {
-    GT, GTE, LT, LTE, EQ, CHANGE, CHANGE_DELTA, FROZEN;
   }
 
   @Id
@@ -64,7 +61,7 @@ public class Alert implements CatalogDocument {
   private Date updateAt;
 
   private Type type;
-  private Trigger trigger;
+  private AlertTriggerType trigger;
 
   private String expression;
 
@@ -113,7 +110,7 @@ public class Alert implements CatalogDocument {
     final int prime = 17;
     int result = 1;
     result = prime * result + ((id == null) ? 0 : id.hashCode());
-    return result ;
+    return result;
   }
 
   @Override
@@ -175,13 +172,11 @@ public class Alert implements CatalogDocument {
     this.expression = expression;
   }
 
-
-
-  public Trigger getTrigger() {
+  public AlertTriggerType getTrigger() {
     return trigger;
   }
 
-  public void setTrigger(final Trigger trigger) {
+  public void setTrigger(final AlertTriggerType trigger) {
     this.trigger = trigger;
   }
 
@@ -210,7 +205,7 @@ public class Alert implements CatalogDocument {
     this.componentId = componentId;
   }
 
-  public void setApplicationId(String applicationId) {
+  public void setApplicationId(final String applicationId) {
     this.applicationId = applicationId;
   }
 

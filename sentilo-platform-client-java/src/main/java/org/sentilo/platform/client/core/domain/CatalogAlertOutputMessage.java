@@ -31,7 +31,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.sentilo.common.domain.AlertOwner;
 import org.sentilo.common.domain.CatalogAlert;
 
-
 public class CatalogAlertOutputMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
@@ -48,11 +47,11 @@ public class CatalogAlertOutputMessage {
     return alerts;
   }
 
-  public void setAlerts(List<CatalogAlert> alerts) {
+  public void setAlerts(final List<CatalogAlert> alerts) {
     this.alerts = alerts;
   }
 
-  public void setOwners(List<AlertOwner> owners) {
+  public void setOwners(final List<AlertOwner> owners) {
     this.owners = owners;
   }
 

@@ -45,7 +45,7 @@ public class EventMessageConverterTest {
   static final String INFO = "21/03/2013T14:25:39#@#stop start sensors";
   static final String INVALID_INFO = "stop start sensors";
 
-  private EventMessageConverter converter = new EventMessageConverter();
+  private final EventMessageConverter converter = new EventMessageConverter();
 
   @Test
   public void marshallDataEventMessage() throws MessageNotWritableException {
@@ -94,7 +94,7 @@ public class EventMessageConverterTest {
   }
 
   private EventMessage buildMockDataEventMessage() {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setTopic(DATA_TOPIC);
     event.setType(SubscribeType.DATA.name().toLowerCase());
     event.setTimestamp("21/03/2013T14:25:39");
@@ -103,7 +103,7 @@ public class EventMessageConverterTest {
   }
 
   private EventMessage buildMockOrderEventMessage() {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setTopic(ORDER_TOPIC);
     event.setType(SubscribeType.ORDER.name().toLowerCase());
     event.setTimestamp("21/03/2013T14:25:39");
@@ -112,7 +112,7 @@ public class EventMessageConverterTest {
   }
 
   private EventMessage buildMockAlarmEventMessage() {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setTopic(ALARM_TOPIC);
     event.setType(SubscribeType.ALARM.name().toLowerCase());
     event.setTimestamp("21/03/2013T14:25:39");

@@ -44,7 +44,7 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
   private Endpoint endpoint;
 
   /** Tipo de subscripcion. */
-  private SubscribeType type;
+  private final SubscribeType type;
 
   /**
    * Identificadores del recurso al cual esta asociado la subscripción: providerId, sensorId o
@@ -102,7 +102,7 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
     return sb.toString();
   }
 
-  protected void setEndpoint(Endpoint endpoint) {
+  protected void setEndpoint(final Endpoint endpoint) {
     this.endpoint = endpoint;
   }
 

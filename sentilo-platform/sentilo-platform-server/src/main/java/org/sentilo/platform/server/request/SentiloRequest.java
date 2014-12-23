@@ -96,9 +96,9 @@ public class SentiloRequest {
    * SentiloResource(RequestUtils.extractResource(path)); }
    */
 
-  public void setPathParts(String handlerPath, String resourcePath) {
+  public void setPathParts(final String handlerPath, final String resourcePath) {
     this.handlerPath = handlerPath;
-    this.resource = new SentiloResource(resourcePath);
+    resource = new SentiloResource(resourcePath);
   }
 
   private void debug(final HttpEntity entity) {
@@ -120,18 +120,18 @@ public class SentiloRequest {
   }
 
   private void parseContentType() {
-    String contentTypeValue = extractHeader(HttpHeader.CONTENT_TYPE);    
+    final String contentTypeValue = extractHeader(HttpHeader.CONTENT_TYPE);
     try {
       contentType = (StringUtils.hasText(contentTypeValue) ? ContentType.parse(extractHeader(HttpHeader.CONTENT_TYPE)) : getDefaultContentType());
-    } catch (ParseException pe) {
+    } catch (final ParseException pe) {
       contentType = getDefaultContentType();
     }
-    logger.debug("Parsed Content-type: {}", contentTypeValue);    
+    logger.debug("Parsed Content-type: {}", contentTypeValue);
   }
 
   private void parseUri() {
     uri = httpRequest.getRequestLine().getUri();
-    URI parsedUri = URI.create(uri);
+    final URI parsedUri = URI.create(uri);
     path = parsedUri.getPath();
     processUriParameters(parsedUri);
     // path has the format handler_path_tokens/resources_tokens

@@ -25,34 +25,10 @@
  */
 package org.sentilo.web.catalog.utils;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public abstract class FormatUtils {
 
   public static String label(final String message) {
-    return String.format("<span class=\"label\">%s</label>", message);
-  }
-
-  public static String formatCurrentDate() {
-    return formatDateTime(new Date());
-  }
-
-  public static String formatDate(final Date date) {
-    return formatDate(date, Constants.DATE_FORMAT);
-  }
-
-  public static String formatDateTime(final Date date) {
-    return formatDate(date, Constants.DATETIME_FORMAT);
-  }
-
-  private static String formatDate(final Date date, final String format) {
-    if (date != null) {
-      final DateFormat df = new SimpleDateFormat(format);
-      return df.format(date);
-    }
-    return null;
+    return String.format("<span class=\"label\">%s</span>", message);
   }
 
   private FormatUtils() {

@@ -38,6 +38,7 @@ import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.CatalogProvider;
@@ -62,16 +63,12 @@ public class AdminServiceImplTest {
   private AdminInputMessage message;
   @Mock
   private SubscribeService subscribeService;
-
+  @InjectMocks
   private AdminServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    service = new AdminServiceImpl();
-    service.setJedisSequenceUtils(jedisSequenceUtils);
-    service.setResourceService(resourceService);
-    service.setSubscribeService(subscribeService);
   }
 
   @Test
@@ -125,10 +122,10 @@ public class AdminServiceImplTest {
   }
 
   private List<CatalogProvider> buildMockProviderList() {
-    List<CatalogProvider> mockList = new ArrayList<CatalogProvider>();
+    final List<CatalogProvider> mockList = new ArrayList<CatalogProvider>();
 
     for (int i = 0; i < getRandomSize(); i++) {
-      CatalogProvider provider = new CatalogProvider();
+      final CatalogProvider provider = new CatalogProvider();
       provider.setProvider(PROVIDER_ID);
       mockList.add(provider);
     }
@@ -137,10 +134,10 @@ public class AdminServiceImplTest {
   }
 
   private List<CatalogSensor> buildMockSensorList() {
-    List<CatalogSensor> mockList = new ArrayList<CatalogSensor>();
+    final List<CatalogSensor> mockList = new ArrayList<CatalogSensor>();
 
     for (int i = 0; i < getRandomSize(); i++) {
-      CatalogSensor sensor = new CatalogSensor();
+      final CatalogSensor sensor = new CatalogSensor();
       sensor.setProvider(PROVIDER_ID);
       sensor.setSensor(SENSOR_ID);
       mockList.add(sensor);

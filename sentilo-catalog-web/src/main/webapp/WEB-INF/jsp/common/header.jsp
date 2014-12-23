@@ -49,6 +49,9 @@
 	<link href="${alternativeCSS}" rel="stylesheet" media="all">
 </c:if>
 
+<spring:url value="/static/images/favicon.ico" var="faviconUrl" />
+<link href="${faviconUrl}" rel="shortcut icon">
+
 </head>
 <body>
 

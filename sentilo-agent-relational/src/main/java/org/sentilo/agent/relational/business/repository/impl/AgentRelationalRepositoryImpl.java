@@ -66,7 +66,8 @@ public class AgentRelationalRepositoryImpl implements AgentRelationalRepository 
       order_ps = "insert into " + tables_prefix + "_orders (provider, sensor, message, timestamp) values (?,?,?,?)";
       alarm_ps = "insert into " + tables_prefix + "_alarms (alarm, message, timestamp) values (?,?,?)";
     } else {
-      throw new IllegalStateException("Field tables_prefix is not initialized. Review your properties configuration and confirm that property relational.tables.prefix is defined");
+      throw new IllegalStateException(
+          "Field tables_prefix is not initialized. Review your properties configuration and confirm that property relational.tables.prefix is defined");
     }
   }
 

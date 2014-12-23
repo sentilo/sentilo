@@ -29,19 +29,19 @@ function showErrorNotification(title, text) {
 
 <c:if test="${not empty confirmationMessage}">
 	<script type="text/javascript">
-$(document).ready(function() {
-	<spring:message code="confirm" var="title"/>
-	<spring:message code="${confirmationMessage}" var="msg"/>
-	showConfirmNotification('${title}', '${msg}');
-});
-</script>
+		$(document).ready(function() {
+			<spring:message code="confirm" var="title"/>
+			<spring:message code="${confirmationMessage}" var="msg"/>
+			showConfirmNotification('${title}', '${msg}');
+		});
+	</script>
 </c:if>
 <c:if test="${not empty errorMessage}">
 	<script type="text/javascript">
-$(document).ready(function() {
-	<spring:message code="error" var="title"/>
-	<spring:message code="${errorMessage}" var="msg"/>
-	showErrorNotification('${title}', '${msg}');
-});
-</script>
+		$(document).ready(function() {
+			<spring:message code="error" var="title"/>
+			<spring:message code="${errorMessage}" var="msg"/>
+			showErrorNotification('${title}', '${msg}');
+		});
+	</script>
 </c:if>

@@ -95,16 +95,17 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework
    * .context.ApplicationContext)
    */
+  @Override
   public void setApplicationContext(final ApplicationContext applicationContext) {
     context = applicationContext;
   }
-  
 
   /*
    * (non-Javadoc)
    * 
    * @see org.sentilo.web.catalog.service.CrudService#create(java.lang.Object)
    */
+  @Override
   public T create(final T entity) {
     checkIntegrityKey(entity.getId());
     return getRepository().save(entity);
@@ -115,6 +116,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#update(java.lang.Object)
    */
+  @Override
   public T update(final T entity) {
     return getRepository().save(entity);
   }
@@ -124,6 +126,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#insertAll(java.util.Collection)
    */
+  @Override
   public void insertAll(final Collection<T> entities) throws MongoException, DataAccessException {
     // Este metodo permite hacer un insert de todos los elementos de la colección. Pero en caso de
     // que un elemento de esta ya este
@@ -143,6 +146,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#updateAll(java.util.Collection)
    */
+  @Override
   public void updateAll(final Collection<T> entities) {
     // En el driver de Mongo no existe un update masivo de toda una coleccion, como si que existe el
     // insert masivo.
@@ -165,6 +169,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#delete(java.lang.Object)
    */
+  @Override
   public void delete(final T entity) {
     getRepository().delete(entity);
   }
@@ -174,6 +179,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#delete(java.util.Collection)
    */
+  @Override
   public void delete(final Collection<T> entities) {
     getRepository().delete(entities);
 
@@ -184,10 +190,12 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#find(java.lang.Object)
    */
+  @Override
   public T find(final T entity) {
     return getRepository().findOne(getEntityId(entity));
   }
 
+  @Override
   public T findAndThrowErrorIfNotExist(final T entity) {
     final T entityToReturn = find(entity);
     if (entityToReturn == null) {
@@ -201,6 +209,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#findAll()
    */
+  @Override
   public List<T> findAll() {
     return getRepository().findAll();
   }
@@ -211,6 +220,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * @see
    * org.sentilo.web.catalog.service.CrudService#search(org.sentilo.web.catalog.utils.SearchFilter)
    */
+  @Override
   public SearchFilterResult<T> search(final SearchFilter filter) {
     // El resultado debe ser un objeto Page<T>, el cual internamente contiene el listado a mostrar,
     // el total de registros y
@@ -231,6 +241,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#count()
    */
+  @Override
   public Long count() {
     return getRepository().count();
   }
@@ -240,7 +251,8 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
    * 
    * @see org.sentilo.web.catalog.service.CrudService#exist(java.lang.String)
    */
-  public boolean exist(String entityId) {
+  @Override
+  public boolean exist(final String entityId) {
     return getRepository().exists(entityId);
   }
 
@@ -257,8 +269,17 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
   }
 
   protected Query buildQuery(final SearchFilter filter, final boolean pageable) {
+    return buildQuery(filter, pageable, null);
+  }
+
+  protected Query buildQuery(final SearchFilter filter, final boolean pageable, final Criteria customCriteria) {
 
     Criteria queryCriteria = new Criteria();
+
+    // If customCriteria is not null, initialize queryCriteria with this criteria
+    if (customCriteria != null) {
+      queryCriteria = customCriteria;
+    }
 
     if (!filter.andParamsIsEmpty()) {
       final Criteria[] aCriteria = buildAndParamsCriteria(filter.getAndParams());
@@ -279,7 +300,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
     return query;
   }
 
-  protected Criteria[] buildAndParamsCriteria(Map<String, Object> andParams) {
+  protected Criteria[] buildAndParamsCriteria(final Map<String, Object> andParams) {
     // andParams contiene la lista de filtros a aplicar en modo conjuncion, es decir, con el
     // operador AND
     // Además, la comparativa del valor siempre es mediante "es exactamente este valor", es decir,
@@ -296,7 +317,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
     return aCriteria;
   }
 
-  protected Criteria[] buildOrParamsCriteria(Map<String, Object> orParams) {
+  protected Criteria[] buildOrParamsCriteria(final Map<String, Object> orParams) {
     // params contiene la lista de filtros a aplicar en modo disjuncion, es decir, con el operador
     // OR
     // Además, la comparativa del valor siempre es mediante "contiene la palabra buscada", es
@@ -305,8 +326,13 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
     final Criteria[] aCriteria = new Criteria[paramsKeys.size()];
     int i = 0;
     for (final String param : paramsKeys) {
-      final String regexp = ".*" + orParams.get(param) + ".*";
-      aCriteria[i] = Criteria.where(param).regex(regexp);
+
+      if (!(orParams.get(param) instanceof String)) {
+        aCriteria[i] = Criteria.where(param).is(orParams.get(param));
+      } else {
+        final String regexp = ".*" + orParams.get(param) + ".*";
+        aCriteria[i] = Criteria.where(param).regex(regexp);
+      }
       i++;
     }
 
@@ -352,7 +378,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
     return entityKeyValidator;
   }
 
-  protected void setEntityKeyValidator(EntityKeyValidator entityKeyValidator) {
+  protected void setEntityKeyValidator(final EntityKeyValidator entityKeyValidator) {
     this.entityKeyValidator = entityKeyValidator;
   }
 
@@ -360,7 +386,7 @@ public abstract class AbstractBaseServiceImpl<T extends CatalogDocument> impleme
     return resourceNotFoundExceptionBuilder;
   }
 
-  protected void setResourceNotFoundExceptionBuilder(ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder) {
+  protected void setResourceNotFoundExceptionBuilder(final ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder) {
     this.resourceNotFoundExceptionBuilder = resourceNotFoundExceptionBuilder;
   }
 

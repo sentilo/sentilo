@@ -65,6 +65,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private static final int DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = (60 * 1000);
   private static final int DEFAULT_READ_TIMEOUT_MILLISECONDS = (60 * 1000);
+  private static final int DEFAULT_SUCCESS_HTTP_CODE = HttpStatus.SC_OK;
 
   private HttpClient httpClient;
   private Credentials credentials;
@@ -73,6 +74,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private String host;
   private String secretKey;
+  private int successHttpCode = DEFAULT_SUCCESS_HTTP_CODE;
 
   public RESTClientImpl() {
   }
@@ -131,9 +133,8 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   public String delete(final String path, final String body, final String identityToken) throws RESTClientException {
 
-    // Una peticion DELETE no puede tener body por lo que en caso de que venga informado el
-    // parametro body,
-    // simulamos la llamada al DELETE haciendo un PUT con el parametro method=delete
+    // As a request DELETE cannot have body, we simulate the call to DELETE doing a PUT request with
+    // the parameter method==delete
     final String url = (StringUtils.hasText(body) ? URIUtils.getURI(host, path, RequestParameters.buildDelete()) : URIUtils.getURI(host, path));
     final HttpRequestBase delete = (StringUtils.hasText(body) ? new HttpPut(url) : new HttpDelete(url));
 
@@ -143,8 +144,14 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   @Override
   public void afterPropertiesSet() throws Exception {
     if (httpClient == null) {
-      httpClient = new DefaultHttpClient(new PoolingClientConnectionManager());
-      // Fijamos los timeouts de establecimiento de conexion y de lectura de respuesta
+      final PoolingClientConnectionManager pccm = new PoolingClientConnectionManager();
+      // Increase max total connection to 400
+      pccm.setMaxTotal(400);
+      // Increase default max connection per route to 50
+      pccm.setDefaultMaxPerRoute(50);
+
+      httpClient = new DefaultHttpClient(pccm);
+      // Set the timeouts for read the response and create a connection
       setConnectionTimeout(DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS);
       setReadTimeout(DEFAULT_READ_TIMEOUT_MILLISECONDS);
     }
@@ -162,13 +169,13 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   }
 
   public void destroy() throws Exception {
-    // Tal y como recomienda la API de HttpClient, al destruir la clase cliente cerramos el
-    // connectionManager asociado a la clase HttpClient.
+    // As recommended by HttpClient API, when the client is destroyed the related connectionManager
+    // must be closed
     httpClient.getConnectionManager().shutdown();
   }
 
   private void validateResponse(final HttpResponse response) throws RESTClientException {
-    if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+    if (response.getStatusLine().getStatusCode() != successHttpCode) {
       final StatusLine line = response.getStatusLine();
       final StringBuilder sb = new StringBuilder();
       try {
@@ -215,8 +222,8 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   }
 
   private void addSignedHeader(final HttpRequestBase httpRequest, final String body) throws GeneralSecurityException {
-    String currentDate = DateUtils.timestampToString(System.currentTimeMillis());
-    String hmac = HMACBuilder.buildHeader(body, host, secretKey, currentDate);
+    final String currentDate = DateUtils.timestampToString(System.currentTimeMillis());
+    final String hmac = HMACBuilder.buildHeader(body, host, secretKey, currentDate);
     httpRequest.addHeader(SentiloConstants.HMAC_HEADER, hmac);
     httpRequest.addHeader(SentiloConstants.DATE_HEADER, currentDate);
     logger.debug("Add header {} with value {}", SentiloConstants.HMAC_HEADER, hmac);
@@ -268,8 +275,12 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
     this.credentials = credentials;
   }
 
-  public void setSecretKey(String secretKey) {
+  public void setSecretKey(final String secretKey) {
     this.secretKey = secretKey;
+  }
+
+  public void setSuccessHttpCode(final int successHttpCode) {
+    this.successHttpCode = successHttpCode;
   }
 
 }

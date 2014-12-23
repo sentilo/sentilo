@@ -25,7 +25,6 @@
  */
 package org.sentilo.platform.client.test.exception;
 
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.sentilo.platform.client.core.exception.PlatformClientAccessException;
@@ -40,11 +39,11 @@ public class SentiloExceptionsTest {
     final String message = "mock exception message";
     final Throwable cause = new Exception();
 
-    PlatformClientAccessException exception = new PlatformClientAccessException(message);
+    final PlatformClientAccessException exception = new PlatformClientAccessException(message);
     Assert.assertNull(exception.getCause());
     Assert.assertEquals(message, exception.getMessage());
 
-    PlatformClientAccessException exception2 = new PlatformClientAccessException(message, cause);
+    final PlatformClientAccessException exception2 = new PlatformClientAccessException(message, cause);
     Assert.assertEquals(cause, exception2.getCause());
     Assert.assertEquals(NestedExceptionUtils.buildMessage(message, cause), exception2.getMessage());
   }
@@ -52,12 +51,12 @@ public class SentiloExceptionsTest {
   @Test
   public void translatePlatformClientAccessException() {
     final String message = "mock exception message";
-    PlatformClientExceptionTranslator translator = new PlatformClientExceptionTranslator();
+    final PlatformClientExceptionTranslator translator = new PlatformClientExceptionTranslator();
 
-    RuntimeException ex = new PlatformClientAccessException(message);
+    final RuntimeException ex = new PlatformClientAccessException(message);
     try {
       translator.translateExceptionIfPossible(ex);
-    } catch (PlatformClientAccessException exTrans) {
+    } catch (final PlatformClientAccessException exTrans) {
       Assert.assertEquals(ex, exTrans);
     }
   }
@@ -65,12 +64,12 @@ public class SentiloExceptionsTest {
   @Test
   public void translateNoPlatformClientAccessException() {
     final String message = "mock exception message";
-    PlatformClientExceptionTranslator translator = new PlatformClientExceptionTranslator();
+    final PlatformClientExceptionTranslator translator = new PlatformClientExceptionTranslator();
 
-    RuntimeException ex = new NullPointerException(message);
+    final RuntimeException ex = new NullPointerException(message);
     try {
       translator.translateExceptionIfPossible(ex);
-    } catch (PlatformClientAccessException exTrans) {
+    } catch (final PlatformClientAccessException exTrans) {
       Assert.assertNotEquals(ex, exTrans);
       Assert.assertTrue(exTrans instanceof PlatformClientAccessException);
       Assert.assertEquals(ex, exTrans.getCause());

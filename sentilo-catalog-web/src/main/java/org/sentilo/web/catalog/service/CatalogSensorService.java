@@ -30,7 +30,6 @@ import java.util.Map;
 
 import org.sentilo.common.domain.CatalogSensor;
 
-
 public interface CatalogSensorService {
 
   List<CatalogSensor> getSensorsByProvider(final String providerId, final Map<String, String> filterParams);

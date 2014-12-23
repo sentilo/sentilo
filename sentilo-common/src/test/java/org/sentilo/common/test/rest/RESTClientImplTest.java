@@ -75,11 +75,10 @@ public class RESTClientImplTest {
   @Mock
   private IdentityKeyInterceptor identityKeyInterceptor;
 
-
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    HttpRequestInterceptor[] interceptors = {identityKeyInterceptor};
+    final HttpRequestInterceptor[] interceptors = {identityKeyInterceptor};
     restClient.setHost(host);
     restClient.setInterceptors(interceptors);
   }
@@ -90,13 +89,12 @@ public class RESTClientImplTest {
 
     restClient.afterPropertiesSet();
 
-    HttpClient defaultHttpClient = (HttpClient) ReflectionTestUtils.getField(restClient, "httpClient");
+    final HttpClient defaultHttpClient = (HttpClient) ReflectionTestUtils.getField(restClient, "httpClient");
     Assert.assertNotNull(defaultHttpClient);
     Assert.assertTrue(defaultHttpClient instanceof DefaultHttpClient);
     Assert.assertTrue(((DefaultHttpClient) defaultHttpClient).getRequestInterceptorCount() > 0);
     Assert.assertNotNull(((DefaultHttpClient) defaultHttpClient).getCredentialsProvider().getCredentials(AuthScope.ANY));
   }
-
 
   @Test
   public void invalidGet() throws Exception {
@@ -132,7 +130,7 @@ public class RESTClientImplTest {
   public void getWithParameters() throws Exception {
     final String path = "/data";
     final String responseContent = "Lorem ipsum";
-    final StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "");    
+    final StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "");
 
     when(httpClient.execute(notNull(HttpGet.class))).thenReturn(httpResponse);
     when(httpResponse.getStatusLine()).thenReturn(statusLine);
@@ -216,7 +214,6 @@ public class RESTClientImplTest {
   public void setInvalidConnectionTimeout() {
     restClient.setConnectionTimeout(-1);
   }
-
 
   @Test(expected = IllegalArgumentException.class)
   public void setReadTimeout() {

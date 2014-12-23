@@ -25,7 +25,6 @@
  */
 package org.sentilo.common.test.hook;
 
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.sentilo.common.hook.SentiloShutdownHook;
@@ -36,7 +35,7 @@ public class SentiloShutdownHookTest {
 
   @Test
   public void run() {
-    SentiloShutdownHook hook = new SentiloShutdownHook(name);
+    final SentiloShutdownHook hook = new SentiloShutdownHook(name);
     hook.run();
 
     Assert.assertEquals(name, hook.getHookName());

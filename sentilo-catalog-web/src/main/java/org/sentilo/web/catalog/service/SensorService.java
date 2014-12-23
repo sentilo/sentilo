@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.sentilo.common.domain.OrderMessage;
+import org.sentilo.common.domain.QueryFilterParams;
 import org.sentilo.platform.client.core.domain.AlarmMessage;
 import org.sentilo.platform.client.core.domain.Observation;
 import org.sentilo.web.catalog.domain.Sensor;
@@ -43,6 +44,8 @@ public interface SensorService extends CrudService<Sensor> {
 
   Observation getLastObservation(Sensor sensor);
 
+  Observation getLastObservation(Sensor sensor, QueryFilterParams params);
+
   void updateMulti(Collection<String> sensorIds, String param, Object value);
 
   void deleteSensors(String[] sensorsIds);
@@ -50,4 +53,6 @@ public interface SensorService extends CrudService<Sensor> {
   void deleteSensorsFromComponents(List<String> componentsIds);
 
   Sensor findByName(String providerId, String sensorId);
+
+  void changeAccessType(String[] sensorsIds, boolean isPublicAccess);
 }

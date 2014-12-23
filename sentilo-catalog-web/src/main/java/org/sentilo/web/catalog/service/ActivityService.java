@@ -35,4 +35,6 @@ public interface ActivityService extends CrudService<Activity> {
   void saveCurrentActivity(Events currentEvents);
 
   List<Activity> getLastActivityLogs();
+
+  void deleteOldActivityLogs();
 }

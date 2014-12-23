@@ -26,18 +26,13 @@
 package org.sentilo.agent.alert.test;
 
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.sentilo.agent.alert.test.domain.AlarmTest;
-import org.sentilo.agent.alert.test.listener.ConnectionMonitorListenerTest;
-import org.sentilo.agent.alert.test.listener.MessageListenerImplTest;
-import org.sentilo.agent.alert.test.scheduler.CheckFrozenAlarmJobTest;
-import org.sentilo.agent.alert.test.scheduler.SubscribeInternalAlarmsJobTest;
-import org.sentilo.agent.alert.test.service.AlarmServiceImplTest;
-import org.sentilo.agent.alert.test.trigger.TriggerEvaluatorTest;
+import org.junit.runners.model.InitializationError;
+import org.sentilo.common.test.SentiloSuiteTest;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({MessageListenerImplTest.class, TriggerEvaluatorTest.class, AlarmServiceImplTest.class, CheckFrozenAlarmJobTest.class,
-    SubscribeInternalAlarmsJobTest.class, AlarmTest.class, ConnectionMonitorListenerTest.class})
-public class AllTests {
+@RunWith(AllTests.class)
+public class AllTests extends SentiloSuiteTest {
 
+  public AllTests(final Class<?> clazz) throws InitializationError {
+    super(clazz, "org.sentilo.agent.alert.test");
+  }
 }

@@ -25,31 +25,21 @@
  */
 package org.sentilo.web.catalog.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.sentilo.platform.client.core.domain.Observation;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
-import org.sentilo.web.catalog.dto.MapComponentDTO;
-import org.sentilo.web.catalog.dto.ObservationDTO;
 import org.sentilo.web.catalog.search.SearchFilter;
+import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.ModelUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/component")
@@ -58,70 +48,47 @@ public class PublicComponentController extends BaseComponentController {
   @Autowired
   private SensorTypesService sensorTypesService;
 
-  @RequestMapping(value = "/map", method = RequestMethod.GET)
-  public String showMap(final Model model) {
-    ModelUtils.addActiveMenuTo(model, Constants.MENU_COMPONENT_MAP);
-    ModelUtils.addUpdateDateTo(model);
-    // El listado de tipos de sensores se necesita para montar el desplegable del filtro
-    // del mapa
-    model.addAttribute(Constants.MODEL_COMPONENT_TYPES, getComponentTypesService().findAll());
-    return Constants.VIEW_PUBLIC_COMPONENT_MAP;
-  }
-
-  @RequestMapping(value = "/map/json", method = RequestMethod.GET)
-  @ResponseBody
-  public List<MapComponentDTO> getJSONComponentMap(@RequestParam final String componentType, final Model model) {
-    final SearchFilter filter = new SearchFilter();
-    filter.addAndParam("mobile", Constants.STATIC);
-    filter.addAndParam("publicAccess", Boolean.TRUE);
-    if (StringUtils.hasText(componentType)) {
-      filter.addAndParam("componentType", componentType);
-    }
-    final Map<String, String> icons = getIconMap();
-    final List<MapComponentDTO> result = new ArrayList<MapComponentDTO>();
-    for (final Component component : getComponentService().search(filter).getContent()) {
-      result.add(new MapComponentDTO(component, icons.get(component.getComponentType())));
-    }
-    return result;
-  }
-
-  @RequestMapping(value = "/{id}/lastOb", method = RequestMethod.GET)
-  @ResponseBody
-  public List<ObservationDTO> getLastObservations(@PathVariable final String id, final Model model) {
-    final SearchFilter filter = new SearchFilter();
-    filter.addAndParam("componentId", id);
-    filter.addAndParam("publicAccess", Boolean.TRUE);
-    final List<Sensor> sensors = getSensorService().search(filter).getContent();
-    final List<ObservationDTO> result = new ArrayList<ObservationDTO>();
-    for (final Sensor sensor : sensors) {
-      final Observation observation = getSensorService().getLastObservation(sensor);
-      translateAndEscapeSensorType(sensor);
-      result.add(new ObservationDTO(sensor, observation));
-    }
-    return result;
-  }
+  @Autowired
+  private ComponentTypesService componentTypesService;
 
   @Override
   protected void doBeforeViewResource(final String componentId, final Model model) {
     super.doBeforeViewResource(componentId, model);
-    addComponentSensorsTo(model, componentId);
+    addComponentSensorsRelatedTo(model, componentId);
   }
 
+  @Override
   protected void initViewNames() {
     getViewNames().put(LIST_ACTION, Constants.VIEW_PUBLIC_COMPONENT_LIST);
     getViewNames().put(DETAIL_ACTION, Constants.VIEW_PUBLIC_COMPONENT_DETAIL);
-    // Se ha eliminado la vista de creación/edición a propósito.
+  }
+
+  @Override
+  protected void doAfterViewResource(final Model model) {
+    getPhotoToShow(model);
+    super.doAfterViewResource(model);
+  }
+
+  private void getPhotoToShow(final Model model) {
+    final Component component = (Component) model.asMap().get(getEntityModelKey());
+    if (!StringUtils.hasText(component.getPhotoUrl())) {
+      final ComponentType compType = componentTypesService.find(new ComponentType(component.getComponentType()));
+      if (StringUtils.hasText(compType.getPhotoUrl())) {
+        component.setPhotoUrl(compType.getPhotoUrl());
+        model.addAttribute(getEntityModelKey(), component);
+      }
+    }
   }
 
   /**
-   * Searches for component related sensors.
+   * Add to view's model all sensors related to component with id componentId
    * 
    * @param model
    * @param componentId Component identifier.
    */
-  private void addComponentSensorsTo(final Model model, final String componentId) {
+  private void addComponentSensorsRelatedTo(final Model model, final String componentId) {
     final SearchFilter filter = new SearchFilter();
-    filter.addParam("componentId", componentId);
+    filter.addAndParam("componentId", componentId);
     final List<Sensor> sensors = getSensorService().search(filter).getContent();
 
     for (final Sensor sensor : sensors) {
@@ -130,20 +97,17 @@ public class PublicComponentController extends BaseComponentController {
     model.addAttribute(Constants.MODEL_COMPONENT_SENSORS, sensors);
   }
 
+  /**
+   * Replace the sensorType id value of a sensor for the sensorType name, because it is a more
+   * friendly name.
+   * 
+   * @param sensor
+   */
   private void translateAndEscapeSensorType(final Sensor sensor) {
-    // TODO Mikel: Esto debería ser una join o bien tener cachaeada la coleccion SensorType
     final SensorType type = sensorTypesService.find(new SensorType(sensor.getType()));
     if (type != null) {
       sensor.setType(type.getName());
     }
   }
 
-  private Map<String, String> getIconMap() {
-    final List<ComponentType> componentTypes = getComponentTypesService().findAll();
-    final Map<String, String> images = new HashMap<String, String>();
-    for (final ComponentType componentType : componentTypes) {
-      images.put(componentType.getId(), componentType.getIcon());
-    }
-    return images;
-  }
 }

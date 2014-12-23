@@ -25,9 +25,13 @@
  */
 package org.sentilo.web.catalog.controller.admin;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.sentilo.web.catalog.controller.CrudController;
@@ -40,7 +44,6 @@ import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -57,6 +60,9 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
   @Autowired
   private ComponentService componentService;
+
+  @Autowired
+  private ServletContext context;
 
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
@@ -85,7 +91,7 @@ public class ComponentTypesController extends CrudController<ComponentType> {
     row.add(componentType.getId());
     row.add(componentType.getName());
     row.add(componentType.getDescription());
-    row.add(FormatUtils.formatDate(componentType.getCreatedAt()));
+    row.add(getLocalDateFormat().printAsLocalTime(componentType.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
@@ -98,9 +104,8 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
   @Override
   protected void doBeforeCreateResource(final ComponentType componentType, final Model model) {
-    // Todos los id de tipo de sensores los almacenamos en minusculas
-    // para poder hacer la comparativa de manera rapida en el alta de sensores
-    // via API.
+    // We save all id of type of components in lower case letter to do comparatives in a quickly way
+    // in the new component by API
     componentType.setId(componentType.getId().toLowerCase());
   }
 
@@ -111,6 +116,44 @@ public class ComponentTypesController extends CrudController<ComponentType> {
     }
   }
 
+  @Override
+  protected void doBeforeEditResource(final Model model) {
+    setIconsListToModel(model);
+  }
+
+  @Override
+  protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
+    setIconsListToModel(model);
+  }
+
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "componenttype");
+  }
+
+  private void setIconsListToModel(final Model model) {
+    // To retrieve the icons list is mandatory that application is deployed as an exploded WAR in
+    // Tomcat
+    String[] iconsNames = {};
+    try {
+      final String absoluteIconsPath = context.getRealPath("/static/img/icons/");
+      final File iconsDir = new File(absoluteIconsPath);
+      iconsNames = iconsDir.list(new FilenameFilter() {
+
+        @Override
+        public boolean accept(final File directory, final String fileName) {
+          return !fileName.endsWith("-poi.png") && !fileName.startsWith("poi-group");
+        }
+      });
+    } catch (final Exception e) {
+    }
+
+    model.addAttribute(Constants.MODEL_COMPONENT_TYPE_ICONS, iconsNames);
+  }
+
   private void throwExceptionIfComponentsFoundWithType(final String componentType) {
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("componentType", componentType);
@@ -119,4 +162,5 @@ public class ComponentTypesController extends CrudController<ComponentType> {
       throw new BusinessValidationException("componenttype.error.cannot.delete", new Object[] {componentType});
     }
   }
+
 }

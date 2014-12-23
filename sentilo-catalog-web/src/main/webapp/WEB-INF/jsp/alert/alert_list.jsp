@@ -1,17 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<c:set var="alertTable" value="alertTable"/>
 
 <spring:url value="/admin/alert/delete" var="deleteURL" />
 <spring:url value="/admin/alert/new" var="newAlertLink" />
 <spring:url value="/admin/alert/" var="detailPrefix" />
-
+<spring:url value="/admin/alert/list/excel?tableName=${alertTable}" var="excelSource" />
 <spring:url value="/admin/alert/list/json" var="sAjaxSource" />
-<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
+
+<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 	$(document).ready(function() {
-		makeTableAsync('${sAjaxSource}', '#alertTable', '${detailPrefix}');
+		makeTableAsync('${alertTable}', '${sAjaxSource}');
 	});
 </script>
 
@@ -35,7 +37,7 @@
 						</h1>
 
 						<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="alerts" action="${deleteURL}">
-							<table class="table table-striped" id="alertTable">
+							<table class="table table-striped" id="${alertTable}">
 								<thead>
 									<tr>
 										<td>&nbsp;</td>
@@ -48,6 +50,11 @@
 								<tbody />
 							</table>
 							<br />
+							<div class="control-group pull-left" id="excel_${alertTable}">
+								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
+									<spring:message code="button.excel" /> 
+								</a>
+							</div>							
 							<div class="control-group pull-right">
 								<a href="#" onclick="deleteSelected('alerts');" class="btn btn-danger">
 									<spring:message code="alert.delete.title" /> 

@@ -25,20 +25,31 @@
  */
 package org.sentilo.web.catalog.converter;
 
+import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.sentilo.common.domain.CatalogComponent;
 import org.sentilo.common.domain.CatalogElement;
 import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.common.domain.SensorLocationElement;
+import org.sentilo.common.domain.TechnicalDetails;
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.domain.Component;
+import org.sentilo.web.catalog.domain.LngLat;
+import org.sentilo.web.catalog.domain.Location;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.Sensor.DataType;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -65,6 +76,14 @@ public abstract class ApiConverter {
         }
         if (component.getPublicAccess() != null) {
           catalogSensor.setComponentPublicAccess(component.getPublicAccess());
+        }
+
+        if (!CollectionUtils.isEmpty(component.getAdditionalInfo())) {
+          catalogSensor.setComponentAdditionalInfo(component.getAdditionalInfo());
+        }
+
+        if (component.getTechnicalDetails() != null) {
+          catalogSensor.setComponentTechnicalDetails(component.getTechnicalDetails());
         }
 
         catalogSensors.add(catalogSensor);
@@ -109,6 +128,51 @@ public abstract class ApiConverter {
     return components;
   }
 
+  /**
+   * Build a ordered list of components that need update its location and/or its routeList (if
+   * component is mobile) Order is fixed by the location timestamp. Older timestamps are first on
+   * the list
+   * 
+   * @param context
+   * @return
+   */
+  public static List<Component> buildMobileComponentsFromSensorLocationElements(final ApiConverterContext context) {
+    final List<Component> components = new ArrayList<Component>();
+    // Every entry from this set has the format <componentId>+<location Ts>
+    final HashSet<String> componentsAddedKeys = new HashSet<String>();
+    final List<SensorLocationElement> resources = context.getMessage().getLocations();
+
+    // The resources list contains sensor locations, but as two sensors from the same component have
+    // the same location, the list could contains different sensors with the same location and
+    // timestamp related to the same component. The first thing to do is to remove these
+    // "duplicate" sensors from the resources list (it is controlled by the componentsAddedKeys
+    // Set).
+    final List<Component> auxComponents = new ArrayList<Component>();
+    if (!CollectionUtils.isEmpty(resources)) {
+      for (final SensorLocationElement resource : resources) {
+        final Component component = buildComponentWithLocationUpdated(resource, context);
+        // component is added to the components lists if and only if is not null
+        // and not exists another entry from the same component with equals location timestamp
+        if (component != null && componentsAddedKeys.add(component.getId() + "." + component.getLocation().getFromTsTime().toString())) {
+          auxComponents.add(component);
+        }
+      }
+    }
+
+    // Finally, only locations changes must be returned so entries that not modify the previous
+    // location must be remove from the list
+    final Map<String, LngLat> componentLastLocations = new HashMap<String, LngLat>();
+    for (final Component component : auxComponents) {
+      final LngLat previousComponentLocation = componentLastLocations.get(component.getId());
+      if (!component.getLocation().getCoordinates()[0].equals(previousComponentLocation)) {
+        componentLastLocations.put(component.getId(), component.getLocation().getCoordinates()[0]);
+        components.add(component);
+      }
+    }
+
+    return components;
+  }
+
   private static Sensor buildNewSensor(final CatalogSensor catalogSensor, final ApiConverterContext context) {
     final String providerId = context.getProviderId();
     final String componentId = Component.buildId(providerId, catalogSensor.getComponent());
@@ -130,6 +194,10 @@ public abstract class ApiConverter {
       sensor.setAdditionalInfo(catalogSensor.getAdditionalInfo());
     }
 
+    if (catalogSensor.getTechnicalDetails() != null) {
+      sensor.setTechnicalDetails(catalogSensor.getTechnicalDetails());
+    }
+
     sensor.setCreatedAt(new Date());
     sensor.setUpdateAt(new Date());
     return sensor;
@@ -140,23 +208,23 @@ public abstract class ApiConverter {
     final Sensor sensor = context.getSensorService().findByName(providerId, catalogSensor.getSensor());
 
     if (sensor != null) {
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getDataType())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getDataType())) {
         sensor.setDataType(parseDataTypeValue(catalogSensor.getDataType()));
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getDescription())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getDescription())) {
         sensor.setDescription(catalogSensor.getDescription());
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getType())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getType())) {
         sensor.setType(catalogSensor.getType());
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getUnit())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getUnit())) {
         sensor.setUnit(catalogSensor.getUnit());
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getTimeZone())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getTimeZone())) {
         sensor.setTimeZone(catalogSensor.getTimeZone());
       }
 
@@ -169,9 +237,19 @@ public abstract class ApiConverter {
 
         if (CollectionUtils.isEmpty(sensorAdditionalInfoToUpdate)) {
           sensorAdditionalInfoToUpdate = new HashMap<String, String>();
+          sensor.setAdditionalInfo(sensorAdditionalInfoToUpdate);
         }
 
         sensorAdditionalInfoToUpdate.putAll(catalogSensor.getAdditionalInfo());
+      }
+
+      final TechnicalDetails srcTechDetails = catalogSensor.getTechnicalDetails();
+      if (srcTechDetails != null) {
+        if (sensor.getTechnicalDetails() == null) {
+          sensor.setTechnicalDetails(srcTechDetails);
+        } else {
+          BeanUtils.copyProperties(srcTechDetails, sensor.getTechnicalDetails(), getNullPropertyNames(srcTechDetails));
+        }
       }
 
       sensor.setUpdateAt(new Date());
@@ -195,6 +273,10 @@ public abstract class ApiConverter {
 
     if (!CollectionUtils.isEmpty(sensor.getAdditionalInfo())) {
       catalogSensor.setAdditionalInfo(sensor.getAdditionalInfo());
+    }
+
+    if (sensor.getTechnicalDetails() != null) {
+      catalogSensor.setTechnicalDetails(sensor.getTechnicalDetails());
     }
 
     return catalogSensor;
@@ -226,11 +308,11 @@ public abstract class ApiConverter {
     // 2. Ídem para el caso del tipo del componente: si no viene informado se fija el tipo a GENERIC
     // 3. Sólo se creará un componente en caso de que no exista previamente.
 
-    if (!CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getComponent())) {
+    if (!SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getComponent())) {
       catalogSensor.setComponent(catalogSensor.getSensor());
     }
 
-    if (!CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getComponentType())) {
+    if (!SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getComponentType())) {
       catalogSensor.setComponentType(Constants.DEFAULT_COMPONENT_TYPE);
     }
 
@@ -250,12 +332,20 @@ public abstract class ApiConverter {
         component.setMobile(Constants.MOBILE);
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogSensor.getComponentDesc())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogSensor.getComponentDesc())) {
         component.setDescription(catalogSensor.getComponentDesc());
       }
 
       if (catalogSensor.getComponentPublicAccess() != null) {
         component.setPublicAccess(catalogSensor.getComponentPublicAccess());
+      }
+
+      if (!CollectionUtils.isEmpty(catalogSensor.getComponentAdditionalInfo())) {
+        component.setAdditionalInfo(catalogSensor.getComponentAdditionalInfo());
+      }
+
+      if (catalogSensor.getComponentTechnicalDetails() != null) {
+        component.setTechnicalDetails(catalogSensor.getComponentTechnicalDetails());
       }
 
       component.setId(Component.buildId(context.getProviderId(), component.getName()));
@@ -274,27 +364,100 @@ public abstract class ApiConverter {
     final Component component = context.getComponentService().findByName(context.getProviderId(), catalogComponent.getComponent());
 
     if (component != null) {
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogComponent.getComponentDesc())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogComponent.getComponentDesc())) {
         component.setDescription(catalogComponent.getComponentDesc());
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogComponent.getComponentType())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogComponent.getComponentType())) {
         component.setComponentType(catalogComponent.getComponentType());
       }
 
-      if (CatalogUtils.stringIsNotEmptyOrNull(catalogComponent.getLocation())) {
+      if (SentiloUtils.stringIsNotEmptyOrNull(catalogComponent.getLocation())) {
         component.setLocation(CatalogUtils.convertStringLocation(catalogComponent.getLocation()));
-        component.setMobile(Constants.STATIC);
       }
 
       if (catalogComponent.getComponentPublicAccess() != null) {
         component.setPublicAccess(catalogComponent.getComponentPublicAccess());
       }
 
+      if (!CollectionUtils.isEmpty(catalogComponent.getComponentAdditionalInfo())) {
+        Map<String, String> componentAdditionalInfoToUpdate = component.getAdditionalInfo();
+
+        if (CollectionUtils.isEmpty(componentAdditionalInfoToUpdate)) {
+          componentAdditionalInfoToUpdate = new HashMap<String, String>();
+          component.setAdditionalInfo(componentAdditionalInfoToUpdate);
+        }
+
+        componentAdditionalInfoToUpdate.putAll(catalogComponent.getComponentAdditionalInfo());
+      }
+
+      final TechnicalDetails srcTechDetails = catalogComponent.getComponentTechnicalDetails();
+      if (srcTechDetails != null) {
+        if (component.getTechnicalDetails() == null) {
+          component.setTechnicalDetails(srcTechDetails);
+        } else {
+          BeanUtils.copyProperties(srcTechDetails, component.getTechnicalDetails(), getNullPropertyNames(srcTechDetails));
+        }
+      }
+
       component.setUpdateAt(new Date());
     }
 
     return component;
+  }
+
+  private static Component buildComponentWithLocationUpdated(final SensorLocationElement resource, final ApiConverterContext context) {
+    Component component = null;
+    boolean locationUpdated = false;
+    final Sensor sensor = context.getSensorService().findByName(resource.getProvider(), resource.getSensor());
+    if (sensor != null) {
+      component = context.getComponentService().find(new Component(sensor.getComponentId()));
+      if (locationMustToBeUpdated(component, resource)) {
+        final Location newLocation = CatalogUtils.convertStringLocation(resource.getLocation());
+        newLocation.setFromTsTime(resource.getFromTsTime());
+        component.setLocation(newLocation);
+        component.setUpdateAt(new Date());
+        locationUpdated = true;
+      }
+    }
+
+    return (locationUpdated ? component : null);
+  }
+
+  /**
+   * Component location must be updated if and only if it is mobile and its timestamp is older than
+   * resource timestamp
+   * 
+   * @param component
+   * @param resource
+   * @return
+   */
+  private static boolean locationMustToBeUpdated(final Component component, final SensorLocationElement resource) {
+    boolean locationMustToBeUpdated = false;
+    if (component != null && component.isMobileComponent() && resource.getFromTsTime() != null) {
+      final Long newLocTs = resource.getFromTsTime();
+      final Location currentLocation = component.getLocation();
+      if (currentLocation == null || currentLocation.getFromTsTime() == null || currentLocation.getFromTsTime().compareTo(newLocTs) < 0) {
+        locationMustToBeUpdated = true;
+      }
+    }
+
+    return locationMustToBeUpdated;
+  }
+
+  private static String[] getNullPropertyNames(final Object source) {
+    final BeanWrapper src = new BeanWrapperImpl(source);
+    final PropertyDescriptor[] pds = src.getPropertyDescriptors();
+
+    final Set<String> emptyNames = new HashSet<String>();
+    for (final PropertyDescriptor pd : pds) {
+      final Object srcValue = src.getPropertyValue(pd.getName());
+      if (srcValue == null) {
+        emptyNames.add(pd.getName());
+      }
+    }
+    final String[] result = new String[emptyNames.size()];
+    return emptyNames.toArray(result);
   }
 
   private ApiConverter() {

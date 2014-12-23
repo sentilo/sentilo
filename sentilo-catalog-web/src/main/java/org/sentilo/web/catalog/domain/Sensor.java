@@ -34,6 +34,7 @@ import javax.validation.constraints.Pattern;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.hibernate.validator.constraints.NotBlank;
+import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TagUtils;
@@ -97,6 +98,9 @@ public class Sensor implements CatalogDocument {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private Map<String, String> additionalInfo;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private TechnicalDetails technicalDetails;
+
   public Sensor() {
 
   }
@@ -120,7 +124,7 @@ public class Sensor implements CatalogDocument {
 
   @Override
   public int hashCode() {
- // Hashcode return must be consistent with the equals method
+    // Hashcode return must be consistent with the equals method
     final int prime = 61;
     int result = 1;
     result = prime * result + ((id == null) ? 0 : id.hashCode());
@@ -277,11 +281,19 @@ public class Sensor implements CatalogDocument {
     return metaData;
   }
 
-  public void setTimeZone(String timeZone) {
+  public void setTimeZone(final String timeZone) {
     this.timeZone = timeZone;
   }
 
   public String getTimeZone() {
     return timeZone;
+  }
+
+  public TechnicalDetails getTechnicalDetails() {
+    return technicalDetails;
+  }
+
+  public void setTechnicalDetails(final TechnicalDetails technicalDetails) {
+    this.technicalDetails = technicalDetails;
   }
 }

@@ -179,7 +179,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * 
    * @see org.sentilo.platform.common.service.ResourceService#removeProvider(java.lang.String)
    */
-  public void removeProvider(String providerId) {
+  public void removeProvider(final String providerId) {
     logger.debug("Deleting in Redis provider {} ", providerId);
     final Long pid = jedisSequenceUtils.getPid(providerId);
     if (pid != null) {
@@ -189,9 +189,9 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       jedisTemplate.del(keysBuilder.getReverseProviderKey(providerId));
 
       // Remove every sensor related to the provider.
-      Set<String> sids = getSensorsFromProvider(pid);
+      final Set<String> sids = getSensorsFromProvider(pid);
       if (!CollectionUtils.isEmpty(sids)) {
-        for (String sid : sids) {
+        for (final String sid : sids) {
           removeSensor(Long.valueOf(sid), providerId, pid);
         }
       }
@@ -212,7 +212,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * @see org.sentilo.platform.common.service.ResourceService#removeSensor(java.lang.String,
    * java.lang.String)
    */
-  public void removeSensor(String sensorId, String providerId) {
+  public void removeSensor(final String sensorId, final String providerId) {
     logger.debug("Deleting in Redis sensor {} from provider {}", sensorId, providerId);
     final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
     if (sid != null) {
@@ -222,11 +222,11 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
     logger.debug("Sensor {} from provider {} deleted.", sensorId, providerId);
   }
 
-  private void removeSensor(Long sid, String providerId, Long pid) {
+  private void removeSensor(final Long sid, final String providerId, Long pid) {
 
     if (sid != null) {
       // Remove key sensor:{providerId}:{sensorId}:sid
-      String sensorId = jedisTemplate.hGet(keysBuilder.getSensorKey(sid), "sensor");
+      final String sensorId = jedisTemplate.hGet(keysBuilder.getSensorKey(sid), "sensor");
       jedisTemplate.del(keysBuilder.getReverseSensorKey(providerId, sensorId));
 
       // Remove key sid:{sid}:observations
@@ -244,7 +244,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
         jedisTemplate.sRem(keysBuilder.getProviderSensorsKey(pid), sid.toString());
       }
 
-      // inally, remove {sid} from the internal cache
+      // Finally, remove {sid} from the internal cache
       jedisSequenceUtils.removeSid(providerId, sensorId);
     }
   }

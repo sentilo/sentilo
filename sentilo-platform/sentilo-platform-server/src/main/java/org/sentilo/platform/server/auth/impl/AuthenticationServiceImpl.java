@@ -53,7 +53,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   @Autowired
   private CatalogService catalogService;
 
-  private Lock lock = new ReentrantLock();
+  private final Lock lock = new ReentrantLock();
 
   public AuthenticationServiceImpl() {
     super();
@@ -113,7 +113,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
   }
 
-  public void setCatalogService(CatalogService catalogService) {
+  public void setCatalogService(final CatalogService catalogService) {
     this.catalogService = catalogService;
   }
 }

@@ -249,7 +249,8 @@ public class ApiControllerIntegrationTest {
     assertNotNull(components.get(0).getDescription());
   }
 
-  private void doInvalidComponentsUpdate(final SearchFilter filterByProvider, final SearchFilter filterByProviderAndComponent, final String componentId) {
+  private void doInvalidComponentsUpdate(final SearchFilter filterByProvider, final SearchFilter filterByProviderAndComponent,
+      final String componentId) {
     final CatalogInputMessage inputMessage = getInvalidComponentsToUpdate();
     final CatalogResponseMessage response = controller.updateComponentOrSensors(inputMessage, NEW_PROV);
     assertTrue(CatalogResponseMessage.BAD_REQUEST.equals(response.getCode()));

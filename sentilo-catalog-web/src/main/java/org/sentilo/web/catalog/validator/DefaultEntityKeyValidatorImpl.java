@@ -37,13 +37,15 @@ public class DefaultEntityKeyValidatorImpl implements EntityKeyValidator {
   private final MongoRepository<? extends CatalogDocument, String> repository;
   private final DuplicateKeyExceptionBuilder duplicateKeyExceptionBuilder;
 
-  public DefaultEntityKeyValidatorImpl(final Class<? extends CatalogDocument> type, final MongoRepository<? extends CatalogDocument, String> repository) {
+  public DefaultEntityKeyValidatorImpl(final Class<? extends CatalogDocument> type,
+      final MongoRepository<? extends CatalogDocument, String> repository) {
     Assert.notNull(repository);
     this.repository = repository;
     duplicateKeyExceptionBuilder = new DefaultCatalogBuilderExceptionImpl(type);
   }
 
-  public DefaultEntityKeyValidatorImpl(final MongoRepository<? extends CatalogDocument, String> repository, final DuplicateKeyExceptionBuilder duplicateKeyExceptionBuilder) {
+  public DefaultEntityKeyValidatorImpl(final MongoRepository<? extends CatalogDocument, String> repository,
+      final DuplicateKeyExceptionBuilder duplicateKeyExceptionBuilder) {
     Assert.notNull(repository);
     this.repository = repository;
     this.duplicateKeyExceptionBuilder = duplicateKeyExceptionBuilder;

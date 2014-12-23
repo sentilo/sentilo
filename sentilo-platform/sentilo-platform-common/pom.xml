@@ -10,5 +10,13 @@
     <artifactId>sentilo-platform</artifactId>
     <version>1.4.0</version>      
   </parent>
+  
+  <dependencies>
+  	<dependency>
+		<groupId>org.sentilo</groupId>
+		<artifactId>sentilo-common</artifactId>
+		<version>${platform.version}</version>
+	</dependency>
+  </dependencies>
     
 </project>

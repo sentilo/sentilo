@@ -42,7 +42,6 @@ import org.sentilo.platform.service.dao.JedisTemplate;
 
 import redis.clients.jedis.Jedis;
 
-
 public class JedisTemplateTest {
 
   @Mock
@@ -233,7 +232,7 @@ public class JedisTemplateTest {
   @Test
   public void hDel() {
     final String key = "abc";
-    final String fields[] = {"field1", "field2"};    
+    final String fields[] = {"field1", "field2"};
 
     jedisTemplate.hDel(key, fields);
 
@@ -269,4 +268,3 @@ public class JedisTemplateTest {
     verify(conn).expire(key, seconds);
   }
 }
-

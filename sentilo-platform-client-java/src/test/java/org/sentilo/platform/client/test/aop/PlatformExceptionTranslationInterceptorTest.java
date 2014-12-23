@@ -37,7 +37,6 @@ import org.mockito.MockitoAnnotations;
 import org.sentilo.common.exception.PlatformExceptionTranslator;
 import org.sentilo.platform.client.core.aop.PlatformExceptionTranslationInterceptor;
 
-
 public class PlatformExceptionTranslationInterceptorTest {
 
   @Mock

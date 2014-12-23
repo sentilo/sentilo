@@ -243,8 +243,4 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
     logger.debug("Order published");
   }
-
-  public void setResourceService(final ResourceService resourceService) {
-    this.resourceService = resourceService;
-  }
 }

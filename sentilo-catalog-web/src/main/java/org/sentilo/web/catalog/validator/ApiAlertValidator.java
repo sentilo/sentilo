@@ -43,7 +43,7 @@ public class ApiAlertValidator extends ApiBaseValidator<Alert> {
   @Autowired
   private AlertRepository repository;
 
-  public void validate(final List<Alert> alerts, final ApiValidationResults results, boolean isUpdateAction) {
+  public void validate(final List<Alert> alerts, final ApiValidationResults results, final boolean isUpdateAction) {
     for (final Alert alert : alerts) {
       validate(results, alert, alert.getId(), "Alert", ApiTranslator.ALERT_DOMAIN_FIELDS);
     }
@@ -66,7 +66,7 @@ public class ApiAlertValidator extends ApiBaseValidator<Alert> {
   }
 
   protected Validator getValidator() {
-    return this.validator;
+    return validator;
   }
 
 }

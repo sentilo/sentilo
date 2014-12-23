@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
 
 public class AdminParser extends PlatformJsonMessageConverter {
 
-  private SubscribeParser subscribeParser = new SubscribeParser();
+  private final SubscribeParser subscribeParser = new SubscribeParser();
 
   public AdminInputMessage parseGetRequest(final SentiloRequest request) throws PlatformException {
     final AdminType type = getAdminType(request);

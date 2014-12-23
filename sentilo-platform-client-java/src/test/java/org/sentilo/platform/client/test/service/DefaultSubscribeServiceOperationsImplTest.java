@@ -38,7 +38,6 @@ import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
 import org.sentilo.platform.client.core.parser.SubscribeMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultSubscribeServiceOperationsImpl;
 
-
 public class DefaultSubscribeServiceOperationsImplTest {
 
   @InjectMocks

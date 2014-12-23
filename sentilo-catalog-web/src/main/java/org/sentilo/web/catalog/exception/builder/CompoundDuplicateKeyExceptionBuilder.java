@@ -35,11 +35,16 @@ import org.sentilo.web.catalog.utils.Constants;
  */
 public class CompoundDuplicateKeyExceptionBuilder implements DuplicateKeyExceptionBuilder {
 
-  private final String errorMessageKey;
-  private final String keyTokenSplitter = Constants.DEFAULT_KEY_TOKEN_SPLITTER;
+  private String errorMessageKey;
+  private String keyTokenSplitter = Constants.DEFAULT_KEY_TOKEN_SPLITTER;
 
   public CompoundDuplicateKeyExceptionBuilder(final String errorMessageKey) {
     this.errorMessageKey = errorMessageKey;
+  }
+
+  public CompoundDuplicateKeyExceptionBuilder(final String errorMessageKey, final String keyTokenSplitter) {
+    this(errorMessageKey);
+    this.keyTokenSplitter = keyTokenSplitter;
   }
 
   @Override

@@ -6,7 +6,25 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-	initializeComponentMap("#map_canvas_1");
+	<c:choose>
+		<c:when test="${not empty param.lat}">
+			var centerLatValue = ${param.lat};
+			var centerLngValue = ${param.lng};
+			var zoomValue = ${param.zoom};
+			var filterValue = '${param.filter}';	
+			var centerValue = (centerLatValue && centerLngValue ? [centerLatValue, centerLngValue]:[]);
+			
+			initializeComponentMap("#map_canvas_1", centerValue, zoomValue);
+			
+			if(filterValue){
+				$('#componentDropdown li#'+filterValue+' a').click();
+			}	
+		</c:when>
+		<c:otherwise>
+			initializeComponentMap("#map_canvas_1");
+		</c:otherwise>
+	</c:choose>	
+	
 });
 </script>
 

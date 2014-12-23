@@ -30,7 +30,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 import org.sentilo.web.catalog.domain.Activity;
 import org.sentilo.web.catalog.domain.Statistics;
@@ -39,6 +38,7 @@ import org.sentilo.web.catalog.service.ActivityService;
 import org.sentilo.web.catalog.service.StatsService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/stats")
 public class StatsController {
 
-  private final DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.getDefault());
+  private final DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(LocaleContextHolder.getLocale());
 
   @Autowired
   private StatsService statsService;
@@ -94,20 +94,12 @@ public class StatsController {
   @RequestMapping("/activity/json")
   @ResponseBody
   public List<Activity> getCurrentActivity() {
-    final List<Activity> lastActivityLogs = activityService.getLastActivityLogs();
-    // Como la lista lastActivityLogs es una coleccion inmutable, no podemos aplicarle directamente
-    // la ordenacion inversa
-    return reverseOrder(lastActivityLogs);
-  }
+    // To display the last activity logs, elements must be show in a reverse order (from the most
+    // ancient to the most recent), but the list returned by the service is immutable
+    final List<Activity> lastActivityLogs = new ArrayList<Activity>(activityService.getLastActivityLogs());
 
-  private List<Activity> reverseOrder(final List<Activity> lastActivityLogs) {
-    final List<Activity> reverseList = new ArrayList<Activity>(lastActivityLogs.size());
-    for (final Activity activity : lastActivityLogs) {
-      reverseList.add(activity);
-    }
+    Collections.reverse(lastActivityLogs);
 
-    Collections.sort(reverseList);
-
-    return reverseList;
+    return lastActivityLogs;
   }
 }

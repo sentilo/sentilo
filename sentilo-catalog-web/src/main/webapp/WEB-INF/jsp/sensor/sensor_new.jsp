@@ -5,15 +5,13 @@
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/sensor/${sensor.id}/edit" var="actionURL" />
 	<spring:message code="sensor.edit.title" var="pageTitle" />
+	<spring:url value="/admin/sensor/${sensor.id}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/component/search/json" var="componentSearchURL" />
 	<spring:url value="/admin/sensor/create" var="actionURL" />
 	<spring:message code="sensor.new.title" var="pageTitle" />
 	<spring:message code="select.empty" var="emptySelectMessage" />
-</c:if>
-
-<c:if test="${empty providerId}">
 	<spring:url value="/admin/sensor/list" var="backURL" />
 </c:if>
 <c:if test="${not empty providerId}">
@@ -82,9 +80,9 @@ function emptyComponentSelect() {
 							<fieldset>
 								<div class="tabbable">
 									<ul class="nav nav-tabs">
-										<li class="active"><a href="#tab1" data-toggle="tab"><spring:message code="sensor.detail.title" /> </a>
-										</li>
-										<li><a href="#tab2" data-toggle="tab"><spring:message code="sensor.additionalInfo" /> </a></li>
+										<li class="active"><a href="#tab1" data-toggle="tab"><spring:message code="sensor.detail.title" /></a></li>
+										<li><a href="#tab2" data-toggle="tab"><spring:message code="technicalDetails.tab.label" /></a></li>
+										<li><a href="#tab3" data-toggle="tab"><spring:message code="sensor.additionalInfo" /></a></li>
 									</ul>
 									<c:if test="${editMode}">
 										<form:hidden path="id" />
@@ -229,15 +227,20 @@ function emptyComponentSelect() {
 											</div>
 											<%@include file="/WEB-INF/jsp/common/include_input_tags.jsp"%>
 										</div>
-										<div class="tab-pane" id="tab2">
-											<%@include file="include_sensor_additional_info.jsp"%>
+										<div class="tab-pane" id="tab2">											
+											<c:set var="resourceIsComponent"  value="false" />
+											<%@include file="/WEB-INF/jsp/common/include_technical_details_new.jsp"%>
+										</div>
+										<div class="tab-pane" id="tab3">
+											<c:set var="additionalInfo"  value="${sensor.additionalInfo}" />
+											<%@include file="/WEB-INF/jsp/common/include_additional_info.jsp"%>
 										</div>
 									</div>
 								</div>
 								<div class="control-group">
 									<div class="controls">
-										<a href="${backURL}" class="btn"> <spring:message code="button.back" /> </a> <a href="#"
-											onclick="$('form#sensor').submit();" class="btn btn-success"> <spring:message code="button.save" /> </a>
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+										<a href="#" onclick="$('form#sensor').submit();" class="btn btn-success"> <spring:message code="button.save" /> </a>
 									</div>
 								</div>
 							</fieldset>

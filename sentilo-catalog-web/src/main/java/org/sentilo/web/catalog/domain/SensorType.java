@@ -83,7 +83,7 @@ public class SensorType implements CatalogDocument {
 
   @Override
   public int hashCode() {
- // Hashcode return must be consistent with the equals method
+    // Hashcode return must be consistent with the equals method
     final int prime = 67;
     int result = 1;
     result = prime * result + ((id == null) ? 0 : id.hashCode());

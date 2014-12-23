@@ -83,7 +83,7 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
   }
 
   @Override
-  public void delete(AdminInputMessage message) {
+  public void delete(final AdminInputMessage message) {
     // Este metodo debe eliminar todo lo almacenado en Redis relacionado con un proveedor o con un
     // sensor
     // Las observaciones, alarmas y ordenes no es necesario eliminarlos ya que al tener fijado
@@ -98,16 +98,16 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
     }
   }
 
-  private void deleteProviders(List<CatalogProvider> providers) {
-    for (CatalogProvider provider : providers) {
+  private void deleteProviders(final List<CatalogProvider> providers) {
+    for (final CatalogProvider provider : providers) {
       logger.debug("Deleting provider {}", provider.getProvider());
       resourceService.removeProvider(provider.getProvider());
       subscribeService.remove(new Subscription(provider.getProvider()));
     }
   }
 
-  private void deleteSensors(List<CatalogSensor> sensors) {
-    for (CatalogSensor sensor : sensors) {
+  private void deleteSensors(final List<CatalogSensor> sensors) {
+    for (final CatalogSensor sensor : sensors) {
       logger.debug("Deleting sensor {} from provider {}", sensor.getSensor(), sensor.getProvider());
       resourceService.removeSensor(sensor.getSensor(), sensor.getProvider());
     }
@@ -170,13 +170,4 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
 
     lastTotalEvents = totalEvents;
   }
-
-  public void setResourceService(ResourceService resourceService) {
-    this.resourceService = resourceService;
-  }
-
-  public void setSubscribeService(SubscribeService subscribeService) {
-    this.subscribeService = subscribeService;
-  }
-
 }

@@ -31,7 +31,10 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.sentilo.web.catalog.dto.LastSearchParamsDTO;
 import org.sentilo.web.catalog.exception.SearchFilterException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.util.UrlPathHelper;
@@ -87,6 +90,12 @@ public abstract class SearchFilterUtils {
   public static String getUriVariableValue(final HttpServletRequest request, final String pattern, final String variable) {
     final Map<String, String> uriVariables = pathMatcher.extractUriTemplateVariables(pattern, URL_PATH_HELPER.getLookupPathForRequest(request));
     return uriVariables.get(variable);
+  }
+
+  public static Sort getSort(final HttpServletRequest request, final LastSearchParamsDTO lastSearchParamsDTO) {
+    final String columnName = translateSortProperty(SearchFilterUtils.getListName(request), String.valueOf(lastSearchParamsDTO.getSortColum()));
+    final Direction order = Direction.fromString(lastSearchParamsDTO.getSortDirecction());
+    return new Sort(order, columnName);
   }
 
   static void addListColumns(final String listaName, final List<Column> columns) {

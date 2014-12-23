@@ -41,6 +41,7 @@ public final class SentiloConstants {
   // Path tokens constants
   public static final String API_TOKEN = "api";
   public static final String PROVIDER_TOKEN = "provider";
+  public static final String SENSOR_TOKEN = "sensor";
   public static final String ENTITY_TOKEN = "entity";
   public static final String PERMISSIONS_TOKEN = "permissions";
   public static final String CREDENTIALS_TOKEN = "credentials";
@@ -53,6 +54,7 @@ public final class SentiloConstants {
   public static final String ORDER_TOKEN = "order";
   public static final String SUBSCRIBE_TOKEN = "subscribe";
   public static final String CATALOG_TOKEN = "catalog";
+  public static final String LOCATION_TOKEN = "location";
 
   // Internal error messages and codes.
   public static final String INTERNAL_ERROR_MESSAGE_TEMPLATE =
@@ -63,7 +65,11 @@ public final class SentiloConstants {
   public static final String CATALOG_ALERT_API_ERROR = "SIE02";
   public static final String JSON_UNMARSHAL_ERROR = "SIE03";
   public static final String JSON_MARSHAL_ERROR = "SIE04";
+  public static final String CATALOG_GENERAL_ERROR = "SIE05";
   public static final String SENTILO_UNKNOWN_ERROR = "SIE99";
+
+  // Cross timestamp pattern
+  public static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
 
   private SentiloConstants() {
     // this prevents even the native class from calling this ctor as well :

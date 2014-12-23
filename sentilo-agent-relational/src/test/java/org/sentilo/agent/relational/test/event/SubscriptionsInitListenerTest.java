@@ -48,7 +48,6 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 
-
 public class SubscriptionsInitListenerTest {
 
   @Mock
@@ -71,7 +70,7 @@ public class SubscriptionsInitListenerTest {
   @Test
   public void onApplicationEventWithoutSubscriptions() {
     when(subscriptionsDef.isEmpty()).thenReturn(true);
-    
+
     listener.onApplicationEvent(new ContextRefreshedEvent(context));
 
     verify(listenerContainer, times(0)).addMessageListener(any(MessageListener.class), any(Topic.class));
@@ -79,7 +78,7 @@ public class SubscriptionsInitListenerTest {
 
   @Test
   public void onApplicationEventWithInvalidSubscriptions() {
-    Set<String> subscriptionKeys = new HashSet<String>(Arrays.asList("/data/PROV1*"));
+    final Set<String> subscriptionKeys = new HashSet<String>(Arrays.asList("/data/PROV1*"));
     when(subscriptionsDef.isEmpty()).thenReturn(false);
     when(subscriptionsDef.stringPropertyNames()).thenReturn(subscriptionKeys);
     when(subscriptionsDef.getProperty(any(String.class))).thenReturn(null);
@@ -92,7 +91,7 @@ public class SubscriptionsInitListenerTest {
   @Test
   public void onApplicationEvent() {
     final String dataSource = "sentiloDs";
-    Set<String> subscriptionKeys = new HashSet<String>(Arrays.asList("/data/PROV1*", "/data/PROV2/sensor1"));
+    final Set<String> subscriptionKeys = new HashSet<String>(Arrays.asList("/data/PROV1*", "/data/PROV2/sensor1"));
     when(subscriptionsDef.isEmpty()).thenReturn(false);
     when(subscriptionsDef.stringPropertyNames()).thenReturn(subscriptionKeys);
     when(subscriptionsDef.getProperty(any(String.class))).thenReturn(dataSource);

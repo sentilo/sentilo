@@ -33,4 +33,5 @@ import org.springframework.data.domain.Pageable;
 public interface SearchFilterBuilder {
 
   SearchFilter buildSearchFilter(HttpServletRequest request, Pageable pageable, String wordToSearch);
+
 }

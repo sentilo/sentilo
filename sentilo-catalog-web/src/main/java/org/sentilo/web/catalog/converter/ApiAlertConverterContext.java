@@ -41,21 +41,22 @@ public class ApiAlertConverterContext {
 
   private final ApiValidationResults results;
 
-  public ApiAlertConverterContext(CatalogAlertInputMessage message, ApplicationService applicationService, ProviderService providerService,
-      AlertService alertService, boolean isUpdateAction) {
+  public ApiAlertConverterContext(final CatalogAlertInputMessage message, final String entityId, final ApplicationService applicationService,
+      final ProviderService providerService, final AlertService alertService, final boolean isUpdateAction) {
     super();
     this.message = message;
     this.isUpdateAction = isUpdateAction;
     this.applicationService = applicationService;
     this.providerService = providerService;
     this.alertService = alertService;
+    this.message.setEntityId(entityId);
 
-    this.results = new ApiValidationResults();
+    results = new ApiValidationResults();
   }
 
-  public ApiAlertConverterContext(CatalogAlertInputMessage message, ApplicationService applicationService, ProviderService providerService,
-      AlertService alertService) {
-    this(message, applicationService, providerService, alertService, false);
+  public ApiAlertConverterContext(final CatalogAlertInputMessage message, final String entityId, final ApplicationService applicationService,
+      final ProviderService providerService, final AlertService alertService) {
+    this(message, entityId, applicationService, providerService, alertService, false);
   }
 
   public CatalogAlertInputMessage getMessage() {

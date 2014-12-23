@@ -2,17 +2,20 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<c:set value="userTable" var="userTable" />
+
 <spring:url value="/admin/users/delete" var="deleteURL" />
 <spring:url value="/admin/users/new" var="newUserURL" />
-
+<spring:url value="/admin/users/list/excel?tableName=${userTable}" var="excelSource" />
 <spring:url value="/admin/users/" var="detailPrefix" />
-
 <spring:url value="/admin/users/list/json" var="sAjaxSource" />
-<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
+
+<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {	
-	makeTableAsync('${sAjaxSource}', '#userTable', '${detailPrefix}');
+	var tableUser =	makeTableAsync('${userTable}', '${sAjaxSource}');
+	
 });
 </script>
 
@@ -39,7 +42,7 @@ $(document).ready(function() {
 						<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="users"
 							action="${deleteURL}">
 
-							<table class="table table-striped" id="userTable">
+							<table class="table table-striped" id="${userTable}">
 								<thead>
 									<tr>
 										<td>&nbsp;
@@ -53,12 +56,20 @@ $(document).ready(function() {
 								<tbody />
 							</table>
 							<br />
-							<div class="control-group pull-right">
-								<a href="#" onclick="deleteSelected('users');" class="btn btn-danger"> <spring:message
-										code="user.delete.title" /> </a> <a href="#" type="button" onclick="window.location.href='${newUserURL}';"
-									class="btn"> <spring:message code="user.new.title" /> </a>
+							<div class="control-group pull-left" id="excel_${userTable}">
+								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
+									<spring:message code="button.excel" /> 
+								</a>
 							</div>
-
+							
+							<div class="control-group pull-right">
+								<a href="#" onclick="deleteSelected('users');" class="btn btn-danger"> 
+									<spring:message code="user.delete.title" /> 
+								</a> 
+								<a href="#" type="button" onclick="window.location.href='${newUserURL}';" class="btn"> 
+									<spring:message code="user.new.title" /> 
+								</a>
+							</div>
 						</form:form>
 					</div>
 				</div>

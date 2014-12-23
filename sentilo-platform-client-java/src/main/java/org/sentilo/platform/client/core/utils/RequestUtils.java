@@ -91,11 +91,11 @@ public abstract class RequestUtils {
     return parameters;
   }
 
-  private static String buildPath(List<String> resourceTokens, String... rootTokens) {
+  private static String buildPath(final List<String> resourceTokens, final String... rootTokens) {
     if (CollectionUtils.isEmpty(resourceTokens)) {
       return RESTUtils.buildPath(rootTokens);
     } else {
-      List<String> tokens = SentiloUtils.addValuesToBeginningList(resourceTokens, rootTokens);
+      final List<String> tokens = SentiloUtils.addValuesToBeginningList(resourceTokens, rootTokens);
       return RESTUtils.buildPath(tokens.toArray(new String[tokens.size()]));
     }
   }

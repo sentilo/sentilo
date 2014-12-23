@@ -41,7 +41,7 @@ public abstract class AbstractServiceOperationsImpl {
     return restClient;
   }
 
-  protected void setRestClient(RESTClient restClient) {
+  protected void setRestClient(final RESTClient restClient) {
     this.restClient = restClient;
   }
 }

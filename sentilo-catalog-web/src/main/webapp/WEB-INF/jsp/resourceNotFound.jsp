@@ -29,10 +29,10 @@
 									</h4>
 									<c:choose>
 										<c:when test="${empty exceptionErrorMessageArgs}">
-										<spring:message code="${exception.errorMessageKey}" arguments="${exception.errorMessageArgs}" htmlEscape="false" />
+											<spring:message code="${exception.errorMessageKey}" arguments="${exception.errorMessageArgs}" htmlEscape="false" />
 										</c:when>
 										<c:otherwise>
-										<spring:message code="${exception.errorMessageKey}" htmlEscape="false" var="errorMessage" />
+											<spring:message code="${exception.errorMessageKey}" htmlEscape="false" var="errorMessage" />
 										</c:otherwise>
 									</c:choose>
 								</c:if>

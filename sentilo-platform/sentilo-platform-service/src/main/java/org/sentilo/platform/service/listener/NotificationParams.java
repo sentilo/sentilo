@@ -36,9 +36,9 @@ public class NotificationParams {
   public NotificationParams(final String notificationParamsChain) {
     // notificationParamsChain has the format endpoint#@#secret where
     // secret could be optional
-    String[] params = notificationParamsChain.split(SentiloConstants.SENTILO_INTERNAL_TOKEN);
-    this.endpoint = params[0];
-    this.secretCallbackKey = (params.length == 2 ? params[1] : null);
+    final String[] params = notificationParamsChain.split(SentiloConstants.SENTILO_INTERNAL_TOKEN);
+    endpoint = params[0];
+    secretCallbackKey = (params.length == 2 ? params[1] : null);
   }
 
   public NotificationParams(final String endpoint, final String secretCallbackKey) {
@@ -48,7 +48,7 @@ public class NotificationParams {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("endpoint:" + endpoint);
     if (StringUtils.hasText(secretCallbackKey)) {
       sb.append("secretCallbackKey: *****");

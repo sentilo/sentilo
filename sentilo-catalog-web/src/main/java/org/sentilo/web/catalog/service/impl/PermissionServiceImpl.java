@@ -55,7 +55,8 @@ public class PermissionServiceImpl extends AbstractBaseServiceImpl<Permission> i
 
   @Override
   protected void doAfterInit() {
-    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder("error.permission.duplicate.key")));
+    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder(
+        "error.permission.duplicate.key", Constants.PERMISSION_TOKEN_SPLITTER)));
     super.doAfterInit();
   }
 

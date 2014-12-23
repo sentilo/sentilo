@@ -160,7 +160,7 @@ public class CatalogAlertHandler extends AbstractHandler {
 
   protected void validateAuthorization(final CatalogAlertInputMessage inputMessage, final SentiloRequest request) throws ForbiddenAccessException {
     // Internal alerts only could be inserted/updated by catalog entity
-    Multimap<String, CatalogAlert> groups = groupAlertsByType(inputMessage.getAlerts());
+    final Multimap<String, CatalogAlert> groups = groupAlertsByType(inputMessage.getAlerts());
     if (groups.get("INTERNAL").size() > 0 && !getCatalogId().equals(request.getEntitySource())) {
       final String errorMessage = String.format("You are not authorized to insert/update internal alerts.");
       throw new ForbiddenAccessException(errorMessage);
@@ -173,8 +173,8 @@ public class CatalogAlertHandler extends AbstractHandler {
    * @param alerts
    * @return
    */
-  protected Multimap<String, CatalogAlert> groupAlertsByType(List<CatalogAlert> alerts) {
-    Function<CatalogAlert, String> internalFunction = new Function<CatalogAlert, String>() {
+  protected Multimap<String, CatalogAlert> groupAlertsByType(final List<CatalogAlert> alerts) {
+    final Function<CatalogAlert, String> internalFunction = new Function<CatalogAlert, String>() {
 
       @Override
       public String apply(final CatalogAlert alert) {

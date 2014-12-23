@@ -20,13 +20,9 @@
 	<bean id="jedisPool" class="redis.clients.jedis.JedisPool" c:poolConfig-ref="jedisPoolConfig" c:host="${jedis.pool.host}"
 		c:port="${jedis.pool.port}" c:timeout="${jedis.pool.timeout}" c:password="${jedis.pool.password}" />
 
-	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig" p:maxActive="${jedis.config.maxactive}"
-		p:maxIdle="${jedis.config.maxidle}" p:maxWait="${jedis.config.maxwait}" p:testOnBorrow="true" p:whenExhaustedAction="1" /> <!--whenExhaustedAction =1 (default) bloquea : 2 significa que cuando llegue al limite puede crear nuevas conexiones -->
-
-	<!-- Config para la parte de pubsub -->
-	<!-- bean id="jedisPoolConfigPubSub" class="redis.clients.jedis.JedisPoolConfig" p:maxActive="${jedis.config.pubsub.maxactive}" 
-		p:maxIdle="${jedis.config.pubsub.maxidle}" p:maxWait="${jedis.config.pubsub.maxwait}" p:testOnBorrow="true"/ -->
-
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig" p:maxTotal="${jedis.config.maxactive}"
+		p:maxIdle="${jedis.config.maxidle}" p:maxWaitMillis="${jedis.config.maxwait}" p:testOnBorrow="true" /> 
+	
 	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
 		p:host-name="${jedis.pool.host}" p:port="${jedis.pool.port}" p:password="${jedis.pool.password}" p:timeout="${jedis.pool.timeout}"
 		p:usePool="true" p:poolConfig-ref="jedisPoolConfig" />

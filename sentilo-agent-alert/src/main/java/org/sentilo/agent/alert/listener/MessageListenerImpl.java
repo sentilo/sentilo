@@ -27,147 +27,131 @@ package org.sentilo.agent.alert.listener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-import org.sentilo.agent.alert.domain.Alarm;
+import org.sentilo.agent.alert.domain.InternalAlert;
+import org.sentilo.agent.alert.repository.FrozenRepository;
+import org.sentilo.agent.alert.service.PublishService;
 import org.sentilo.agent.alert.trigger.TriggerEvaluator;
 import org.sentilo.agent.alert.trigger.TriggerResult;
-import org.sentilo.agent.alert.utils.AlertUtils;
+import org.sentilo.agent.common.listener.AbstractMessageListenerImpl;
 import org.sentilo.common.domain.EventMessage;
-import org.sentilo.common.parser.EventMessageConverter;
+import org.sentilo.common.utils.AlertTriggerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-public class MessageListenerImpl implements MessageListener {
+public class MessageListenerImpl extends AbstractMessageListenerImpl {
 
   private final Logger logger = LoggerFactory.getLogger(MessageListenerImpl.class);
+  private final Lock lock = new ReentrantLock();
 
-  private final String name;
-  private final RedisSerializer<String> serializer = new StringRedisSerializer();
-  private final EventMessageConverter eventConverter = new EventMessageConverter();
-
-  private RedisTemplate<String, String> redisTemplate;
   private final TriggerEvaluator triggerEvaluator;
+  private PublishService publishService;
+  private FrozenRepository frozenRepository;
 
-  private List<Alarm> alarms;
-
-  private boolean validValue;
+  private List<InternalAlert> alerts;
 
   public MessageListenerImpl(final String name) {
-    super();
-    Assert.notNull(name, "name must not be NULL");
-    this.name = name;
+    super(name);
     triggerEvaluator = new TriggerEvaluator();
   }
 
-  public MessageListenerImpl(final String name, final RedisTemplate<String, String> redisTemplate) {
+  public MessageListenerImpl(final String name, final PublishService publishService, final FrozenRepository frozenRepository) {
     this(name);
-    Assert.notNull(redisTemplate, "redisTemplate must not be NULL");
-    this.redisTemplate = redisTemplate;
+    Assert.notNull(publishService, "publishService must not be NULL");
+    this.publishService = publishService;
+    this.frozenRepository = frozenRepository;
 
   }
 
-  public void onMessage(final Message message, final byte[] pattern) {
-    final String info = getInfo(message);
-    final String channel = getChannel(message);
-
-    logger.debug("{} -->  Recibido mensaje en el canal {}", name, channel);
-    logger.debug("{} -->  Contenido del mensaje {}", name, info);
-
-    // En cada mensaje recibido debemos volver a inicializar el valor de este flag
-    validValue = true;
-
-    // El mensaje recibido corresponde a una representación en JSON de un objeto de tipo
-    // EventMessage.
-    final EventMessage eventMessage = eventConverter.unmarshall(info);
+  public void doWithMessage(final Message message, final EventMessage eventMessage) {
     final String value = eventMessage.getMessage();
 
-    // Cada mensaje recibido debe ser evaluado por cada una de las alarmas asociadas al listener
-    if (!CollectionUtils.isEmpty(getAlarms())) {
-      for (final Alarm alarm : getAlarms()) {
-        evaluateMessage(alarm, value);
-      }
-    }
+    logger.debug("Get value {} on messageListener {}", value, getName());
 
-    // Si el valor recibido no lanza ninguna alarma, lo persistimos como ultimo valor recibido.
-    if (validValue) {
-      triggerEvaluator.setLastAcceptedValue(value);
-    }
-  }
+    // For each registered alert, the message value must be checked to validate that verifies all
+    // alerts's restriction rules (for not frozen alerts)
+    boolean validValue = true;
+    final List<InternalAlert> alertsToCheck = getAlerts();
+    final List<InternalAlert> frozenAlerts = new ArrayList<InternalAlert>();
 
-  public void checkFrozenAlarm() {
-    logger.debug("{} -->  check frozen alarms", name);
-    if (!CollectionUtils.isEmpty(getAlarms())) {
-      for (final Alarm alarm : getAlarms()) {
-        switch (alarm.getTrigger()) {
-          case FROZEN:
-            checkFrozen(alarm);
-            break;
-          default:
-            break;
+    if (!CollectionUtils.isEmpty(alertsToCheck)) {
+      for (final InternalAlert alert : alertsToCheck) {
+        if (AlertTriggerType.FROZEN.name().equals(alert.getTrigger().name())) {
+          frozenAlerts.add(alert);
+        } else if (valueVerifiesRestriction(alert, value)) {
+          validValue = false;
         }
       }
     }
-  }
 
-  public void updateAlarms(final List<Alarm> newAlarms) {
-    alarms = newAlarms;
-  }
-
-  public List<Alarm> getAlarms() {
-    return alarms;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void addAlarm(final Alarm alarm) {
-    if (alarms == null) {
-      alarms = new ArrayList<Alarm>();
+    // If value is not rejected, set it as last accepted value
+    if (validValue) {
+      triggerEvaluator.setLastAcceptedValue(value);
+      logger.debug("Value {} no rejected by any alert from messageListener {}", value, getName());
     }
 
-    alarms.add(alarm);
+    // Finally, updates the timeout for each frozen alert associated with this listener
+    if (!CollectionUtils.isEmpty(frozenAlerts)) {
+      frozenRepository.updateFrozenTimeouts(frozenAlerts);
+    }
   }
 
-  protected String getInfo(final Message message) {
-    return serializer.deserialize(message.getBody());
+  public void updateAlerts(final List<InternalAlert> newAlerts) {
+    lock.lock();
+    try {
+      alerts = newAlerts;
+    } finally {
+      lock.unlock();
+    }
   }
 
-  protected String getChannel(final Message message) {
-    return serializer.deserialize(message.getChannel());
+  public List<InternalAlert> getAlerts() {
+    lock.lock();
+    try {
+      return alerts;
+    } finally {
+      lock.unlock();
+    }
   }
 
-  private void evaluateMessage(final Alarm alarm, final String value) {
-    final TriggerResult result = triggerEvaluator.evaluate(alarm, value);
+  public void addAlert(final InternalAlert alert) {
+    lock.lock();
+    try {
+      if (alerts == null) {
+        alerts = new ArrayList<InternalAlert>();
+      }
+      alerts.add(alert);
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  /**
+   * Verifies if the value parameter checks the restriction rule defined by the alert. Returns true
+   * if the value checks the restriction rule (i.e. value must be rejected). Otherwise returns false
+   * Moreover, if the value verifies the rule restriction then a new alarm is published
+   * 
+   * @param alert
+   * @param value
+   * @return true/false
+   */
+  private boolean valueVerifiesRestriction(final InternalAlert alert, final String value) {
+    final TriggerResult result = triggerEvaluator.evaluate(alert, value);
     if (result.triggerConditionChecked()) {
-      validValue = false;
-      buildAndSendMessage(alarm, result);
+      publishService.publishAlarm(alert, result.getAlarmMessage());
     }
+
+    return result.triggerConditionChecked();
   }
 
-  private void checkFrozen(final Alarm alarm) {
-    final TriggerResult result = triggerEvaluator.checkFrozen(alarm);
-    if (result.triggerConditionChecked()) {
-      buildAndSendMessage(alarm, result);
-    }
-  }
-
-  private void buildAndSendMessage(final Alarm alarm, final TriggerResult result) {
-    final String channel = AlertUtils.buildTopicToPublishAlarm(alarm);
-    final String message = AlertUtils.buildMessageToPublish(alarm, result.getAlarmMessage(), channel);
-    logger.debug("Publish alarm message [{}] into channel [{}]", message, channel);
-    redisTemplate.convertAndSend(channel, message);
-  }
-
-  public void setRedisTemplate(final RedisTemplate<String, String> redisTemplate) {
-    this.redisTemplate = redisTemplate;
-  }
-
+  /*
+   * private void checkFrozen(final InternalAlert alert) { final TriggerResult result =
+   * triggerEvaluator.checkFrozen(alert); if (result.triggerConditionChecked()) {
+   * buildAndSendMessage(alert, result); } }
+   */
 }

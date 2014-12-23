@@ -32,7 +32,6 @@ import org.sentilo.common.domain.CatalogProvider;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformInputMessage;
 
-
 public class PlatformAdminInputMessage implements PlatformInputMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
@@ -45,7 +44,7 @@ public class PlatformAdminInputMessage implements PlatformInputMessage {
     return sensors;
   }
 
-  public void setSensors(Collection<CatalogSensor> sensors) {
+  public void setSensors(final Collection<CatalogSensor> sensors) {
     this.sensors = sensors;
   }
 
@@ -53,7 +52,7 @@ public class PlatformAdminInputMessage implements PlatformInputMessage {
     return providers;
   }
 
-  public void setProviders(Collection<CatalogProvider> providers) {
+  public void setProviders(final Collection<CatalogProvider> providers) {
     this.providers = providers;
   }
 

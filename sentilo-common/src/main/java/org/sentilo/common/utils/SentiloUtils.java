@@ -51,17 +51,22 @@ public abstract class SentiloUtils {
     return prefix + "-" + System.currentTimeMillis();
   }
 
+  public static boolean arrayContainsValue(final String[] list, final String value) {
+    final List<String> valuesList = Arrays.asList(list);
+    return valuesList.contains(value);
+  }
+
   /**
    * Add the specified values to the beginning of the list.
    * 
    * @param baseList
    * @param values
    */
-  public static List<String> addValuesToBeginningList(List<String> baseList, String... values) {
-    List<String> result = new ArrayList<String>();
+  public static List<String> addValuesToBeginningList(final List<String> baseList, final String... values) {
+    final List<String> result = new ArrayList<String>();
 
     if (!arrayIsEmpty(values)) {
-      List<String> valuesList = Arrays.asList(values);
+      final List<String> valuesList = Arrays.asList(values);
       result.addAll(valuesList);
       // Collections.reverse(valuesList);
       // for (String value : valuesList) {

@@ -77,10 +77,11 @@ public class ActivityServiceImpl extends AbstractBaseServiceImpl<Activity> imple
    * @see org.sentilo.web.catalog.service.ActivityService#getLastRegisters()
    */
   public List<Activity> getLastActivityLogs() {
-
     final Pageable pageable = new PageRequest(0, 20, Direction.DESC, "timestamp");
     final SearchFilter filter = new SearchFilter(pageable);
     final SearchFilterResult<Activity> result = search(filter);
+    // the list contains the last 20 entries from the collection Activity
+    // in desc order, i.e., the first element is the most recent
 
     return result.getContent();
   }

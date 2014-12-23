@@ -4,7 +4,9 @@
 
 <spring:url value="/admin/componenttypes/${componentType.id}/edit" var="editComponentTypeLink" />
 
-<spring:url value="/static/img" var="iconPrefix" />
+<spring:url value="/static/img/icons" var="iconsPath" />
+
+<spring:url value="/admin/componenttypes/list?nameTableRecover=componentTypeTable&fromBack=true" var="backURL" />
 
 <div class="container-fluid">
 	<div class="content">
@@ -74,7 +76,7 @@
 																<strong><spring:message code="componenttype.icon" /> </strong>
 															</div>
 															<div class="span8 connecta-icon-group">
-																<img src="${iconPrefix}/pins${componentType.icon}.png">
+																<img src="${iconsPath}/${componentType.icon}.png">
 															</div>
 														</div>
 													</c:if>

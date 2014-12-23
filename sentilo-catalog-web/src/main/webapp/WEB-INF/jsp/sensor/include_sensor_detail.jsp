@@ -1,6 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+
+
 <div class="tab-content">
 	<div class="${tab1PaneClass}" id="tab1">
 		<div class="accordion" id="detailAccordion">
@@ -34,12 +36,14 @@
 								<strong><spring:message code="sensor.accessType" /> </strong>
 							</div>
 							<div class="span8">
-								<c:if test="${sensor.publicAccess}">
-									<spring:message code="public" />
-								</c:if>
-								<c:if test="${not sensor.publicAccess}">
-									<spring:message code="private" />
-								</c:if>
+								<c:choose>	
+									<c:when test="${sensor.publicAccess}">
+										<spring:message code="public" />
+									</c:when>
+									<c:otherwise>
+										<spring:message code="private" />
+									</c:otherwise>
+								</c:choose>
 							</div>
 						</div>
 						<div class="row-fluid">
@@ -115,13 +119,31 @@
 		</div>
 	</div>
 	<div class="${tab2PaneClass}" id="tab2">
-		<div class="accordion" id="detailAdditionalInfoAccordion">
-			<%@include file="include_sensor_additional_info.jsp"%>
+		<div class="accordion" id="technicalDetailsAccordion">
+		    <c:set var="technicalDetails" value="${sensor.technicalDetails}" />
+			<c:set var="resourceIsComponent" value="false" />
+			<%@include file="/WEB-INF/jsp/common/include_technical_details.jsp"%>
 			<br />
 			<div class="row-fluid">
 				<div class="span12">
-					<div class="control-group pull-right">
+					<div class="control-group  pull-right">
 						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="${tab3PaneClass}" id="tab3">
+		<div class="accordion" id="detailAdditionalInfoAccordion">
+		    <c:set var="additionalInfo"  value="${sensor.additionalInfo}" />
+			<%@include file="/WEB-INF/jsp/common/include_additional_info.jsp"%>
+			<br />
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="control-group  pull-right">
+						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
 					</div>
 				</div>
 			</div>

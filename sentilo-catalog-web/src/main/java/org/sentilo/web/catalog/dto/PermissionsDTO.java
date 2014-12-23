@@ -28,10 +28,10 @@ package org.sentilo.web.catalog.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.domain.Application;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Provider;
-import org.sentilo.web.catalog.utils.CatalogUtils;
 
 public class PermissionsDTO extends AbstractListDTO {
 
@@ -69,7 +69,7 @@ public class PermissionsDTO extends AbstractListDTO {
 
   private List<Permission> toPermissionList(final String[] selectedIds) {
     final List<Permission> permissions = new ArrayList<Permission>();
-    if (!CatalogUtils.arrayIsEmpty(selectedIds)) {
+    if (!SentiloUtils.arrayIsEmpty(selectedIds)) {
       for (final String id : selectedIds) {
         final Permission permission = new Permission();
         permission.setId(id);

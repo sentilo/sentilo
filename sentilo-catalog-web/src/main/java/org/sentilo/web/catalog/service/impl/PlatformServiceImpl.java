@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class PlatformServiceImpl implements PlatformService, ApplicationListener<DeletePlatformResourcesEvent<CatalogDocument>> {
 
@@ -59,9 +58,9 @@ public class PlatformServiceImpl implements PlatformService, ApplicationListener
   }
 
   @Override
-  public void onApplicationEvent(DeletePlatformResourcesEvent<CatalogDocument> event) {
-    String path = "admin/delete";
-    PlatformAdminInputMessage message = new PlatformAdminInputMessage();
+  public void onApplicationEvent(final DeletePlatformResourcesEvent<CatalogDocument> event) {
+    final String path = "admin/delete";
+    final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
     if (event.resourcesAreSensors()) {
       message.setSensors(translateSensors(event.getResources()));
     } else {
@@ -71,10 +70,10 @@ public class PlatformServiceImpl implements PlatformService, ApplicationListener
     restClient.put(path, parser.marshall(message));
   }
 
-  private Collection<CatalogSensor> translateSensors(Collection<CatalogDocument> sensors) {
-    Collection<CatalogSensor> catalogSensors = new ArrayList<CatalogSensor>();
-    for (CatalogDocument document : sensors) {
-      CatalogSensor catalogSensor = new CatalogSensor();
+  private Collection<CatalogSensor> translateSensors(final Collection<CatalogDocument> sensors) {
+    final Collection<CatalogSensor> catalogSensors = new ArrayList<CatalogSensor>();
+    for (final CatalogDocument document : sensors) {
+      final CatalogSensor catalogSensor = new CatalogSensor();
       catalogSensor.setSensor(((Sensor) document).getSensorId());
       catalogSensor.setProvider(((Sensor) document).getProviderId());
 
@@ -84,10 +83,10 @@ public class PlatformServiceImpl implements PlatformService, ApplicationListener
     return catalogSensors;
   }
 
-  private Collection<CatalogProvider> translateProviders(Collection<CatalogDocument> providers) {
-    Collection<CatalogProvider> catalogProviders = new ArrayList<CatalogProvider>();
-    for (CatalogDocument document : providers) {
-      CatalogProvider catalogProvider = new CatalogProvider();
+  private Collection<CatalogProvider> translateProviders(final Collection<CatalogDocument> providers) {
+    final Collection<CatalogProvider> catalogProviders = new ArrayList<CatalogProvider>();
+    for (final CatalogDocument document : providers) {
+      final CatalogProvider catalogProvider = new CatalogProvider();
       catalogProvider.setProvider(((Provider) document).getId());
 
       catalogProviders.add(catalogProvider);

@@ -27,7 +27,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.2.1</version>
 				<configuration>
-					<mainClass>org.sentilo.agent.relational.server.SentiloAgentServer</mainClass>
+					<mainClass>org.sentilo.agent.common.server.SentiloAgentServer</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -37,7 +37,7 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.sentilo.agent.relational.server.SentiloAgentServer</mainClass>
+							<mainClass>org.sentilo.agent.common.server.SentiloAgentServer</mainClass>
 							<name>sentilo-agent-relational-server</name>
 							<commandLineArguments>				            
 				              <commandLineArgument>relational-context.xml</commandLineArgument>
@@ -47,7 +47,8 @@
 				                  <systemProperty>user.timezone=UTC</systemProperty>				                
 				                </systemProperties>			                
 				                <extraArguments>
-				                  <extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>			                  
+				                  <extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>	
+				                  <extraArgument>-Dsentilo.agent.name=RELATIONAL</extraArgument>		                  
 				                </extraArguments>
 				            </jvmSettings>
 						</program>						
@@ -59,31 +60,10 @@
 
 	<dependencies>	
 		<dependency>
-			<groupId>org.sentilo</groupId>
-			<artifactId>sentilo-common</artifactId>
+			<groupId>org.sentilo.agent</groupId>
+			<artifactId>sentilo-agent-common</artifactId>
 			<version>${platform.version}</version>
-		</dependency>						
-		<dependency>
-	   		<groupId>org.springframework.data</groupId>
-	   		<artifactId>spring-data-redis</artifactId>	   		
-	   		<version>${org.springframework.data.redis.version}</version>
-	   		<exclusions>
-	   			<exclusion>
-	   				<groupId>org.springframework</groupId>
-	   				<artifactId>spring-core</artifactId>
-	   			</exclusion>
-	   		</exclusions>
-		</dependency>
-		<dependency>
-    		<groupId>redis.clients</groupId>
-    		<artifactId>jedis</artifactId>
-    		<version>${jedis.version}</version>
-    	</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>${commons.codec.version}</version>
-		</dependency>		
+		</dependency>											
 		<!-- Dependencies for relational DB -->
 	    <dependency>
 	    	<groupId>org.springframework</groupId>

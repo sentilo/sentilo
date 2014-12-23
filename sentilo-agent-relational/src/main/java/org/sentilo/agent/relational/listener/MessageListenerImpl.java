@@ -25,108 +25,67 @@
  */
 package org.sentilo.agent.relational.listener;
 
+import org.sentilo.agent.common.listener.AbstractMessageListenerImpl;
+import org.sentilo.agent.common.utils.Constants;
 import org.sentilo.agent.relational.business.service.DataTrackService;
 import org.sentilo.agent.relational.common.domain.Alarm;
 import org.sentilo.agent.relational.common.domain.EndpointMessage;
 import org.sentilo.agent.relational.common.domain.Observation;
 import org.sentilo.agent.relational.common.domain.Order;
-import org.sentilo.agent.relational.utils.Constants;
 import org.sentilo.agent.relational.utils.ThreadLocalProperties;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.domain.SubscribeType;
-import org.sentilo.common.exception.MessageNotWritableException;
-import org.sentilo.common.parser.EventMessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.util.Assert;
 
-public class MessageListenerImpl implements MessageListener {
+public class MessageListenerImpl extends AbstractMessageListenerImpl {
 
   private final Logger logger = LoggerFactory.getLogger(MessageListenerImpl.class);
 
-  /**
-   * This name is equals to the dataSource name to use to persist the messages received by this
-   * listener
-   */
-  private final String name;
-  private final RedisSerializer<String> serializer = new StringRedisSerializer();
-  private final EventMessageConverter eventConverter = new EventMessageConverter();
   private DataTrackService dataTrackService;
 
-  public MessageListenerImpl(final String name) {
-    super();
-    Assert.notNull(name, "name must not be NULL");
-    this.name = name;
-  }
-
   public MessageListenerImpl(final String name, final DataTrackService dataTrackService) {
-    this(name);
+    // name is equals to the dataSource name to use to persist the messages received by this
+    // listener
+    super(name);
     this.dataTrackService = dataTrackService;
   }
 
-  public void onMessage(final Message message, final byte[] pattern) {
-    final String info = getInfo(message);
-    final String channel = getChannel(message);
-
-    logger.debug("{} -->  Recibido mensaje en el canal {}", name, channel);
-    logger.debug("{} -->  Contenido del mensaje {}", name, info);
-
+  public void doWithMessage(final Message message, final EventMessage eventMessage) {
     ThreadLocalProperties.unset();
-    ThreadLocalProperties.set(name);
+    ThreadLocalProperties.set(getName());
 
     try {
-      final EventMessage eventMessage = eventConverter.unmarshall(info);
+      final String channel = getChannel(message);
       final EndpointMessage endpointMessage = new EndpointMessage(eventMessage, channel);
-
       switch (getTopicType(channel)) {
         case DATA:
           final Observation observation = endpointMessage.getObservation();
-          observation.setTargetDs(name);
+          observation.setTargetDs(getName());
           dataTrackService.save(observation);
           break;
         case ALARM:
           final Alarm alarm = endpointMessage.getAlarm();
-          alarm.setTargetDs(name);
+          alarm.setTargetDs(getName());
           dataTrackService.save(alarm);
           break;
         case ORDER:
           final Order order = endpointMessage.getOrder();
-          order.setTargetDs(name);
+          order.setTargetDs(getName());
           dataTrackService.save(order);
           break;
       }
 
     } catch (final DataAccessException e) {
-      logger.error("Error processing message {}. Error: {} ", info, e);
-    } catch (final MessageNotWritableException mnwe) {
-      logger.error("Error unmarshalling message {}. Error: {} ", info, mnwe);
+      logger.error("Error processing message. Error: {} ", e);
     }
   }
 
   private SubscribeType getTopicType(final String topic) {
     final String[] tokens = topic.split(Constants.REDIS_CHANNEL_TOKEN);
     return SubscribeType.valueOf(tokens[1].toUpperCase());
-  }
-
-  protected String getInfo(final Message message) {
-    return serializer.deserialize(message.getBody());
-  }
-
-  protected String getChannel(final Message message) {
-    return serializer.deserialize(message.getChannel());
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public DataTrackService getDataTrackService() {
-    return dataTrackService;
   }
 
 }

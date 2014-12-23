@@ -39,7 +39,6 @@ import org.sentilo.platform.client.core.domain.OrderInputMessage;
 import org.sentilo.platform.client.core.parser.OrderMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultOrderServiceOperationsImpl;
 
-
 public class DefaultOrderServiceOperationsImplTest {
 
   @InjectMocks

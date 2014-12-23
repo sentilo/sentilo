@@ -36,8 +36,8 @@ import org.mockito.MockitoAnnotations;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
+import org.sentilo.platform.client.core.parser.AlarmMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultAlarmServiceOperationsImpl;
-
 
 public class DefaultAlarmServiceOperationsImplTest {
 
@@ -49,6 +49,9 @@ public class DefaultAlarmServiceOperationsImplTest {
 
   @Mock
   private AlarmInputMessage message;
+
+  @Mock
+  private AlarmMessageConverter converter;
 
   @Before
   public void setUp() {

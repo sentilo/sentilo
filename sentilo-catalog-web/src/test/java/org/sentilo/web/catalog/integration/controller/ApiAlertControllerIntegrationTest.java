@@ -31,6 +31,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
+import org.sentilo.common.domain.CatalogResponseMessage;
 import org.sentilo.web.catalog.controller.api.ApiAlertController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -50,8 +51,8 @@ public class ApiAlertControllerIntegrationTest {
 
   @Test
   public void getAuthorizedAlerts() {
-    CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(DEMO_APP, Collections.<String, Object>emptyMap());
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    final CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(DEMO_APP, Collections.<String, Object>emptyMap());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
     Assert.assertTrue(CollectionUtils.isEmpty(response.getAlerts()));
   }
 }

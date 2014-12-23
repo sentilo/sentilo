@@ -53,7 +53,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
   private final Set<String> writesAccessSet = new HashSet<String>();
   private final Set<String> readsAccessSet = new HashSet<String>();
 
-  private Lock lock = new ReentrantLock();
+  private final Lock lock = new ReentrantLock();
 
   @Autowired
   private CatalogService catalogService;

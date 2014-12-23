@@ -39,8 +39,8 @@ public class HMACBuilderTest {
     final String currentDate = "10/06/2014T15:27:22";
     final String endpoint = "http://l27.0.0.1/endpoint";
     final String body = "{\"field1\":\"value1\",\"field2\":\"value2\"}";
-    
-    String hmac = HMACBuilder.buildHeader(body, endpoint, secret, currentDate);
+
+    final String hmac = HMACBuilder.buildHeader(body, endpoint, secret, currentDate);
     Assert.assertEquals(hmacExpected, hmac);
   }
 
@@ -53,7 +53,7 @@ public class HMACBuilderTest {
     final String endpoint = "http://l27.0.0.1/endpoint";
     final String body = "{\"field1\":\"value1\",\"field2\":\"value2\"}";
 
-    String hmac = HMACBuilder.buildHeader(body, endpoint, secret, currentDate);
+    final String hmac = HMACBuilder.buildHeader(body, endpoint, secret, currentDate);
 
     Assert.assertNotEquals(hmacExpected, hmac);
   }

@@ -32,30 +32,29 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.agent.alert.event.CheckFrozenAlarmEvent;
-import org.sentilo.agent.alert.scheduler.CheckFrozenAlarmJob;
+import org.sentilo.agent.alert.event.CheckFrozenAlertEvent;
+import org.sentilo.agent.alert.scheduler.CheckFrozenAlertJob;
 import org.springframework.context.ApplicationContext;
-
 
 public class CheckFrozenAlarmJobTest {
 
   @Mock
   private ApplicationContext context;
 
-  private CheckFrozenAlarmJob job;
+  private CheckFrozenAlertJob job;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    job = new CheckFrozenAlarmJob();
+    job = new CheckFrozenAlertJob();
 
     job.setApplicationContext(context);
   }
 
   @Test
   public void publishCheckFrozenAlarmEvent() {
-    job.publishCheckFrozenAlarmEvent();
+    job.publishCheckFrozenAlertEvent();
 
-    verify(context).publishEvent(isA(CheckFrozenAlarmEvent.class));
+    verify(context).publishEvent(isA(CheckFrozenAlertEvent.class));
   }
 }

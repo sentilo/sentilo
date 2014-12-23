@@ -27,34 +27,81 @@ package org.sentilo.web.catalog.domain;
 
 import java.io.Serializable;
 
+import org.sentilo.common.utils.SentiloUtils;
+import org.sentilo.web.catalog.utils.Constants;
+
 public class Location implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private String latitude;
-  private String longitude;
+  /** The ordered sequence of location coordinates */
+  private LngLat[] coordinates;
+
+  /**
+   * The centroid, or geometry center, of the component with this location. This attribute is needed
+   * for does a geospatial search in MongoDB. Its values are [longitude, latitude]
+   */
+  private Double[] centroid;
+
+  /** Timestamp that shows when the component changed its location to this one */
+  private Long fromTsTime;
 
   public Location() {
   }
 
-  public Location(final String latitude, final String longitude) {
-    this.latitude = latitude;
-    this.longitude = longitude;
+  public Location(final LngLat[] coordinates) {
+    this.coordinates = coordinates;
   }
 
-  public String getLatitude() {
-    return latitude;
+  public Location(final LngLat coordinate) {
+    coordinates = new LngLat[] {coordinate};
   }
 
-  public void setLatitude(final String latitude) {
-    this.latitude = latitude;
+  public int getNumberOfCoordinates() {
+    return (coordinates != null ? coordinates.length : 0);
   }
 
-  public String getLongitude() {
-    return longitude;
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    if (!SentiloUtils.arrayIsEmpty(coordinates)) {
+      for (final LngLat coordinate : coordinates) {
+        if (!first) {
+          sb.append(Constants.LOCATION_TOKEN_SPLITTER);
+        }
+        sb.append(coordinate.getLatitude());
+        sb.append(Constants.LOCATION_TOKEN_DIVIDER);
+        sb.append(coordinate.getLongitude());
+
+        first = false;
+      }
+    }
+
+    return sb.toString();
   }
 
-  public void setLongitude(final String longitude) {
-    this.longitude = longitude;
+  public LngLat[] getCoordinates() {
+    return coordinates;
   }
+
+  public void setCoordinates(final LngLat[] coordinates) {
+    this.coordinates = coordinates;
+  }
+
+  public Double[] getCentroid() {
+    return centroid;
+  }
+
+  public void setCentroid(final Double[] centroid) {
+    this.centroid = centroid;
+  }
+
+  public Long getFromTsTime() {
+    return fromTsTime;
+  }
+
+  public void setFromTsTime(final Long fromTsTime) {
+    this.fromTsTime = fromTsTime;
+  }
+
 }

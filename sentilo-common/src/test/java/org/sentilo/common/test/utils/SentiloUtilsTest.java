@@ -38,8 +38,8 @@ public class SentiloUtilsTest {
 
   @Test
   public void arrayIsEmpty() {
-    String[] emptyArray = {};
-    String[] noEmptyArray = {"a", "b", "c"};
+    final String[] emptyArray = {};
+    final String[] noEmptyArray = {"a", "b", "c"};
     assertTrue(SentiloUtils.arrayIsEmpty(emptyArray));
     assertFalse(SentiloUtils.arrayIsEmpty(noEmptyArray));
   }
@@ -57,23 +57,23 @@ public class SentiloUtilsTest {
 
   @Test
   public void buildNewInternalErrorCode() {
-    String prefix = "CRC";
+    final String prefix = "CRC";
     assertTrue(SentiloUtils.buildNewInternalErrorCode(prefix).startsWith(prefix));
   }
 
   @Test
   public void addValuesToBeginningList() {
-    String[] baseList = {"a", "b", "c", "d"};
-    String[] values = {"1", "2", "3"};
-    String[] resultExpected = {"1", "2", "3", "a", "b", "c", "d"};
+    final String[] baseList = {"a", "b", "c", "d"};
+    final String[] values = {"1", "2", "3"};
+    final String[] resultExpected = {"1", "2", "3", "a", "b", "c", "d"};
 
     assertEquals(Arrays.asList(resultExpected), SentiloUtils.addValuesToBeginningList(Arrays.asList(baseList), values));
   }
 
   @Test
   public void addEmptyValuesToBeginningList() {
-    String[] baseList = {"a", "b", "c", "d"};
-    String[] values = {};
+    final String[] baseList = {"a", "b", "c", "d"};
+    final String[] values = {};
 
     assertEquals(Arrays.asList(baseList), SentiloUtils.addValuesToBeginningList(Arrays.asList(baseList), values));
   }

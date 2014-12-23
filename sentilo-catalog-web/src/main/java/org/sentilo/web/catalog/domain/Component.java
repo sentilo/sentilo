@@ -27,11 +27,14 @@ package org.sentilo.web.catalog.domain;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.Pattern;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotBlank;
+import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TagUtils;
@@ -57,8 +60,6 @@ public class Component implements CatalogDocument {
   @NotBlank
   private String providerId;
 
-  private Location location;
-
   @DateTimeFormat(pattern = Constants.DATE_FORMAT)
   private Date createdAt;
 
@@ -74,6 +75,19 @@ public class Component implements CatalogDocument {
   private Boolean publicAccess = Boolean.FALSE;
 
   private String componentType;
+
+  private Location location;
+
+  private RoutePointList routePointList;
+
+  private String photoUrl;
+
+  // Additional info
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Map<String, String> additionalInfo;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private TechnicalDetails technicalDetails;
 
   public Component() {
 
@@ -99,7 +113,7 @@ public class Component implements CatalogDocument {
 
   @Override
   public int hashCode() {
- // Hashcode return must be consistent with the equals method
+    // Hashcode return must be consistent with the equals method
     final int prime = 23;
     int result = 1;
     result = prime * result + ((id == null) ? 0 : id.hashCode());
@@ -135,10 +149,12 @@ public class Component implements CatalogDocument {
     this.description = description;
   }
 
+  @Override
   public Date getCreatedAt() {
     return createdAt;
   }
 
+  @Override
   public void setCreatedAt(final Date createdAt) {
     this.createdAt = createdAt;
   }
@@ -147,6 +163,7 @@ public class Component implements CatalogDocument {
     return updateAt;
   }
 
+  @Override
   public void setUpdateAt(final Date updateAt) {
     this.updateAt = updateAt;
   }
@@ -225,4 +242,37 @@ public class Component implements CatalogDocument {
   public void setProviderId(final String providerId) {
     this.providerId = providerId;
   }
+
+  public RoutePointList getRoutePointList() {
+    return routePointList;
+  }
+
+  public void setRoutePointList(final RoutePointList routePointList) {
+    this.routePointList = routePointList;
+  }
+
+  public String getPhotoUrl() {
+    return photoUrl;
+  }
+
+  public void setPhotoUrl(final String photoUrl) {
+    this.photoUrl = photoUrl;
+  }
+
+  public Map<String, String> getAdditionalInfo() {
+    return additionalInfo;
+  }
+
+  public void setAdditionalInfo(final Map<String, String> additionalInfo) {
+    this.additionalInfo = additionalInfo;
+  }
+
+  public TechnicalDetails getTechnicalDetails() {
+    return technicalDetails;
+  }
+
+  public void setTechnicalDetails(final TechnicalDetails technicalDetails) {
+    this.technicalDetails = technicalDetails;
+  }
+
 }

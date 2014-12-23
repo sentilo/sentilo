@@ -57,9 +57,12 @@ public class CatalogSensorServiceImpl implements CatalogSensorService {
 
   /*
    * (non-Javadoc)
-   * @see org.sentilo.web.catalog.service.CatalogSensorService#getSensorsByProvider(java.lang.String, java.util.Map)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.CatalogSensorService#getSensorsByProvider(java.lang.String,
+   * java.util.Map)
    */
-  public List<CatalogSensor> getSensorsByProvider(String providerId, Map<String, String> filterParams) {
+  public List<CatalogSensor> getSensorsByProvider(final String providerId, final Map<String, String> filterParams) {
     logger.debug("Get catalogSensor's list for provider {}", providerId);
     List<CatalogSensor> catalogSensors = Collections.<CatalogSensor>emptyList();
     final List<Sensor> sensors = sensorService.search(buildSensorsFilter(providerId, filterParams)).getContent();
@@ -67,7 +70,7 @@ public class CatalogSensorServiceImpl implements CatalogSensorService {
       final List<Component> components = componentService.search(buildComponentsFilter(providerId, filterParams)).getContent();
       catalogSensors = ApiConverter.convertToCatalogSensorList(sensors, components);
     }
-    
+
     return catalogSensors;
   }
 
@@ -83,15 +86,15 @@ public class CatalogSensorServiceImpl implements CatalogSensorService {
   }
 
   private SearchFilter buildComponentsFilter(final String providerId, final Map<String, String> filterParams) {
-      final SearchFilter filter = new SearchFilter();
-      filter.addAndParam("providerId", providerId);
+    final SearchFilter filter = new SearchFilter();
+    filter.addAndParam("providerId", providerId);
 
-      if (StringUtils.hasText(filterParams.get("component"))) {
-        filter.addAndParam("name", filterParams.get("component"));
-      }
+    if (StringUtils.hasText(filterParams.get("component"))) {
+      filter.addAndParam("name", filterParams.get("component"));
+    }
 
-      if (StringUtils.hasText(filterParams.get("componentType"))) {
-        filter.addAndParam("componentType", filterParams.get("componentType"));
+    if (StringUtils.hasText(filterParams.get("componentType"))) {
+      filter.addAndParam("componentType", filterParams.get("componentType"));
     }
 
     return filter;

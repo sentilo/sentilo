@@ -25,7 +25,6 @@
  */
 package org.sentilo.platform.service.test.listener;
 
-
 import static org.mockito.Mockito.verify;
 
 import org.junit.Before;

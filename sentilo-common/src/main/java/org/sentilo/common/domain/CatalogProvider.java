@@ -25,7 +25,6 @@
  */
 package org.sentilo.common.domain;
 
-
 public class CatalogProvider implements CatalogElement {
 
   private String provider;
@@ -38,9 +37,8 @@ public class CatalogProvider implements CatalogElement {
     return provider;
   }
 
-  public void setProvider(String provider) {
+  public void setProvider(final String provider) {
     this.provider = provider;
   }
-
 
 }

@@ -57,12 +57,4 @@ public abstract class AbstractPlatformServiceImpl {
   public JedisKeysBuilder getKeysBuilder() {
     return keysBuilder;
   }
-
-  public void setJedisTemplate(final JedisTemplate<String, String> jedisTemplate) {
-    this.jedisTemplate = jedisTemplate;
-  }
-
-  public void setJedisSequenceUtils(final JedisSequenceUtils jedisSequenceUtils) {
-    this.jedisSequenceUtils = jedisSequenceUtils;
-  }
 }

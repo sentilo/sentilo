@@ -170,17 +170,15 @@ body {
 	*background-color: #003bb3;
 }
 
-/* connectaBCN styles */
 .hero-unit {
-	position: absolute;
+	position: fixed;
 	z-index: 1;
 	padding: 60px;
 	margin-bottom: 30px;
 	font-size: 24px;
-	font-weight: 300;
+	font-weight: 400;
 	line-height: 27px;
-	color: #fff;
-	text-shadow: 0 1px 0 #000000;
+	color: #fff;	
 	background-color: transparent;
 	-webkit-border-radius: 6px;
 	-moz-border-radius: 6px;
@@ -299,77 +297,143 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
 	padding-right: 10px
 }
 
+.arrow {
+    background: none repeat scroll 0 0 transparent;
+    border: medium none;
+    bottom: -37px;
+    position: relative;
+}
+.arrow:after, .arrow:before {
+    border: medium solid transparent;
+    content: " ";
+    height: 0;
+    left: 50%;
+    pointer-events: none;
+    position: absolute;
+    width: 0;
+}
+.arrow:after {
+    border-color: white transparent transparent;
+    border-width: 30px;
+    margin-left: -30px;
+    margin-top: -10px;
+}
+.arrow:before {
+    border-color: rgba(0, 0, 0, 0.1) transparent transparent;
+    border-width: 30px;
+    margin-left: -30px;
+}
 .infobox {
-	text-align: right;
-	color: #000;
-	z-index: 1000;
-	padding: 5px;
-	margin: -10px auto;
-	background-color: #ffffff;
-	border: 5px solid #ccc;
-	border: 5px solid rgba(0, 0, 0, 0.2);
-	-webkit-border-radius: 6px;
-	-moz-border-radius: 6px;
-	border-radius: 6px;
-	-webkit-box-shadow:none;
-	-moz-box-shadow:none;
-	box-shadow:none;
-	-webkit-background-clip: padding-box;
-	-moz-background-clip: padding;
-	background-clip: padding-box;
-	min-width: 180px;
-	max-height: 310px;
-	width:100%;
-	overflow-y: hidden;
+	display: inline-block;
+    background-clip: padding-box;
+    background-color: #ffffff;
+    border: 7px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    box-shadow: none;
+    color: #000;
+    margin: 0 auto;
+    min-width: 180px;
+    padding: 5px 5px 30px;
+    position: relative;
+    text-align: right;    
+    z-index: 1000;
 }
-
-.infobox h1 {
-	font-size: 24px;
-	margin: 0px;
-	text-align: right;
-	padding-right: 15px;
-	padding-left: 15px;
-	padding-top: 15px;
-	line-height:26px;
-	font-weight: lighter;
-	max-width:180px;
-	text-overflow:ellipsis;	
-	overflow:hidden;
+.infobox-content {
+    padding: 10px;
 }
-
+.infobox-body {
+    max-height: 210px;    
+    width: 100% !important;
+}
+.infobox-body p {
+    font-size: 24px;
+    font-weight: lighter;
+    line-height: 26px;
+    margin: 0;
+    max-width: 180px;
+    overflow: hidden;
+    padding-left: 15px;
+    padding-right: 0;
+    padding-top: 15px;
+    text-align: right;
+    text-overflow: ellipsis;
+}
+.infobox-footer {
+    bottom: 5px;
+    color: #aaa;
+    font-weight: 100;
+    left: 10px;
+    line-height: 17px;
+    margin: 0;
+    position: absolute;
+}
+.infobox-header {
+    font-size: 22px;
+    text-align: left;
+}
+.infobox-header-icon {
+    float: left;
+    padding-right: 20px;
+}
+.infobox-header-provider {
+    display: inline-flex;
+    font-size: 25px;
+    font-weight: 400;
+    padding-top: 10px;    
+}
+.infobox-header-type {
+    font-size: 18px;
+    font-weight: 100;
+    margin-top: -5px;
+}
+.infobox-header h3 {
+    clear: both;
+    font-size: 17px;
+    font-weight: 100;
+    letter-spacing: -0.025em;
+    line-height: 1.08333em;
+    margin: 0 15px 0 80px;
+    min-height: 1.16667em;
+}
+.infobox-header a {
+    display: block;
+    text-align: left;
+    text-decoration: none;
+}
 .infobox h2 {
-	font-size: 12px;
-	margin: 0px;
-	text-align: center
+    font-size: 12px;
+    margin: 0;
+    text-align: center;
 }
-
-.infobox a {
-	text-decoration: none;
-	text-align: center;
-	display: block;
-}
-
 .infobox .label-info {
-	background-color: transparent;
-	margin-top:-10px;
-	padding: 0px 15px;
-	font-size: 12px;
-	font-weight: bold;
-	line-height: 14px;
-	color: #aaa;
-	text-shadow: none;
-	white-space: nowrap;
-	vertical-align: baseline;
-	text-align: right;
-	max-width:120px;
-	text-overflow:ellipsis;	
-	overflow:hidden;
+    background-color: transparent;
+    color: #aaa;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 14px;
+    margin-top: -10px;
+    max-width: 120px;
+    overflow: hidden;
+    padding: 0 0 0 15px;
+    text-align: right;
+    text-overflow: ellipsis;
+    text-shadow: none;
+    vertical-align: baseline;
+    white-space: nowrap;
 }
-
-
-
-.mapInfoBox {
+.infobox-body-column {
     float: right;
+    font-size: 24px;
+    font-weight: lighter;
+    line-height: 26px;
+    margin: 0;
+    max-width: 180px;
+    overflow: hidden;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 15px;
+    text-align: right;
+    text-overflow: ellipsis;
 }
 
 h1 small {
@@ -427,6 +491,8 @@ h4 {
 
 .connecta-icon-dropdown-menu {
 	min-width: 21px;
+	height:200px;
+	overflow-y: scroll;
 }
 
 .connecta-icon-group img {
@@ -719,21 +785,21 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 /********** Responsive media queries ****************/
 @media (max-width: 979px) { 
 	.infobox,
-	.mapInfoBoxWrapper {
+	.infobox-body {
 		max-width: 188px;
 	}
 }
 
 @media (min-width: 980px) and (max-width: 1279px) { 
 	.infobox,
-	.mapInfoBoxWrapper {
+	.infobox-body {
 		max-width: 368px;
 	}
 }
 
 @media (min-width: 1280px) { 
 	.infobox,
-	.mapInfoBoxWrapper {
+	.infobox-body {
 		max-width: 548px;
 	}
 }

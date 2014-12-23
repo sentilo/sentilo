@@ -25,6 +25,11 @@
  */
 package org.sentilo.web.catalog.search.builder;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  * Metadata about a column from a datatable.
  */
@@ -33,6 +38,7 @@ public class Column {
   private final String name;
   private boolean ordenable = false;
   private boolean searchable = false;
+  private Map<String, Object> dictionary = new HashMap<String, Object>();
 
   public Column(final String name) {
     this(name, false);
@@ -43,10 +49,15 @@ public class Column {
   }
 
   public Column(final String name, final boolean ordenable, final boolean searchable) {
+    this(name, ordenable, searchable, new HashMap<String, Object>());
+  }
+
+  public Column(final String name, final boolean ordenable, final boolean searchable, final Map<String, Object> dictionary) {
     super();
     this.name = name;
     this.ordenable = ordenable;
     this.searchable = searchable;
+    this.dictionary = dictionary;
   }
 
   public String getName() {
@@ -59,6 +70,27 @@ public class Column {
 
   public boolean isSearchable() {
     return searchable;
+  }
+
+  public Map<String, Object> getDictionary() {
+    return dictionary;
+  }
+
+  public boolean isDictionaryEmpty() {
+    return dictionary.isEmpty();
+  }
+
+  public Object dictionaryContainsWord(final String wordToSearch) {
+    Object word = wordToSearch;
+    final Iterator<Entry<String, Object>> it = dictionary.entrySet().iterator();
+    while (it.hasNext()) {
+      final Map.Entry<String, Object> dic = it.next();
+      if (dic.getKey().contains(wordToSearch)) {
+        word = dic.getValue();
+        break;
+      }
+    }
+    return word;
   }
 
 }

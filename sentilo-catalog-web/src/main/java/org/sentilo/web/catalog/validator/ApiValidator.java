@@ -27,6 +27,9 @@ package org.sentilo.web.catalog.validator;
 
 import java.util.List;
 
+import org.sentilo.common.domain.TechnicalDetails;
+import org.sentilo.common.utils.SentiloUtils;
+import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.Sensor;
@@ -36,8 +39,12 @@ import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.utils.ApiTranslator;
+import org.sentilo.web.catalog.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 
 @org.springframework.stereotype.Component
@@ -53,6 +60,9 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
   private SensorService sensorService;
 
   @Autowired
+  private MessageSource messageSource;
+
+  @Autowired
   private Validator validator;
 
   public ApiValidationResults
@@ -60,11 +70,17 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
     final ApiValidationResults results = new ApiValidationResults();
     final List<SensorType> sensorTypes = sensorTypesService.findAll();
     final List<ComponentType> componentTypes = componentTypesService.findAll();
+    final String connectivityTypes = messageSource.getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale());
+    final String energyTypes = messageSource.getMessage(Constants.ENERGY_TYPES_KEY, null, LocaleContextHolder.getLocale());
+    final String[] connectivityTypesList =
+        (StringUtils.hasText(connectivityTypes) ? connectivityTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {});
+    final String[] energyTypesList = (StringUtils.hasText(energyTypes) ? energyTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {});
 
     if (!CollectionUtils.isEmpty(sensors)) {
       for (final Sensor sensor : sensors) {
         validate(results, sensor, sensor.getSensorId(), "Sensor", ApiTranslator.SENSOR_DOMAIN_FIELDS);
         validateSensorTypes(results, sensor, sensorTypes);
+        validateTechnicalDetails(results, sensor.getTechnicalDetails(), sensor.getSensorId(), sensor, connectivityTypesList, energyTypesList);
       }
 
       if (!isUpdateAction && !results.hasErrors()) {
@@ -76,6 +92,7 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
       for (final Component component : components) {
         validate(results, component, component.getName(), "Component", ApiTranslator.COMPONENT_DOMAIN_FIELDS);
         validateComponentTypes(results, component, componentTypes);
+        validateTechnicalDetails(results, component.getTechnicalDetails(), component.getName(), component, connectivityTypesList, energyTypesList);
       }
     }
 
@@ -96,6 +113,26 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
     }
   }
 
+  private void validateTechnicalDetails(final ApiValidationResults results, final TechnicalDetails technicalDetails, final String resourceId,
+      final CatalogDocument resource, final String[] connectivityTypesList, final String[] energyTypesList) {
+    final String resourceType = (resource instanceof Component ? "Component" : "Sensor");
+    if (technicalDetails != null) {
+      final String connectivity = technicalDetails.getConnectivity();
+      final String energy = technicalDetails.getEnergy();
+
+      if (StringUtils.hasText(energy) && !SentiloUtils.arrayContainsValue(energyTypesList, energy)) {
+        final String errorMessage = String.format("%s %s : an invalid value was specified for energy field.", resourceType, resourceId);
+        results.addErrorMessage(errorMessage);
+      }
+
+      if (StringUtils.hasText(connectivity) && !SentiloUtils.arrayContainsValue(connectivityTypesList, connectivity)) {
+        final String errorMessage = String.format("%s %s : an invalid value was specified for connectivity field.", resourceType, resourceId);
+        results.addErrorMessage(errorMessage);
+      }
+    }
+
+  }
+
   protected EntityKeyValidator buildEntityKeyValidator() {
     return new SensorEntityKeyValidatorImpl(sensorService, new CompoundDuplicateKeyExceptionBuilder("error.sensor.duplicate.key"));
   }
@@ -109,6 +146,6 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
   }
 
   protected Validator getValidator() {
-    return this.validator;
+    return validator;
   }
 }

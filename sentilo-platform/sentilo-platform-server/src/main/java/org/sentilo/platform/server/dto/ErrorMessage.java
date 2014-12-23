@@ -57,7 +57,7 @@ public class ErrorMessage {
     return message;
   }
 
-  public void setMessage(String message) {
+  public void setMessage(final String message) {
     this.message = message;
   }
 
@@ -65,11 +65,11 @@ public class ErrorMessage {
     return code;
   }
 
-  public void setCode(int code) {
+  public void setCode(final int code) {
     this.code = code;
   }
 
-  public void setErrorDetails(List<String> errorDetails) {
+  public void setErrorDetails(final List<String> errorDetails) {
     this.errorDetails = errorDetails;
   }
 

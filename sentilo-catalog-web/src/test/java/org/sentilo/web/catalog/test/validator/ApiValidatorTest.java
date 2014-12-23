@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.Sensor;
@@ -54,8 +55,11 @@ import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.test.AbstractBaseTest;
+import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
 import org.sentilo.web.catalog.validator.ApiValidator;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
@@ -81,6 +85,12 @@ public class ApiValidatorTest extends AbstractBaseTest {
   @Mock
   private Validator validator;
 
+  @Mock
+  private MessageSource messageSource;
+
+  @Mock
+  private TechnicalDetails technicalDetails;
+
   @InjectMocks
   private ApiValidator apiValidator;
 
@@ -91,12 +101,22 @@ public class ApiValidatorTest extends AbstractBaseTest {
     when(sensorTypesService.findAll()).thenReturn(getSensorTypes());
     when(componentTypesService.findAll()).thenReturn(Collections.<ComponentType>emptyList());
     when(validator.supports(Sensor.class)).thenReturn(true);
-    when(sensorService.search(any(SearchFilter.class))).thenReturn(new SearchFilterResult<Sensor>(Collections.<Sensor>emptyList(), new SearchFilter(), 0));
+    when(sensorService.search(any(SearchFilter.class))).thenReturn(
+        new SearchFilterResult<Sensor>(Collections.<Sensor>emptyList(), new SearchFilter(), 0));
   }
 
   @Test
   public void validateKoSensors() {
     final List<Sensor> sensors = getSensorsWithErrors();
+    final ApiValidationResults result = apiValidator.validateSensorsAndComponents(sensors, null, false);
+    assertTrue(result.hasErrors());
+  }
+
+  @Test
+  public void validateKoTechnicalDetails() {
+    when(technicalDetails.getConnectivity()).thenReturn("ABC");
+    when(messageSource.getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale())).thenReturn("ET_RJ45, ET_POE,3G,WIFI");
+    final List<Sensor> sensors = getSensors();
     final ApiValidationResults result = apiValidator.validateSensorsAndComponents(sensors, null, false);
     assertTrue(result.hasErrors());
   }
@@ -109,23 +129,23 @@ public class ApiValidatorTest extends AbstractBaseTest {
   }
 
   @Test
-  public void validateKoSensorName() {    
-    LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+  public void validateKoSensorName() {
+    final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
     validator.setProviderClass(HibernateValidator.class);
     validator.afterPropertiesSet();
     final Sensor sensor = getSensor(invalidSensorId);
-    Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
-    
+    final Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
+
     assertTrue(result.size() == 1);
   }
 
   @Test
   public void validateOkSensorName() {
-    LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+    final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
     validator.setProviderClass(HibernateValidator.class);
     validator.afterPropertiesSet();
     final Sensor sensor = getSensor(validSensorId);
-    Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
+    final Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
 
     assertTrue(result.size() == 0);
   }
@@ -140,6 +160,7 @@ public class ApiValidatorTest extends AbstractBaseTest {
     sensor.setUnit("C");
     sensor.setDataType(Sensor.DataType.BOOLEAN);
     sensor.setCreatedAt(new Date());
+    sensor.setTechnicalDetails(technicalDetails);
     sensors.add(sensor);
 
     final Sensor sensor2 = new Sensor(providerId, componentId, sensor2Id);
@@ -147,6 +168,7 @@ public class ApiValidatorTest extends AbstractBaseTest {
     sensor2.setType(temperatureType);
     sensor2.setDataType(Sensor.DataType.BOOLEAN);
     sensor2.setCreatedAt(new Date());
+    sensor2.setTechnicalDetails(technicalDetails);
     sensors.add(sensor2);
 
     return sensors;
@@ -177,6 +199,7 @@ public class ApiValidatorTest extends AbstractBaseTest {
     sensor.setType(temperatureType);
     sensor.setDataType(Sensor.DataType.BOOLEAN);
     sensor.setCreatedAt(new Date());
+    sensor.setTechnicalDetails(technicalDetails);
     sensors.add(sensor);
 
     return sensors;

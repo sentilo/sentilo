@@ -26,6 +26,7 @@
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.sentilo.web.catalog.controller.CrudController;
@@ -33,9 +34,9 @@ import org.sentilo.web.catalog.domain.User;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.UserService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -56,6 +57,7 @@ public class UserController extends CrudController<User> {
     return userService;
   }
 
+  @Override
   protected void initViewNames() {
     getViewNames().put(LIST_ACTION, Constants.VIEW_USER_LIST);
     getViewNames().put(DETAIL_ACTION, Constants.VIEW_USER_DETAIL);
@@ -69,7 +71,7 @@ public class UserController extends CrudController<User> {
     row.add(user.getUserName());
     row.add(user.getName());
     row.add(user.getEmail());
-    row.add(FormatUtils.formatDate(user.getCreatedAt()));
+    row.add(getLocalDateFormat().printAsLocalTime(user.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
@@ -81,5 +83,14 @@ public class UserController extends CrudController<User> {
   @Override
   protected String getEntityModelKey() {
     return Constants.MODEL_USER;
+  }
+
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.USER_NAME_PROP, Constants.NAME_PROP, Constants.EMAIL_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "user");
+
   }
 }

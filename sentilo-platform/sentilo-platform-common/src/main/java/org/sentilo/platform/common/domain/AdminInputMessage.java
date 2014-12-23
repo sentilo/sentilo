@@ -53,7 +53,7 @@ public class AdminInputMessage implements PlatformInputMessage {
 
   public AdminInputMessage(final AdminType type) {
     this();
-    this.setType(type);
+    setType(type);
   }
 
   public String getEntity() {
@@ -68,7 +68,7 @@ public class AdminInputMessage implements PlatformInputMessage {
     return type;
   }
 
-  public void setType(AdminType type) {
+  public void setType(final AdminType type) {
     this.type = type;
   }
 
@@ -76,7 +76,7 @@ public class AdminInputMessage implements PlatformInputMessage {
     return sensors;
   }
 
-  public void setSensors(List<CatalogSensor> sensors) {
+  public void setSensors(final List<CatalogSensor> sensors) {
     this.sensors = sensors;
   }
 
@@ -84,7 +84,7 @@ public class AdminInputMessage implements PlatformInputMessage {
     return providers;
   }
 
-  public void setProviders(List<CatalogProvider> providers) {
+  public void setProviders(final List<CatalogProvider> providers) {
     this.providers = providers;
   }
 

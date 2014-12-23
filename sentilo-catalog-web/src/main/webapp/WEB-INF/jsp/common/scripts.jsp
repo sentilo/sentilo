@@ -19,15 +19,28 @@ function deleteSelected(formName, deleteConfirmMessage) {
 	}
 };
 
+
+function changeAccessType(formName, confirmMessage, newType, changeAccessTypeUrl){		
+	var accessTypeHiddenField = '<input type="hidden" name="newAccessType" value="'+newType+'" />';
+	confirmFormSubmission(formName, confirmMessage, accessTypeHiddenField, changeAccessTypeUrl);
+}
+
 function unassignSelected(formName) {
 	confirmFormSubmission(formName, '${unassignConfirmMessage}');	
 };
 
-function confirmFormSubmission(formName, message) {
+function confirmFormSubmission(formName, message, childHiddenField, formActionUrl) {
 	var n = $('input:checked').length;
 	if (n > 0) {
 		bootbox.confirm(message, function(result) {
 			if(result == true) {
+				if(childHiddenField){
+					$('form#' + formName).append(childHiddenField);
+				}
+				
+				if(formActionUrl){
+					$('form#' + formName).attr('action',formActionUrl);
+				}
 				$('form#' + formName).submit();
 			}
 		});
@@ -51,6 +64,11 @@ function addTimestampToURL(url) {
 	return url + '?ts=' + ts;
 }
 
+function addParamToUrl(url, paramName, paramValue){
+	var charToAdd = (url.indexOf('?') !== -1 ? '&' :'?');	
+	return (paramValue && paramValue!='' ? url + charToAdd +paramName+'=' + paramValue : url);
+}
+
 function jsonGET(url, data, success) {
     $.ajax({
     	'contentType':'application/x-www-form-urlencoded; charset=UTF-8',
@@ -63,15 +81,6 @@ function jsonGET(url, data, success) {
 };
 
 function formatGraphTimestamp(timestamp) {
-	/* if (timestamp) {
-		var date = new Date(timestamp);
-		return addLeadingZeroes(date.getDay()) + '/' +
-	       addLeadingZeroes((date.getMonth() + 1)) + '/' +
-	       addLeadingZeroes(date.getFullYear()) + '<br/>' +
-	       addLeadingZeroes(date.getHours()) + ':' +
-	       addLeadingZeroes(date.getMinutes()) + ':' + 
-	       addLeadingZeroes(date.getSeconds());
-	} */
 	return timestamp.replace('T', '<br/>');
 };
 
@@ -80,21 +89,8 @@ function addLeadingZeroes(text) {
 }  
 
 function formatTimestamp(timestamp) {
-	/* if (timestamp) {
-		var date = new Date(timestamp);
-		return addLeadingZeroes(date.getDay()) + '/' +
-		       addLeadingZeroes((date.getMonth() + 1)) + '/' +
-		       addLeadingZeroes(date.getFullYear()) + ' ' +
-		       addLeadingZeroes(date.getHours()) + ':' +
-		       addLeadingZeroes(date.getMinutes()) + ':' + 
-		       addLeadingZeroes(date.getSeconds());
-	} */
 	return timestamp.replace('T', ' ');
 };
-
-
-
-
 
 function isValidDecimalNumber(number) {
 	 return (/^([0-9])*[.]?[0-9]*$/.test(number));

@@ -60,6 +60,13 @@ public class CatalogSensor implements CatalogElement {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private Map<String, String> additionalInfo;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Map<String, String> componentAdditionalInfo;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private TechnicalDetails technicalDetails;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private TechnicalDetails componentTechnicalDetails;
 
   public CatalogSensor() {
     super();
@@ -169,11 +176,35 @@ public class CatalogSensor implements CatalogElement {
     return componentPublicAccess;
   }
 
-  public void setTimeZone(String timeZone) {
+  public void setTimeZone(final String timeZone) {
     this.timeZone = timeZone;
   }
 
   public String getTimeZone() {
     return timeZone;
+  }
+
+  public Map<String, String> getComponentAdditionalInfo() {
+    return componentAdditionalInfo;
+  }
+
+  public void setComponentAdditionalInfo(final Map<String, String> componentAdditionalInfo) {
+    this.componentAdditionalInfo = componentAdditionalInfo;
+  }
+
+  public TechnicalDetails getTechnicalDetails() {
+    return technicalDetails;
+  }
+
+  public void setTechnicalDetails(final TechnicalDetails technicalDetails) {
+    this.technicalDetails = technicalDetails;
+  }
+
+  public TechnicalDetails getComponentTechnicalDetails() {
+    return componentTechnicalDetails;
+  }
+
+  public void setComponentTechnicalDetails(final TechnicalDetails componentTechnicalDetails) {
+    this.componentTechnicalDetails = componentTechnicalDetails;
   }
 }

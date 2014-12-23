@@ -90,8 +90,8 @@ public class SubscribeParser extends PlatformJsonMessageConverter {
           throw new PlatformException(HttpStatus.SC_BAD_REQUEST, "Illegal subscribe event type:" + subscribeType);
       }
     } else {
-      // TODO Mikel: Revisar ya que ahora fijamos source / target al mismo entityId. Por aqui solo
-      // pasaran subscripciones del tipo GET o DELETE
+      // This case implies that the action must be applied to all subscriptions from an entity
+      // (i.e., the entity that does the request and the entity on which the action lies are equals)
       subscription = new Subscription(entityId, entityId, endpoint);
     }
 

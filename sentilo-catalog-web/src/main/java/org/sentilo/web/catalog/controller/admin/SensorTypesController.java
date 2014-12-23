@@ -26,6 +26,7 @@
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,7 +41,6 @@ import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -85,7 +85,7 @@ public class SensorTypesController extends CrudController<SensorType> {
     row.add(sensorType.getId());
     row.add(sensorType.getName());
     row.add(sensorType.getDescription());
-    row.add(FormatUtils.formatDate(sensorType.getCreatedAt()));
+    row.add(getLocalDateFormat().printAsLocalTime(sensorType.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
@@ -98,9 +98,8 @@ public class SensorTypesController extends CrudController<SensorType> {
 
   @Override
   protected void doBeforeCreateResource(final SensorType sensorType, final Model model) {
-    // Todos los id de tipo de sensores los almacenamos en minusculas
-    // para poder hacer la comparativa de manera rapida en el alta de sensores
-    // via API.
+    // We save all id of type of sensors in lower case letter to do comparatives in a quickly way in
+    // the new sensor by API
     sensorType.setId(sensorType.getId().toLowerCase());
   }
 
@@ -111,6 +110,14 @@ public class SensorTypesController extends CrudController<SensorType> {
     }
   }
 
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "sensortype");
+  }
+
   private void throwExceptionIfSensorsFoundWithType(final String sensorType) {
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("type", sensorType);
@@ -119,4 +126,5 @@ public class SensorTypesController extends CrudController<SensorType> {
       throw new BusinessValidationException("sensortype.error.cannot.delete", new Object[] {sensorType});
     }
   }
+
 }

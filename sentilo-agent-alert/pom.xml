@@ -17,7 +17,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.2.1</version>
 				<configuration>
-					<mainClass>org.sentilo.agent.alert.server.SentiloAgentServer</mainClass>
+					<mainClass>org.sentilo.agent.common.server.SentiloAgentServer</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -27,7 +27,7 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.sentilo.agent.alert.server.SentiloAgentServer</mainClass>	
+							<mainClass>org.sentilo.common.alert.server.SentiloAgentServer</mainClass>	
 							<commandLineArguments>				            
 				              <commandLineArgument>alert-context.xml</commandLineArgument>
 				            </commandLineArguments>						
@@ -37,7 +37,8 @@
 				                  <systemProperty>user.timezone=UTC</systemProperty>				                
 				                </systemProperties>			                
 				                <extraArguments>
-				                  <extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>			                  
+				                  <extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>
+				                  <extraArgument>-Dsentilo.agent.name=ALERT</extraArgument>			                  
 				                </extraArguments>
 				            </jvmSettings>
 						</program>						
@@ -49,53 +50,19 @@
 	
 	<dependencies>
 		<dependency>
-			<groupId>org.sentilo</groupId>
-			<artifactId>sentilo-common</artifactId>
+			<groupId>org.sentilo.agent</groupId>
+			<artifactId>sentilo-agent-common</artifactId>
 			<version>${platform.version}</version>
-		</dependency>										
-		<dependency>
-	   		<groupId>org.springframework.data</groupId>
-	   		<artifactId>spring-data-redis</artifactId>	   		
-	   		<version>${org.springframework.data.redis.version}</version>
-	   		<exclusions>
-	   			<exclusion>
-	   				<groupId>org.springframework</groupId>
-	   				<artifactId>spring-core</artifactId>
-	   			</exclusion>
-	   		</exclusions>
 		</dependency>
 		<dependency>
-    		<groupId>redis.clients</groupId>
-    		<artifactId>jedis</artifactId>
-    		<version>${jedis.version}</version>
-    	</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>${commons.codec.version}</version>
-		</dependency>
+			<groupId>org.sentilo.platform</groupId>
+			<artifactId>sentilo-platform-client-java</artifactId>
+			<version>${platform.version}</version>
+		</dependency>					
 		<dependency>
 	      <groupId>org.springframework.data</groupId>
 	      <artifactId>spring-data-mongodb</artifactId>
-	      <version>${org.springframework.data.mongodb.version}</version>
-	      <exclusions>
-		      <exclusion>
-					<artifactId>spring-tx</artifactId>
-					<groupId>org.springframework</groupId>
-			 </exclusion>			 	   			
-	   		 <exclusion>
-	   				<groupId>org.springframework</groupId>
-	   				<artifactId>spring-core</artifactId>
-	   		 </exclusion>
-	   		 <exclusion>
-	   				<groupId>org.springframework</groupId>
-	   				<artifactId>spring-beans</artifactId>
-	   		 </exclusion>
-	   		  <exclusion>
-	   				<groupId>org.springframework</groupId>
-	   				<artifactId>spring-expression</artifactId>
-	   		 </exclusion>
-		 </exclusions>
-	    </dependency>						   	    	    		
+	      <version>${org.springframework.data.mongodb.version}</version>	      
+	    </dependency>		
 	</dependencies>  
 </project>

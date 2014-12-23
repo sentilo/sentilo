@@ -36,6 +36,7 @@ public class SearchFilter {
   private Pageable pageable;
   private Map<String, Object> params = new HashMap<String, Object>();
   private final Map<String, Object> andParams = new HashMap<String, Object>();
+  private String[] mapBounds;
 
   public SearchFilter() {
     super();
@@ -85,5 +86,13 @@ public class SearchFilter {
 
   public Map<String, Object> getAndParams() {
     return andParams;
+  }
+
+  public void setMapBounds(final String[] bounds) {
+    mapBounds = bounds;
+  }
+
+  public String[] getBounds() {
+    return mapBounds;
   }
 }

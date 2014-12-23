@@ -25,7 +25,6 @@
  */
 package org.sentilo.platform.service.test.listener;
 
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;

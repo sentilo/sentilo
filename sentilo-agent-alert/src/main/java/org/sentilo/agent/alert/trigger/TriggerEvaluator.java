@@ -26,13 +26,11 @@
 package org.sentilo.agent.alert.trigger;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.Locale;
 
-import org.sentilo.agent.alert.domain.Alarm;
+import org.sentilo.agent.alert.domain.InternalAlert;
+import org.sentilo.agent.alert.utils.AlertUtils;
+import org.sentilo.agent.alert.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -40,49 +38,36 @@ import org.springframework.util.StringUtils;
 public class TriggerEvaluator {
 
   private final Logger logger = LoggerFactory.getLogger(TriggerEvaluator.class);
-  private static DecimalFormat decimalFormat;
 
   private String lastAcceptedValue;
-  private Date tsLastAcceptedValue = new Date();
 
-  private static final String TEMPLATE_MESSAGE = "Alarm %s: value %s from the sensor %s verifies the restriction: %s";
-  private static final String TEMPLATE_NO_NUMBER_MESSAGE = "Alarm %s: value %s from the sensor %s must be a number";
-  private static final String TEMPLATE_GT_MESSAGE = "Greater than %s";
-  private static final String TEMPLATE_GTE_MESSAGE = "Greather than or equals to %s";
-  private static final String TEMPLATE_LT_MESSAGE = "Less than %s";
-  private static final String TEMPLATE_LTE_MESSAGE = "Less than or equals to %s";
-  private static final String TEMPLATE_EQ_MESSAGE = "Equals to %s";
-  private static final String TEMPLATE_CHANGE_MESSAGE = "Value has changed";
-  private static final String TEMPLATE_CHANGE_DELTA_MESSAGE = "Value variation is greater than %s percent";
-  private static final String TEMPLATE_FROZEN_ALARM = "Alarm %s: sensor %s is frozen. It has not been updated for the last %s minute(s). Idle time: %s minute(s)";
-
-  public TriggerResult evaluate(final Alarm alarm, final String value) {
+  public TriggerResult evaluate(final InternalAlert alert, final String value) {
     // GT, GTE, LT, LTE, EQ, CHANGE, CHANGE_DELTA
-    logger.debug("Evaluating alarm {} for sensor value {}", alarm.getId(), value);
+    logger.debug("Evaluating alarm {} for sensor value {}", alert.getId(), value);
 
     TriggerResult result = null;
     try {
-      switch (alarm.getTrigger()) {
+      switch (alert.getTrigger()) {
         case GT:
-          result = evaluateGreaterThanTrigger(alarm, value);
+          result = evaluateGreaterThanTrigger(alert, value);
           break;
         case GTE:
-          result = evaluateGreaterThanOrEqualsTrigger(alarm, value);
+          result = evaluateGreaterThanOrEqualsTrigger(alert, value);
           break;
         case LT:
-          result = evaluateLessThanTrigger(alarm, value);
+          result = evaluateLessThanTrigger(alert, value);
           break;
         case LTE:
-          result = evaluateLessThanOrEqualsTrigger(alarm, value);
+          result = evaluateLessThanOrEqualsTrigger(alert, value);
           break;
         case EQ:
-          result = evaluateEqualsTrigger(alarm, value);
+          result = evaluateEqualsTrigger(alert, value);
           break;
         case CHANGE:
-          result = evaluateChangeTrigger(alarm, value);
+          result = evaluateChangeTrigger(alert, value);
           break;
         case CHANGE_DELTA:
-          result = evaluateChangeDeltaTrigger(alarm, value);
+          result = evaluateChangeDeltaTrigger(alert, value);
           break;
         default:
           result = new TriggerResult();
@@ -94,24 +79,7 @@ public class TriggerEvaluator {
       // el formato numerico de la expresion, y antes de aplicar cualquier evaluacion se valida que
       // el valor
       // del sensor sea numerico. Pero es mejor controlarla que retornar una excepcion o ignorarla.
-      result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), value, alarm.getSensorId()));
-    }
-
-    logger.debug("Evaluation result was {}", result.triggerConditionChecked());
-
-    return result;
-  }
-
-  public TriggerResult checkFrozen(final Alarm alarm) {
-    TriggerResult result = null;
-    logger.debug("Evaluating frozen alarm {}", alarm.getId());
-
-    try {
-      result = evaluateFrozenTrigger(alarm);
-    } catch (final ParseException pe) {
-      // Idem al comentario anterior: esta excepcion no debería ocurrir pero es mas limpio no
-      // propagarla.
-      result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), alarm.getExpression(), alarm.getSensorId()));
+      result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     }
 
     logger.debug("Evaluation result was {}", result.triggerConditionChecked());
@@ -121,7 +89,6 @@ public class TriggerEvaluator {
 
   public void setLastAcceptedValue(final String lastAcceptedValue) {
     this.lastAcceptedValue = lastAcceptedValue;
-    tsLastAcceptedValue = new Date();
   }
 
   private boolean isNumberValue(final String value) {
@@ -129,79 +96,79 @@ public class TriggerEvaluator {
   }
 
   private int compareNumbers(final String sensorValue, final String valueToCompare) throws ParseException {
-    final BigDecimal bdValue = transformNumber(sensorValue);
-    final BigDecimal limit = transformNumber(valueToCompare);
+    final BigDecimal bdValue = AlertUtils.transformNumber(sensorValue);
+    final BigDecimal limit = AlertUtils.transformNumber(valueToCompare);
     return bdValue.compareTo(limit);
   }
 
-  private String buildErrorMessage(final String templateErrorMessage, final Alarm alarm, final String value) {
-    final String expressionMessage = String.format(templateErrorMessage, alarm.getExpression());
-    return String.format(TEMPLATE_MESSAGE, alarm.getId(), value, alarm.getSensorId(), expressionMessage);
+  private String buildErrorMessage(final String templateErrorMessage, final InternalAlert alert, final String value) {
+    final String expressionMessage = String.format(templateErrorMessage, alert.getExpression());
+    return String.format(Constants.TEMPLATE_MESSAGE, alert.getId(), value, alert.getSensorId(), expressionMessage);
   }
 
-  private TriggerResult evaluateGreaterThanTrigger(final Alarm alarm, final String value) throws ParseException {
+  private TriggerResult evaluateGreaterThanTrigger(final InternalAlert alert, final String value) throws ParseException {
     TriggerResult result = null;
 
     if (!isNumberValue(value)) {
-      result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), value, alarm.getSensorId()));
+      result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
-      final String errorMessage = buildErrorMessage(TEMPLATE_GT_MESSAGE, alarm, value);
-      result = (compareNumbers(value, alarm.getExpression()) == 1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      final String errorMessage = buildErrorMessage(Constants.TEMPLATE_GT_MESSAGE, alert, value);
+      result = (compareNumbers(value, alert.getExpression()) == 1) ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
   }
 
-  private TriggerResult evaluateGreaterThanOrEqualsTrigger(final Alarm alarm, final String value) throws ParseException {
+  private TriggerResult evaluateGreaterThanOrEqualsTrigger(final InternalAlert alert, final String value) throws ParseException {
     TriggerResult result = null;
 
     if (!isNumberValue(value)) {
-      result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), value, alarm.getSensorId()));
+      result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
-      final String errorMessage = buildErrorMessage(TEMPLATE_GTE_MESSAGE, alarm, value);
-      result = (compareNumbers(value, alarm.getExpression()) != 1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      final String errorMessage = buildErrorMessage(Constants.TEMPLATE_GTE_MESSAGE, alert, value);
+      result = (compareNumbers(value, alert.getExpression()) != -1) ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
   }
 
-  private TriggerResult evaluateLessThanTrigger(final Alarm alarm, final String value) throws ParseException {
+  private TriggerResult evaluateLessThanTrigger(final InternalAlert alert, final String value) throws ParseException {
     TriggerResult result = null;
 
     if (!isNumberValue(value)) {
-      result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), value, alarm.getSensorId()));
+      result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
-      final String errorMessage = buildErrorMessage(TEMPLATE_LT_MESSAGE, alarm, value);
-      result = (compareNumbers(value, alarm.getExpression()) == -1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      final String errorMessage = buildErrorMessage(Constants.TEMPLATE_LT_MESSAGE, alert, value);
+      result = (compareNumbers(value, alert.getExpression()) == -1) ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
   }
 
-  private TriggerResult evaluateLessThanOrEqualsTrigger(final Alarm alarm, final String value) throws ParseException {
+  private TriggerResult evaluateLessThanOrEqualsTrigger(final InternalAlert alert, final String value) throws ParseException {
     TriggerResult result = null;
 
     if (!isNumberValue(value)) {
-      result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), value, alarm.getSensorId()));
+      result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
-      final String errorMessage = buildErrorMessage(TEMPLATE_LTE_MESSAGE, alarm, value);
-      result = (compareNumbers(value, alarm.getExpression()) != 1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      final String errorMessage = buildErrorMessage(Constants.TEMPLATE_LTE_MESSAGE, alert, value);
+      result = (compareNumbers(value, alert.getExpression()) != 1) ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
   }
 
-  private TriggerResult evaluateEqualsTrigger(final Alarm alarm, final String value) {
+  private TriggerResult evaluateEqualsTrigger(final InternalAlert alert, final String value) {
     TriggerResult result = null;
-    final String errorMessage = buildErrorMessage(TEMPLATE_EQ_MESSAGE, alarm, value);
-    result = (value.equals(alarm.getExpression()) ? new TriggerResult(errorMessage) : new TriggerResult());
+    final String errorMessage = buildErrorMessage(Constants.TEMPLATE_EQ_MESSAGE, alert, value);
+    result = (value.equals(alert.getExpression()) ? new TriggerResult(errorMessage) : new TriggerResult());
 
     return result;
   }
 
-  private TriggerResult evaluateChangeTrigger(final Alarm alarm, final String value) {
+  private TriggerResult evaluateChangeTrigger(final InternalAlert alert, final String value) {
     TriggerResult result = null;
-    final String errorMessage = buildErrorMessage(TEMPLATE_CHANGE_MESSAGE, alarm, value);
+    final String errorMessage = buildErrorMessage(Constants.TEMPLATE_CHANGE_MESSAGE, alert, value);
     if (StringUtils.hasText(lastAcceptedValue)) {
       result = (value.equals(lastAcceptedValue) ? new TriggerResult() : new TriggerResult(errorMessage));
     } else {
@@ -211,7 +178,7 @@ public class TriggerEvaluator {
     return result;
   }
 
-  private TriggerResult evaluateChangeDeltaTrigger(final Alarm alarm, final String value) throws ParseException {
+  private TriggerResult evaluateChangeDeltaTrigger(final InternalAlert alert, final String value) throws ParseException {
     TriggerResult result = null;
 
     // La comparacion consiste en ver si la variacion entre el valor recibido (B) y el ultimo valor
@@ -221,15 +188,15 @@ public class TriggerEvaluator {
     if (StringUtils.hasText(lastAcceptedValue)) {
 
       if (!isNumberValue(value)) {
-        result = new TriggerResult(String.format(TEMPLATE_NO_NUMBER_MESSAGE, alarm.getId(), value, alarm.getSensorId()));
+        result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
       } else {
-        final float limit = transformNumber(alarm.getExpression()).floatValue();
-        final float absValue = Math.abs(transformNumber(value).floatValue());
-        final float absLastAccepted = Math.abs(transformNumber(lastAcceptedValue).floatValue());
+        final float limit = AlertUtils.transformNumber(alert.getExpression()).floatValue();
+        final float absValue = Math.abs(AlertUtils.transformNumber(value).floatValue());
+        final float absLastAccepted = Math.abs(AlertUtils.transformNumber(lastAcceptedValue).floatValue());
 
         final float variation = ((absLastAccepted - absValue) / absLastAccepted) * 100;
 
-        final String errorMessage = buildErrorMessage(TEMPLATE_CHANGE_DELTA_MESSAGE, alarm, value);
+        final String errorMessage = buildErrorMessage(Constants.TEMPLATE_CHANGE_DELTA_MESSAGE, alert, value);
         result = (variation > limit ? new TriggerResult(errorMessage) : new TriggerResult());
       }
     } else {
@@ -238,38 +205,4 @@ public class TriggerEvaluator {
 
     return result;
   }
-
-  private TriggerResult evaluateFrozenTrigger(final Alarm alarm) throws ParseException {
-    TriggerResult result = null;
-
-    // Hemos de calcular los minutos de diferencia entre la fecha actual y la fecha
-    // tsLastAcceptedValue y ver si es superior a los minutos
-    // asociados a la alarma.
-    // Habrá que tocar tb el listado de alarmas del catálogo para añadir la nueva alarma.
-    final float maxFrozenMinutes = transformNumber(alarm.getExpression()).longValue();
-    final Date date = new Date();
-    final float frozenMinutes = (date.getTime() - tsLastAcceptedValue.getTime()) / (1000 * 60);
-
-    if (frozenMinutes > maxFrozenMinutes) {
-      final String errorMessage = String.format(TEMPLATE_FROZEN_ALARM, alarm.getId(), alarm.getSensorId(), alarm.getExpression(), frozenMinutes);
-      result = new TriggerResult(errorMessage);
-    } else {
-      result = new TriggerResult();
-    }
-
-    return result;
-  }
-
-  private BigDecimal transformNumber(final String value) throws ParseException {
-    return (BigDecimal) getDecimalFormat().parse(value);
-  }
-
-  private DecimalFormat getDecimalFormat() {
-    if (decimalFormat == null) {
-      decimalFormat = (DecimalFormat) NumberFormat.getInstance(Locale.ENGLISH);
-      decimalFormat.setParseBigDecimal(true);
-    }
-    return decimalFormat;
-  }
-
 }

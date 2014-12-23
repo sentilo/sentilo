@@ -28,6 +28,7 @@ package org.sentilo.web.catalog.service.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.sentilo.common.domain.OrderMessage;
@@ -115,7 +116,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
     final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
     final ObservationsOutputMessage outMessage = platformTemplate.getDataOps().getLastObservations(message);
     return outMessage.getObservations();
-    // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
   }
 
   /*
@@ -127,10 +127,20 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    */
   public Observation getLastObservation(final Sensor sensor) {
     final QueryFilterParams filterParams = new QueryFilterParams(1);
+    return getLastObservation(sensor, filterParams);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.SensorService#getLastObservation(org.sentilo.web.catalog.domain
+   * .Sensor, org.sentilo.common.domain.QueryFilterParams)
+   */
+  public Observation getLastObservation(final Sensor sensor, final QueryFilterParams filterParams) {
     final DataInputMessage message = new DataInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
     final ObservationsOutputMessage outMessage = platformTemplate.getDataOps().getLastObservations(message);
     return (CollectionUtils.isEmpty(outMessage.getObservations()) ? null : outMessage.getObservations().get(0));
-    // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
   }
 
   /*
@@ -152,8 +162,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * .domain.Sensor)
    */
   public List<AlarmMessage> getLastAlarmsMessages(final Sensor sensor) {
-    // Para recuperar las últimos alarmas asociadas a las alertas de un sensor, primero debemos
-    // recuperar las alertas del sensor. Y despues, para cada alerta, recuperar sus ultimas alarmas.
+    // To retrieve the latest alarms associated with the sensor alerts, we must first retrieve the
+    // sensor alerts list and then, for each alert, recover their last alarm.
     final List<AlarmMessage> lastAlarmMessages = new ArrayList<AlarmMessage>();
 
     final List<Alert> sensorAlerts = getSensorAlerts(sensor);
@@ -166,8 +176,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
         lastAlarmMessages.addAll(outMessage.getAlarms());
       }
     }
-
-    // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
 
     return lastAlarmMessages;
   }
@@ -184,7 +192,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
     final OrderInputMessage message = new OrderInputMessage(sensor.getProviderId(), sensor.getSensorId(), filterParams);
     final OrdersOutputMessage outMessage = platformTemplate.getOrderOps().getLastOrders(message);
     return outMessage.getOrders();
-    // TODO Mikel: falta transformar la excepcion RESTClientException en una propia del catalogo.
   }
 
   /*
@@ -210,7 +217,6 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
     deleteSensorsAndAlerts(componentIdFilter);
   }
 
-
   /*
    * (non-Javadoc)
    * 
@@ -230,14 +236,28 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * 
    * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(java.util.Collection)
    */
-  public void delete(Collection<Sensor> sensors) {
-    Collection<String> ids = new ArrayList<String>();
-    for (Sensor sensor : sensors) {
+  public void delete(final Collection<Sensor> sensors) {
+    final Collection<String> ids = new ArrayList<String>();
+    for (final Sensor sensor : sensors) {
       ids.add(sensor.getId());
     }
     notifySensorsToDelete(buildQueryForIdInCollection(ids));
 
     super.delete(sensors);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.service.SensorService#changeAccessType(java.lang.String[],
+   * boolean)
+   */
+  public void changeAccessType(final String[] sensorsIds, final boolean isPublicAccess) {
+    final List<String> values = Arrays.asList(sensorsIds);
+    final Query query = buildQueryForIdInCollection(values);
+    final Update update = Update.update("publicAccess", isPublicAccess).set("updateAt", new Date());
+    getMongoOps().updateMulti(query, update, Sensor.class);
+
   }
 
   private void deleteSensorsAndAlerts(final Query query) {
@@ -252,7 +272,7 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
     // Create new DeletePlatformResourceEvent to notify what sensors will be deleted
     // Define a projection over the query to limit fields to retrieve
     query.fields().include("providerId").include("sensorId");
-    List<Sensor> sensors = getMongoOps().find(query, Sensor.class);
+    final List<Sensor> sensors = getMongoOps().find(query, Sensor.class);
     getContext().publishEvent(new DeletePlatformResourcesEvent<Sensor>(this, sensors, Sensor.class));
   }
 
@@ -261,5 +281,4 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
     sensorAlertsFilter.addAndParam("sensorId", sensor.getSensorId());
     return alertService.search(sensorAlertsFilter).getContent();
   }
-
 }
