@@ -56,13 +56,12 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.DataBinder;
 
-
 public class CommonDomainTest {
 
   @Test
   public void alertOwner() throws Exception {
-    final Object[] values = {"mockAlert","mockProvider"};
-    final String[] attributes = {"alertId","ownerEntityId"};
+    final Object[] values = {"mockAlert", "mockProvider"};
+    final String[] attributes = {"alertId", "ownerEntityId"};
 
     buildAndCompareObjects(AlertOwner.class, attributes, values);
   }
@@ -121,7 +120,7 @@ public class CommonDomainTest {
   @Test
   public void catalogDeleteInputMessage() throws Exception {
     // It is a singular case, where setters / getters are not homogeneous
-    CatalogDeleteInputMessage message = new CatalogDeleteInputMessage();
+    final CatalogDeleteInputMessage message = new CatalogDeleteInputMessage();
     message.setSensors(new String[1]);
     message.setComponents(new String[1]);
 
@@ -204,7 +203,6 @@ public class CommonDomainTest {
     buildAndCompareObjects(OrderMessage.class, attributes, values, constructorValues3);
     buildAndCompareObjects(OrderMessage.class, attributes, valuesWithNullTs, constructorValuesWithNullTs);
 
-
   }
 
   @Test
@@ -231,15 +229,16 @@ public class CommonDomainTest {
 
   // Utility methods
 
-  private <T> void buildAndCompareObjects(Class<T> clazz, String[] attributes, Object[] values) throws Exception {
+  private <T> void buildAndCompareObjects(final Class<T> clazz, final String[] attributes, final Object[] values) throws Exception {
     buildAndCompareObjects(clazz, attributes, values, values);
   }
 
-  private <T> void buildAndCompareObjects(Class<T> clazz, String[] attributes, Object[] values, Object[] constructorValues) throws Exception {
-    T message = clazz.newInstance();
+  private <T> void buildAndCompareObjects(final Class<T> clazz, final String[] attributes, final Object[] values, final Object[] constructorValues)
+      throws Exception {
+    final T message = clazz.newInstance();
     bindProperties(message, attributes, values);
 
-    T message2 = buildInstance(clazz, constructorValues);
+    final T message2 = buildInstance(clazz, constructorValues);
     if (!constructorValues.equals(values)) {
       bindProperties(message2, attributes, values);
     }
@@ -247,28 +246,28 @@ public class CommonDomainTest {
     assertAreEquals(message, message2);
   }
 
-  private <T> void bindAndValidateMutableObject(Class<T> clazz, String[] attributes, Object[] values) throws Exception {
-    T target = clazz.newInstance();
+  private <T> void bindAndValidateMutableObject(final Class<T> clazz, final String[] attributes, final Object[] values) throws Exception {
+    final T target = clazz.newInstance();
 
     bindProperties(target, attributes, values);
 
     assertFieldValues(target, attributes, values);
   }
 
-  private void assertFieldValues(Object target, String[] attributes, Object[] values) {
+  private void assertFieldValues(final Object target, final String[] attributes, final Object[] values) {
     for (int i = 0; i < attributes.length; i++) {
       Assert.assertEquals("Error validating attribute " + attributes[i], values[i], ReflectionTestUtils.getField(target, attributes[i]));
     }
   }
 
-  private void bindProperties(Object target, String[] attributes, Object[] values) {
-    DataBinder binder = new DataBinder(target);
+  private void bindProperties(final Object target, final String[] attributes, final Object[] values) {
+    final DataBinder binder = new DataBinder(target);
     binder.bind(buildMutablePropertyValues(attributes, values));
   }
 
-  private MutablePropertyValues buildMutablePropertyValues(String[] attributes, Object[] values) {
+  private MutablePropertyValues buildMutablePropertyValues(final String[] attributes, final Object[] values) {
     assert attributes != null && values != null && attributes.length == values.length;
-    Map<String, Object> properties = new HashMap<String, Object>();
+    final Map<String, Object> properties = new HashMap<String, Object>();
 
     for (int i = 0; i < attributes.length; i++) {
       properties.put(attributes[i], values[i]);
@@ -278,33 +277,33 @@ public class CommonDomainTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T buildInstance(Class<T> clazz, Object[] params) throws Exception {
+  private <T> T buildInstance(final Class<T> clazz, final Object[] params) throws Exception {
     T newInstance = null;
-    Constructor<?>[] constructors = clazz.getDeclaredConstructors();
-    for (Constructor<?> constructor : constructors) {
-      try{
-        newInstance = (T)constructor.newInstance(params);
+    final Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+    for (final Constructor<?> constructor : constructors) {
+      try {
+        newInstance = (T) constructor.newInstance(params);
         break;
-      } catch (Exception e) {
+      } catch (final Exception e) {
       }
     }
 
     if (newInstance != null) {
       return newInstance;
     } else {
-      String template = "Class %s has not constructor with %d params";
+      final String template = "Class %s has not constructor with %d params";
       throw new IllegalArgumentException(String.format(template, clazz.getName(), params.length));
 
     }
   }
 
-  private void assertAreEquals(Object source, Object target) throws Exception {
+  private void assertAreEquals(final Object source, final Object target) throws Exception {
     Assert.assertEquals(source.getClass(), target.getClass());
 
-    PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(source.getClass());
+    final PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(source.getClass());
 
-    for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
-      Method readMethod = propertyDescriptor.getReadMethod();
+    for (final PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+      final Method readMethod = propertyDescriptor.getReadMethod();
       if (!readMethod.getName().equals("getClass")) {
         Assert.assertEquals(readMethod.invoke(source), readMethod.invoke(target));
       }

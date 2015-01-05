@@ -3,6 +3,7 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <spring:url value="/admin/alert/${alert.id}/edit" var="editAlertLink" />
+<spring:url value="/admin/alert/list?nameTableRecover=alertTable&fromBack=true" var="backURL" />
 
 <div class="container-fluid">
 	<div class="content">

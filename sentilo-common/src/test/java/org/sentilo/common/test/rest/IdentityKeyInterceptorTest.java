@@ -66,7 +66,7 @@ public class IdentityKeyInterceptorTest {
 
     interceptor.setIdentityToken(identityToken);
 
-    Header identityHeader = (Header) ReflectionTestUtils.getField(interceptor, "identityHeader");
+    final Header identityHeader = (Header) ReflectionTestUtils.getField(interceptor, "identityHeader");
     Assert.assertNotNull(identityHeader);
     Assert.assertEquals(SentiloConstants.IDENTITY_KEY_HEADER, identityHeader.getName());
     Assert.assertEquals(identityToken, identityHeader.getValue());

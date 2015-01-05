@@ -5,10 +5,12 @@
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/users/${user.userName}/edit" var="actionURL" />
 	<spring:message code="user.edit.title" var="pageTitle" />
+	<spring:url value="/admin/users/${user.userName}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/users/create" var="actionURL" />
 	<spring:message code="user.new.title" var="pageTitle" />
+	<spring:url value="/admin/users/list?nameTableRecover=userTable&fromBack=true" var="backURL" />
 </c:if>
 
 <script type="text/javascript">
@@ -128,8 +130,8 @@ function validate() {
 
 							<div class="control-group">
 								<div class="controls">
-									<spring:url value="/admin/users/list" var="backURL" />
-									<a href="${backURL}" class="btn"> <spring:message code="button.back" /> </a> <a href="#" onclick="validate();"
+									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									<a href="#" onclick="validate();"
 										class="btn btn-success"> <spring:message code="button.save" /> </a>
 								</div>
 							</div>

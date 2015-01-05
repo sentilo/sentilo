@@ -52,9 +52,9 @@ public final class SentiloServer {
     ctx.registerShutdownHook();
     ctx.load("classpath:spring/platform-server-context.xml");
     ctx.refresh();
-    
+
     final RequestListenerThread t = (RequestListenerThread) ctx.getBean("listener");
     t.setDaemon(false);
-    t.start();        
+    t.start();
   }
 }

@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.service.SensorService;
@@ -78,7 +79,7 @@ public class AlertValidatorTest extends AbstractBaseTest {
     when(alert.getSensorId()).thenReturn(MOCK_TEST);
     when(alert.getComponentId()).thenReturn(MOCK_TEST);
     when(alert.getProviderId()).thenReturn(MOCK_TEST);
-    when(alert.getTrigger()).thenReturn(Alert.Trigger.EQ);
+    when(alert.getTrigger()).thenReturn(AlertTriggerType.EQ);
     when(alert.getExpression()).thenReturn(MOCK_TEST);
     when(sensorService.find(mockSensor)).thenReturn(mockSensor);
 
@@ -93,7 +94,7 @@ public class AlertValidatorTest extends AbstractBaseTest {
     when(alert.getType()).thenReturn(Alert.Type.INTERNAL);
     when(alert.getSensorId()).thenReturn(MOCK_TEST);
     when(alert.getComponentId()).thenReturn(MOCK_TEST);
-    when(alert.getTrigger()).thenReturn(Alert.Trigger.EQ);
+    when(alert.getTrigger()).thenReturn(AlertTriggerType.EQ);
 
     alertValidator.validate(alert, errors);
 
@@ -108,7 +109,7 @@ public class AlertValidatorTest extends AbstractBaseTest {
     when(alert.getSensorId()).thenReturn(MOCK_TEST);
     when(alert.getComponentId()).thenReturn(MOCK_TEST);
     when(alert.getProviderId()).thenReturn(MOCK_TEST);
-    when(alert.getTrigger()).thenReturn(Alert.Trigger.EQ);
+    when(alert.getTrigger()).thenReturn(AlertTriggerType.EQ);
     when(alert.getExpression()).thenReturn(MOCK_TEST);
     when(sensorService.find(mockSensor)).thenReturn(null);
 

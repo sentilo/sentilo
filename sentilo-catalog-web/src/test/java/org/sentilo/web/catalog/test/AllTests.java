@@ -26,17 +26,13 @@
 package org.sentilo.web.catalog.test;
 
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.sentilo.web.catalog.test.controller.ApiAlertControllerTest;
-import org.sentilo.web.catalog.test.service.UserServiceImplTest;
-import org.sentilo.web.catalog.test.utils.CompoundKeyBuilderTest;
-import org.sentilo.web.catalog.test.validator.AlertValidatorTest;
-import org.sentilo.web.catalog.test.validator.ApiAlertValidatorTest;
-import org.sentilo.web.catalog.test.validator.ApiValidatorTest;
+import org.junit.runners.model.InitializationError;
+import org.sentilo.common.test.SentiloSuiteTest;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({UserServiceImplTest.class, CompoundKeyBuilderTest.class, AlertValidatorTest.class, ApiValidatorTest.class,
-    ApiAlertValidatorTest.class, ApiAlertControllerTest.class})
-public class AllTests {
+@RunWith(AllTests.class)
+public class AllTests extends SentiloSuiteTest {
 
+  public AllTests(final Class<?> clazz) throws InitializationError {
+    super(clazz, "org.sentilo.web.catalog.test");
+  }
 }

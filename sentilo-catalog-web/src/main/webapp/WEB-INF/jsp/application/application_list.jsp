@@ -2,16 +2,18 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<c:set var="applicationTable" value="applicationTable"/>
+
 <spring:url value="/admin/application/delete" var="deleteURL" />
 <spring:url value="/admin/application/" var="detailPrefix" />
 <spring:url value="/admin/application/new" var="newApplicationURL" />
-
 <spring:url value="/admin/application/list/json" var="sAjaxSource" />
-<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
+<spring:url value="/admin/application/list/excel?tableName=${applicationTable}" var="excelSource" />
 
+<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
-$(document).ready(function() {	
-	makeTableAsync('${sAjaxSource}', '#applicationTable', '${detailPrefix}');
+$(document).ready(function() {		
+	var table =	makeTableAsync('${applicationTable}', '${sAjaxSource}');		
 });
 </script>
 
@@ -38,7 +40,7 @@ $(document).ready(function() {
 						<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="applications"
 							action="${deleteURL}">
 
-							<table class="table table-striped" id="applicationTable">
+							<table class="table table-striped" id="${applicationTable}">
 								<thead>
 									<tr>
 										<td>&nbsp;</td>
@@ -50,13 +52,19 @@ $(document).ready(function() {
 								</thead>
 								<tbody />
 							</table>
-
 							<br />
+							<div class="control-group pull-left" id="excel_${applicationTable}">
+								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
+									<spring:message code="button.excel" /> 
+								</a>
+							</div>							
 							<div class="control-group pull-right">
-								<a href="#" onclick="deleteSelected('applications');" class="btn btn-danger"> <spring:message
-										code="application.delete.title" /> </a> <a href="#" type="button"
-									onclick="window.location.href='${newApplicationURL}';" class="btn"> <spring:message
-										code="application.new.title" /> </a>
+								<a href="#" onclick="deleteSelected('applications');" class="btn btn-danger"> 
+									<spring:message code="application.delete.title" /> 
+								</a> 
+								<a href="#" type="button" onclick="window.location.href='${newApplicationURL}';" class="btn"> 
+									<spring:message code="application.new.title" /> 
+								</a>
 							</div>
 						</form:form>
 					</div>

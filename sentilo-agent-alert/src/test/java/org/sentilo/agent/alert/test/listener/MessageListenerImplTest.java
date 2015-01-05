@@ -25,7 +25,7 @@
  */
 package org.sentilo.agent.alert.test.listener;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,13 +34,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.agent.alert.domain.Alarm;
+import org.sentilo.agent.alert.domain.InternalAlert;
 import org.sentilo.agent.alert.listener.MessageListenerImpl;
-import org.sentilo.agent.alert.utils.enums.AlarmTriggerType;
+import org.sentilo.agent.alert.service.PublishService;
+import org.sentilo.common.utils.AlertTriggerType;
 import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class MessageListenerImplTest {
 
@@ -48,7 +49,7 @@ public class MessageListenerImplTest {
   private RedisSerializer<String> serializer;
 
   @Mock
-  private RedisTemplate<String, String> redisTemplate;
+  private PublishService publishService;
   @Mock
   private Message message;
 
@@ -57,22 +58,22 @@ public class MessageListenerImplTest {
     MockitoAnnotations.initMocks(this);
     serializer = new StringRedisSerializer();
     messageListener = new MessageListenerImpl("test");
-    messageListener.setRedisTemplate(redisTemplate);
+    ReflectionTestUtils.setField(messageListener, "publishService", publishService);
 
-    final Alarm alarm1 = new Alarm("alarmGT");
-    alarm1.setTrigger(AlarmTriggerType.GT);
-    alarm1.setExpression("20");
+    final InternalAlert alert1 = new InternalAlert("alertGT");
+    alert1.setTrigger(AlertTriggerType.GT);
+    alert1.setExpression("20");
 
-    final Alarm alarm2 = new Alarm("alarmDELTA");
-    alarm2.setTrigger(AlarmTriggerType.CHANGE_DELTA);
-    alarm2.setExpression("40");
+    final InternalAlert alert2 = new InternalAlert("alertDELTA");
+    alert2.setTrigger(AlertTriggerType.CHANGE_DELTA);
+    alert2.setExpression("40");
 
-    messageListener.addAlarm(alarm1);
-    messageListener.addAlarm(alarm2);
+    messageListener.addAlert(alert1);
+    messageListener.addAlert(alert2);
   }
 
   @Test
-  public void publishAlarm() {
+  public void publishAlert() {
     final String info = buildDataEventMessage();
     final String channel = "data:provider1:sensor1";
 
@@ -81,30 +82,30 @@ public class MessageListenerImplTest {
 
     messageListener.onMessage(message, null);
 
-    verify(redisTemplate).convertAndSend(anyString(), anyString());
+    verify(publishService).publishAlarm(any(InternalAlert.class), any(String.class));
   }
 
   @Test
-  public void publishTwoAlarms() {
+  public void publishTwoAlerts() {
     final String info = buildDataEventMessage();
     final String channel = "data:provider1:sensor1";
 
-    final Alarm alarm3 = new Alarm("alarmLT");
-    alarm3.setTrigger(AlarmTriggerType.LT);
-    alarm3.setExpression("40");
+    final InternalAlert alert3 = new InternalAlert("alertLT");
+    alert3.setTrigger(AlertTriggerType.LT);
+    alert3.setExpression("40");
 
-    messageListener.addAlarm(alarm3);
+    messageListener.addAlert(alert3);
 
     when(message.getBody()).thenReturn(serializer.serialize(info));
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
 
     messageListener.onMessage(message, null);
 
-    verify(redisTemplate, times(2)).convertAndSend(anyString(), anyString());
+    verify(publishService, times(2)).publishAlarm(any(InternalAlert.class), any(String.class));
   }
 
   private String buildDataEventMessage() {
-    String event =
+    final String event =
         "{\"message\":\"36\",\"timestamp\":\"28/04/2014T11:37:44\",\"topic\":\"data:app_demo_provider:appdemo_sensor_test\",\"type\":\"DATA\",\"sensor\":\"appdemo_sensor_test\",\"provider\":\"app_demo_provider\"}";
 
     return event;

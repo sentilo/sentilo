@@ -148,8 +148,8 @@ public class DateUtilsTest {
 
   @Test
   public void parseTimestampWithoutTimeZone() {
-    String timestampWithTZ = "01/04/2014T10:23:34+0200";
-    String timestampWithoutTZ = "01/04/2014T08:23:34";
+    final String timestampWithTZ = "01/04/2014T10:23:34+0200";
+    final String timestampWithoutTZ = "01/04/2014T08:23:34";
 
     Assert.assertEquals(DateUtils.parseTimestamp(timestampWithoutTZ), DateUtils.parseTimestamp(timestampWithTZ));
   }

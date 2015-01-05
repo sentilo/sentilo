@@ -2,15 +2,17 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:url value="/admin/application/list" var="backURL" />
+
 
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/application/${application.id}/edit" var="actionURL" />
 	<spring:message code="application.edit.title" var="pageTitle" />
+	<spring:url value="/admin/application/${application.id}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/application/create" var="actionURL" />
 	<spring:message code="application.new.title" var="pageTitle" />
+	<spring:url value="/admin/application/list?nameTableRecover=applicationTable&fromBack=true" var="backURL" />
 </c:if>
 
 <div class="container-fluid">
@@ -75,8 +77,10 @@
 
 						<div class="control-group">
 							<div class="controls">
-								<a href="${backURL}" class="btn"> <spring:message code="button.back" /> </a> <a href="#"
-									onclick="$('form#application').submit();" class="btn btn-success"> <spring:message code="button.save" /> </a>
+								<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+								<a href="#" onclick="$('form#application').submit();" class="btn btn-success">
+								 	<spring:message code="button.save" />
+								</a>
 							</div>
 						</div>
 					</fieldset>

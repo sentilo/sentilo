@@ -44,7 +44,6 @@ import org.sentilo.platform.client.core.parser.CatalogAlertMessageConverter;
 import org.sentilo.platform.client.core.parser.CatalogMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultCatalogServiceOperationsImpl;
 
-
 public class DefaultCatalogServiceOperationsImplTest {
 
   @InjectMocks
@@ -99,7 +98,7 @@ public class DefaultCatalogServiceOperationsImplTest {
 
   @Test
   public void updateComponents() {
-    service.updateSensors(message);
+    service.updateComponents(message);
 
     verify(restClient).put(any(String.class), any(String.class), any(String.class));
   }
@@ -144,4 +143,3 @@ public class DefaultCatalogServiceOperationsImplTest {
     verify(restClient).delete(any(String.class), any(String.class), any(String.class));
   }
 }
-

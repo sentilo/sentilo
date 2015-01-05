@@ -65,13 +65,8 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   private boolean subscriptionsRegistered = false;
   private static final String DUMMY_TOPIC = "/trash/dummy";
 
-  // @PostConstruct
   @Scheduled(initialDelay = 30000, fixedDelay = 300000)
   public void loadSubscriptions() {
-    // TODO Mikel: pensar en ejecutar el método de modo asíncrono @Async
-    // ya que el comando KEYS de Redis se ve penalizado a medida que el número de claves crece
-    // http://redis.io/commands/keys
-
     // Al iniciar la plataforma, en caso de existir subscripciones registradas en Redis,
     // inicializamos los MessageListeners correspondientes y los
     // registramos en el container:
@@ -81,9 +76,9 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     //
     // IMPORTANTE: en caso de no existir ninguna subscripción registrada, igualmente inicializamos
     // un MessageListener que se ponga a escuchar por un canal dummy
-    // ya que sino el container acaba lanzando una excepción del tipo ERR wrong number of arguments
-    // for 'psubscribe' command;
-    // la cual está asociada a que la conexión de subscripción no es válida
+    // ya que sino el container acaba lanzando una excepción del tipo" ERR wrong number of arguments
+    // for 'psubscribe' command;" la cual está asociada a que la conexión de subscripción no es
+    // válida
     final boolean listenerContainerRunning = listenerContainer != null && listenerContainer.isRunning();
     logger.debug("Listener container isRunning? {}", listenerContainerRunning);
 
@@ -147,7 +142,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
 
     final Topic topic = ChannelUtils.getChannel(subscription);
 
-    String notificationParamsChain = buildNotificationParams(subscription);
+    final String notificationParamsChain = buildNotificationParams(subscription);
 
     // Habilitamos listener
     doRegisterSubscription(subscription.getSourceEntityId(), topic, notificationParamsChain);
@@ -157,12 +152,12 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
 
     logger.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
   }
-  
+
   private String buildNotificationParams(final Subscription subscription) {
     // Como el valor en las hash es un String, definimos un formato con el cual almacenar un String
     // que contenga todos los parametros necesarios para realizar la notificacion (via callback):
     // value = param1#@#param2#@#...#@#paramN
-    StringBuilder sb = new StringBuilder(subscription.getEndpoint());
+    final StringBuilder sb = new StringBuilder(subscription.getEndpoint());
     if (StringUtils.hasText(subscription.getSecretCallbackKey())) {
       sb.append(SentiloConstants.SENTILO_INTERNAL_TOKEN).append(subscription.getSecretCallbackKey());
     }
@@ -232,7 +227,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     final MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
 
     if (listener != null) {
-      // Utilizamos el nuevo método expuesto lor el Container para eliminar
+      // Utilizamos el nuevo método expuesto por el Container para eliminar
       // a un listener de todas las subscripciones.
       listenerContainer.removeMessageListener(listener);
 
@@ -310,10 +305,6 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     logger.debug("Entity {} has {} subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
 
     return subscriptionList;
-  }
-
-  public void setListenerContainer(final RedisMessageListenerContainer listenerContainer) {
-    this.listenerContainer = listenerContainer;
   }
 
 }

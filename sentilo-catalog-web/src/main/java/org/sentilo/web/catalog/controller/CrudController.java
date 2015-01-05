@@ -33,7 +33,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.sentilo.web.catalog.domain.CatalogDocument;
+import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.utils.ModelUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +61,12 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   protected abstract T buildNewEntity(String id);
 
   protected abstract String getEntityModelKey();
+
+  @Autowired
+  private LocalDateFormatter localDateFormat;
+
+  @Autowired
+  protected MessageSource messageSource;
 
   protected T addResourceToModel(final String id, final Model model) {
     final T entityToAdd = getService().findAndThrowErrorIfNotExist(buildNewEntity(id));
@@ -103,6 +112,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   public String viewResource(@PathVariable final String id, final HttpServletRequest request, final Model model) {
     doBeforeViewResource(id, model);
     addResourceToModel(id, model);
+    doAfterViewResource(model);
     ModelUtils.setDetailMode(model);
     return getNameOfViewToReturn(DETAIL_ACTION);
   }
@@ -140,6 +150,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
       ModelUtils.setEditMode(model);
       return getNameOfViewToReturn(NEW_ACTION);
     }
+    doBeforeUpdateResource(resource, model);
     resource.setUpdateAt(new Date());
     getService().update(resource);
     addConfirmationMessageToModel(RESOURCE_EDITED, model);
@@ -153,6 +164,10 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
       resources.add(buildNewEntity(id));
     }
     return resources;
+  }
+
+  public LocalDateFormatter getLocalDateFormat() {
+    return localDateFormat;
   }
 
   protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
@@ -175,6 +190,10 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     // To override by subclasses.
   }
 
+  protected void doBeforeUpdateResource(final T resource, final Model model) {
+    // To override by subclasses.
+  }
+
   protected void doAfterDeleteResource(final HttpServletRequest request, final Model model) {
     // To override by subclasses.
   }
@@ -185,5 +204,9 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
 
   protected void doAfterUpdateResource(final Model model) {
     // To override by subclasses.
+  }
+
+  protected void doAfterViewResource(final Model model) {
+    // TODO Auto-generated method stub
   }
 }

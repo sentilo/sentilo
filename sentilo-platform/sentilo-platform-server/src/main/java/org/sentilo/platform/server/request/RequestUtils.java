@@ -50,8 +50,8 @@ public abstract class RequestUtils {
   }
 
   public static String buildPath(final String... tokens) {
-    StringBuilder sb = new StringBuilder();
-    for (String token : tokens) {
+    final StringBuilder sb = new StringBuilder();
+    for (final String token : tokens) {
       sb.append(TOKEN_PATH_SEPARATOR).append(token);
     }
     return sb.toString();

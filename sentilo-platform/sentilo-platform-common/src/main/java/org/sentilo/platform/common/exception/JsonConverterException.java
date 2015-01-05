@@ -69,8 +69,8 @@ public class JsonConverterException extends PlatformException {
     super(HttpStatus.SC_BAD_REQUEST, message);
 
     // Build error details with the cause stacktrace
-    List<String> errorDetails = new ArrayList<String>();
-    StringWriter sw = new StringWriter();
+    final List<String> errorDetails = new ArrayList<String>();
+    final StringWriter sw = new StringWriter();
     cause.printStackTrace(new PrintWriter(sw));
     errorDetails.add(sw.toString());
     setErrorDetails(errorDetails);

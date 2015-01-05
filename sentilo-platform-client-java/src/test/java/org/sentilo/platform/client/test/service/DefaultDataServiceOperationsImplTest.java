@@ -39,7 +39,6 @@ import org.sentilo.platform.client.core.domain.DataInputMessage;
 import org.sentilo.platform.client.core.parser.DataMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultDataServiceOperationsImpl;
 
-
 public class DefaultDataServiceOperationsImplTest {
 
   @InjectMocks

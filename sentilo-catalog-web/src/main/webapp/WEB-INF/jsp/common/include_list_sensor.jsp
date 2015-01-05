@@ -7,7 +7,17 @@
 
 <script type="text/javascript">
 $(document).ready(function() {	
-	makeTableAsync('${sensorsAjaxSource}', '#sensorTable', '${detailPrefix}');
+	var firstColumnRenderDelegate;
+	var linkToDetail = true;
+	if('${providerId}' || '${componentId}'){
+		linkToDetail = false;
+		firstColumnRenderDelegate = function (data, type, row) {
+			return '';
+		}; 
+	}
+	
+	var tableSensor =	makeTableAsync('${sensorTable}', '${sensorsAjaxSource}', linkToDetail,firstColumnRenderDelegate);
+	
 });
 </script>
 
@@ -27,17 +37,31 @@ $(document).ready(function() {
 		<input type="hidden" name="origin" value="component" />
 		<input type="hidden" name="componentId" value="${componentId}" />
 	</c:if>
-
-	<table class="table table-striped" id="sensorTable">
+	
+	<table class="table table-striped" id="${sensorTable}">
 		<thead>
 			<tr>
-				<td>&nbsp;</td>
+				<td>
+				    <c:choose>
+				    	<c:when test="${empty componentId and empty providerId}">
+				    		<input type="checkbox" name="selectAllRows"/>
+				    	</c:when>
+				    	<c:otherwise>&nbsp;</c:otherwise>
+				    </c:choose>								
+				</td>
 				<td><strong><spring:message code="sensor.sensorId" /> </strong></td>
 				<td><strong><spring:message code="sensor.providerId" /> </strong></td>
 				<td><strong><spring:message code="sensor.type" /> </strong></td>
+				<td><strong><spring:message code="sensor.publicAccess" /> </strong></td>
 				<td><strong><spring:message code="sensor.createdAt" /> </strong></td>
 			</tr>
 		</thead>
 		<tbody />
-	</table>
+	</table>	
 </form:form>
+
+<div class="control-group pull-left" id="excel_'${sensorTable}'">
+	<a href="#" type="button" onclick="window.location.href='${sensorExcelSource}';" class="btn"> 
+		<spring:message code="button.excel" /> 
+	</a>
+</div>

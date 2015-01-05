@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Random;
 
 public abstract class AbstractBaseTest {
-  
+
   protected <T> List<T> generateRandomList(final Class<T> clazz) throws InstantiationException, IllegalAccessException {
     final Random randomGenerator = new Random();
     int size = 0;

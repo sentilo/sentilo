@@ -50,9 +50,10 @@ import org.mockito.stubbing.Answer;
 import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
+import org.sentilo.common.domain.CatalogResponseMessage;
+import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.controller.api.ApiAlertController;
 import org.sentilo.web.catalog.domain.Alert;
-import org.sentilo.web.catalog.domain.Alert.Trigger;
 import org.sentilo.web.catalog.domain.Alert.Type;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.service.AlertService;
@@ -63,7 +64,6 @@ import org.sentilo.web.catalog.validator.ApiAlertValidator;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
 import org.springframework.dao.DataAccessException;
 import org.springframework.util.CollectionUtils;
-
 
 public class ApiAlertControllerTest extends AbstractBaseTest {
 
@@ -99,8 +99,8 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
 
     doAnswer(new Answer<List<Alert>>() {
 
-      public List<Alert> answer(InvocationOnMock invocation) throws Throwable {
-        for (Alert alert : alerts) {
+      public List<Alert> answer(final InvocationOnMock invocation) throws Throwable {
+        for (final Alert alert : alerts) {
           if (Math.random() > 0.5) {
             alert.setType(Type.INTERNAL);
             alert.setProviderId(MOCK_ENTITY);
@@ -113,10 +113,10 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
       }
     }).when(alertService).findAll();
 
-    CatalogAlertResponseMessage response = controller.getOwners();
+    final CatalogAlertResponseMessage response = controller.getOwners();
 
     verify(alertService).findAll();
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
     Assert.assertTrue(!CollectionUtils.isEmpty(response.getOwners()));
     Assert.assertTrue(response.getOwners().size() == alerts.size());
   }
@@ -128,11 +128,12 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     when(permissionService.getActivePermissions(any(String.class))).thenReturn(permissions);
 
     doAnswer(new Answer<List<Alert>>() {
-      public List<Alert> answer(InvocationOnMock invocation) throws Throwable {
-        for (Alert alert : alerts) {
+
+      public List<Alert> answer(final InvocationOnMock invocation) throws Throwable {
+        for (final Alert alert : alerts) {
           if (Math.random() > 0.5) {
             alert.setType(Type.INTERNAL);
-            alert.setTrigger(Trigger.CHANGE);
+            alert.setTrigger(AlertTriggerType.CHANGE);
             alert.setProviderId(MOCK_ENTITY);
             alert.setSensorId(MOCK_ENTITY);
             alert.setComponentId(MOCK_ENTITY + "." + MOCK_ENTITY);
@@ -145,11 +146,11 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
       }
     }).when(alertService).getAlertsByEntities(Matchers.<Collection<String>>any(), Matchers.<Map<String, Object>>any());
 
-    CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(MOCK_ENTITY, Collections.<String, Object>emptyMap());
+    final CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(MOCK_ENTITY, Collections.<String, Object>emptyMap());
 
     verify(permissionService).getActivePermissions(MOCK_ENTITY);
     verify(alertService).getAlertsByEntities(Matchers.<Collection<String>>any(), Matchers.<Map<String, Object>>any());
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
     Assert.assertTrue(!CollectionUtils.isEmpty(response.getAlerts()));
     Assert.assertTrue(response.getAlerts().size() == alerts.size());
   }
@@ -158,11 +159,11 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
   public void getEmptyAuthorizedAlerts() {
     when(permissionService.getActivePermissions(any(String.class))).thenReturn(Collections.<Permission>emptyList());
 
-    CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(MOCK_ENTITY, Collections.<String, Object>emptyMap());
-    
+    final CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(MOCK_ENTITY, Collections.<String, Object>emptyMap());
+
     verify(permissionService).getActivePermissions(MOCK_ENTITY);
     verify(alertService).getAlertsByEntities(Matchers.<Collection<String>>any(), Matchers.<Map<String, Object>>any());
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
     Assert.assertTrue(CollectionUtils.isEmpty(response.getAlerts()));
   }
 
@@ -170,10 +171,10 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
   public void getAuthorizedAlertsWithError() {
     doThrow(MockDataAccessException.class).when(permissionService).getActivePermissions(any(String.class));
 
-    CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(MOCK_ENTITY, Collections.<String, Object>emptyMap());
+    final CatalogAlertResponseMessage response = controller.getAuthorizedAlerts(MOCK_ENTITY, Collections.<String, Object>emptyMap());
 
     verify(permissionService).getActivePermissions(MOCK_ENTITY);
-    Assert.assertEquals(CatalogAlertResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
     Assert.assertTrue(CollectionUtils.isEmpty(response.getAlerts()));
   }
 
@@ -181,9 +182,9 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
   public void createAlerts() throws Exception {
     when(inputMessage.getAlerts()).thenReturn(generateRandomList(CatalogAlert.class));
 
-    CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
   }
 
   @Test
@@ -191,9 +192,9 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     when(inputMessage.getAlerts()).thenReturn(generateRandomList(CatalogAlert.class));
     doThrow(MockDataAccessException.class).when(alertService).insertAll(Matchers.<Collection<Alert>>any());
 
-    CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
   }
 
   @Test
@@ -201,27 +202,27 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     when(inputMessage.getAlerts()).thenReturn(generateRandomList(CatalogAlert.class));
     doThrow(NullPointerException.class).when(alertService).insertAll(Matchers.<Collection<Alert>>any());
 
-    CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
   }
 
   @Test
   public void badRequestWhenCreateAlerts() throws Exception {
-    List<CatalogAlert> catalogAlerts = generateRandomList(CatalogAlert.class);
+    final List<CatalogAlert> catalogAlerts = generateRandomList(CatalogAlert.class);
     when(inputMessage.getAlerts()).thenReturn(catalogAlerts);
     doAnswer(new Answer<Void>() {
 
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        ApiValidationResults results = (ApiValidationResults) invocation.getArguments()[1];
+      public Void answer(final InvocationOnMock invocation) throws Throwable {
+        final ApiValidationResults results = (ApiValidationResults) invocation.getArguments()[1];
         results.addErrorMessage(MOCK_ERROR_MSG);
         return null;
       }
     }).when(validator).validate(Matchers.<List<Alert>>any(), any(ApiValidationResults.class), anyBoolean());
 
-    CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.createAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.BAD_REQUEST, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.BAD_REQUEST, response.getCode());
   }
 
   @Test
@@ -229,9 +230,9 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     when(inputMessage.getAlerts()).thenReturn(generateRandomList(CatalogAlert.class));
     when(alertService.find(any(Alert.class))).thenReturn(new Alert());
 
-    CatalogAlertResponseMessage response = controller.updateAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.updateAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.BAD_REQUEST, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.BAD_REQUEST, response.getCode());
     verify(alertService, times(inputMessage.getAlerts().size())).find(any(Alert.class));
   }
 
@@ -240,9 +241,10 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     final List<CatalogAlert> catalogAlerts = generateRandomList(CatalogAlert.class);
 
     doAnswer(new Answer<List<CatalogAlert>>() {
-      public List<CatalogAlert> answer(InvocationOnMock invocation) throws Throwable {
-        List<CatalogAlert> alerts = catalogAlerts;
-        for (CatalogAlert alert : alerts) {
+
+      public List<CatalogAlert> answer(final InvocationOnMock invocation) throws Throwable {
+        final List<CatalogAlert> alerts = catalogAlerts;
+        for (final CatalogAlert alert : alerts) {
           alert.setType(Type.EXTERNAL.name());
           alert.setEntity(MOCK_ENTITY);
         }
@@ -251,17 +253,18 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     }).when(inputMessage).getAlerts();
 
     doAnswer(new Answer<Alert>() {
-      public Alert answer(InvocationOnMock invocation) throws Throwable {
-        Alert alert = (Alert) invocation.getArguments()[0];
+
+      public Alert answer(final InvocationOnMock invocation) throws Throwable {
+        final Alert alert = (Alert) invocation.getArguments()[0];
         alert.setType(Type.EXTERNAL);
         alert.setApplicationId(MOCK_ENTITY);
         return alert;
       }
     }).when(alertService).find(any(Alert.class));
 
-    CatalogAlertResponseMessage response = controller.updateAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.updateAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
     verify(alertService, times(catalogAlerts.size())).find(any(Alert.class));
     verify(alertService).updateAll(Matchers.<Collection<Alert>>any());
   }
@@ -271,30 +274,30 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     when(inputMessage.getAlerts()).thenReturn(generateRandomList(CatalogAlert.class));
     doThrow(MockDataAccessException.class).when(alertService).find(any(Alert.class));
 
-    CatalogAlertResponseMessage response = controller.updateAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.updateAlerts(MOCK_ENTITY, inputMessage);
 
-    Assert.assertEquals(CatalogAlertResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
   }
 
   @Test
   public void deleteOwnAlerts() throws Exception {
     when(inputMessage.getAlertsIds()).thenReturn(null);
-    CatalogAlertResponseMessage response = controller.deleteAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.deleteAlerts(MOCK_ENTITY, inputMessage);
 
     verify(alertService).deleteOwnAlerts(MOCK_ENTITY);
     verify(alertService, times(0)).delete(Matchers.<Collection<Alert>>any());
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
   }
 
   @Test
   public void deleteAlerts() throws Exception {
-    String[] alertsIds = generateRandomList(String.class).toArray(new String[0]);
+    final String[] alertsIds = generateRandomList(String.class).toArray(new String[0]);
     when(inputMessage.getAlertsIds()).thenReturn(alertsIds);
-    CatalogAlertResponseMessage response = controller.deleteAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.deleteAlerts(MOCK_ENTITY, inputMessage);
 
     verify(alertService, times(0)).deleteOwnAlerts(MOCK_ENTITY);
     verify(alertService).deleteOwnAlerts(Matchers.<Collection<String>>any(), any(String.class));
-    Assert.assertEquals(CatalogAlertResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
   }
 
   @Test
@@ -302,11 +305,11 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     when(inputMessage.getAlertsIds()).thenReturn(null);
     doThrow(NullPointerException.class).when(alertService).deleteOwnAlerts(MOCK_ENTITY);
 
-    CatalogAlertResponseMessage response = controller.deleteAlerts(MOCK_ENTITY, inputMessage);
+    final CatalogAlertResponseMessage response = controller.deleteAlerts(MOCK_ENTITY, inputMessage);
 
     verify(alertService).deleteOwnAlerts(MOCK_ENTITY);
     verify(alertService, times(0)).delete(Matchers.<Collection<Alert>>any());
-    Assert.assertEquals(CatalogAlertResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
   }
 
   public class MockDataAccessException extends DataAccessException {
@@ -321,5 +324,3 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
   }
 
 }
-
-

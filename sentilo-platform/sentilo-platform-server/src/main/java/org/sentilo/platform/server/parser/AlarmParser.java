@@ -35,18 +35,18 @@ import org.sentilo.platform.server.dto.AlarmsMessage;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
+import org.springframework.util.StringUtils;
 
 public class AlarmParser extends PlatformJsonMessageConverter {
 
   public AlarmInputMessage parseRequest(final SentiloRequest request) throws PlatformException {
-
     final AlarmInputMessage inputMessage = (AlarmInputMessage) readInternal(AlarmInputMessage.class, request);
 
-    final String alertId = request.getResourcePart(0);
-
     if (inputMessage != null) {
-      inputMessage.setAlertId(alertId);
       inputMessage.setSender(request.getEntitySource());
+      if (StringUtils.hasText(inputMessage.getAlertId())) {
+        inputMessage.setAlertId(request.getResourcePart(0));
+      }
     }
 
     return inputMessage;

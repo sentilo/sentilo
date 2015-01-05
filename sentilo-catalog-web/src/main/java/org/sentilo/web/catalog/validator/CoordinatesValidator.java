@@ -25,10 +25,8 @@
  */
 package org.sentilo.web.catalog.validator;
 
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.domain.Component;
-import org.sentilo.web.catalog.domain.Location;
-import org.sentilo.web.catalog.domain.Sensor;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
@@ -37,53 +35,18 @@ public class CoordinatesValidator implements Validator {
 
   @Override
   public boolean supports(final Class<?> clazz) {
-    return Component.class.equals(clazz) || Sensor.class.equals(clazz);
+    return Component.class.equals(clazz);
   }
 
   @Override
   public void validate(final Object target, final Errors errors) {
-
     if (target instanceof Component) {
       final Component component = (Component) target;
-      if (component.isStaticComponent()) {
-        validateLocation(component.getLocation(), errors);
+      if (component.isStaticComponent() && SentiloUtils.arrayIsEmpty(component.getLocation().getCoordinates())) {
+        errors.rejectValue("location", "NotBlank");
       }
       return;
     }
   }
 
-  private void validateLocation(final Location target, final Errors errors) {
-
-    fixDecimalSeparator(target);
-
-    validateRequiredDouble(target.getLatitude(), "location.latitude", errors);
-    validateRequiredDouble(target.getLongitude(), "location.longitude", errors);
-  }
-
-  private void validateRequiredDouble(final String target, final String property, final Errors errors) {
-    if (!StringUtils.hasText(target)) {
-      errors.rejectValue(property, "NotBlank");
-      return;
-    }
-    try {
-      Double.parseDouble(target);
-    } catch (final NumberFormatException e) {
-      errors.rejectValue(property, "NotValidDouble");
-    }
-  }
-
-  private void fixDecimalSeparator(final Location target) {
-    target.setLatitude(fixDecimalSeparator(target.getLatitude()));
-    target.setLongitude(fixDecimalSeparator(target.getLongitude()));
-  }
-
-  /**
-   * Convierte el separador decimal de coma a punto.
-   * 
-   * @param target
-   * @return
-   */
-  private String fixDecimalSeparator(final String target) {
-    return target.replace(',', '.');
-  }
 }

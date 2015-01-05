@@ -68,7 +68,7 @@ public class Permission implements CatalogDocument {
   }
 
   private void buildId() {
-    // Internal ID has the following format source@target
+    // Internal ID_PROP has the following format source@target
     id = source + Constants.PERMISSION_TOKEN_SPLITTER + target;
   }
 
@@ -84,7 +84,7 @@ public class Permission implements CatalogDocument {
 
   @Override
   public int hashCode() {
- // Hashcode return must be consistent with the equals method
+    // Hashcode return must be consistent with the equals method
     final int prime = 37;
     int result = 1;
     result = prime * result + ((source == null) ? 0 : source.hashCode());

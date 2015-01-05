@@ -28,7 +28,8 @@ package org.sentilo.web.catalog.domain;
 import java.util.Date;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.sentilo.common.utils.DateUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.sentilo.web.catalog.domain.Statistics.Events;
 import org.springframework.data.annotation.Id;
 
@@ -50,6 +51,9 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
   private long totalOrders;
   private long timestamp;
 
+  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  private String timestampToString;
+
   public Activity() {
     super();
 
@@ -67,7 +71,6 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
     orders = totalOrders - lastActivity.getTotalOrders();
 
     id = getNextId(lastActivity.id);
-
   }
 
   public Activity(final Events events) {
@@ -75,19 +78,15 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
   }
 
   private int getNextId(final int lastId) {
-    // if(StringUtils.hasText(lastId)){
-    // int iNextId = Integer.parseInt(lastId) + 1;
-    // return Integer.toString(iNextId);
-    // }else{
-    // return "1";
-    // }
-
     return lastId + 1;
-
   }
 
   public String getTimestampToString() {
-    return DateUtils.toStringTimestamp(new Date(timestamp));
+    return timestampToString;
+  }
+
+  public void setTimestampToString(final String timestampToString) {
+    this.timestampToString = timestampToString;
   }
 
   @Override

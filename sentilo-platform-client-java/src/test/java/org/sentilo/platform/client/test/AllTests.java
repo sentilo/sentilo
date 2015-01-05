@@ -26,31 +26,13 @@
 package org.sentilo.platform.client.test;
 
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.sentilo.platform.client.test.aop.PlatformExceptionTranslationInterceptorTest;
-import org.sentilo.platform.client.test.core.PlatformTemplateTest;
-import org.sentilo.platform.client.test.domain.ClientDomainTest;
-import org.sentilo.platform.client.test.domain.SubscribeInputMessageTest;
-import org.sentilo.platform.client.test.exception.SentiloExceptionsTest;
-import org.sentilo.platform.client.test.parser.AlarmMessageConverterTest;
-import org.sentilo.platform.client.test.parser.CatalogAlertMessageConverterTest;
-import org.sentilo.platform.client.test.parser.CatalogMessageConverterTest;
-import org.sentilo.platform.client.test.parser.DataMessageConverterTest;
-import org.sentilo.platform.client.test.parser.OrderMessageConverterTest;
-import org.sentilo.platform.client.test.parser.SubscribeMessageConverterTest;
-import org.sentilo.platform.client.test.service.DefaultAlarmServiceOperationsImplTest;
-import org.sentilo.platform.client.test.service.DefaultCatalogServiceOperationsImplTest;
-import org.sentilo.platform.client.test.service.DefaultDataServiceOperationsImplTest;
-import org.sentilo.platform.client.test.service.DefaultOrderServiceOperationsImplTest;
-import org.sentilo.platform.client.test.service.DefaultSubscribeServiceOperationsImplTest;
-import org.sentilo.platform.client.test.utils.RequestUtilsTest;
+import org.junit.runners.model.InitializationError;
+import org.sentilo.common.test.SentiloSuiteTest;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({RequestUtilsTest.class, SubscribeInputMessageTest.class, SubscribeMessageConverterTest.class, AlarmMessageConverterTest.class,
-    OrderMessageConverterTest.class, DataMessageConverterTest.class, CatalogMessageConverterTest.class, CatalogAlertMessageConverterTest.class,
-    SentiloExceptionsTest.class, PlatformExceptionTranslationInterceptorTest.class, ClientDomainTest.class, PlatformTemplateTest.class,
-    DefaultAlarmServiceOperationsImplTest.class, DefaultCatalogServiceOperationsImplTest.class, DefaultDataServiceOperationsImplTest.class,
-    DefaultOrderServiceOperationsImplTest.class, DefaultSubscribeServiceOperationsImplTest.class})
-public class AllTests {
+@RunWith(AllTests.class)
+public class AllTests extends SentiloSuiteTest {
 
+  public AllTests(final Class<?> clazz) throws InitializationError {
+    super(clazz, "org.sentilo.platform.client.test");
+  }
 }

@@ -25,7 +25,6 @@
  */
 package org.sentilo.common.test.exception;
 
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.sentilo.common.exception.MessageConversionException;
@@ -43,63 +42,63 @@ public class SentiloExceptionsTest {
 
   @Test
   public void messageConversionException() {
-    Exception ex = new MessageConversionException(message);
+    final Exception ex = new MessageConversionException(message);
     Assert.assertEquals(getMessage(message, null), ex.getMessage());
 
-    Exception ex1 = new MessageConversionException(message, cause);
+    final Exception ex1 = new MessageConversionException(message, cause);
     Assert.assertEquals(getMessage(message, cause), ex1.getMessage());
   }
 
   @Test
   public void messageNotReadableException() {
-    Exception ex = new MessageNotReadableException(message);
+    final Exception ex = new MessageNotReadableException(message);
     Assert.assertEquals(getMessage(message, null), ex.getMessage());
 
-    Exception ex1 = new MessageNotReadableException(message, cause);
+    final Exception ex1 = new MessageNotReadableException(message, cause);
     Assert.assertEquals(getMessage(message, cause), ex1.getMessage());
 
-    Exception ex2 = new MessageNotReadableException(cause);
+    final Exception ex2 = new MessageNotReadableException(cause);
     Assert.assertEquals(getMessage(cause.getMessage(), cause), ex2.getMessage());
   }
 
   @Test
   public void messageNotWritableException() {
-    Exception ex = new MessageNotWritableException(message);
+    final Exception ex = new MessageNotWritableException(message);
     Assert.assertEquals(getMessage(message, null), ex.getMessage());
 
-    Exception ex1 = new MessageNotWritableException(message, cause);
+    final Exception ex1 = new MessageNotWritableException(message, cause);
     Assert.assertEquals(getMessage(message, cause), ex1.getMessage());
 
-    Exception ex2 = new MessageNotWritableException(cause);
+    final Exception ex2 = new MessageNotWritableException(cause);
     Assert.assertEquals(getMessage(cause.getMessage(), cause), ex2.getMessage());
   }
 
   @Test
   public void platformAccessException() {
-    Exception ex = new PlatformAccessException(message);
+    final Exception ex = new PlatformAccessException(message);
     Assert.assertEquals(getMessage(message, null), ex.getMessage());
 
-    Exception ex1 = new PlatformAccessException(message, cause);
+    final Exception ex1 = new PlatformAccessException(message, cause);
     Assert.assertEquals(getMessage(message, cause), ex1.getMessage());
   }
 
   @Test
   public void restClientException() {
     final int status = 1;
-    Exception ex = new RESTClientException(status, message);
+    final Exception ex = new RESTClientException(status, message);
     Assert.assertEquals(getMessage(message, null), ex.getMessage());
     Assert.assertTrue(status == ((RESTClientException) ex).getStatus());
 
-    Exception ex1 = new RESTClientException(message, cause);
+    final Exception ex1 = new RESTClientException(message, cause);
     Assert.assertEquals(getMessage(message, cause), ex1.getMessage());
     Assert.assertTrue(0 == ((RESTClientException) ex1).getStatus());
 
-    Exception ex2 = new RESTClientException(cause);
+    final Exception ex2 = new RESTClientException(cause);
     Assert.assertEquals(getMessage(cause.getMessage(), cause), ex2.getMessage());
     Assert.assertTrue(0 == ((RESTClientException) ex2).getStatus());
   }
 
-  private String getMessage(String exceptionMessage, Throwable exceptionCause) {
+  private String getMessage(final String exceptionMessage, final Throwable exceptionCause) {
     return NestedExceptionUtils.buildMessage(exceptionMessage, exceptionCause);
   }
 

@@ -239,7 +239,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     final String location = (StringUtils.hasText(data.getLocation()) ? data.getLocation() : "");
     // Guardamos una hash de clave sdid:{sdid} y valores sid, data (aleatorio), timestamp y
     // location.
-    String obsKey = keysBuilder.getObservationKey(sdid);
+    final String obsKey = keysBuilder.getObservationKey(sdid);
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put(SID, Long.toString(sid));
     fields.put(DATA, data.getValue());
@@ -271,10 +271,6 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     // Si el proveedor y/o el sensor aun no estan registrados en Redis, los registramos.
     resourceService.registerProviderIfNecessary(data.getProvider());
     resourceService.registerSensorIfNecessary(data.getSensor(), data.getProvider());
-  }
-
-  public void setResourceService(final ResourceService resourceService) {
-    this.resourceService = resourceService;
   }
 
 }

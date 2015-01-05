@@ -25,14 +25,19 @@
  */
 package org.sentilo.web.catalog.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.sentilo.web.catalog.domain.Application;
+import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.dto.DataTablesDTO;
@@ -47,6 +52,7 @@ import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,10 +64,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 @RequestMapping("/permissions")
 public class PermissionsController extends SearchController<Permission> {
+
+  private static final String PERMISSION = "permission.";
 
   @Autowired
   private ApplicationService applicationService;
@@ -85,9 +94,21 @@ public class PermissionsController extends SearchController<Permission> {
 
     addPermissionTypesToModel(model);
 
-    // TODO Falta filtrar aquellos proveedores para los que no tiene permiso la app
     final List<Provider> providers = providerService.findAll();
     final List<Application> applications = applicationService.findAll();
+
+    // Sort list before add them into the model
+    final Comparator<CatalogDocument> comparator = new Comparator<CatalogDocument>() {
+
+      @Override
+      public int compare(final CatalogDocument o1, final CatalogDocument o2) {
+        return o1.getId().compareToIgnoreCase(o2.getId());
+      }
+    };
+
+    Collections.sort(providers, comparator);
+    Collections.sort(applications, comparator);
+
     final PermissionsDTO form = new PermissionsDTO(id, providers, applications);
     model.addAttribute(Constants.MODEL_PERMISSIONS, form);
 
@@ -115,13 +136,25 @@ public class PermissionsController extends SearchController<Permission> {
   @RequestMapping("/application/{id}")
   @ResponseBody
   public DataTablesDTO getApplicationPermissions(final HttpServletRequest request, final Model model, final Pageable pageable,
-      @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam(required = false) final String search) {
-    return getPageList(model, request, pageable, sEcho, search);
+      @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam final String tableName,
+      @RequestParam(required = false) final String search) {
+    return getPageList(model, request, pageable, sEcho, tableName, search);
+  }
+
+  @RequestMapping("/application/{id}/excel")
+  public ModelAndView getApplicationPermissionsExcel(final HttpServletRequest request, final Model model, final HttpServletResponse response,
+      @PathVariable final String id, @RequestParam final String tableName, @RequestParam(required = false) final String search) throws IOException {
+    return getExcel(model, request, response, tableName);
   }
 
   @Override
   protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
-    final String id = SearchFilterUtils.getUriVariableValue(request, "/permissions/application/{id}", "id");
+    String uri = "/permissions/application/{id}";
+    if (request.getRequestURI().contains("excel")) {
+      uri += "/excel";
+    }
+
+    final String id = SearchFilterUtils.getUriVariableValue(request, uri, "id");
     if (StringUtils.hasText(id)) {
       // To find all permissions associate to an entity with id identity we must get all permissions
       // with source equal to identity
@@ -134,7 +167,7 @@ public class PermissionsController extends SearchController<Permission> {
     final List<String> row = new ArrayList<String>();
     row.add(permission.getId());
     row.add(permission.getTarget());
-    row.add(messageSource.getMessage("permission." + permission.getType().toString(), null, Locale.getDefault()));
+    row.add(messageSource.getMessage(PERMISSION + permission.getType().toString(), null, LocaleContextHolder.getLocale()));
     return row;
   }
 
@@ -145,6 +178,15 @@ public class PermissionsController extends SearchController<Permission> {
 
   @Override
   protected void initViewNames() {
+  }
+
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.TARGET_PROP, Constants.TYPE_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "permission");
+
   }
 
   private void createPermissions(final String sourceId, final String[] selectedIds, final Permission.Type type) {
@@ -170,4 +212,5 @@ public class PermissionsController extends SearchController<Permission> {
   private void addPermissionTypesToModel(final Model model) {
     model.addAttribute(Constants.MODEL_PERMISSION_TYPES, Permission.Type.values());
   }
+
 }

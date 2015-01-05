@@ -48,7 +48,8 @@ public class CatalogServiceParserTest {
 
   @Test
   public void parsePermissions() throws Exception {
-    final String json = "{\"permissions\":[{\"source\":\"prov1\",\"target\":\"prov1\",\"type\":\"WRITE\"},{\"source\":\"prov2\",\"target\":\"prov2\",\"type\":\"WRITE\"}]}";
+    final String json =
+        "{\"permissions\":[{\"source\":\"prov1\",\"target\":\"prov1\",\"type\":\"WRITE\"},{\"source\":\"prov2\",\"target\":\"prov2\",\"type\":\"WRITE\"}]}";
 
     final PermissionsMessage message = parser.parsePermissions(json);
     assertTrue(message.getPermissions() != null && message.getPermissions().size() == 2);

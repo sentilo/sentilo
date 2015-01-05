@@ -5,15 +5,17 @@
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/component/${component.id}/edit" var="actionURL" />
 	<spring:message code="component.edit.title" var="pageTitle" />
+	<spring:url value="/admin/component/${component.id}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/component/create" var="actionURL" />
 	<spring:message code="component.new.title" var="pageTitle" />
+	<spring:message code="select.empty" var="emptySelectMessage" />
+	<spring:url value="/admin/component/list?nameTableRecover=componentTable&fromBack=true" var="backURL" />
 </c:if>
 
 <c:set var="editMode" value="${mode == 'edit' }" />
 
-<spring:url value="/admin/component/list" var="backURL" />
 
 <div class="container-fluid">
 	<div class="content">
@@ -32,83 +34,106 @@
 
 				<form:form method="post" modelAttribute="component" action="${actionURL}" class="form-horizontal" autocomplete="off">
 					<fieldset>
-						<!-- div class="control-group">
-				<form:label path="id" class="control-label">
-					<spring:message code="component.id" />
-				</form:label>
-				<div class="controls">
-					<c:if test="${mode == 'create' }">
-						<form:input path="id" />
-					</c:if>
-					<c:if test="${mode == 'edit' }">
-						<form:input path="id" readonly="true"/>
-						<form:hidden path="createdAt"/>
-					</c:if>
-					<form:errors path="id" cssClass="text-error" htmlEscape="false" />
-				</div>
-			</div-->
-						<c:if test="${editMode}">
-							<form:hidden path="id" />
-							<form:hidden path="createdAt" />
-						</c:if>
-						<div class="control-group">
-							<form:label path="name" class="control-label">
-								<spring:message code="component.name" />
-							</form:label>
-							<div class="controls">
-								<form:input path="name" readonly="${editMode}" />
-								<form:errors path="name" cssClass="text-error" htmlEscape="false" />
+						<div class="tabbable">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#tab1" data-toggle="tab"><spring:message code="component.detail.title" /></a></li>
+								<li><a href="#tab2" data-toggle="tab"><spring:message code="technicalDetails.tab.label" /></a></li>
+								<li><a href="#tab3" data-toggle="tab"><spring:message code="component.additionalInfo" /></a></li>
+							</ul>
+							<c:if test="${editMode}">
+								<form:hidden path="id" />
+								<form:hidden path="createdAt" />
+							</c:if>
+							<div class="tab-content">
+								<div class="tab-pane active" id="tab1">
+									<div class="control-group">
+										<form:label path="name" class="control-label">
+											<spring:message code="component.name" />
+										</form:label>
+										<div class="controls">
+											<form:input path="name" readonly="${editMode}" />
+											<form:errors path="name" cssClass="text-error" htmlEscape="false" />
+										</div>
+									</div>
+									<div class="control-group">
+										<form:label path="componentType" class="control-label">
+											<spring:message code="component.type" />
+										</form:label>
+										<div class="controls">
+											<form:select path="componentType">
+												<form:options items="${componentTypes}" itemValue="id" itemLabel="name" />
+											</form:select>
+											<form:errors path="componentType" cssClass="text-error" htmlEscape="false" />
+										</div>
+									</div>
+									<div class="control-group">
+										<form:label path="description" class="control-label">
+											<spring:message code="component.description" />
+										</form:label>
+										<div class="controls">
+											<form:textarea path="description" />
+											<form:errors path="description" cssClass="text-error" htmlEscape="false" />
+										</div>
+									</div>
+									<c:if test="${empty providerId}">
+									<div class="control-group">
+										<form:label path="providerId" class="control-label">
+											<spring:message code="component.providerId" />
+										</form:label>
+										<div class="controls">
+												<form:select path="providerId" id="providerId" disabled="${editMode}">
+													<form:option value="">${emptySelectMessage}</form:option>
+													<form:options items="${providers}" itemValue="id" itemLabel="name" />
+											</form:select>
+											<c:if test="${editMode}">
+												<form:hidden path="providerId" />
+											</c:if>
+												<form:errors path="providerId" cssClass="text-error" htmlEscape="false" />
+										</div>
+									</div>
+													
+									</c:if>
+									<c:if test="${not empty providerId}">
+										<input type="hidden" name="providerId" id="providerId" value="${providerId}" />
+										
+									</c:if>
+									<div class="control-group">
+										<form:label path="photoUrl" class="control-label">
+											<spring:message code="component.photo" />
+										</form:label>
+										<div class="controls">
+											<form:input path="photoUrl" />
+											<form:errors path="photoUrl" cssClass="text-error" htmlEscape="false" />
+										</div>
+									</div>
+									<div class="control-group">
+										<form:label path="publicAccess" class="control-label">
+											<spring:message code="component.publicAccess" />
+										</form:label>
+										<div class="controls">
+											<form:checkbox path="publicAccess" />
+											<form:errors path="publicAccess" cssClass="text-error" htmlEscape="false" />
+										</div>
+									</div>
+									<%@include file="/WEB-INF/jsp/common/include_input_tags.jsp"%>
+									<%@include file="/WEB-INF/jsp/common/include_input_location.jsp"%>
+								</div>
+								<div class="tab-pane" id="tab2">											
+									<c:set var="resourceIsComponent"  value="true" />
+									<%@include file="/WEB-INF/jsp/common/include_technical_details_new.jsp"%>
+								</div>
+								<div class="tab-pane" id="tab3">
+									<c:set var="additionalInfo"  value="${component.additionalInfo}" />
+									<%@include file="/WEB-INF/jsp/common/include_additional_info.jsp"%>
+								</div>
 							</div>
 						</div>
 						<div class="control-group">
-							<form:label path="componentType" class="control-label">
-								<spring:message code="component.type" />
-							</form:label>
 							<div class="controls">
-								<form:select path="componentType">
-									<form:options items="${componentTypes}" itemValue="id" itemLabel="name" />
-								</form:select>
-								<form:errors path="componentType" cssClass="text-error" htmlEscape="false" />
-							</div>
-						</div>
-						<div class="control-group">
-							<form:label path="description" class="control-label">
-								<spring:message code="component.description" />
-							</form:label>
-							<div class="controls">
-								<form:textarea path="description" />
-								<form:errors path="description" cssClass="text-error" htmlEscape="false" />
-							</div>
-						</div>
-						<div class="control-group">
-							<form:label path="providerId" class="control-label">
-								<spring:message code="component.providerId" />
-							</form:label>
-							<div class="controls">
-								<form:select path="providerId" cssClass="input-large" disabled="${editMode}">
-									<form:options items="${providers}" itemLabel="name" itemValue="id" />
-								</form:select>
-								<c:if test="${editMode}">
-									<form:hidden path="providerId" />
-								</c:if>
-								<form:errors path="providerId" cssClass="error" htmlEscape="false" />
-							</div>
-						</div>
-						<div class="control-group">
-							<form:label path="publicAccess" class="control-label">
-								<spring:message code="component.publicAccess" />
-							</form:label>
-							<div class="controls">
-								<form:checkbox path="publicAccess" />
-								<form:errors path="publicAccess" cssClass="text-error" htmlEscape="false" />
-							</div>
-						</div>
-						<%@include file="/WEB-INF/jsp/common/include_input_tags.jsp"%>
-						<%@include file="/WEB-INF/jsp/common/include_input_location.jsp"%>
-						<div class="control-group">
-							<div class="controls">
-								<a href="${backURL}" class="btn"> <spring:message code="button.back" /> </a> <a href="#"
-									onclick="$('form#component').submit();" class="btn btn-success"> <spring:message code="button.save" /> </a>
+								<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+								<a href="#" onclick="$('form#component').submit();" class="btn btn-success">
+									 <spring:message code="button.save" />
+								</a>
 							</div>
 						</div>
 					</fieldset>

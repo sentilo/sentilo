@@ -37,18 +37,19 @@ import org.sentilo.platform.client.core.parser.AlarmMessageConverter;
 
 public class AlarmMessageConverterTest {
 
-  static final String ALARM_ID = "alarm1";
+  static final String ALERT_ID = "alert1";
   static final String ALARM_MESSAGE = "umbral superado";
 
   AlarmMessageConverter converter = new AlarmMessageConverter();
 
   @Test
   public void buildAlarmBody() throws MessageNotWritableException {
-    final AlarmInputMessage message = new AlarmInputMessage(ALARM_ID, ALARM_MESSAGE);
+    final AlarmInputMessage message = new AlarmInputMessage(ALERT_ID, ALARM_MESSAGE);
     final String json = converter.marshall(message);
-    final String body = "{\"message\":\"umbral superado\"}";
+    final String body = "{\"alertId\":\"alert1\",\"message\":\"umbral superado\"}";
     assertNotNull(json);
     assertEquals(body, json);
+
   }
 
   @Test

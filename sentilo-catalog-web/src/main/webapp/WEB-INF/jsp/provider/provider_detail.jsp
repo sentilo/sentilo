@@ -2,12 +2,14 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:url value="/admin/provider/${provider.id}/edit" var="editProviderLink" />
 
 <c:set var="providerId" scope="request" value="${provider.id}" />
-<spring:url value="/admin/sensor/new?providerId=${providerId}" var="newSensorURL" />
+<c:set var="sensorTable"  value="providerDetailSensorTable" />
+
+<spring:url value="/admin/provider/${provider.id}/edit" var="editProviderLink" />
 <spring:url value="/admin/sensor/list/json?providerId=${providerId}" var="sensorsAjaxSource" />
-<spring:url value="/admin/sensor/delete" var="deleteSensorsURL" />
+<spring:url value="/admin/sensor/list/excel?tableName=${sensorTable}&providerId=${providerId}" var="sensorExcelSource" />
+<spring:url value="/admin/provider/list?nameTableRecover=providerTable&fromBack=true" var="backURL" />
 
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
 
@@ -34,7 +36,11 @@
 								</a></li>
 								<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message code="provider.sensors" />
 								</a></li>
-								<li><a href="#tab3" data-toggle="tab"><spring:message code="provider.docs" /> </a></li>
+								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message code="provider.components" />
+								</a></li>
+								<li class="${tab4Class}"><a href="#tab4" data-toggle="tab"><spring:message code="application.active.subscriptions" />
+								 </a></li>
+								<li class="${tab5Class}"><a href="#tab5" data-toggle="tab"><spring:message code="provider.docs" /> </a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="${tab1PaneClass }" id="tab1">
@@ -104,9 +110,23 @@
 								</div>
 								<div class="${tab2PaneClass}" id="tab2">
 									<%@include file="/WEB-INF/jsp/common/include_list_sensor.jsp"%>
-									<%@include file="/WEB-INF/jsp/sensor/include_sensor_delete_controls.jsp"%>
+									<div class="control-group pull-right">
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									</div>
 								</div>
-								<div class="tab-pane" id="tab3">
+								<div class="${tab3PaneClass}" id="tab3">
+									<jsp:include page="/WEB-INF/jsp/common/include_list_component.jsp" />
+									<div class="control-group pull-right">
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									</div>
+								</div>
+								<div class="${tab4PaneClass}" id="tab4">
+									<jsp:include page="/WEB-INF/jsp/application/include_application_subscriptions.jsp" />
+									<div class="control-group pull-right">
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									</div>
+								</div>
+								<div class="${tab5PaneClass}" id="tab5">
 									<div class="row-fluid">
 										<div class="span12">
 											<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>

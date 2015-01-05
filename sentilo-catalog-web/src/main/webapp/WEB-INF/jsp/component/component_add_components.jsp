@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:url value="/admin/component/${componentComponents.componentId}/detail" var="backURL" />
+
 <div class="container-fluid">
 	<div class="content">
 		<div class="row-fluid">
@@ -44,6 +46,7 @@
 						</div>
 						<div class="control-group">
 							<div class="controls">
+								<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 								<button type="submit" class="btn">
 									<spring:message code="component.assign.title" />
 								</button>

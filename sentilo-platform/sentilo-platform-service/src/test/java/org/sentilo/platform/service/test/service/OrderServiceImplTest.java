@@ -40,6 +40,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.OrderInputMessage;
@@ -63,16 +64,12 @@ public class OrderServiceImplTest {
   private ResourceService resourceService;
   @Mock
   private Sensor sensor;
-
+  @InjectMocks
   private OrderServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    service = new OrderServiceImpl();
-    service.setJedisTemplate(jedisTemplate);
-    service.setJedisSequenceUtils(jedisSequenceUtils);
-    service.setResourceService(resourceService);
   }
 
   @Test

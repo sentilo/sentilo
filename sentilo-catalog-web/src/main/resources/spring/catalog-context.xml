@@ -24,11 +24,15 @@
 
 	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
 		p:validationMessageSource-ref="messageSource" />
+		
+	<bean id="localDateFormat" class="org.sentilo.web.catalog.format.datetime.LocalDateFormatter" 
+		p:timeZone="${catalog.default.timezone}"/>	
 
 	<context:component-scan base-package="org.sentilo.web.catalog.validator" />
 	<context:component-scan base-package="org.sentilo.web.catalog.service.impl" />
 	<context:component-scan base-package="org.sentilo.web.catalog.security" />
 	<context:component-scan base-package="org.sentilo.web.catalog.aop.aspect" />
+	<context:component-scan base-package="org.sentilo.web.catalog.listener" />	
 
 	<task:annotation-driven scheduler="platformScheduler" />
 	<task:scheduler id="platformScheduler" pool-size="5" />

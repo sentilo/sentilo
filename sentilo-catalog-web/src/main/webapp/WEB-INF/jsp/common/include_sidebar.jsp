@@ -2,14 +2,14 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 
-<spring:url value="/admin/provider/list" var="providerListURL" />
-<spring:url value="/admin/application/list" var="applicationListURL" />
-<spring:url value="/admin/alert/list" var="alertListURL" />
-<spring:url value="/admin/sensor/list" var="sensorListURL" />
-<spring:url value="/admin/users/list" var="userListURL" />
-<spring:url value="/admin/sensortypes/list" var="sensorTypesListURL" />
-<spring:url value="/admin/componenttypes/list" var="componentTypesListURL" />
-<spring:url value="/admin/component/list" var="componentListURL" />
+<spring:url value="/admin/provider/list?nameTableRecover=providerTable" var="providerListURL" />
+<spring:url value="/admin/application/list?nameTableRecover=applicationTable" var="applicationListURL" />
+<spring:url value="/admin/alert/list?nameTableRecover=alertTable" var="alertListURL" />
+<spring:url value="/admin/sensor/list?nameTableRecover=sensorTable" var="sensorListURL" />
+<spring:url value="/admin/users/list?nameTableRecover=userTable" var="userListURL" />
+<spring:url value="/admin/sensortypes/list?nameTableRecover=sensorTypeTable" var="sensorTypesListURL" />
+<spring:url value="/admin/componenttypes/list?nameTableRecover=componentTypeTable" var="componentTypesListURL" />
+<spring:url value="/admin/component/list?nameTableRecover=componentTable" var="componentListURL" />
 
 <c:set value=" connecta-icon-black" var="classApplicationIcon" />
 <c:set value=" connecta-icon-black" var="classProviderIcon" />

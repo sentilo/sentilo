@@ -26,20 +26,13 @@
 package org.sentilo.agent.relational.test;
 
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.sentilo.agent.relational.test.dao.impl.AgentRelationalDaoImplTest;
-import org.sentilo.agent.relational.test.event.SubscriptionsInitListenerTest;
-import org.sentilo.agent.relational.test.jdbc.SentiloRoutingDataSourceTest;
-import org.sentilo.agent.relational.test.service.impl.DataTrackServiceImplTest;
-import org.sentilo.agent.relational.test.service.listener.ConnectionMonitorListenerTest;
-import org.sentilo.agent.relational.test.service.listener.MessageListenerImplTest;
-import org.sentilo.agent.relational.test.service.listener.MonitorMessageListenerImplTest;
-import org.sentilo.agent.relational.test.utils.UtilsTest;
+import org.junit.runners.model.InitializationError;
+import org.sentilo.common.test.SentiloSuiteTest;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({AgentRelationalDaoImplTest.class, DataTrackServiceImplTest.class, MessageListenerImplTest.class,
-    SentiloRoutingDataSourceTest.class, MonitorMessageListenerImplTest.class, ConnectionMonitorListenerTest.class, UtilsTest.class,
-    SubscriptionsInitListenerTest.class})
-public class AllTests {
+@RunWith(AllTests.class)
+public class AllTests extends SentiloSuiteTest {
 
+  public AllTests(final Class<?> clazz) throws InitializationError {
+    super(clazz, "org.sentilo.agent.relational.test");
+  }
 }

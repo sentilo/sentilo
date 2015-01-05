@@ -39,7 +39,6 @@ import org.sentilo.platform.client.core.service.DataServiceOperations;
 import org.sentilo.platform.client.core.service.OrderServiceOperations;
 import org.sentilo.platform.client.core.service.SubscribeServiceOperations;
 
-
 public class PlatformTemplateTest {
 
   @Mock

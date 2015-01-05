@@ -2,19 +2,31 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<c:set var="componentTable"  value="componentDetailComponentTable" />
+<c:set var="sensorTable"  value="componentDetailSensorTable" />
 <c:set var="componentId" scope="request" value="${component.id}" />
 
+<spring:url value="/admin/component/new" var="newComponentLink" />
+<spring:url value="/admin/component/delete" var="deleteURL" />
 <spring:url value="/admin/component/${component.id}/edit" var="editComponentLink" />
 <spring:url value="/admin/sensor/list/json?componentId=${component.id}" var="sensorsAjaxSource" />
 <spring:url value="/admin/component/${component.id}/removeSensors" var="deleteSensorsURL" />
+<spring:url value="/admin/component/list?nameTableRecover=componentTable&fromBack=true" var="backURL" />
+<spring:url value="/admin/component/list/json?parentId=${componentId}" var="sAjaxSourceComp" />
+<spring:url value="/admin/component/" var="detailPrefix" />
+<spring:url value="/admin/sensor/list/excel?tableName=${sensorTable}&componentId=${component.id}" var="sensorExcelSource" />
+
 
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
 <%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
 
+<spring:message code="sure.delete.component" var="deleteComponentConfirmMessage" />
+
 <c:if test="${component.staticComponent}">
 	<script type="text/javascript">	
 	$(document).ready(function() {
-		initializeMap('${component.location.latitude}','${component.location.longitude}', '${component.name}','${componentIcon}');
+		var componentPath = '${component.location}';
+		initializeMap('${component.location.centroid[1]}','${component.location.centroid[0]}', componentPath.split(','), '${componentIcon}');
 	});
 	</script>
 </c:if>
@@ -38,12 +50,11 @@
 
 						<div class="tabbable">
 							<ul class="nav nav-tabs">
-								<li class="${tab1Class}"><a href="#tab1" data-toggle="tab"><spring:message
-											code="component.detail.title" /> </a></li>
-								<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message code="component.components" />
-								</a></li>
-								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message code="sensor.list.title" />
-								</a></li>
+								<li class="${tab1Class}"><a href="#tab1" data-toggle="tab"><spring:message code="component.detail.title" /></a></li>
+								<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message code="technicalDetails.tab.label" /></a></li>
+								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message code="component.additionalInfo" /></a></li>
+								<li class="${tab4Class}"><a href="#tab4" data-toggle="tab"><spring:message code="component.components" /></a></li>
+								<li class="${tab5Class}"><a href="#tab5" data-toggle="tab"><spring:message code="sensor.list.title" /></a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="${tab1PaneClass}" id="tab1">
@@ -81,12 +92,14 @@
 															<strong><spring:message code="component.accessType" /> </strong>
 														</div>
 														<div class="span8">
-															<c:if test="${component.publicAccess}">
-																<spring:message code="public" />
-															</c:if>
-															<c:if test="${not component.publicAccess}">
-																<spring:message code="private" />
-															</c:if>
+															<c:choose>
+																<c:when test="${component.publicAccess}">
+																	<spring:message code="public" />
+																</c:when>
+																<c:otherwise>
+																	<spring:message code="private" />
+																</c:otherwise>
+															</c:choose>
 														</div>
 													</div>
 													<div class="row-fluid">
@@ -112,11 +125,16 @@
 															<strong><spring:message code="component.location" /> </strong>
 														</div>
 														<div class="span8">
-															<span class="label"> <c:if test="${component.mobileComponent}">
-																	<spring:message code="mobile" />
-																</c:if> <c:if test="${not component.mobileComponent}">
-																	<spring:message code="static" />
-																</c:if> </span>
+															<span class="label"> 
+																<c:choose>	
+																	<c:when test="${component.mobileComponent}">
+																		<spring:message code="mobile" />
+																	</c:when> 
+																	<c:otherwise>
+																		<spring:message code="static" />
+																	</c:otherwise>
+																</c:choose>
+															</span>
 														</div>
 													</div>
 												</div>
@@ -142,11 +160,56 @@
 									</c:if>
 								</div>
 								<div class="${tab2PaneClass}" id="tab2">
-									<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
+									<div class="accordion" id="technicalDetailsAccordion">
+										<c:set var="technicalDetails"  value="${component.technicalDetails}" />
+										<c:set var="resourceIsComponent"  value="true" />
+										<%@include file="/WEB-INF/jsp/common/include_technical_details.jsp"%>
+										<br/>
+										<div class="row-fluid">
+											<div class="span12">
+												<div class="control-group pull-right">
+													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+													<a href="${editComponentLink }" class="btn btn-primary"> <spring:message code="component.edit.title" />
+													</a>
+												</div>
+											</div>
+										</div>
+									</div>
 								</div>
 								<div class="${tab3PaneClass}" id="tab3">
-									<%@include file="/WEB-INF/jsp/common/include_list_sensor.jsp"%>
-									<%@include file="/WEB-INF/jsp/sensor/include_sensor_assign_controls.jsp"%>
+									<div class="accordion" id="detailAdditionalInfoAccordion">
+										<c:set var="additionalInfo"  value="${component.additionalInfo}" />
+										<%@include file="/WEB-INF/jsp/common/include_additional_info.jsp"%>
+										<br/>
+										<div class="row-fluid">
+											<div class="span12">
+												<div class="control-group pull-right">
+													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+													<a href="${editComponentLink }" class="btn btn-primary"> <spring:message code="component.edit.title" />
+													</a>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="${tab4PaneClass}" id="tab4">
+									<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
+									<div class="control-group pull-right">
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+										<spring:url value="/admin/component/${component.id}/addComponents" var="addComponentsURL" />
+										<a href="#" onclick="deleteSelected('components');" class="btn btn-danger">
+											<spring:message	code="component.unassign.title" />
+										</a>
+										<a href="#" onclick="window.location.href='${addComponentsURL}';" class="btn">
+											<spring:message code="component.assign.title" />
+										 </a>
+									</div>
+								</div>
+								<div class="${tab5PaneClass}" id="tab5">
+									<%@include file="/WEB-INF/jsp/common/include_list_sensor.jsp"%>									
+									<div class="control-group pull-right">
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									</div>									
 								</div>
 							</div>
 						</div>

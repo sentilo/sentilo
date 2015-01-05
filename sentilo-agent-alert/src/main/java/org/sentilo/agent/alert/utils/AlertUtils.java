@@ -25,7 +25,13 @@
  */
 package org.sentilo.agent.alert.utils;
 
-import org.sentilo.agent.alert.domain.Alarm;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Locale;
+
+import org.sentilo.agent.alert.domain.InternalAlert;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.common.parser.EventMessageConverter;
@@ -34,26 +40,29 @@ import org.sentilo.common.utils.DateUtils;
 public abstract class AlertUtils {
 
   private static final EventMessageConverter converter = new EventMessageConverter();
+  private static DecimalFormat decimalFormat;
 
   private AlertUtils() {
     throw new AssertionError();
   }
 
-  public static String buildDataTopicAssociateToAlarm(final Alarm alarm) {
-    String[] tokens = {Constants.DATA, alarm.getProviderId(), alarm.getSensorId()};
+  public static String buildDataTopicAssociateToAlert(final InternalAlert alert) {
+    final String[] tokens = {Constants.DATA, alert.getProviderId(), alert.getSensorId()};
     return buildTopic(tokens);
   }
 
-  public static String buildTopicToPublishAlarm(final Alarm alarm) {
-    String[] tokens = {Constants.ALARM, alarm.getId()};
+  public static String buildTopicToPublishAlert(final InternalAlert alert) {
+    final String[] tokens = {Constants.ALARM, alert.getId()};
     return buildTopic(tokens);
   }
 
-  public static String buildMessageToPublish(final Alarm alarm, final String value, final String topic) {
+  public static String buildMessageToPublish(final InternalAlert alert, final String value, final String topic) {
     final Long timestamp = System.currentTimeMillis();
 
-    EventMessage event = new EventMessage();
-    event.setAlert(alarm.getId());
+    final EventMessage event = new EventMessage();
+    event.setAlert(alert.getId());
+    event.setProvider(alert.getProviderId());
+    event.setSensor(alert.getSensorId());
     event.setMessage(value);
     event.setTimestamp(DateUtils.timestampToString(timestamp));
     event.setSender("SENTILO");
@@ -63,11 +72,34 @@ public abstract class AlertUtils {
     return converter.marshall(event);
   }
 
-  private static String buildTopic(String[] tokens) {
-    StringBuilder sb = new StringBuilder();
-    for (String token : tokens) {
+  public static String buildFrozenAlertMember(final InternalAlert alert) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(alert.getProviderId());
+    sb.append(Constants.REDIS_MEMBER_TOKEN);
+    sb.append(alert.getSensorId());
+    sb.append(Constants.REDIS_MEMBER_TOKEN);
+    sb.append(alert.getId());
+    return sb.toString();
+  }
+
+  public static BigDecimal transformNumber(final String value) throws ParseException {
+    return (BigDecimal) getDecimalFormat().parse(value);
+  }
+
+  private static DecimalFormat getDecimalFormat() {
+    if (decimalFormat == null) {
+      decimalFormat = (DecimalFormat) NumberFormat.getInstance(Locale.ENGLISH);
+      decimalFormat.setParseBigDecimal(true);
+    }
+    return decimalFormat;
+  }
+
+  private static String buildTopic(final String[] tokens) {
+    final StringBuilder sb = new StringBuilder();
+    for (final String token : tokens) {
       sb.append(Constants.REDIS_CHANNEL_TOKEN).append(token);
     }
     return sb.toString();
   }
+
 }

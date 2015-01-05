@@ -37,8 +37,8 @@ public class NotificationParamsTest {
 
   @Test
   public void buildFromParamsChain() {
-    String chain = ENDPOINT + SentiloConstants.SENTILO_INTERNAL_TOKEN + SECRET;
-    NotificationParams notificationParams = new NotificationParams(chain);
+    final String chain = ENDPOINT + SentiloConstants.SENTILO_INTERNAL_TOKEN + SECRET;
+    final NotificationParams notificationParams = new NotificationParams(chain);
 
     Assert.assertEquals(ENDPOINT, notificationParams.getEndpoint());
     Assert.assertEquals(SECRET, notificationParams.getSecretCallbackKey());
@@ -46,8 +46,8 @@ public class NotificationParamsTest {
 
   @Test
   public void buildFromParamsChainWithoutSecret() {
-    String chain = ENDPOINT;
-    NotificationParams notificationParams = new NotificationParams(chain);
+    final String chain = ENDPOINT;
+    final NotificationParams notificationParams = new NotificationParams(chain);
 
     Assert.assertEquals(ENDPOINT, notificationParams.getEndpoint());
     Assert.assertNull(notificationParams.getSecretCallbackKey());
@@ -55,7 +55,7 @@ public class NotificationParamsTest {
 
   @Test
   public void buildFromParams() {
-    NotificationParams notificationParams = new NotificationParams(ENDPOINT, SECRET);
+    final NotificationParams notificationParams = new NotificationParams(ENDPOINT, SECRET);
 
     Assert.assertEquals(ENDPOINT, notificationParams.getEndpoint());
     Assert.assertEquals(SECRET, notificationParams.getSecretCallbackKey());
@@ -63,8 +63,8 @@ public class NotificationParamsTest {
 
   @Test
   public void checkToString() {
-    NotificationParams notificationParams = new NotificationParams(ENDPOINT, SECRET);
-    NotificationParams notificationParams2 = new NotificationParams(ENDPOINT);
+    final NotificationParams notificationParams = new NotificationParams(ENDPOINT, SECRET);
+    final NotificationParams notificationParams2 = new NotificationParams(ENDPOINT);
 
     Assert.assertTrue(notificationParams.toString().contains("secretCallbackKey"));
     Assert.assertFalse(notificationParams2.toString().contains("secretCallbackKey"));

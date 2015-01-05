@@ -25,32 +25,49 @@
  */
 package org.sentilo.web.catalog.dto;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.sentilo.web.catalog.domain.Component;
+import org.sentilo.web.catalog.domain.LngLat;
 
 public class MapComponentDTO {
 
-  private String icon;
+  private final String icon;
+  private final String id;
+  private final String type;
 
-  private final Component component;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private LngLat[] coordinates;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private LngLat centroid;
 
   public MapComponentDTO(final Component component, final String icon) {
-    this.component = component;
+    id = component.getId();
+    type = component.getComponentType();
     this.icon = icon;
-  }
-
-  public boolean isSensor() {
-    return false;
-  }
-
-  public Component getComponent() {
-    return component;
+    if (component.getLocation() != null) {
+      coordinates = component.getLocation().getCoordinates();
+      centroid = new LngLat(component.getLocation().getCentroid()[0], component.getLocation().getCentroid()[1]);
+    }
   }
 
   public String getIcon() {
     return icon;
   }
 
-  public void setIcon(final String icon) {
-    this.icon = icon;
+  public String getId() {
+    return id;
+  }
+
+  public LngLat[] getCoordinates() {
+    return coordinates;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public LngLat getCentroid() {
+    return centroid;
   }
 }

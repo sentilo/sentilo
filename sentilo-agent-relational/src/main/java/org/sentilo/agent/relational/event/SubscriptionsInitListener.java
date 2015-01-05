@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.sentilo.agent.common.utils.Utils;
 import org.sentilo.agent.relational.business.service.DataTrackService;
 import org.sentilo.agent.relational.listener.MessageListenerImpl;
-import org.sentilo.agent.relational.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

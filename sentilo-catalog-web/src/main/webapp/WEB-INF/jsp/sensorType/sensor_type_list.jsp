@@ -2,17 +2,20 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<c:set var="sensorTypeTable" value="sensorTypeTable"/>
+
 <spring:url value="/admin/sensortypes/new" var="newSensorTypeURL" />
 <spring:url value="/admin/sensortypes/delete" var="deleteURL" />
-
+<spring:url value="/admin/sensortypes/list/excel?tableName=${sensorTypeTable}" var="excelSource" />
 <spring:url value="/admin/sensortypes/list/json" var="sAjaxSource" />
-<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
-
 <spring:url value="/admin/sensortypes/" var="detailPrefix" />
 
+
+<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {	
-	makeTableAsync('${sAjaxSource}', '#sensorTypeTable', '${detailPrefix}');
+	var tableSensorType =	makeTableAsync('${sensorTypeTable}', '${sAjaxSource}');
+	
 });
 </script>
 
@@ -38,7 +41,7 @@ $(document).ready(function() {
 						<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="sensorTypes"
 							action="${deleteURL}">
 
-							<table class="table table-striped" id="sensorTypeTable">
+							<table class="table table-striped" id="${sensorTypeTable}">
 								<thead>
 									<tr>
 										<td>&nbsp;
@@ -52,11 +55,18 @@ $(document).ready(function() {
 								<tbody />
 							</table>
 							<br />
+							<div class="control-group pull-left" id="excel_${sensorTypeTable}">
+								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
+									<spring:message code="button.excel" /> 
+								</a>
+							</div>							
 							<div class="control-group pull-right">
-								<a href="#" onclick="deleteSelected('sensorTypes');" class="btn btn-danger"> <spring:message
-										code="sensortype.delete.title" /> </a> <a href="#" type="button"
-									onclick="window.location.href='${newSensorTypeURL}';" class="btn"> <spring:message
-										code="sensortype.new.title" /> </a>
+								<a href="#" onclick="deleteSelected('sensorTypes');" class="btn btn-danger"> 
+									<spring:message code="sensortype.delete.title" /> 
+								</a> 
+								<a href="#" type="button" onclick="window.location.href='${newSensorTypeURL}';" class="btn"> 
+									<spring:message code="sensortype.new.title" /> 
+								</a>
 							</div>
 						</form:form>
 					</div>

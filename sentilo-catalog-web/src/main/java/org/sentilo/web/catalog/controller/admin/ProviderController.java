@@ -26,6 +26,7 @@
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.sentilo.web.catalog.controller.CrudController;
@@ -33,9 +34,9 @@ import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -58,10 +59,11 @@ public class ProviderController extends CrudController<Provider> {
     row.add(provider.getId());
     row.add(provider.getName());
     row.add(provider.getDescription());
-    row.add(FormatUtils.formatDate(provider.getCreatedAt()));
+    row.add(getLocalDateFormat().printAsLocalTime(provider.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
+  @Override
   protected void initViewNames() {
     getViewNames().put(LIST_ACTION, Constants.VIEW_PROVIDER_LIST);
     getViewNames().put(DETAIL_ACTION, Constants.VIEW_PROVIDER_DETAIL);
@@ -81,5 +83,14 @@ public class ProviderController extends CrudController<Provider> {
   @Override
   protected String getEntityModelKey() {
     return Constants.MODEL_PROVIDER;
+  }
+
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "provider");
+
   }
 }

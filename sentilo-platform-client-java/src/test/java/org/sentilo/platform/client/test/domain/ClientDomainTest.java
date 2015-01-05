@@ -69,13 +69,12 @@ import org.springframework.beans.MutablePropertyValues;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.DataBinder;
 
-
 public class ClientDomainTest {
 
   @Test
   public void subscribeInputMessage() throws Exception {
     final String identityToken = "mockToken";
-    SubscribeInputMessage message = new SubscribeInputMessage();
+    final SubscribeInputMessage message = new SubscribeInputMessage();
     message.setIdentityToken(identityToken);
 
     Assert.assertTrue(message.toString().startsWith("--- Subscription ---"));
@@ -85,16 +84,16 @@ public class ClientDomainTest {
 
   @Test
   public void alarmInputMessage() throws Exception {
-    final String alarmId = "mockAlarmId";
+    final String alertId = "mockAlarmId";
     final String identityToken = "mockToken";
     final QueryFilterParams queryFilters = mock(QueryFilterParams.class);
-    AlarmInputMessage message = new AlarmInputMessage(alarmId, queryFilters);
+    final AlarmInputMessage message = new AlarmInputMessage(alertId, queryFilters);
     message.setIdentityToken(identityToken);
-    
+
     Assert.assertTrue(message.hasQueryFilters());
     Assert.assertTrue(message.toString().startsWith("\n\t --- Alarm ---"));
     Assert.assertEquals(identityToken, message.getIdentityToken());
-    Assert.assertEquals(alarmId, message.getAlarmId());
+    Assert.assertEquals(alertId, message.getAlertId());
   }
 
   @Test
@@ -102,7 +101,7 @@ public class ClientDomainTest {
     final String providerId = "mockProvId";
     final String identityToken = "mockToken";
     final QueryFilterParams queryFilters = mock(QueryFilterParams.class);
-    DataInputMessage message = new DataInputMessage(providerId, queryFilters);
+    final DataInputMessage message = new DataInputMessage(providerId, queryFilters);
     message.setIdentityToken(identityToken);
 
     Assert.assertTrue(message.hasQueryFilters());
@@ -119,7 +118,7 @@ public class ClientDomainTest {
     final String sensorId = "mockSensorId";
     final String identityToken = "mockToken";
     final QueryFilterParams queryFilters = mock(QueryFilterParams.class);
-    OrderInputMessage message = new OrderInputMessage(providerId, sensorId, queryFilters);
+    final OrderInputMessage message = new OrderInputMessage(providerId, sensorId, queryFilters);
     message.setIdentityToken(identityToken);
 
     Assert.assertTrue(message.hasQueryFilters());
@@ -128,7 +127,7 @@ public class ClientDomainTest {
     Assert.assertEquals(providerId, message.getProviderId());
     Assert.assertEquals(sensorId, message.getSensorId());
 
-    OrderInputMessage message2 = new OrderInputMessage(providerId);
+    final OrderInputMessage message2 = new OrderInputMessage(providerId);
     Assert.assertEquals(providerId, message2.getProviderId());
     Assert.assertNull(message2.getSensorId());
   }
@@ -157,13 +156,13 @@ public class ClientDomainTest {
 
     // Case 1: default constructor
     bindAndValidateMutableObject(CatalogAlertInputMessage.class, attributes, values);
-    
+
     // Case 2: constructor with 1 param
-    CatalogAlertInputMessage message = new CatalogAlertInputMessage("mockEntityId");
+    final CatalogAlertInputMessage message = new CatalogAlertInputMessage("mockEntityId");
     assertFieldValues(message, attributes, values1);
-    
+
     // Case 2: constructor with 2 params
-    CatalogAlertInputMessage message2 = new CatalogAlertInputMessage("mockEntityId", Collections.<String, String>emptyMap());
+    final CatalogAlertInputMessage message2 = new CatalogAlertInputMessage("mockEntityId", Collections.<String, String>emptyMap());
     assertFieldValues(message2, attributes, values1);
   }
 
@@ -184,7 +183,7 @@ public class ClientDomainTest {
     final String[] attributesToCheck = {"sensors", "components", "identityToken", "providerId", "resourcesValues"};
     final Object[] valuesToCheck = {emptyStringArray, emptyStringArray, "mockToken", "mockProvider", Arrays.asList("mockProvider")};
 
-    CatalogDeleteInputMessage message = new CatalogDeleteInputMessage("mockProvider");
+    final CatalogDeleteInputMessage message = new CatalogDeleteInputMessage("mockProvider");
     bindProperties(message, attributes, values);
     assertFieldValues(message, attributesToCheck, valuesToCheck);
   }
@@ -204,11 +203,11 @@ public class ClientDomainTest {
     final String[] attributesToCheck = {"providerId", "sensors", "resourcesValues"};
     final Object[] valuesToCheck = {"mockProvider", Collections.<CatalogSensor>emptyList(), Arrays.asList("mockProvider")};
 
-    CatalogInputMessage message = new CatalogInputMessage("mockProvider");
+    final CatalogInputMessage message = new CatalogInputMessage("mockProvider");
     assertFieldValues(message, attributesToCheck, valuesToCheck);
 
     // Case 3: constructor with 2 params
-    CatalogInputMessage message2 = new CatalogInputMessage("mockProvider", Collections.<CatalogSensor>emptyList());
+    final CatalogInputMessage message2 = new CatalogInputMessage("mockProvider", Collections.<CatalogSensor>emptyList());
     assertFieldValues(message2, attributesToCheck, valuesToCheck);
   }
 
@@ -225,7 +224,7 @@ public class ClientDomainTest {
     final Object[] valuesToCheck = {"mockEndpoint", null, null};
     final String[] attributesToCheck = {"endpoint", "user", "password"};
 
-    Endpoint endpoint = new Endpoint("mockEndpoint");
+    final Endpoint endpoint = new Endpoint("mockEndpoint");
     assertFieldValues(endpoint, attributesToCheck, valuesToCheck);
   }
 
@@ -253,7 +252,7 @@ public class ClientDomainTest {
     bindAndValidateMutableObject(ProviderObservations.class, attributes, values);
 
     // toString method
-    ProviderObservations obj = new ProviderObservations();
+    final ProviderObservations obj = new ProviderObservations();
     Assert.assertEquals("--- Provider observations ---", obj.toString());
   }
 
@@ -262,7 +261,7 @@ public class ClientDomainTest {
     final Object[] values = {Collections.<Observation>emptyList(), "mockLocation", "mockSensor"};
     final String[] attributes = {"observations", "location", "sensor"};
 
-    SensorObservations obj = new SensorObservations("mockSensor", "mockLocation");
+    final SensorObservations obj = new SensorObservations("mockSensor", "mockLocation");
     assertFieldValues(obj, attributes, values);
 
     // toString method
@@ -287,15 +286,16 @@ public class ClientDomainTest {
 
   // Utility methods
 
-  private <T> void buildAndCompareObjects(Class<T> clazz, String[] attributes, Object[] values) throws Exception {
+  private <T> void buildAndCompareObjects(final Class<T> clazz, final String[] attributes, final Object[] values) throws Exception {
     buildAndCompareObjects(clazz, attributes, values, values);
   }
 
-  private <T> void buildAndCompareObjects(Class<T> clazz, String[] attributes, Object[] values, Object[] constructorValues) throws Exception {
-    T message = clazz.newInstance();
+  private <T> void buildAndCompareObjects(final Class<T> clazz, final String[] attributes, final Object[] values, final Object[] constructorValues)
+      throws Exception {
+    final T message = clazz.newInstance();
     bindProperties(message, attributes, values);
 
-    T message2 = buildInstance(clazz, constructorValues);
+    final T message2 = buildInstance(clazz, constructorValues);
     if (!constructorValues.equals(values)) {
       bindProperties(message2, attributes, values);
     }
@@ -303,28 +303,28 @@ public class ClientDomainTest {
     assertAreEquals(message, message2);
   }
 
-  private <T> void bindAndValidateMutableObject(Class<T> clazz, String[] attributes, Object[] values) throws Exception {
-    T target = clazz.newInstance();
+  private <T> void bindAndValidateMutableObject(final Class<T> clazz, final String[] attributes, final Object[] values) throws Exception {
+    final T target = clazz.newInstance();
 
     bindProperties(target, attributes, values);
 
     assertFieldValues(target, attributes, values);
   }
 
-  private void assertFieldValues(Object target, String[] attributes, Object[] values) {
+  private void assertFieldValues(final Object target, final String[] attributes, final Object[] values) {
     for (int i = 0; i < attributes.length; i++) {
       Assert.assertEquals("Error validating attribute " + attributes[i], values[i], ReflectionTestUtils.getField(target, attributes[i]));
     }
   }
 
-  private void bindProperties(Object target, String[] attributes, Object[] values) {
-    DataBinder binder = new DataBinder(target);
+  private void bindProperties(final Object target, final String[] attributes, final Object[] values) {
+    final DataBinder binder = new DataBinder(target);
     binder.bind(buildMutablePropertyValues(attributes, values));
   }
 
-  private MutablePropertyValues buildMutablePropertyValues(String[] attributes, Object[] values) {
+  private MutablePropertyValues buildMutablePropertyValues(final String[] attributes, final Object[] values) {
     assert attributes != null && values != null && attributes.length == values.length;
-    Map<String, Object> properties = new HashMap<String, Object>();
+    final Map<String, Object> properties = new HashMap<String, Object>();
 
     for (int i = 0; i < attributes.length; i++) {
       properties.put(attributes[i], values[i]);
@@ -334,33 +334,33 @@ public class ClientDomainTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T buildInstance(Class<T> clazz, Object[] params) throws Exception {
+  private <T> T buildInstance(final Class<T> clazz, final Object[] params) throws Exception {
     T newInstance = null;
-    Constructor<?>[] constructors = clazz.getDeclaredConstructors();
-    for (Constructor<?> constructor : constructors) {
-      try{
-        newInstance = (T)constructor.newInstance(params);
+    final Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+    for (final Constructor<?> constructor : constructors) {
+      try {
+        newInstance = (T) constructor.newInstance(params);
         break;
-      } catch (Exception e) {
+      } catch (final Exception e) {
       }
     }
 
     if (newInstance != null) {
       return newInstance;
     } else {
-      String template = "Class %s has not constructor with %d params";
+      final String template = "Class %s has not constructor with %d params";
       throw new IllegalArgumentException(String.format(template, clazz.getName(), params.length));
 
     }
   }
 
-  private void assertAreEquals(Object source, Object target) throws Exception {
+  private void assertAreEquals(final Object source, final Object target) throws Exception {
     Assert.assertEquals(source.getClass(), target.getClass());
 
-    PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(source.getClass());
+    final PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(source.getClass());
 
-    for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
-      Method readMethod = propertyDescriptor.getReadMethod();
+    for (final PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+      final Method readMethod = propertyDescriptor.getReadMethod();
       if (!readMethod.getName().equals("getClass")) {
         Assert.assertEquals(readMethod.invoke(source), readMethod.invoke(target));
       }

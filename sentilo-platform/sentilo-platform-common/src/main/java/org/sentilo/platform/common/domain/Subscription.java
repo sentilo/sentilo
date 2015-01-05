@@ -100,7 +100,7 @@ public class Subscription {
     return secretCallbackKey;
   }
 
-  public void setSecretCallbackKey(String secretCallbackKey) {
+  public void setSecretCallbackKey(final String secretCallbackKey) {
     this.secretCallbackKey = secretCallbackKey;
   }
 }

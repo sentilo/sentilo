@@ -57,6 +57,8 @@ public class ComponentType implements CatalogDocument {
   @DateTimeFormat(pattern = Constants.DATE_FORMAT)
   private Date updateAt;
 
+  private String photoUrl;
+
   public ComponentType(final String id) {
     this.id = id;
   }
@@ -86,13 +88,14 @@ public class ComponentType implements CatalogDocument {
 
   @Override
   public int hashCode() {
- // Hashcode return must be consistent with the equals method
+    // Hashcode return must be consistent with the equals method
     final int prime = 37;
     int result = 1;
     result = prime * result + ((id == null) ? 0 : id.hashCode());
     return result;
   }
 
+  @Override
   public String getId() {
     return id;
   }
@@ -131,6 +134,7 @@ public class ComponentType implements CatalogDocument {
     this.createdAt = createdAt;
   }
 
+  @Override
   public Date getCreatedAt() {
     return createdAt;
   }
@@ -141,5 +145,13 @@ public class ComponentType implements CatalogDocument {
 
   public void setIcon(final String icon) {
     this.icon = icon;
+  }
+
+  public String getPhotoUrl() {
+    return photoUrl;
+  }
+
+  public void setPhotoUrl(final String photoUrl) {
+    this.photoUrl = photoUrl;
   }
 }

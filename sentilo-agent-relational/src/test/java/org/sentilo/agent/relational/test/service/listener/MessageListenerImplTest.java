@@ -34,12 +34,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.agent.common.utils.Constants;
 import org.sentilo.agent.relational.business.service.DataTrackService;
 import org.sentilo.agent.relational.common.domain.Alarm;
 import org.sentilo.agent.relational.common.domain.Observation;
 import org.sentilo.agent.relational.common.domain.Order;
 import org.sentilo.agent.relational.listener.MessageListenerImpl;
-import org.sentilo.agent.relational.utils.Constants;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.common.parser.EventMessageConverter;
@@ -135,7 +135,7 @@ public class MessageListenerImplTest {
   }
 
   private EventMessage buildDataEventMessage() {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setProvider("provider1");
     event.setSensor("sensor1");
     event.setMessage("43");
@@ -147,7 +147,7 @@ public class MessageListenerImplTest {
   }
 
   private EventMessage buildOrderEventMessage() {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setProvider("provider1");
     event.setSensor("sensor1");
     event.setMessage("test order message");
@@ -160,7 +160,7 @@ public class MessageListenerImplTest {
   }
 
   private EventMessage buildAlarmEventMessage() {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setAlert("alarm1");
     event.setMessage("test alarm message");
     event.setTimestamp("09/09/2013T15:55:17");

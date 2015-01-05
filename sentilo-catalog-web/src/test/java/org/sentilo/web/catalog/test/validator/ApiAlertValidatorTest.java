@@ -37,8 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.domain.Alert;
-import org.sentilo.web.catalog.domain.Alert.Trigger;
 import org.sentilo.web.catalog.domain.Alert.Type;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.repository.AlertRepository;
@@ -68,7 +68,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
     MockitoAnnotations.initMocks(this);
     apiAlertValidator = new ApiAlertValidator();
     validator = new AlertValidator();
-    
+
     ReflectionTestUtils.setField(apiAlertValidator, "repository", repository);
     ReflectionTestUtils.setField(apiAlertValidator, "validator", validator);
     ReflectionTestUtils.setField(validator, "sensorService", sensorService);
@@ -77,7 +77,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   @Test
   public void validateEmptyAlerts() throws Exception {
     final List<Alert> alerts = generateRandomList(Alert.class);
-    ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results = new ApiValidationResults();
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(results.hasErrors());
@@ -86,7 +86,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   @Test
   public void validateInvalidExternalAlerts() throws Exception {
     final List<Alert> alerts = generateRandomAlerts(true, Type.EXTERNAL);
-    ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results = new ApiValidationResults();
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(results.hasErrors());
@@ -95,7 +95,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   @Test
   public void validateExternalAlerts() throws Exception {
     final List<Alert> alerts = generateRandomAlerts(false, Type.EXTERNAL);
-    ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results = new ApiValidationResults();
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(!results.hasErrors());
@@ -104,7 +104,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   @Test
   public void validateInvalidInternalAlerts() throws Exception {
     final List<Alert> alerts = generateRandomAlerts(true, Type.INTERNAL);
-    ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results = new ApiValidationResults();
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(results.hasErrors());
@@ -113,7 +113,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   @Test
   public void validateInternalAlertsWithUnknownSensor() throws Exception {
     final List<Alert> alerts = generateRandomAlerts(true, Type.INTERNAL);
-    ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results = new ApiValidationResults();
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(results.hasErrors());
@@ -124,17 +124,17 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   public void validateInternalAlerts() throws Exception {
     when(sensorService.find(any(Sensor.class))).thenReturn(new Sensor());
     final List<Alert> alerts = generateRandomAlerts(false, Type.INTERNAL);
-    ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results = new ApiValidationResults();
     apiAlertValidator.validate(alerts, results, false);
 
     Assert.assertTrue(!results.hasErrors());
   }
 
-  private List<Alert> generateRandomAlerts(boolean withErrors, Type type) throws Exception {
+  private List<Alert> generateRandomAlerts(final boolean withErrors, final Type type) throws Exception {
     final List<Alert> alerts = generateRandomList(Alert.class);
 
-    for (Alert alert : alerts) {
-      String randomToken = Double.toString(Math.random());
+    for (final Alert alert : alerts) {
+      final String randomToken = Double.toString(Math.random());
       alert.setType(type);
       alert.setId(randomToken);
       alert.setName(randomToken);
@@ -152,7 +152,7 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
           alert.setSensorId(MOCK_VALUE);
           alert.setExpression(MOCK_VALUE);
           if (!withErrors) {
-            alert.setTrigger(Trigger.EQ);
+            alert.setTrigger(AlertTriggerType.EQ);
           }
         default:
           break;

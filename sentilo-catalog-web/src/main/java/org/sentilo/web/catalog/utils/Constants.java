@@ -27,7 +27,7 @@ package org.sentilo.web.catalog.utils;
 
 import org.sentilo.web.catalog.domain.Permission;
 
-public final class Constants {
+public abstract class Constants {
 
   public static final String MODEL_ALERTS = "alerts";
   public static final String MODEL_ALERT = "alert";
@@ -41,6 +41,7 @@ public final class Constants {
   public static final String MODEL_COMPONENTS = "components";
   public static final String MODEL_COMPONENT_ICON = "componentIcon";
   public static final String MODEL_COMPONENT_TYPES = "componentTypes";
+  public static final String MODEL_COMPONENT_TYPE_ICONS = "componentTypeIcons";
   public static final String MODEL_COMPONENT_COMPONENTS = "componentComponents";
   public static final String MODEL_COMPONENT_SENSORS = "componentSensors";
   public static final String MODEL_MESSAGE_KEY = "message";
@@ -61,9 +62,11 @@ public final class Constants {
   public static final String MODEL_SENSOR_TYPE = "sensorType";
   public static final String MODEL_COMPONENT_TYPE = "componentType";
   public static final String MODEL_MODE = "mode";
-
   public static final String MODEL_USERS = "users";
   public static final String MODEL_USER = "user";
+  public static final String MODEL_ENERGY_TYPES = "energyTypes";
+  public static final String MODEL_CONNECTIVITY_TYPES = "connectivityTypes";
+  public static final String MODEL_MAP_TYPE = "mapType";
 
   public static final String MODEL_DATE_UPDATED = "dateUpdated";
 
@@ -72,6 +75,9 @@ public final class Constants {
   public static final String VIEW_COMPONENT_LIST = "component/component_list";
   public static final String VIEW_ADD_COMPONENTS_TO_COMPONENT = "component/component_add_components";
   public static final String VIEW_ADD_SENSORS_TO_COMPONENT = "component/component_add_sensors";
+
+  public static final String VIEW_PUBLIC_ROUTE_MAP = "component/public/route_map";
+  public static final String VIEW_PUBLIC_TRAFFIC_MAP = "component/public/traffic_map";
 
   public static final String VIEW_PUBLIC_COMPONENT_MAP = "component/public/component_map";
   public static final String VIEW_PUBLIC_COMPONENT_DETAIL = "component/public/component_detail";
@@ -148,6 +154,36 @@ public final class Constants {
 
   public static final String DEFAULT_KEY_TOKEN_SPLITTER = ".";
   public static final String PERMISSION_TOKEN_SPLITTER = "@";
+
+  public static final String COMMA_TOKEN_SPLITTER = ",";
+
+  public static final String LOCATION_TOKEN_SPLITTER = COMMA_TOKEN_SPLITTER;
+  public static final String LOCATION_TOKEN_DIVIDER = " ";
+
+  public static final String ASC = "asc";
+  public static final String DESC = "desc";
+
+  public static final String ENERGY_TYPES_KEY = "energy.types.list";
+  public static final String CONNECTIVITY_TYPES_KEY = "connectivity.types.list";
+
+  // Excel view constants
+  public static final String NAME_PROP = "name";
+  public static final String ID_PROP = "id";
+  public static final String DESCRIPTION_PROP = "description";
+  public static final String CREATED_AT_PROP = "createdAt";
+  public static final String SENSOR_ID_PROP = "sensorId";
+  public static final String PROVIDER_ID_PROP = "providerId";
+  public static final String PUBLIC_ACCESS_PROP = "publicAccess";
+  public static final String TYPE_PROP = "type";
+  public static final String COMPONENT_TYPE_PROP = "componentType";
+  public static final String USER_NAME_PROP = "userName";
+  public static final String EMAIL_PROP = "email";
+  public static final String LOCATION_PROP = "location";
+  public static final String TARGET_PROP = "target";
+
+  public static final String MESSAGE_KEYS_PREFFIX = "keysPreffix";
+  public static final String LIST_COLUMN_NAMES = "listColumnNames";
+  public static final String RESULT_LIST = "resultList";
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

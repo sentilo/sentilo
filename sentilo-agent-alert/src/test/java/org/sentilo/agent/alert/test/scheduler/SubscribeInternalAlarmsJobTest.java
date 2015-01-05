@@ -32,17 +32,16 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.agent.alert.scheduler.SubscribeInternalAlarmsJob;
-import org.sentilo.agent.alert.service.AlarmService;
-
+import org.sentilo.agent.alert.scheduler.InternalAlertsSyncJob;
+import org.sentilo.agent.alert.service.AlertService;
 
 public class SubscribeInternalAlarmsJobTest {
 
   @Mock
-  private AlarmService alarmService;
+  private AlertService alarmService;
 
   @InjectMocks
-  private SubscribeInternalAlarmsJob job;
+  private InternalAlertsSyncJob job;
 
   @Before
   public void setUp() throws Exception {
@@ -51,10 +50,9 @@ public class SubscribeInternalAlarmsJobTest {
 
   @Test
   public void subscribeInternalAlarms() {
-    job.subscribeInternalAlarms();
+    job.monitorInternalAlerts();
 
-    verify(alarmService).loadAndSubscribeToInternalAlarms();
+    verify(alarmService).loadAndMonitorInternalAlerts();
   }
-  
 
 }

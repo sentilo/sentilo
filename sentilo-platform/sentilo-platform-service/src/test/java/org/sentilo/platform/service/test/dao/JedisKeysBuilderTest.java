@@ -134,4 +134,3 @@ public class JedisKeysBuilderTest {
     Assert.assertEquals("subs" + PubSubConstants.REDIS_KEY_TOKEN + entityId, keysBuilder.getSubscriptionKey(entityId));
   }
 }
-

@@ -170,7 +170,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     // ZREVRANGEBYSCORE aid:{aid}:messages to from LIMIT 0 limit
 
     final Set<String> amids = jedisTemplate.zRevRangeByScore(keysBuilder.getAlarmMessagesKey(aid), to, from, 0, limit);
-    List<Alarm> alarmMessages = (!CollectionUtils.isEmpty(amids) ? getAlarms(amids, message.getAlertId()) : Collections.<Alarm>emptyList());
+    final List<Alarm> alarmMessages = (!CollectionUtils.isEmpty(amids) ? getAlarms(amids, message.getAlertId()) : Collections.<Alarm>emptyList());
 
     return alarmMessages;
   }
@@ -229,9 +229,5 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   private void replaceActiveAlertsOwners(final Map<String, String> updatedAlertsOwners) {
     alertsOwners.clear();
     alertsOwners.putAll(updatedAlertsOwners);
-  }
-
-  public void setResourceService(final ResourceService resourceService) {
-    this.resourceService = resourceService;
   }
 }

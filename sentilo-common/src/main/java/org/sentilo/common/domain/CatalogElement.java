@@ -26,10 +26,11 @@
 package org.sentilo.common.domain;
 
 /**
- * Interface con la que identificar los objetos que referencian a elementos del catalogo de la
- * plataforma. El objetivo de la interface es la definir un elemento en común a todos estos
- * elementos y no tener que discriminar el tipo de los atributos en los metodos comunes.
+ * Interface which identifies the objects that reference the catalog resources of the platform. The
+ * objective of the interface is to provide a common parent to all these elements and not have to
+ * discriminate between the type of attributes in common methods.
  */
+
 public interface CatalogElement {
 
 }

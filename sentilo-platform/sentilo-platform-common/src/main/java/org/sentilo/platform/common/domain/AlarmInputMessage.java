@@ -37,6 +37,10 @@ public class AlarmInputMessage implements PlatformInputMessage, PlatformSearchIn
   private String alertId;
   private String message;
 
+  /** Fields related to internal alarms */
+  private String providerId;
+  private String sensorId;
+
   private QueryFilterParams queryFilters;
 
   public AlarmInputMessage() {
@@ -93,6 +97,22 @@ public class AlarmInputMessage implements PlatformInputMessage, PlatformSearchIn
 
   public void setSender(final String sender) {
     this.sender = sender;
+  }
+
+  public String getProviderId() {
+    return providerId;
+  }
+
+  public void setProviderId(final String providerId) {
+    this.providerId = providerId;
+  }
+
+  public String getSensorId() {
+    return sensorId;
+  }
+
+  public void setSensorId(final String sensorId) {
+    this.sensorId = sensorId;
   }
 
 }

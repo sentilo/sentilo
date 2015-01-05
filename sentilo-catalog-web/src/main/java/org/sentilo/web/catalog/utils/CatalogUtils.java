@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 import org.sentilo.common.utils.SentiloUtils;
+import org.sentilo.web.catalog.domain.LngLat;
 import org.sentilo.web.catalog.domain.Location;
 import org.springframework.util.StringUtils;
 
@@ -48,27 +49,31 @@ public abstract class CatalogUtils extends SentiloUtils {
     return target;
   }
 
-  public static Location convertStringLocation(final String coordinates) {
-    // Coordinates has the format "latitude longitude"
-    if (!StringUtils.hasText(coordinates)) {
+  public static Location convertStringLocation(final String stringLocation) {
+    // Coordinates has the format
+    // "latitude1 longitude1, latitude2 longitude2, ....., latitudeN longitudeN"
+    if (!StringUtils.hasText(stringLocation)) {
       return null;
     }
 
-    Location location = null;
-    // Control double whitespace
-    final int pos = coordinates.indexOf(' ');
-    if (pos != -1) {
-      final String latitude = coordinates.substring(0, pos).trim();
-      final String longitude = coordinates.substring(pos + 1).trim();
+    final String[] coordinatesList = stringLocation.split(Constants.LOCATION_TOKEN_SPLITTER);
+    final LngLat[] lngLatCoordinates = new LngLat[coordinatesList.length];
 
-      location = new Location(latitude, longitude);
+    int i = 0;
+    for (final String coordinates : coordinatesList) {
+      final int pos = coordinates.indexOf(Constants.LOCATION_TOKEN_DIVIDER);
+      if (pos != -1) {
+        final Double latitude = Double.parseDouble(coordinates.substring(0, pos).trim());
+        final Double longitude = Double.parseDouble(coordinates.substring(pos + 1).trim());
+        lngLatCoordinates[i++] = new LngLat(longitude, latitude);
+      }
     }
 
-    return location;
+    return new Location(lngLatCoordinates);
   }
 
   public static String locationToString(final Location location) {
-    return (location == null ? null : location.getLatitude() + " " + location.getLongitude());
+    return (location == null ? null : location.toString());
   }
 
   public static String escapeRegexCharacter(final String character) {

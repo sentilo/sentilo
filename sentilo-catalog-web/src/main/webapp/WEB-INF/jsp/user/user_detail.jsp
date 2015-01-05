@@ -3,6 +3,7 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <spring:url value="/admin/users/${user.userName}/edit" var="editUserLink" />
+<spring:url value="/admin/users/list?nameTableRecover=userTable&fromBack=true" var="backURL" />
 
 <div class="container-fluid">
 	<div class="content">

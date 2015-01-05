@@ -49,16 +49,16 @@ public abstract class HMACBuilder {
 
   public static String buildHeader(final String body, final String endpoint, final String secret, final String currentDate)
       throws GeneralSecurityException {
-    String contentMd5 = calculateMD5(body);
-    String toSign = getContentToSign(HTTP_VERB, contentMd5, ContentType.APPLICATION_JSON.getMimeType(), currentDate, endpoint);
-    return calculateHMAC(secret, toSign.toString());
+    final String contentMd5 = calculateMD5(body);
+    final String toSign = getContentToSign(HTTP_VERB, contentMd5, ContentType.APPLICATION_JSON.getMimeType(), currentDate, endpoint);
+    return calculateHMAC(secret, toSign);
   }
 
-  private static String getContentToSign(String... values) {
-    StringBuilder content = new StringBuilder();
+  private static String getContentToSign(final String... values) {
+    final StringBuilder content = new StringBuilder();
     boolean first = true;
 
-    for (String value : values) {
+    for (final String value : values) {
       if (!first) {
         content.append(TOKEN);
       }
@@ -71,18 +71,18 @@ public abstract class HMACBuilder {
     return content.toString();
   }
 
-  private static String calculateHMAC(String secret, String data) throws GeneralSecurityException {
-      SecretKeySpec signingKey = new SecretKeySpec(secret.getBytes(), MAC_ALGORITHM);
+  private static String calculateHMAC(final String secret, final String data) throws GeneralSecurityException {
+    final SecretKeySpec signingKey = new SecretKeySpec(secret.getBytes(), MAC_ALGORITHM);
 
-      Mac mac = Mac.getInstance(MAC_ALGORITHM);
-      mac.init(signingKey);
+    final Mac mac = Mac.getInstance(MAC_ALGORITHM);
+    mac.init(signingKey);
 
-      byte[] rawHmac = mac.doFinal(data.getBytes());
+    final byte[] rawHmac = mac.doFinal(data.getBytes());
     return new String(Base64.encodeBase64(rawHmac));
   }
 
-  private static String calculateMD5(String contentToEncode) throws NoSuchAlgorithmException {
-    MessageDigest digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
+  private static String calculateMD5(final String contentToEncode) throws NoSuchAlgorithmException {
+    final MessageDigest digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
     digest.update(contentToEncode.getBytes());
     return new String(Base64.encodeBase64(digest.digest()));
   }
@@ -92,4 +92,3 @@ public abstract class HMACBuilder {
   }
 
 }
-

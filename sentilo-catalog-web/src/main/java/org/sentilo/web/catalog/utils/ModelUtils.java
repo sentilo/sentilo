@@ -61,10 +61,6 @@ public abstract class ModelUtils {
     model.addAttribute(Constants.MODEL_ACTIVE_MENU, menu);
   }
 
-  public static void addUpdateDateTo(final Model model) {
-    model.addAttribute(Constants.MODEL_DATE_UPDATED, FormatUtils.formatCurrentDate());
-  }
-
   private ModelUtils() {
     // this prevents even the native class from calling this ctor as well :
     throw new AssertionError();

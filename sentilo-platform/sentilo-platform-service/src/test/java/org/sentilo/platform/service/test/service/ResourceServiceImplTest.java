@@ -39,6 +39,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.Sensor;
@@ -46,7 +47,6 @@ import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.dao.JedisTemplate;
 import org.sentilo.platform.service.impl.ResourceServiceImpl;
 import org.springframework.util.CollectionUtils;
-
 
 public class ResourceServiceImplTest {
 
@@ -59,22 +59,19 @@ public class ResourceServiceImplTest {
   private JedisTemplate<String, String> jedisTemplate;
   @Mock
   private JedisSequenceUtils jedisSequenceUtils;
-
+  @InjectMocks
   private ResourceServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    service = new ResourceServiceImpl();
-    service.setJedisTemplate(jedisTemplate);
-    service.setJedisSequenceUtils(jedisSequenceUtils);
   }
 
   @Test
   public void registerNewProvider() {
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(null);
     when(jedisSequenceUtils.setPid(PROVIDER_ID)).thenReturn(PID);
-    
+
     service.registerProviderIfNecessary(PROVIDER_ID);
 
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
@@ -115,7 +112,6 @@ public class ResourceServiceImplTest {
     verify(jedisTemplate).set(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
   }
 
-
   @Test
   public void registerSensorThatAlreadyExists() {
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
@@ -135,7 +131,7 @@ public class ResourceServiceImplTest {
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
     when(jedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
 
-    Set<String> members = service.getSensorsFromProvider(PROVIDER_ID);
+    final Set<String> members = service.getSensorsFromProvider(PROVIDER_ID);
 
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
     verify(jedisTemplate).sMembers(service.getKeysBuilder().getProviderSensorsKey(PID));
@@ -146,7 +142,7 @@ public class ResourceServiceImplTest {
   public void getSensorsFromNotRegisteredProvider() {
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(null);
 
-    Set<String> members = service.getSensorsFromProvider(PROVIDER_ID);
+    final Set<String> members = service.getSensorsFromProvider(PROVIDER_ID);
 
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
     verify(jedisTemplate, times(0)).sMembers(anyString());
@@ -154,14 +150,14 @@ public class ResourceServiceImplTest {
   }
 
   @Test
-  public void getSensor(){
+  public void getSensor() {
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
-    
+
     when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields);
 
-    Sensor sensor = service.getSensor(SID);
+    final Sensor sensor = service.getSensor(SID);
 
     verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
     Assert.assertEquals(PROVIDER_ID, sensor.getProvider());
@@ -173,7 +169,7 @@ public class ResourceServiceImplTest {
   public void getNotRegisteredSensor() {
     when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(Collections.<String, String>emptyMap());
 
-    Sensor sensor = service.getSensor(SID);
+    final Sensor sensor = service.getSensor(SID);
 
     verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
     Assert.assertNull(sensor);
@@ -185,20 +181,20 @@ public class ResourceServiceImplTest {
     when(jedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
 
     service.removeProvider(PROVIDER_ID);
-    
+
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
     verify(jedisTemplate).del(service.getKeysBuilder().getProviderKey(PID));
     verify(jedisTemplate).del(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID));
     verify(jedisSequenceUtils).removePid(PROVIDER_ID);
-    
+
   }
 
   @Test
   public void removeSensor() {
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);        
+    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
     when(jedisTemplate.hGet(service.getKeysBuilder().getSensorKey(SID), "sensor")).thenReturn(SENSOR_ID);
-    
+
     when(jedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
 
     service.removeSensor(SENSOR_ID, PROVIDER_ID);

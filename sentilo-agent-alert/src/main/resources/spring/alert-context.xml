@@ -11,9 +11,11 @@
 	<import resource="classpath:spring/alert-properties-context.xml" />
 	<import resource="classpath:spring/alert-persistence-context.xml" />
 	<import resource="classpath:spring/alert-pubsub-context.xml" />
+	<import resource="classpath:spring/sentilo-platform-client.xml" />
 	
-	<context:component-scan base-package="org.sentilo.agent.alert.listener" />
+	<context:component-scan base-package="org.sentilo.agent.common.listener" />
 	<context:component-scan base-package="org.sentilo.agent.alert.service" />
+	<context:component-scan base-package="org.sentilo.agent.alert.repository" />	
 	<context:component-scan base-package="org.sentilo.agent.alert.scheduler" />
 
 	<task:annotation-driven scheduler="platformScheduler" />

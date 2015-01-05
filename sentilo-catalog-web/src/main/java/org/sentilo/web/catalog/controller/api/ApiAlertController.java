@@ -87,15 +87,15 @@ public class ApiAlertController {
 
     try {
       final List<Alert> alerts = alertService.findAll();
-      List<AlertOwner> owners = ApiAlertConverter.convertToAlertOwnersList(alerts);
+      final List<AlertOwner> owners = ApiAlertConverter.convertToAlertOwnersList(alerts);
 
       logger.debug("Catalog Alert API: found {}  alerts ", owners.size());
       response = new CatalogAlertResponseMessage();
       response.setOwners(owners);
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
       logger.error("{} - Error searching alerts owners. ", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
 
@@ -115,24 +115,24 @@ public class ApiAlertController {
     CatalogAlertResponseMessage response = null;
     try {
       // 1. Recuperamos la lista de permisos de la entidad origen.
-      List<Permission> permissions = permissionService.getActivePermissions(entityId);
+      final List<Permission> permissions = permissionService.getActivePermissions(entityId);
 
       // 2. Recuperamos la lista de alertas asociadas a estas entidades.
-      List<String> entities = new ArrayList<String>();
-      for (Permission permission : permissions) {
+      final List<String> entities = new ArrayList<String>();
+      for (final Permission permission : permissions) {
         entities.add(permission.getTarget());
       }
 
-      List<Alert> alerts = alertService.getAlertsByEntities(entities, parameters);
-      List<CatalogAlert> catalogAlerts = ApiAlertConverter.convertToCatalogAlertList(alerts);
+      final List<Alert> alerts = alertService.getAlertsByEntities(entities, parameters);
+      final List<CatalogAlert> catalogAlerts = ApiAlertConverter.convertToCatalogAlertList(alerts);
 
       logger.debug("Catalog Alert API: found {}  authorized alerts ", alerts.size());
       response = new CatalogAlertResponseMessage();
       response.setAlerts(catalogAlerts);
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
       logger.error("{} - Error searching authorized alerts for entity {}. ", internalErrorCode, entityId, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
 
@@ -144,7 +144,7 @@ public class ApiAlertController {
   public CatalogAlertResponseMessage createAlerts(@PathVariable final String entityId, @RequestBody final CatalogAlertInputMessage message) {
     logger.debug("Catalog alert API: registering new alerts. Operation invoked by entity {} ", entityId);
     try {
-      final ApiAlertConverterContext context = new ApiAlertConverterContext(message, applicationService, providerService, alertService);
+      final ApiAlertConverterContext context = new ApiAlertConverterContext(message, entityId, applicationService, providerService, alertService);
 
       final List<Alert> alerts = ApiAlertConverter.buildAlertsFromCatalogAlerts(context);
 
@@ -153,7 +153,7 @@ public class ApiAlertController {
       }
 
       if (context.getResults().hasErrors()) {
-        String errorMessage = "Bad request data. Alerts have not been inserted. Please review the following errors";
+        final String errorMessage = "Bad request data. Alerts have not been inserted. Please review the following errors";
         logger.debug("Catalog alert API: alerts have not been inserted. Found {} errors after validate data. {}", context.getResults()
             .getErrorsCount(), context.getResults().toString());
         return new CatalogAlertResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, context.getResults().getErrors());
@@ -162,9 +162,9 @@ public class ApiAlertController {
         logger.debug("Catalog alert API: inserted {} alerts", alerts.size());
       }
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error inserting alerts into database. ", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
 
@@ -176,7 +176,8 @@ public class ApiAlertController {
   public CatalogAlertResponseMessage updateAlerts(@PathVariable final String entityId, @RequestBody final CatalogAlertInputMessage message) {
     logger.debug("Catalog alert API: updating alerts. Operation invoked by entity {} ", entityId);
     try {
-      final ApiAlertConverterContext context = new ApiAlertConverterContext(message, applicationService, providerService, alertService, true);
+      final ApiAlertConverterContext context =
+          new ApiAlertConverterContext(message, entityId, applicationService, providerService, alertService, true);
 
       final List<Alert> alerts = ApiAlertConverter.buildAlertsFromCatalogAlerts(context);
 
@@ -185,7 +186,7 @@ public class ApiAlertController {
       }
 
       if (context.getResults().hasErrors()) {
-        String errorMessage = "Bad request data. Alerts have not been updated. Please review the following errors";
+        final String errorMessage = "Bad request data. Alerts have not been updated. Please review the following errors";
         logger.debug("Catalog alert API: alerts have not been updated. Found {} errors after validate data. {}", context.getResults()
             .getErrorsCount(), context.getResults().toString());
         return new CatalogAlertResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, context.getResults().getErrors());
@@ -194,9 +195,9 @@ public class ApiAlertController {
         logger.debug("Catalog alert API: updated {} alerts", alerts.size());
       }
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error updating alerts into database. ", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
 
@@ -215,14 +216,14 @@ public class ApiAlertController {
       if (message == null || (CatalogUtils.arrayIsEmpty(message.getAlertsIds()))) {
         alertService.deleteOwnAlerts(entityId);
         logger.debug("Catalog alert API: deleted all alerts from entity {}", entityId);
-      } else if (!CatalogUtils.arrayIsEmpty(message.getAlertsIds())) {
+      } else if (!SentiloUtils.arrayIsEmpty(message.getAlertsIds())) {
         alertService.deleteOwnAlerts(Arrays.asList(message.getAlertsIds()), entityId);
         logger.debug("Catalog alert API: deleted {} alerts", message.getAlertsIds().length);
       }
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error deleting alerts. ", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
     return new CatalogAlertResponseMessage();

@@ -57,11 +57,11 @@ public class CatalogAlertResponseMessage extends CatalogResponseMessage {
     return alerts;
   }
 
-  public void setAlerts(List<CatalogAlert> alerts) {
+  public void setAlerts(final List<CatalogAlert> alerts) {
     this.alerts = alerts;
   }
 
-  public void setOwners(List<AlertOwner> owners) {
+  public void setOwners(final List<AlertOwner> owners) {
     this.owners = owners;
   }
 

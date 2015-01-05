@@ -52,8 +52,8 @@ public class CatalogMessageConverterTest {
     final CatalogInputMessage message = new CatalogInputMessage(PROVIDER_ID);
     message.setSensors(getSensors());
     final String json = converter.marshall(message);
-    final String body = "{\"sensors\":[{\"sensor\":\"REC012\",\"description\":\"sensor 12\",\"dataType\":\"number\",\"type\":\"humidity\",\"unit\":\"grams\"},{\"sensor\":\"REC013\",\"description\":\"sensor 13\",\"dataType\":\"number\",\"type\":\"humidity\",\"unit\":\"grams\"}]}";
-    System.out.println(json);
+    final String body =
+        "{\"sensors\":[{\"sensor\":\"REC012\",\"description\":\"sensor 12\",\"dataType\":\"number\",\"type\":\"humidity\",\"unit\":\"grams\"},{\"sensor\":\"REC013\",\"description\":\"sensor 13\",\"dataType\":\"number\",\"type\":\"humidity\",\"unit\":\"grams\"}]}";
     assertNotNull(json);
     assertEquals(body, json);
   }
@@ -89,7 +89,9 @@ public class CatalogMessageConverterTest {
 
   @Test
   public void unmarshall() {
-    final String response = "{\"providers\":[{\"provider\":\"C\",\"permission\":\"READ\",\"sensors\":[{\"sensor\":\"MAR_02_20_PM001_1010\",\"description\":\"PM10 Sensor IMI 001\",\"dataType\":\"NUMBER\",\"type\":\"air_quality_pm10\",\"unit\":\"ug/m3\",\"component\":\"air_quality\",\"componentType\":\"generic\"}," + "{\"sensor\":\"MAR_02_20_PM001_1012\",\"description\":\"PM10 Sensor IMI 002\",\"dataType\":\"NUMBER\",\"type\":\"air_quality_pm10\",\"unit\":\"ug/m3\",\"component\":\"air_quality\",\"componentType\":\"generic\"}]}]}";
+    final String response =
+        "{\"providers\":[{\"provider\":\"C\",\"permission\":\"READ\",\"sensors\":[{\"sensor\":\"MAR_02_20_PM001_1010\",\"description\":\"PM10 Sensor IMI 001\",\"dataType\":\"NUMBER\",\"type\":\"air_quality_pm10\",\"unit\":\"ug/m3\",\"component\":\"air_quality\",\"componentType\":\"generic\"},"
+            + "{\"sensor\":\"MAR_02_20_PM001_1012\",\"description\":\"PM10 Sensor IMI 002\",\"dataType\":\"NUMBER\",\"type\":\"air_quality_pm10\",\"unit\":\"ug/m3\",\"component\":\"air_quality\",\"componentType\":\"generic\"}]}]}";
     final CatalogOutputMessage outputMessage = converter.unmarshall(response);
     assertNotNull(outputMessage);
     assertTrue(!CollectionUtils.isEmpty(outputMessage.getProviders()));
@@ -108,11 +110,13 @@ public class CatalogMessageConverterTest {
     return sensors;
   }
 
-  private CatalogSensor buildSensor(final String sensor, final String provider, final String description, final String dataType, final String type, final String unit) {
+  private CatalogSensor buildSensor(final String sensor, final String provider, final String description, final String dataType, final String type,
+      final String unit) {
     return buildSensor(sensor, provider, description, dataType, null, type, unit);
   }
 
-  private CatalogSensor buildSensor(final String sensor, final String provider, final String description, final String dataType, final String location, final String type, final String unit) {
+  private CatalogSensor buildSensor(final String sensor, final String provider, final String description, final String dataType,
+      final String location, final String type, final String unit) {
     final CatalogSensor catalogSensor = new CatalogSensor();
     catalogSensor.setSensor(sensor);
     catalogSensor.setDescription(description);

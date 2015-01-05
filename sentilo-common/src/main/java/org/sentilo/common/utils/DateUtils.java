@@ -29,18 +29,24 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.util.StringUtils;
 
 public abstract class DateUtils {
 
-  private static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
+  private static final String TIMESTAMP_PATTERN = SentiloConstants.TIMESTAMP_PATTERN;
   private static final String TIMEZONE_TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ssZ";
   private static final String UTC_SUFFIX = "+0000";
-  // DateFormat to use to format output timestamps
+  // DateFormat used to generate strings, in the UTC base, from internal timestamps
   private static final DateFormat PSAB_DF;
-  // DateFormat to use to parser incoming timestamps
+  // DateFormat used to parse Dates/Long from incoming timestamps (which may contains a time
+  // zone)
   private static final DateFormat TZ_PSAB_DF;
+
+  private static final Lock LOCK_PSAB_DF = new ReentrantLock();
+  private static final Lock LOCK_TZ_PSAB_DF = new ReentrantLock();
 
   static {
     PSAB_DF = new SimpleDateFormat(TIMESTAMP_PATTERN);
@@ -54,11 +60,21 @@ public abstract class DateUtils {
   }
 
   public static String toStringTimestamp(final Date date) {
-    return PSAB_DF.format(date);
+    LOCK_PSAB_DF.lock();
+    try {
+      return PSAB_DF.format(date);
+    } finally {
+      LOCK_PSAB_DF.unlock();
+    }
   }
 
   public static String timestampToString(final Long timestamp) {
-    return (timestamp == null ? null : PSAB_DF.format(timestamp));
+    LOCK_PSAB_DF.lock();
+    try {
+      return (timestamp == null ? null : PSAB_DF.format(timestamp));
+    } finally {
+      LOCK_PSAB_DF.unlock();
+    }
   }
 
   public static long toMillis(final String timestamp) {
@@ -66,12 +82,15 @@ public abstract class DateUtils {
   }
 
   public static Date stringToDate(final String date) {
+    LOCK_TZ_PSAB_DF.lock();
     try {
       // First, validate that localTime has TZ defined. If not defined, we will treat it as a UTC
       // date (+0000)
       return (StringUtils.hasText(date) ? TZ_PSAB_DF.parse(formatToUTC(date)) : null);
     } catch (final ParseException e) {
-      throw new IllegalArgumentException("Error parsing date", e);
+      throw new IllegalArgumentException("Error parsing date " + date, e);
+    } finally {
+      LOCK_TZ_PSAB_DF.unlock();
     }
   }
 

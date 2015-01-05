@@ -135,7 +135,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * .platform.client.core.domain.CatalogAlertInputMessage)
    */
   @Override
-  public CatalogAlertOutputMessage getAuthorizedAlerts(CatalogAlertInputMessage message) {
+  public CatalogAlertOutputMessage getAuthorizedAlerts(final CatalogAlertInputMessage message) {
     logger.debug("Retrieving authorized alerts from catalog ");
     final RequestParameters parameters = new RequestParameters();
     if (!CollectionUtils.isEmpty(message.getParameters())) {
@@ -155,7 +155,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#registerAlerts(org.sentilo
    * .platform.client.core.domain.CatalogAlertInputMessage)
    */
-  public void registerAlerts(CatalogAlertInputMessage message) {
+  public void registerAlerts(final CatalogAlertInputMessage message) {
     logger.debug("Registering alerts");
     getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alerts registered ");
@@ -168,7 +168,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#updateAlerts(org.sentilo.
    * platform.client.core.domain.CatalogAlertInputMessage)
    */
-  public void updateAlerts(CatalogAlertInputMessage message) {
+  public void updateAlerts(final CatalogAlertInputMessage message) {
     logger.debug("Updating alerts");
     getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alerts updated ");
@@ -182,7 +182,7 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#deleteAlerts(org.sentilo.
    * platform.client.core.domain.CatalogAlertInputMessage)
    */
-  public void deleteAlerts(CatalogAlertInputMessage message) {
+  public void deleteAlerts(final CatalogAlertInputMessage message) {
     logger.debug("Deleting alerts");
     getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
     logger.debug("alerts deleted ");

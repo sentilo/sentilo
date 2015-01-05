@@ -28,6 +28,8 @@ package org.sentilo.platform.client.core.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.sentilo.common.domain.PlatformSearchInputMessage;
 import org.sentilo.common.domain.QueryFilterParams;
 import org.sentilo.platform.client.core.utils.ResourcesUtils;
@@ -36,24 +38,33 @@ import org.springframework.util.StringUtils;
 
 public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSearchInputMessage {
 
-  private final String alarmId;
-  private Message message;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private final String alertId;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String message;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String providerId;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String sensorId;
 
+  @JsonIgnore
   private QueryFilterParams queryFilters;
 
+  @JsonIgnore
   private String identityToken;
 
   /** Lista ordenada de los identificadores que forman el path del recurso. */
+  @JsonIgnore
   private final List<String> resourcesValues = new ArrayList<String>();
 
-  public AlarmInputMessage(final String alarmId) {
+  public AlarmInputMessage(final String alertId) {
     super();
 
-    Assert.isTrue(StringUtils.hasText(alarmId));
+    Assert.isTrue(StringUtils.hasText(alertId));
 
-    this.alarmId = alarmId;
+    this.alertId = alertId;
 
-    ResourcesUtils.addToResources(alarmId, resourcesValues);
+    ResourcesUtils.addToResources(alertId, resourcesValues);
   }
 
   public AlarmInputMessage(final String alarmId, final String message) {
@@ -61,7 +72,7 @@ public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSe
 
     Assert.isTrue(StringUtils.hasText(message));
 
-    this.message = new Message(message);
+    this.message = message;
   }
 
   public AlarmInputMessage(final String alarmId, final QueryFilterParams queryFilters) {
@@ -79,11 +90,11 @@ public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSe
     this.identityToken = identityToken;
   }
 
-  public String getAlarmId() {
-    return alarmId;
+  public String getAlertId() {
+    return alertId;
   }
 
-  public Message getMessage() {
+  public String getMessage() {
     return message;
   }
 
@@ -116,26 +127,37 @@ public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSe
   public String toString() {
     final StringBuffer sb = new StringBuffer();
     sb.append("\n\t --- Alarm ---");
-    sb.append("\n\t alarm:").append(alarmId);
-    if (message != null) {
-      sb.append("\n\t message:").append(message.getMessage());
+    sb.append("\n\t alert:").append(alertId);
+    sb.append("\n\t message:").append(message);
+
+    if (StringUtils.hasText(providerId)) {
+      sb.append("\n\t provider:").append(providerId);
     }
+
+    if (StringUtils.hasText(sensorId)) {
+      sb.append("\n\t sensor:").append(sensorId);
+    }
+
     if (hasQueryFilters()) {
       sb.append(getQueryFilters());
     }
     return sb.toString();
   }
 
-  static class Message {
-
-    private final String content;
-
-    public Message(final String content) {
-      this.content = content;
-    }
-
-    public String getMessage() {
-      return content;
-    }
+  public String getProviderId() {
+    return providerId;
   }
+
+  public void setProviderId(final String providerId) {
+    this.providerId = providerId;
+  }
+
+  public String getSensorId() {
+    return sensorId;
+  }
+
+  public void setSensorId(final String sensorId) {
+    this.sensorId = sensorId;
+  }
+
 }

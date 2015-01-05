@@ -26,11 +26,12 @@
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Alert.Type;
@@ -41,7 +42,7 @@ import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -61,9 +62,6 @@ public class AlertController extends CrudController<Alert> {
   @Autowired
   private ProviderService providerService;
 
-  @Autowired
-  private MessageSource messageSource;
-
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
     return Constants.MENU_ALERT;
@@ -82,8 +80,8 @@ public class AlertController extends CrudController<Alert> {
     row.add(alert.getId()); // checkbox
     row.add(alert.getId());
     row.add(alert.getName());
-    row.add(FormatUtils.label(messageSource.getMessage("alert.type." + alert.getType().toString(), null, Locale.getDefault())));
-    row.add(FormatUtils.formatDate(alert.getCreatedAt()));
+    row.add(FormatUtils.label(messageSource.getMessage("alert.type." + alert.getType().toString(), null, LocaleContextHolder.getLocale())));
+    row.add(getLocalDateFormat().printAsLocalTime(alert.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
@@ -107,7 +105,7 @@ public class AlertController extends CrudController<Alert> {
   }
 
   private void addAlertTriggersTo(final Model model) {
-    model.addAttribute(Constants.MODEL_ALERT_TRIGGERS, Alert.Trigger.values());
+    model.addAttribute(Constants.MODEL_ALERT_TRIGGERS, AlertTriggerType.values());
   }
 
   @Override
@@ -137,8 +135,8 @@ public class AlertController extends CrudController<Alert> {
 
   @Override
   protected void doBeforeCreateResource(final Alert alert, final Model model) {
-    // Si la alerta es interna, forzamos a null los atributos especificos de una alerta interna.
-    // Ídem con alerta externa
+    // If the alert is internal we put to null all specific attributes of an internal alert.
+    // Same with an external alert
 
     if (Type.INTERNAL.equals(alert.getType())) {
       alert.setApplicationId(null);
@@ -156,4 +154,14 @@ public class AlertController extends CrudController<Alert> {
 
     }
   }
+
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.TYPE_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "alert");
+
+  }
+
 }

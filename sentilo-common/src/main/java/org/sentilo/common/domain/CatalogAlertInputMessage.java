@@ -30,7 +30,6 @@ import java.util.Map;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-
 public class CatalogAlertInputMessage extends CatalogInputMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
@@ -38,7 +37,6 @@ public class CatalogAlertInputMessage extends CatalogInputMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private String[] alertsIds;
-
 
   public CatalogAlertInputMessage() {
     super();
@@ -48,7 +46,7 @@ public class CatalogAlertInputMessage extends CatalogInputMessage {
     super(entityId, parameters);
   }
 
-  public void setAlerts(List<CatalogAlert> alerts) {
+  public void setAlerts(final List<CatalogAlert> alerts) {
     this.alerts = alerts;
   }
 
@@ -56,7 +54,7 @@ public class CatalogAlertInputMessage extends CatalogInputMessage {
     return alerts;
   }
 
-  public void setAlertsIds(String[] alertsIds) {
+  public void setAlertsIds(final String[] alertsIds) {
     this.alertsIds = alertsIds;
   }
 

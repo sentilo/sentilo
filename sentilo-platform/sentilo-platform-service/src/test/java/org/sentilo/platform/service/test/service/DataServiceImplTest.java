@@ -43,6 +43,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.DataInputMessage;
@@ -57,6 +58,7 @@ import org.springframework.data.redis.listener.Topic;
 
 public class DataServiceImplTest {
 
+  @InjectMocks
   private DataServiceImpl service;
   @Mock
   private DataInputMessage inputMessage;
@@ -70,11 +72,6 @@ public class DataServiceImplTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-
-    service = new DataServiceImpl();
-    service.setJedisTemplate(jedisTemplate);
-    service.setJedisSequenceUtils(jedisSequenceUtils);
-    service.setResourceService(resourceService);
   }
 
   @Test

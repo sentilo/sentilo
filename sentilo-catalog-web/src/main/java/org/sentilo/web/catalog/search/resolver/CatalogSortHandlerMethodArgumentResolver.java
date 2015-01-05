@@ -52,8 +52,8 @@ public class CatalogSortHandlerMethodArgumentResolver extends SortHandlerMethodA
   private static final String DEFAULT_SORT_NUMBER_COLUMN = "1";
   private static final String DEFAULT_SORT_DIRECTION = "ASC";
 
-  private String sortParameter = "page.sort";
-  private String sortDirParameter = "page.sort.dir";
+  private final String sortParameter = "page.sort";
+  private final String sortDirParameter = "page.sort.dir";
 
   /*
    * (non-Javadoc)
@@ -65,12 +65,12 @@ public class CatalogSortHandlerMethodArgumentResolver extends SortHandlerMethodA
    * org.springframework.web.bind.support.WebDataBinderFactory)
    */
   @Override
-  public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
-      WebDataBinderFactory binderFactory) throws Exception {
+  public Sort resolveArgument(final MethodParameter parameter, final ModelAndViewContainer mavContainer, final NativeWebRequest webRequest,
+      final WebDataBinderFactory binderFactory) throws Exception {
 
     // By default, all lists are ordered by the first column in an ascending direction
-    String sortParameterValue = webRequest.getParameter(sortParameter);
-    String sortDirParameterValue = webRequest.getParameter(sortDirParameter);
+    final String sortParameterValue = webRequest.getParameter(sortParameter);
+    final String sortDirParameterValue = webRequest.getParameter(sortDirParameter);
 
     if (StringUtils.hasText(sortDirParameterValue) && StringUtils.hasText(sortParameterValue)) {
       return parseParameterIntoSort(sortParameterValue, sortDirParameterValue, webRequest);
@@ -79,13 +79,13 @@ public class CatalogSortHandlerMethodArgumentResolver extends SortHandlerMethodA
     }
   }
 
-  private Sort parseParameterIntoSort(String sortParameterValue, String sortDirParameterValue, NativeWebRequest webRequest) {
+  private Sort parseParameterIntoSort(final String sortParameterValue, final String sortDirParameterValue, final NativeWebRequest webRequest) {
     final String columnName = SearchFilterUtils.translateSortProperty(getListName(webRequest), sortParameterValue);
     final Direction order = null == sortDirParameterValue ? Direction.ASC : Direction.fromString(sortDirParameterValue);
     return new Sort(order, columnName);
   }
 
-  private String getListName(NativeWebRequest webRequest) {
+  private String getListName(final NativeWebRequest webRequest) {
     return SearchFilterUtils.getListName((HttpServletRequest) webRequest.getNativeRequest());
   }
 

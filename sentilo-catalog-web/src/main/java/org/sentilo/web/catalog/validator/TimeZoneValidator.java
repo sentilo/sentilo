@@ -35,14 +35,14 @@ import org.springframework.util.StringUtils;
 public class TimeZoneValidator implements ConstraintValidator<ValidTimeZone, String> {
 
   @Override
-  public void initialize(ValidTimeZone constraintAnnotation) {
+  public void initialize(final ValidTimeZone constraintAnnotation) {
   }
 
   @Override
-  public boolean isValid(String timeZoneId, ConstraintValidatorContext context) {
+  public boolean isValid(final String timeZoneId, final ConstraintValidatorContext context) {
     boolean valid = true;
     if (StringUtils.hasText(timeZoneId)) {
-      TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
+      final TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
 
       // TimeZone.getTimeZone _always_ returns GMT for unrecognized strings.
       if (timeZone.getID().equals("GMT") && !timeZoneId.equals("GMT")) {

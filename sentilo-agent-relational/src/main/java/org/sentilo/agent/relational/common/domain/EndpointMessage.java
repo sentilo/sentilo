@@ -25,7 +25,7 @@
  */
 package org.sentilo.agent.relational.common.domain;
 
-import org.sentilo.agent.relational.utils.Constants;
+import org.sentilo.agent.common.utils.Constants;
 import org.sentilo.common.domain.EventMessage;
 import org.springframework.util.StringUtils;
 
@@ -37,14 +37,14 @@ public class EndpointMessage {
   private String message;
   private String timestamp;
   private String topic;
-  private EventMessage event;
+  private final EventMessage event;
 
   public EndpointMessage(final EventMessage eventMessage, final String topic) {
     super();
-    this.timestamp = eventMessage.getTimestamp();
-    this.message = eventMessage.getMessage();
+    timestamp = eventMessage.getTimestamp();
+    message = eventMessage.getMessage();
     this.topic = topic;
-    this.event = eventMessage;
+    event = eventMessage;
   }
 
   public String getMessage() {
@@ -89,11 +89,11 @@ public class EndpointMessage {
 
     obs.setValue(message);
     obs.setTimestamp(timestamp);
-    
+
     if (StringUtils.hasText(event.getLocation())) {
       obs.setLocation(event.getLocation());
     }
-    
+
     return obs;
   }
 

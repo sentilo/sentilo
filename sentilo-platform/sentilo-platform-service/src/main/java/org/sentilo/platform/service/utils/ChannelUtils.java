@@ -50,7 +50,6 @@ public final class ChannelUtils {
     data, order, alarm
   };
 
-
   private ChannelUtils() {
     throw new AssertionError();
   }
@@ -76,7 +75,7 @@ public final class ChannelUtils {
   }
 
   public static boolean isTopicOfType(final String topicName, final SubscribeType type) {
-    String prefixToCompare = PubSubConstants.REDIS_CHANNEL_TOKEN.concat(type.name().toLowerCase());
+    final String prefixToCompare = PubSubConstants.REDIS_CHANNEL_TOKEN.concat(type.name().toLowerCase());
     return (type != null && topicName.startsWith(prefixToCompare));
   }
 
@@ -114,7 +113,7 @@ public final class ChannelUtils {
     final String[] tokens = channel.split(PubSubConstants.REDIS_CHANNEL_TOKEN);
     final PubSubChannelPrefix type = PubSubChannelPrefix.valueOf(tokens[1]);
     final NotificationParams notificationParams = new NotificationParams(notificationParamsChain);
-    String endpoint = notificationParams.getEndpoint();
+    final String endpoint = notificationParams.getEndpoint();
     Subscription subscription = null;
     String providerId, sensorId;
     switch (type) {

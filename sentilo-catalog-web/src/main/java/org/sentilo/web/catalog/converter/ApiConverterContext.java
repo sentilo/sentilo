@@ -37,15 +37,21 @@ public class ApiConverterContext {
   private String providerId;
   private boolean isUpdateAction;
 
-  public ApiConverterContext(final CatalogInputMessage message, final SensorService sensorService, final ComponentService componentService, final String providerId) {
+  public ApiConverterContext(final CatalogInputMessage message, final SensorService sensorService, final ComponentService componentService) {
     super();
     this.message = message;
     this.sensorService = sensorService;
     this.componentService = componentService;
+  }
+
+  public ApiConverterContext(final CatalogInputMessage message, final SensorService sensorService, final ComponentService componentService,
+      final String providerId) {
+    this(message, sensorService, componentService);
     this.providerId = providerId;
   }
 
-  public ApiConverterContext(final CatalogInputMessage message, final SensorService sensorService, final ComponentService componentService, final String providerId, final boolean isUpdateAction) {
+  public ApiConverterContext(final CatalogInputMessage message, final SensorService sensorService, final ComponentService componentService,
+      final String providerId, final boolean isUpdateAction) {
     this(message, sensorService, componentService, providerId);
     this.isUpdateAction = isUpdateAction;
   }
@@ -89,6 +95,5 @@ public class ApiConverterContext {
   public void setUpdateAction(final boolean isUpdateAction) {
     this.isUpdateAction = isUpdateAction;
   }
-
 
 }

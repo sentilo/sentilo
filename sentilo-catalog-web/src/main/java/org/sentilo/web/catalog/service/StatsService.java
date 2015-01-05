@@ -30,4 +30,6 @@ import org.sentilo.web.catalog.domain.Statistics;
 public interface StatsService {
 
   Statistics getCurrentStats();
+
+  void getAndSavePlatformActivityAndStats();
 }

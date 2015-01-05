@@ -59,6 +59,10 @@ public class EventMessage {
     sb.append("\n\t message:" + message);
     sb.append("\n\t timestamp:" + timestamp);
     sb.append("\n\t topic:" + topic);
+    sb.append("\n\t type:" + type);
+    sb.append("\n\t provider:" + provider);
+    sb.append("\n\t sensor:" + sensor);
+    sb.append("\n\t location:" + location);
     return sb.toString();
   }
 
@@ -90,7 +94,7 @@ public class EventMessage {
     return type;
   }
 
-  public void setType(String type) {
+  public void setType(final String type) {
     this.type = type;
   }
 
@@ -98,7 +102,7 @@ public class EventMessage {
     return sensor;
   }
 
-  public void setSensor(String sensor) {
+  public void setSensor(final String sensor) {
     this.sensor = sensor;
   }
 
@@ -106,7 +110,7 @@ public class EventMessage {
     return provider;
   }
 
-  public void setProvider(String provider) {
+  public void setProvider(final String provider) {
     this.provider = provider;
   }
 
@@ -114,7 +118,7 @@ public class EventMessage {
     return location;
   }
 
-  public void setLocation(String location) {
+  public void setLocation(final String location) {
     this.location = location;
   }
 
@@ -122,11 +126,11 @@ public class EventMessage {
     return sender;
   }
 
-  public void setSender(String sender) {
+  public void setSender(final String sender) {
     this.sender = sender;
   }
 
-  public void setAlert(String alert) {
+  public void setAlert(final String alert) {
     this.alert = alert;
   }
 

@@ -42,7 +42,7 @@ import org.springframework.validation.Validator;
 public abstract class ApiBaseValidator<T extends CatalogDocument> {
 
   protected void validate(final ApiValidationResults results, final Object obj, final String objId, final String objName,
-      Map<String, String> dictionary) {
+      final Map<String, String> dictionary) {
     final DataBinder binder = new DataBinder(obj);
     binder.setValidator(getValidator());
     binder.validate();
@@ -50,10 +50,10 @@ public abstract class ApiBaseValidator<T extends CatalogDocument> {
     final BindingResult result = binder.getBindingResult();
     final String errorMessageTemplate = "%s %s has fields not filled in correctly. Please make sure following fields are filled in properly: [%s]";
     if (result.hasErrors()) {
-      String[] rejectedFields = new String[result.getFieldErrors().size()];
+      final String[] rejectedFields = new String[result.getFieldErrors().size()];
       int i = 0;
-      for (FieldError rejectedField : result.getFieldErrors()) {
-        String domainFieldName = rejectedField.getField();
+      for (final FieldError rejectedField : result.getFieldErrors()) {
+        final String domainFieldName = rejectedField.getField();
         rejectedFields[i++] = (dictionary.containsKey(domainFieldName) ? dictionary.get(domainFieldName) : domainFieldName);
       }
 

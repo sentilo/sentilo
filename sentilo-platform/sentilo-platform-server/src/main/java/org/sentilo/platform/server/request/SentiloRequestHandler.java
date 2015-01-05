@@ -48,6 +48,7 @@ import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
 import org.sentilo.platform.server.http.HttpHeader;
 import org.sentilo.platform.server.parser.ErrorParser;
+import org.sentilo.platform.server.parser.PlatformJsonMessageConverter;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,16 +85,16 @@ public class SentiloRequestHandler implements HttpRequestHandler {
 
       prepareErrorResponse(httpResponse, errorCode, e.getMessage(), e.getErrorDetails());
     } catch (final PlatformAccessException e) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_ACCESS_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_ACCESS_ERROR);
       logger.error("{} - Internal access error.", internalErrorCode, e);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
       prepareErrorResponse(httpResponse, errorCode, errorMessage);
     } catch (final Throwable e) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_UNKNOWN_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_UNKNOWN_ERROR);
       logger.error("{} - Internal server error.", internalErrorCode, e);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
       prepareErrorResponse(httpResponse, errorCode, errorMessage);
@@ -106,14 +107,14 @@ public class SentiloRequestHandler implements HttpRequestHandler {
   }
 
   private void prepareErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage, final List<String> errorDetails) {
-    ErrorMessage message = new ErrorMessage(errorCode, errorMessage, errorDetails);
+    final ErrorMessage message = new ErrorMessage(errorCode, errorMessage, errorDetails);
 
     try {
-      ByteArrayOutputStream baos = errorParser.writeInternal(message);
+      final ByteArrayOutputStream baos = errorParser.writeInternal(message);
       response.setStatusCode(errorCode);
-      response.setEntity(new ByteArrayEntity(baos.toByteArray(), ErrorParser.DEFAULT_CONTENT_TYPE));
-      response.setHeader(HttpHeader.CONTENT_TYPE.toString(), ErrorParser.DEFAULT_CONTENT_TYPE.toString());
-    } catch (JsonConverterException jce) {
+      response.setEntity(new ByteArrayEntity(baos.toByteArray(), PlatformJsonMessageConverter.DEFAULT_CONTENT_TYPE));
+      response.setHeader(HttpHeader.CONTENT_TYPE.toString(), PlatformJsonMessageConverter.DEFAULT_CONTENT_TYPE.toString());
+    } catch (final JsonConverterException jce) {
       response.setStatusCode(errorCode);
       response.setEntity(new ByteArrayEntity(jce.getMessage().getBytes()));
     }

@@ -25,25 +25,20 @@
  */
 package org.sentilo.web.catalog.aop.aspect;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.TimeZone;
-
-import javax.annotation.PostConstruct;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.sentilo.common.domain.OrderMessage;
-import org.sentilo.common.utils.DateUtils;
 import org.sentilo.platform.client.core.domain.AlarmMessage;
 import org.sentilo.platform.client.core.domain.Observation;
-import org.springframework.beans.factory.annotation.Value;
+import org.sentilo.web.catalog.domain.Activity;
+import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Class that translates platform's timestamps (expressed in UTC timezone) into local time zones.
@@ -54,29 +49,16 @@ import org.springframework.util.StringUtils;
 @Aspect
 public class TranslateTimestamp implements Ordered {
 
-  private static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
-
-  @Value("${catalog.default.timezone}")
-  private String localTimeZoneId;
-
-  private DateFormat localDateFormat;
+  @Autowired
+  private LocalDateFormatter localDateFormat;
 
   private final int order = 1;
 
-  @PostConstruct
-  public void initTimeZone() {
-    if (StringUtils.hasText(localTimeZoneId)) {
-      localDateFormat = new SimpleDateFormat(TIMESTAMP_PATTERN);
-      localDateFormat.setTimeZone((TimeZone.getTimeZone(localTimeZoneId)));
-      localDateFormat.setLenient(false);
-    }
-  }
-
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastObservations(..))", returning = "observations")
   public
-      Object translateObservationsTimestamp(JoinPoint jp, List<Observation> observations) throws Throwable {
+      Object translateObservationsTimestamp(final JoinPoint jp, final List<Observation> observations) throws Throwable {
     if (localDateFormat != null && !CollectionUtils.isEmpty(observations)) {
-      for (Observation observation : observations) {
+      for (final Observation observation : observations) {
         observation.setTimestamp(translateTimestampIntoLocalTimeZone(observation.getTimestamp()));
       }
     }
@@ -84,7 +66,7 @@ public class TranslateTimestamp implements Ordered {
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastObservation(..))", returning = "observation")
-  public Object translateObservationTimestamp(JoinPoint jp, Observation observation) throws Throwable {
+  public Object translateObservationTimestamp(final JoinPoint jp, final Observation observation) throws Throwable {
     if (localDateFormat != null && observation != null) {
       observation.setTimestamp(translateTimestampIntoLocalTimeZone(observation.getTimestamp()));
     }
@@ -92,23 +74,34 @@ public class TranslateTimestamp implements Ordered {
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastAlarmsMessages(..))", returning = "alarms")
-  public Object translateAlarmsTimestamp(JoinPoint jp, List<AlarmMessage> alarms) throws Throwable {
+  public Object translateAlarmsTimestamp(final JoinPoint jp, final List<AlarmMessage> alarms) throws Throwable {
     if (localDateFormat != null && !CollectionUtils.isEmpty(alarms)) {
-      for (AlarmMessage alarm : alarms) {
-        alarm.setTimestamp(translateTimestampIntoLocalTimeZone(alarm.getTimestamp()));
+      for (final AlarmMessage alarmMessage : alarms) {
+        alarmMessage.setTimestamp(translateTimestampIntoLocalTimeZone(alarmMessage.getTimestamp()));
       }
     }
     return alarms;
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastOrderMessages(..))", returning = "orders")
-  public Object translateOrdersTimestamp(JoinPoint jp, List<OrderMessage> orders) throws Throwable {
+  public Object translateOrdersTimestamp(final JoinPoint jp, final List<OrderMessage> orders) throws Throwable {
     if (localDateFormat != null && !CollectionUtils.isEmpty(orders)) {
-      for (OrderMessage order : orders) {
-        order.setTimestamp(translateTimestampIntoLocalTimeZone(order.getTimestamp()));
+      for (final OrderMessage orderMessage : orders) {
+        orderMessage.setTimestamp(translateTimestampIntoLocalTimeZone(orderMessage.getTimestamp()));
       }
     }
     return orders;
+  }
+
+  @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.ActivityServiceImpl.getLastActivityLogs(..))", returning = "lastActivityLogs")
+  public
+      Object translateActivityTimestamp(final JoinPoint jp, final List<Activity> lastActivityLogs) throws Throwable {
+    if (localDateFormat != null && !CollectionUtils.isEmpty(lastActivityLogs)) {
+      for (final Activity activityLog : lastActivityLogs) {
+        activityLog.setTimestampToString(translateTimestampIntoLocalTimeZone(activityLog.getTimestamp()));
+      }
+    }
+    return lastActivityLogs;
   }
 
   @Override
@@ -116,8 +109,13 @@ public class TranslateTimestamp implements Ordered {
     return order;
   }
 
-  private String translateTimestampIntoLocalTimeZone(String utcTimestamp) {
-    return (StringUtils.hasText(utcTimestamp) ? localDateFormat.format(DateUtils.parseTimestamp(utcTimestamp)) : utcTimestamp);
+  private String translateTimestampIntoLocalTimeZone(final String utcTimestamp) {
+    return localDateFormat.parseUtcTimeToLocalTime(utcTimestamp);
+
+  }
+
+  private String translateTimestampIntoLocalTimeZone(final Long timestamp) {
+    return localDateFormat.printAsLocalTime(timestamp);
   }
 
 }

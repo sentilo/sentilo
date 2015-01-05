@@ -27,8 +27,12 @@ package org.sentilo.platform.common.exception;
 
 import java.util.List;
 
-@SuppressWarnings("serial")
 public class PlatformException extends Exception {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
   private int httpStatus;
 
@@ -46,7 +50,7 @@ public class PlatformException extends Exception {
   }
 
   public PlatformException(final int status, final String message) {
-    super(message);
+    this(message);
     httpStatus = status;
   }
 
@@ -76,7 +80,7 @@ public class PlatformException extends Exception {
     this.httpStatus = httpStatus;
   }
 
-  public void setErrorDetails(List<String> errorDetails) {
+  public void setErrorDetails(final List<String> errorDetails) {
     this.errorDetails = errorDetails;
   }
 

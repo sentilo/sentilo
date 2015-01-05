@@ -67,7 +67,10 @@ public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements 
 
   /*
    * (non-Javadoc)
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#create(org.sentilo.web.catalog.domain.CatalogDocument)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#create(org.sentilo.web.catalog
+   * .domain.CatalogDocument)
    */
   public Alert create(final Alert alert) {
     // If name is null, we initialize it with the id value
@@ -81,20 +84,21 @@ public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements 
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.AlertService#getAlertsByEntities(java.util.Collection, java.util.Map)
+   * @see org.sentilo.web.catalog.service.AlertService#getAlertsByEntities(java.util.Collection,
+   * java.util.Map)
    */
   public List<Alert> getAlertsByEntities(final Collection<String> entities, final Map<String, Object> filterParams) {
-    List<Alert> alerts = new ArrayList<Alert>();
+    final List<Alert> alerts = new ArrayList<Alert>();
 
     // Podemos filtrar la búsqueda de alertas por lo siguientes criterios:
     // 1. Tipo: INTERNAL o EXTERNAL
     // 2. Trigger: codificado según el valor de la enumeracion alarm.Type
     if (!CollectionUtils.isEmpty(entities)) {
-      Query queryForProviderAlerts = buildQuery("providerId", entities, filterParams);
-      Query queryForClientAppAlerts = buildQuery("applicationId", entities, filterParams);
+      final Query queryForProviderAlerts = buildQuery("providerId", entities, filterParams);
+      final Query queryForClientAppAlerts = buildQuery("applicationId", entities, filterParams);
 
-      List<Alert> providerAlerts = getMongoOps().find(queryForProviderAlerts, Alert.class);
-      List<Alert> clientAppAlerts = getMongoOps().find(queryForClientAppAlerts, Alert.class);
+      final List<Alert> providerAlerts = getMongoOps().find(queryForProviderAlerts, Alert.class);
+      final List<Alert> clientAppAlerts = getMongoOps().find(queryForClientAppAlerts, Alert.class);
 
       if (!CollectionUtils.isEmpty(providerAlerts)) {
         alerts.addAll(providerAlerts);
@@ -112,10 +116,10 @@ public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements 
    * 
    * @see org.sentilo.web.catalog.service.AlertService#deleteAllAlerts(java.lang.String)
    */
-  public void deleteOwnAlerts(String entityOwnerId) {
+  public void deleteOwnAlerts(final String entityOwnerId) {
     // This method must remove all alerts with providerId or applicationId equals to entityOwnerId
     // and alert type equals to EXTERNAL
-    SearchFilter filter = new SearchFilter();
+    final SearchFilter filter = new SearchFilter();
     filter.addParam("providerId", entityOwnerId);
     filter.addParam("applicationId", entityOwnerId);
     filter.addAndParam("type", Alert.Type.EXTERNAL.name());
@@ -129,12 +133,12 @@ public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements 
    * @see org.sentilo.web.catalog.service.AlertService#deleteOwnAlerts(java.util.Collection,
    * java.lang.String)
    */
-  public void deleteOwnAlerts(final Collection<String> alertsIds, String entityOwnerId) {
+  public void deleteOwnAlerts(final Collection<String> alertsIds, final String entityOwnerId) {
     // This method must remove all alerts with id into alertsIds collection,
     // providerId or applicationId equals to entityOwnerId
     // and alert type equals to EXTERNAL
-    boolean isEntityProvider = providerService.exist(entityOwnerId);
-    Map<String, Object> filterParams = new HashMap<String, Object>();
+    final boolean isEntityProvider = providerService.exist(entityOwnerId);
+    final Map<String, Object> filterParams = new HashMap<String, Object>();
     filterParams.put("type", "EXTERNAL");
     if (isEntityProvider) {
       filterParams.put("providerId", entityOwnerId);

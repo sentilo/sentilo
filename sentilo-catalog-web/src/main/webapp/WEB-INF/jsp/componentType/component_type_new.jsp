@@ -4,10 +4,12 @@
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/componenttypes/${componentType.id}/edit" var="actionURL" />
 	<spring:message code="componenttype.edit.title" var="pageTitle" />
+	<spring:url value="/admin/componenttypes/${componentType.id}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/componenttypes/create" var="actionURL" />
 	<spring:message code="componenttype.new.title" var="pageTitle" />
+	<spring:url value="/admin/componenttypes/list?nameTableRecover=componentTypeTable&fromBack=true" var="backURL" />
 </c:if>
 
 <div class="container-fluid">
@@ -63,11 +65,20 @@
 										<form:errors path="description" cssClass="error" htmlEscape="false" />
 									</div>
 								</div>
+								<div class="control-group">
+							<form:label path="photoUrl" class="control-label">
+								<spring:message code="componenttype.photo" />
+							</form:label>
+							<div class="controls">
+								<form:input path="photoUrl" />
+								<form:errors path="photoUrl" cssClass="text-error" htmlEscape="false" />
+							</div>
+						</div>
 								<%@include file="/WEB-INF/jsp/componentType/include_component_type_icon.jsp"%>
 								<div class="control-group">
 									<div class="controls">
-										<spring:url value="/admin/componenttypes/list" var="backURL" />
-										<a href="${backURL}" class="btn"> <spring:message code="button.back" /> </a> <a href="#"
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+										<a href="#"
 											onclick="$('form#componentType').submit();" class="btn btn-success"> <spring:message code="button.save" />
 										</a>
 									</div>

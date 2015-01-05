@@ -52,11 +52,16 @@ public class CatalogAlert implements CatalogElement {
     super();
   }
 
+  public CatalogAlert(final String id) {
+    this();
+    this.id = id;
+  }
+
   public String getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(final String id) {
     this.id = id;
   }
 
@@ -64,7 +69,7 @@ public class CatalogAlert implements CatalogElement {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName(final String name) {
     this.name = name;
   }
 
@@ -72,7 +77,7 @@ public class CatalogAlert implements CatalogElement {
     return description;
   }
 
-  public void setDescription(String description) {
+  public void setDescription(final String description) {
     this.description = description;
   }
 
@@ -80,7 +85,7 @@ public class CatalogAlert implements CatalogElement {
     return type;
   }
 
-  public void setType(String type) {
+  public void setType(final String type) {
     this.type = type;
   }
 
@@ -88,7 +93,7 @@ public class CatalogAlert implements CatalogElement {
     return trigger;
   }
 
-  public void setTrigger(String trigger) {
+  public void setTrigger(final String trigger) {
     this.trigger = trigger;
   }
 
@@ -96,7 +101,7 @@ public class CatalogAlert implements CatalogElement {
     return expression;
   }
 
-  public void setExpression(String expression) {
+  public void setExpression(final String expression) {
     this.expression = expression;
   }
 
@@ -104,7 +109,7 @@ public class CatalogAlert implements CatalogElement {
     return component;
   }
 
-  public void setComponent(String component) {
+  public void setComponent(final String component) {
     this.component = component;
   }
 
@@ -112,11 +117,11 @@ public class CatalogAlert implements CatalogElement {
     return sensor;
   }
 
-  public void setSensor(String sensor) {
+  public void setSensor(final String sensor) {
     this.sensor = sensor;
   }
 
-  public void setEntity(String entity) {
+  public void setEntity(final String entity) {
     this.entity = entity;
   }
 

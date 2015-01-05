@@ -49,6 +49,9 @@ public class CatalogInputMessage implements PlatformInputMessage {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private List<CatalogComponent> components;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<SensorLocationElement> locations;
+
   public CatalogInputMessage() {
     super();
   }
@@ -105,5 +108,13 @@ public class CatalogInputMessage implements PlatformInputMessage {
 
   public Map<String, String> getParameters() {
     return parameters;
+  }
+
+  public List<SensorLocationElement> getLocations() {
+    return locations;
+  }
+
+  public void setLocations(final List<SensorLocationElement> locations) {
+    this.locations = locations;
   }
 }

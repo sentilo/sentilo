@@ -47,27 +47,27 @@ public class HandlerLocator {
    */
 
   public AbstractHandler lookup(final SentiloRequest request) {
-    String path = request.getPath();
+    final String path = request.getPath();
 
     // If path is /token1/token2/ ... /tokenN , there are two possibilities to handlerPath value
     // /token1/token2
     // or
     // /token1
     AbstractHandler handler = null;
-    String[] tokens = RequestUtils.splitPath(path);
+    final String[] tokens = RequestUtils.splitPath(path);
     if (!SentiloUtils.arrayIsEmpty(tokens)) {
-      Queue<String> handlerPathCandidates = new ArrayDeque<String>();
+      final Queue<String> handlerPathCandidates = new ArrayDeque<String>();
       if (tokens.length > 2) {
         handlerPathCandidates.add(RequestUtils.buildPath(tokens[1], tokens[2]));
       }
       handlerPathCandidates.add(RequestUtils.buildPath(tokens[1]));
 
       while (handlerPathCandidates.size() > 0) {
-        String handlerPath = handlerPathCandidates.poll();
+        final String handlerPath = handlerPathCandidates.poll();
         handler = handlers.get(handlerPath);
 
         if (handler != null) {
-          String resourcePath = RequestUtils.extractResource(path, handlerPath);
+          final String resourcePath = RequestUtils.extractResource(path, handlerPath);
           request.setPathParts(handlerPath, resourcePath);
           break;
         }

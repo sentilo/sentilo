@@ -39,16 +39,15 @@ import org.sentilo.web.catalog.domain.PlatformAdminInputMessage;
 import org.sentilo.web.catalog.domain.PlatformStatsMessage;
 import org.sentilo.web.catalog.parser.PlatformMessageParser;
 
-
 public class PlatformMessageParserTest {
 
-  private PlatformMessageParser parser = new PlatformMessageParser();
+  private final PlatformMessageParser parser = new PlatformMessageParser();
 
   @Test
   public void unmarshallEmptyStatsMessage() {
-    String message = "{\"events\":{},\"performance\":{}}";
-    PlatformStatsMessage stats = parser.unmarshallStatsMessage(message);
-    
+    final String message = "{\"events\":{},\"performance\":{}}";
+    final PlatformStatsMessage stats = parser.unmarshallStatsMessage(message);
+
     assertNotNull(stats.getEvents());
     assertNotNull(stats.getPerformance());
     assertNull(stats.getEvents().getAlarms());
@@ -63,13 +62,13 @@ public class PlatformMessageParserTest {
 
   @Test
   public void unmarshallStatsMessage() {
-    Long longValue = new Long(3);
-    Long totalValue = new Long(9);
-    String message =
+    final Long longValue = new Long(3);
+    final Long totalValue = new Long(9);
+    final String message =
         "{\"events\":{\"alarms\":\"3\",\"observations\":\"3\",\"orders\":\"3\",\"total\":\"9\"},"
             + "\"performance\":{\"dailyAvg\":\"23.4\",\"instantAvg\":\"3.4\", \"maxAvg\":\"323\"}}";
 
-    PlatformStatsMessage stats = parser.unmarshallStatsMessage(message);
+    final PlatformStatsMessage stats = parser.unmarshallStatsMessage(message);
 
     assertNotNull(stats.getEvents());
     assertNotNull(stats.getPerformance());
@@ -84,36 +83,37 @@ public class PlatformMessageParserTest {
 
   @Test
   public void marshallSensors() {
-    String jsonExpected = "{\"sensors\":[{\"sensor\":\"sensor1\",\"provider\":\"provider1\"},{\"sensor\":\"sensor2\",\"provider\":\"provider1\"}]}";
+    final String jsonExpected =
+        "{\"sensors\":[{\"sensor\":\"sensor1\",\"provider\":\"provider1\"},{\"sensor\":\"sensor2\",\"provider\":\"provider1\"}]}";
 
-    List<CatalogSensor> sensors = buildCatalogSensorList();
-    PlatformAdminInputMessage message = new PlatformAdminInputMessage();
+    final List<CatalogSensor> sensors = buildCatalogSensorList();
+    final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
     message.setSensors(sensors);
     assertEquals(jsonExpected, parser.marshall(message));
   }
 
   @Test
   public void marshallProviders() {
-    String jsonExpected = "{\"providers\":[{\"provider\":\"provider1\"}]}";
+    final String jsonExpected = "{\"providers\":[{\"provider\":\"provider1\"}]}";
 
-    List<CatalogProvider> providers = buildCatalogProviderList();
-    PlatformAdminInputMessage message = new PlatformAdminInputMessage();
+    final List<CatalogProvider> providers = buildCatalogProviderList();
+    final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
     message.setProviders(providers);
     assertEquals(jsonExpected, parser.marshall(message));
   }
 
   @Test
   public void marshallEmptyMessage() {
-    String jsonExpected = "{}";
-    PlatformAdminInputMessage message = new PlatformAdminInputMessage();
+    final String jsonExpected = "{}";
+    final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
 
     assertEquals(jsonExpected, parser.marshall(message));
   }
 
   private List<CatalogProvider> buildCatalogProviderList() {
-    List<CatalogProvider> providers = new ArrayList<CatalogProvider>();
+    final List<CatalogProvider> providers = new ArrayList<CatalogProvider>();
 
-    CatalogProvider provider = new CatalogProvider();
+    final CatalogProvider provider = new CatalogProvider();
     provider.setProvider("provider1");
 
     providers.add(provider);
@@ -122,13 +122,13 @@ public class PlatformMessageParserTest {
   }
 
   private List<CatalogSensor> buildCatalogSensorList() {
-    List<CatalogSensor> sensors = new ArrayList<CatalogSensor>();
+    final List<CatalogSensor> sensors = new ArrayList<CatalogSensor>();
 
-    CatalogSensor sensor1 = new CatalogSensor();
+    final CatalogSensor sensor1 = new CatalogSensor();
     sensor1.setProvider("provider1");
     sensor1.setSensor("sensor1");
 
-    CatalogSensor sensor2 = new CatalogSensor();
+    final CatalogSensor sensor2 = new CatalogSensor();
     sensor2.setProvider("provider1");
     sensor2.setSensor("sensor2");
 

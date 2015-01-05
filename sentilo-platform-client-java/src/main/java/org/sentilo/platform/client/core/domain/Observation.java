@@ -27,7 +27,6 @@ package org.sentilo.platform.client.core.domain;
 
 import java.util.Date;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.sentilo.common.utils.DateUtils;
 import org.springframework.util.StringUtils;
@@ -99,11 +98,6 @@ public class Observation {
     sb.append("\n\t location:").append(location);
 
     return sb.toString();
-  }
-
-  @JsonIgnore
-  public Long getTimestampToMillis() {
-    return DateUtils.toMillis(getTimestamp());
   }
 
   public String getValue() {

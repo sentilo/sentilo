@@ -36,13 +36,13 @@ public class SentiloShutdownHook extends Thread {
   private final Logger logger = LoggerFactory.getLogger(SentiloShutdownHook.class);
   private final String hookName;
 
-  public SentiloShutdownHook(String name) {
+  public SentiloShutdownHook(final String name) {
     super();
-    this.hookName = name;
+    hookName = name;
   }
 
   public String getHookName() {
-    return this.hookName;
+    return hookName;
   }
 
   @Override

@@ -41,10 +41,10 @@ public abstract class PublishMessageUtils {
   public static String buildContentToPublish(final AlarmInputMessage message, final Topic topic) {
     final Long timestamp = System.currentTimeMillis();
 
-    EventMessage event = new EventMessage();
-    // event.setProvider(message.getProviderId());
-    // event.setSensor(message.getSensorId());
+    final EventMessage event = new EventMessage();
     event.setAlert(message.getAlertId());
+    event.setProvider(message.getProviderId());
+    event.setSensor(message.getSensorId());
     event.setMessage(message.getMessage());
     event.setTimestamp(DateUtils.timestampToString(timestamp));
     event.setSender(message.getSender());
@@ -57,7 +57,7 @@ public abstract class PublishMessageUtils {
   public static String buildContentToPublish(final OrderInputMessage message, final Topic topic) {
     final Long timestamp = System.currentTimeMillis();
 
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setProvider(message.getProviderId());
     event.setSensor(message.getSensorId());
     event.setMessage(message.getOrder());
@@ -70,7 +70,7 @@ public abstract class PublishMessageUtils {
   }
 
   public static String buildContentToPublish(final Observation message, final Topic topic) {
-    EventMessage event = new EventMessage();
+    final EventMessage event = new EventMessage();
     event.setProvider(message.getProvider());
     event.setSensor(message.getSensor());
     event.setMessage(message.getValue());

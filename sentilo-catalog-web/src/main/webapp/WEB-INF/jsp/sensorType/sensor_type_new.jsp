@@ -4,10 +4,12 @@
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/sensortypes/${sensorType.id}/edit" var="actionURL" />
 	<spring:message code="sensortype.edit.title" var="pageTitle" />
+	<spring:url value="/admin/sensortypes/${sensorType.id}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/sensortypes/create" var="actionURL" />
 	<spring:message code="sensortype.new.title" var="pageTitle" />
+	<spring:url value="/admin/sensortypes/list?nameTableRecover=sensorTypeTable&fromBack=true" var="backURL" />
 </c:if>
 
 <div class="container-fluid">
@@ -65,8 +67,8 @@
 								</div>
 								<div class="control-group">
 									<div class="controls">
-										<spring:url value="/admin/sensortypes/list" var="backURL" />
-										<a href="${backURL}" class="btn"> <spring:message code="button.back" /> </a> <a href="#"
+										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+										<a href="#"
 											onclick="$('form#sensorType').submit();" class="btn btn-success"> <spring:message code="button.save" />
 										</a>
 									</div>

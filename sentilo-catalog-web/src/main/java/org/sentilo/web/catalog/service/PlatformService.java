@@ -28,5 +28,6 @@ package org.sentilo.web.catalog.service;
 import org.sentilo.web.catalog.domain.PlatformStatsMessage;
 
 public interface PlatformService {
+
   PlatformStatsMessage getCurrentPlatformStats();
 }

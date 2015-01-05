@@ -4,22 +4,25 @@
 
 <c:set var="componentId" scope="request" value="${component.id}" />
 
-<spring:url value="/component/${component.id}/edit" var="editComponentLink" />
 <spring:url value="/admin/sensor/list/json?componentId=${component.id}" var="sensorsAjaxSource" />
-<spring:url value="/component/${component.id}/removeSensors" var="deleteSensorsURL" />
 <spring:url value="/admin/sensor/lastOb/" var="lastSensorObservationAjaxPrefix" />
-
 <spring:url value="/admin/sensor/lastObs/" var="activityURLPrefix" />
-
 <spring:url value="/admin/sensor/lastOrders/" var="ordersURLPrefix" />
 <spring:url value="/admin/sensor/lastAlarms/" var="alarmsURLPrefix" />
+<spring:url value="/admin/component/list?nameTableRecover=componentTable&fromBack=true" var="backURL" />
 
 <c:set var="search" value="'" />
 <c:set var="replace" value="\\'" />
 
+<security:authorize access="isAuthenticated()">
+	<c:set var="showAllSensors" value="true" />	
+</security:authorize>
+<!--  Only filter private sensors if user is not logged in - showAllSensors: <c:out value="${showAllSensors}"/> -->
+
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
 <%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
 <%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp"%>
+
 
 
 <script type="text/javascript">
@@ -173,14 +176,16 @@ var selectSensor = function(sensor) {
 }
 
 $(document).ready(function() {
-	<c:if test="${component.staticComponent}">
-		initializeMap('${component.location.latitude}','${component.location.longitude}', '${component.name}', '${componentIcon}');
-	</c:if>
+	
+	var componentPath = '${component.location}';
+	
+	initializeMap('${component.location.centroid[1]}','${component.location.centroid[0]}', componentPath.split(','), '${componentIcon}');
+	
 	<c:if test="${not empty componentSensors}">
 		var firstSelPublicSensor=null;
 		<c:set var="alreadySet" value="${false}"/>
 		<c:forEach var="sensor" items="${componentSensors}">
-			<c:if test="${sensor.publicAccess && !alreadySet}">
+			<c:if test="${(showAllSensors or sensor.publicAccess) && !alreadySet}">
 				<c:set var="alreadySet" value="${true}"/>  
 				firstSelPublicSensor={
 					'id': '${sensor.id}',			
@@ -227,20 +232,18 @@ $(document).ready(function() {
 			</div>
 			<div class="row_fluid span9">
 				<div class="span6">
-					<strong><spring:message code="component.type" />: </strong> ${component.componentType} <br /> <strong><spring:message
-							code="component.createdAt" />: </strong>
-					<spring:eval expression="component.createdAt" />
+					<strong><spring:message code="component.createdAt" />: </strong> <spring:eval expression="component.createdAt" />
 				</div>
-				<div class="span6">
-					<strong><spring:message code="location.latitude" />: </strong> ${component.location.latitude} <br /> <strong><spring:message
-							code="location.longitude" />: </strong> ${component.location.longitude} <br /> <strong><spring:message
-							code="component.location" />: </strong>
-					<c:if test="${component.mobileComponent}">
-						<spring:message code="mobile" />
-					</c:if>
-					<c:if test="${not component.mobileComponent}">
-						<spring:message code="static" />
-					</c:if>
+				<div class="span6">										
+					<strong><spring:message code="component.location" />: </strong>
+					<c:choose>	
+						<c:when test="${component.mobileComponent}">
+							<spring:message code="mobile" />
+						</c:when> 
+						<c:otherwise>
+							<spring:message code="static" />
+						</c:otherwise>
+					</c:choose>																	
 				</div>
 			</div>
 		</div>

@@ -28,8 +28,20 @@ package org.sentilo.agent.alert.utils;
 public final class Constants {
 
   public static final String REDIS_CHANNEL_TOKEN = "/";
+  public static final String REDIS_MEMBER_TOKEN = ":";
   public static final String DATA = "data";
   public static final String ALARM = "alarm";
+
+  public static final String TEMPLATE_MESSAGE = "Alarm %s: value %s from the sensor %s verifies the restriction: %s";
+  public static final String TEMPLATE_NO_NUMBER_MESSAGE = "Alarm %s: value %s from the sensor %s must be a number";
+  public static final String TEMPLATE_GT_MESSAGE = "Greater than %s";
+  public static final String TEMPLATE_GTE_MESSAGE = "Greather than or equals to %s";
+  public static final String TEMPLATE_LT_MESSAGE = "Less than %s";
+  public static final String TEMPLATE_LTE_MESSAGE = "Less than or equals to %s";
+  public static final String TEMPLATE_EQ_MESSAGE = "Equals to %s";
+  public static final String TEMPLATE_CHANGE_MESSAGE = "Value has changed";
+  public static final String TEMPLATE_CHANGE_DELTA_MESSAGE = "Value variation is greater than %s percent";
+  public static final String TEMPLATE_FROZEN_ALARM = "Alert %s: sensor %s is frozen. It has not been updated for the last %s minute(s).";
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

@@ -50,7 +50,6 @@ import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.PermissionService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.SensorService;
-import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
 import org.sentilo.web.catalog.validator.ApiValidator;
 import org.slf4j.Logger;
@@ -121,17 +120,16 @@ public class ApiController {
     try {
       final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId);
 
-      // El registro de los sensores debe llevar a cabo dos cosas:
-      // 1. Alta de los componentes a los cuales estan asociados los sensores, en caso de que no
-      // existan
-      // 2. Alta de los sensores asociandolos a los componentes pertinentes.
+      // The sensors's register must follows the steps below:
+      // 1. To insert components, related to the sensors, that doesn't exists yet.
+      // 2. To insert sensors and associated everyone with the pertinent component.
       final List<Component> components = ApiConverter.buildComponentsFromCatalogComponents(context);
       final List<Sensor> sensors = ApiConverter.buildSensorsFromCatalogSensors(context);
 
       final ApiValidationResults validationResults = validator.validateSensorsAndComponents(sensors, components, false);
 
       if (validationResults.hasErrors()) {
-        String errorMessage = "Bad request data. Sensors have not been inserted. Please review the following errors";
+        final String errorMessage = "Bad request data. Sensors have not been inserted. Please review the following errors";
         logger.debug("Catalog API: sensors have not been inserted. Found {} errors after validate data. {}", validationResults.getErrorsCount(),
             validationResults.toString());
         return new CatalogResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, validationResults.getErrors());
@@ -141,9 +139,9 @@ public class ApiController {
         logger.debug("Catalog API: inserted {} components and {} sensors", components.size(), sensors.size());
       }
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error inserting data into database.", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
 
@@ -156,17 +154,17 @@ public class ApiController {
     logger.debug("Catalog API: update sensors or components");
     try {
       final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId, true);
-      // 1. Construimos la lista de componentes o sensores a actualizar.
+      // 1. Build the list of components or sensors to update
       final List<Component> components = ApiConverter.buildComponentsFromCatalogComponents(context);
       final List<Sensor> sensors = ApiConverter.buildSensorsFromCatalogSensors(context);
 
-      // 2. Validamos que los datos a persistir son correctos.
+      // 2. Validate that the data to save is valid
       final ApiValidationResults validationResults = validator.validateSensorsAndComponents(sensors, components, true);
 
-      // 3. En caso de errores de validacion, rechazamos los cambios e informamos del error. En caso
-      // contrario actualizamos.
+      // 3. If there are validation errors, reject the changes and notify the error. Otherwise, we
+      // do the update
       if (validationResults.hasErrors()) {
-        String errorMessage = "Bad request data. resources have not been updated. Please review the following errors";
+        final String errorMessage = "Bad request data. Resources have not been updated. Please review the following errors";
         logger.debug("Catalog API: resources have not been updated. Found {} errors after validate data. {}", validationResults.getErrorsCount(),
             validationResults.toString());
         return new CatalogResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, validationResults.getErrors());
@@ -177,9 +175,9 @@ public class ApiController {
       }
 
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error updating data into database. ", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
     return new CatalogResponseMessage();
@@ -192,20 +190,20 @@ public class ApiController {
     logger.debug("Catalog API: getting authorized sensors and providers for entity {} ", entityId);
     final List<AuthorizedProvider> authorizedProviders = new ArrayList<AuthorizedProvider>();
     try {
-      List<Permission> permissions = permissionService.getActivePermissions(entityId);
+      final List<Permission> permissions = permissionService.getActivePermissions(entityId);
 
       // For every permission object, we define a new AuthorizedProvider object with its list of
       // sensors.
       for (final Permission permission : permissions) {
-        List<CatalogSensor> catalogSensors = catalogSensorService.getSensorsByProvider(permission.getTarget(), parameters);
+        final List<CatalogSensor> catalogSensors = catalogSensorService.getSensorsByProvider(permission.getTarget(), parameters);
         if (!CollectionUtils.isEmpty(catalogSensors)) {
           authorizedProviders.add(new AuthorizedProvider(permission.getTarget(), permission.getType().toString(), catalogSensors));
         }
       }
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error searching authorized providers. ", internalErrorCode, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
 
@@ -219,23 +217,55 @@ public class ApiController {
       @PathVariable final String providerId) {
     logger.debug("Catalog API: deleting {} resources ", providerId);
     try {
-      if (message == null || (CatalogUtils.arrayIsEmpty(message.getSensorsIds()) && CatalogUtils.arrayIsEmpty(message.getComponentsIds()))) {
+      if (message == null || (SentiloUtils.arrayIsEmpty(message.getSensorsIds()) && SentiloUtils.arrayIsEmpty(message.getComponentsIds()))) {
         providerService.deleteChilds(new Provider(providerId));
         logger.debug("Catalog API: deleted all resources");
-      } else if (!CatalogUtils.arrayIsEmpty(message.getSensorsIds())) {
+      } else if (!SentiloUtils.arrayIsEmpty(message.getSensorsIds())) {
         sensorService.deleteSensors(message.getSensorsIds());
         logger.debug("Catalog API: deleted {} sensors", message.getSensorsIds().length);
-      } else if (!CatalogUtils.arrayIsEmpty(message.getComponentsIds())) {
+      } else if (!SentiloUtils.arrayIsEmpty(message.getComponentsIds())) {
         componentService.deleteComponents(message.getComponentsIds());
         logger.debug("Catalog API: deleted {} components", message.getComponentsIds().length);
       }
     } catch (final Exception ex) {
-      String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       logger.error("{} - Error deleting childs from provider {} . ", internalErrorCode, providerId, ex);
-      String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
 
     return new CatalogResponseMessage();
   }
+
+  @RequestMapping(value = "/location", method = RequestMethod.PUT)
+  @ResponseBody
+  public CatalogResponseMessage updateMobileComponentsLocation(@RequestBody final CatalogInputMessage message) {
+    logger.debug("Catalog API: updating mobile component locations");
+
+    // message contains a list with N CatalogSensorElement instances. This list is ordered by
+    // timestamp, and not contains duplicate objects.
+
+    try {
+      final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService);
+      final List<Component> components = ApiConverter.buildMobileComponentsFromSensorLocationElements(context);
+      logger.debug("Catalog API: build {} components that need update its locations ", components.size());
+      componentService.updateAll(components);
+    } catch (final Exception ex) {
+      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
+      logger.error("{} - Error updating location for sensors. ", internalErrorCode, ex);
+      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
+      return new CatalogResponseMessage(errorMessage);
+
+      // TODO Mikel: Pensar en retornar un mensaje que permita recuperarse del error o reintentar la
+      // llamada desde el lado servidor.
+      // Esta API sólo es invocada por el servidor PubSub, por lo que la respuesta no debe ser tan
+      // amigable y si contener
+      // la información necesaria para recuperarse del problema (por ejemplo, retornar ids de
+      // recursos problematicos, ... )
+    }
+
+    return new CatalogResponseMessage();
+
+  }
+
 }

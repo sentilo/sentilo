@@ -34,7 +34,7 @@ import org.sentilo.platform.client.core.domain.AlarmsOutputMessage;
 public class AlarmMessageConverter extends BaseJsonMessageConverter {
 
   public String marshall(final AlarmInputMessage message) throws MessageNotWritableException {
-    return writeInternalAndReturnString(message.getMessage());
+    return writeInternalAndReturnString(message);
   }
 
   public AlarmsOutputMessage unmarshall(final String message) throws MessageNotReadableException {

@@ -56,7 +56,9 @@ public class ThreadPool {
 
     queue = new WrapperBlockingQueue(queueSize);
 
-    threadPool = new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue, new NativeThreadFactory(new ThreadGroup(groupName), groupId));
+    threadPool =
+        new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue, new NativeThreadFactory(
+            new ThreadGroup(groupName), groupId));
     threadPool.prestartAllCoreThreads();
 
     threadPool.allowCoreThreadTimeOut(false);

@@ -7,8 +7,8 @@
 
 
 	<!-- Config para la parte de pubsub -->
-	<bean id="jedisPoolConfigPubSub" class="redis.clients.jedis.JedisPoolConfig" p:maxActive="${jedis.config.pubsub.maxactive}"
-		p:maxIdle="${jedis.config.pubsub.maxidle}" p:maxWait="${jedis.config.pubsub.maxwait}" p:testOnBorrow="true" />
+	<bean id="jedisPoolConfigPubSub" class="redis.clients.jedis.JedisPoolConfig" p:maxTotal="${jedis.config.pubsub.maxactive}"
+		p:maxIdle="${jedis.config.pubsub.maxidle}" p:maxWaitMillis="${jedis.config.pubsub.maxwait}" p:testOnBorrow="true" />
 
 	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
 		p:host-name="${jedis.pool.host}" p:port="${jedis.pool.port}" p:password="${jedis.pool.password}" p:timeout="${jedis.pool.timeout}"

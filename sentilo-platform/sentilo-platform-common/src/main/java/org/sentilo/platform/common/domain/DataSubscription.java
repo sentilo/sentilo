@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
 
 public class DataSubscription extends Subscription {
 
-  private String providerId;
+  private final String providerId;
   private String sensorId;
 
   public DataSubscription(final String entityId, final String endpoint, final String providerId) {

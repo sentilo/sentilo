@@ -49,7 +49,8 @@ public class CompoundKeyBuilderTest {
     final String token2 = "token2";
     final String token3 = "token3";
     final String compoundKey = CompoundKeyBuilder.buildCompoundKey(token1, token2, token3);
-    final String expectedValue = token1.concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(token2).concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(token3);
+    final String expectedValue =
+        token1.concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(token2).concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(token3);
 
     assertEquals(expectedValue, compoundKey);
   }

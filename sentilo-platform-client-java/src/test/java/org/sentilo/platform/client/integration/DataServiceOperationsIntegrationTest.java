@@ -123,7 +123,8 @@ public class DataServiceOperationsIntegrationTest {
 
   @Test
   public void _07_getEmptyLastObservationsFromSensorInPeriod() throws Exception {
-    final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() + 1000000), new Date(System.currentTimeMillis() + 2000000));
+    final QueryFilterParams filterParams =
+        new QueryFilterParams(new Date(System.currentTimeMillis() + 1000000), new Date(System.currentTimeMillis() + 2000000));
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR1, filterParams);
 
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
@@ -178,7 +179,8 @@ public class DataServiceOperationsIntegrationTest {
 
   @Test
   public void _12_getEmptyLastObservationsFromProviderInPeriod() throws Exception {
-    final QueryFilterParams filterParams = new QueryFilterParams(new Date(System.currentTimeMillis() + 1000000), new Date(System.currentTimeMillis() + 2000000));
+    final QueryFilterParams filterParams =
+        new QueryFilterParams(new Date(System.currentTimeMillis() + 1000000), new Date(System.currentTimeMillis() + 2000000));
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams);
 
     final ObservationsOutputMessage response = platformTemplate.getDataOps().getLastObservations(message);
@@ -234,14 +236,14 @@ public class DataServiceOperationsIntegrationTest {
     // posibles
     final QueryFilterParams filterParams = new QueryFilterParams(SentiloConstants.NUM_MAXIM_ELEMENTS);
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, filterParams); // El
-                                                                                    // NUM_MAXIM_OBSERVATIONS
-                                                                                    // simplemente
-                                                                                    // es para
-                                                                                    // indicar que
-                                                                                    // retorne todas
-                                                                                    // las
-                                                                                    // observaciones
-                                                                                    // posibles
+    // NUM_MAXIM_OBSERVATIONS
+    // simplemente
+    // es para
+    // indicar que
+    // retorne todas
+    // las
+    // observaciones
+    // posibles
 
     final int countBeforeRemove = countObservations(platformTemplate.getDataOps().getLastObservations(message).getSensors());
 

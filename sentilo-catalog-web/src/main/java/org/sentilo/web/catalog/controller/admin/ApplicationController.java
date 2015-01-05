@@ -26,6 +26,7 @@
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +40,6 @@ import org.sentilo.web.catalog.service.AlertService;
 import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -68,7 +68,7 @@ public class ApplicationController extends CrudController<Application> {
     row.add(application.getId());
     row.add(application.getName());
     row.add(application.getDescription());
-    row.add(FormatUtils.formatDate(application.getCreatedAt()));
+    row.add(getLocalDateFormat().printAsLocalTime(application.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
@@ -99,6 +99,14 @@ public class ApplicationController extends CrudController<Application> {
     return Constants.MODEL_APPLICATION;
   }
 
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "application");
+  }
+
   private void throwExceptionIfAlarmFound(final String[] selectedIds) {
     for (final String applicationId : selectedIds) {
       final SearchFilter filter = new SearchFilter();
@@ -110,4 +118,5 @@ public class ApplicationController extends CrudController<Application> {
       }
     }
   }
+
 }

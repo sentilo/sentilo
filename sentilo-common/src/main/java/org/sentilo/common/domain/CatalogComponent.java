@@ -25,6 +25,8 @@
  */
 package org.sentilo.common.domain;
 
+import java.util.Map;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class CatalogComponent implements CatalogElement {
@@ -38,6 +40,10 @@ public class CatalogComponent implements CatalogElement {
   private String componentDesc;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private Boolean componentPublicAccess;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Map<String, String> componentAdditionalInfo;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private TechnicalDetails componentTechnicalDetails;
 
   public CatalogComponent() {
     super();
@@ -81,5 +87,21 @@ public class CatalogComponent implements CatalogElement {
 
   public Boolean getComponentPublicAccess() {
     return componentPublicAccess;
+  }
+
+  public Map<String, String> getComponentAdditionalInfo() {
+    return componentAdditionalInfo;
+  }
+
+  public void setComponentAdditionalInfo(final Map<String, String> componentAdditionalInfo) {
+    this.componentAdditionalInfo = componentAdditionalInfo;
+  }
+
+  public TechnicalDetails getComponentTechnicalDetails() {
+    return componentTechnicalDetails;
+  }
+
+  public void setComponentTechnicalDetails(final TechnicalDetails componentTechnicalDetails) {
+    this.componentTechnicalDetails = componentTechnicalDetails;
   }
 }

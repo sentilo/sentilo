@@ -6,19 +6,20 @@
 </c:if>
 
 <c:if test="${mode == 'create' || empty componentType.icon}">
-	<c:set value="6" var="defaultSelectedIcon" />
+	<c:set value="pins6" var="defaultSelectedIcon" />
 </c:if>
 
-<spring:url value="/static/img" var="iconPrefix" />
+<spring:url value="/static/img/icons" var="iconsPath" />
 
 <script>
 var selectComponentTypeIcon = function(which) {
-	$('#selectedIconImage').attr('src', '${iconPrefix}/pins' + which + ".png");
-	$('#selectedIcon').val(which);
+	var nameWithoutExtension = which.replace('.png','');
+	$('#selectedIconImage').attr('src', '${iconsPath}/' + which);
+	$('#selectedIcon').val(nameWithoutExtension);
 }
 
 $(document).ready(function() {
-	selectComponentTypeIcon(${defaultSelectedIcon});
+	selectComponentTypeIcon('${defaultSelectedIcon}.png');
 });
 </script>
 
@@ -29,14 +30,13 @@ $(document).ready(function() {
 	<div class="controls">
 		<form:hidden path="icon" id="selectedIcon" />
 		<div class="btn-group connecta-icon-group">
-			<a href="#" data-toggle="dropdown" class="btn dropdown-toggle"> &nbsp;&nbsp;&nbsp;<img
-				src="${iconPrefix}/pins1.png" id="selectedIconImage"> <span class="caret"></span> </a>
+			<a href="#" data-toggle="dropdown" class="btn dropdown-toggle"> &nbsp;&nbsp;&nbsp;
+				<img src="${iconsPath}/pins1.png" id="selectedIconImage"> <span class="caret"></span> 
+			</a>
 			<ul class="dropdown-menu connecta-icon-dropdown-menu">
-				<li><a href="#" onclick="selectComponentTypeIcon(1);"><img src="${iconPrefix}/pins1.png"> </a></li>
-				<li><a href="#" onclick="selectComponentTypeIcon(2);"><img src="${iconPrefix}/pins2.png"> </a></li>
-				<li><a href="#" onclick="selectComponentTypeIcon(3);"><img src="${iconPrefix}/pins3.png"> </a></li>
-				<li><a href="#" onclick="selectComponentTypeIcon(4);"><img src="${iconPrefix}/pins4.png"> </a></li>
-				<li><a href="#" onclick="selectComponentTypeIcon(5);"><img src="${iconPrefix}/pins5.png"> </a></li>
+			   <c:forEach items="${componentTypeIcons}" var="element"> 
+			   	<li><a href="#" onclick="selectComponentTypeIcon('${element}');"><img src="${iconsPath}/${element}"> </a></li>
+			   </c:forEach>				
 			</ul>
 		</div>
 	</div>

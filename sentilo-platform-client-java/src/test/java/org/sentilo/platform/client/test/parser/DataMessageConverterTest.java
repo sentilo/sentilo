@@ -62,7 +62,8 @@ public class DataMessageConverterTest {
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR_ID);
     message.setSensorObservations(buildSensorObservations());
     final String json = converter.marshall(message);
-    final String expected = "{\"observations\":[{\"value\":\"23\",\"timestamp\":\"20/02/2013T16:57:17\"},{\"value\":\"28.4\",\"timestamp\":\"20/02/2013T16:55:37\"}],\"location\":\"35.7 56.4\"}";
+    final String expected =
+        "{\"observations\":[{\"value\":\"23\",\"timestamp\":\"20/02/2013T16:57:17\"},{\"value\":\"28.4\",\"timestamp\":\"20/02/2013T16:55:37\"}],\"location\":\"35.7 56.4\"}";
     assertNotNull(json);
     assertEquals(expected, json);
   }
@@ -72,7 +73,8 @@ public class DataMessageConverterTest {
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR_ID);
     message.setProviderObservations(buildProviderObservations());
     final String json = converter.marshall(message);
-    final String expected = "{\"sensors\":[{\"observations\":[{\"value\":\"23\",\"timestamp\":\"20/02/2013T16:57:17\"},{\"value\":\"28.4\",\"timestamp\":\"20/02/2013T16:55:37\"}],\"location\":\"35.7 56.4\",\"sensor\":\"sensor1\"}]}";
+    final String expected =
+        "{\"sensors\":[{\"observations\":[{\"value\":\"23\",\"timestamp\":\"20/02/2013T16:57:17\"},{\"value\":\"28.4\",\"timestamp\":\"20/02/2013T16:55:37\"}],\"location\":\"35.7 56.4\",\"sensor\":\"sensor1\"}]}";
     assertNotNull(json);
     System.out.println(json);
     assertEquals(expected, json);

@@ -12,7 +12,14 @@
 			class="accordion-body collapse <c:if test="${alternative ne 'true' or not empty testPage}">in</c:if>">
 			<div class="accordion-inner paddind">
 				<div id="foto">
-					<img src="../../static/img/NoPhotoFull.jpg">
+					<c:choose>
+						<c:when test="${ not empty component.photoUrl}">
+							<img src="${component.photoUrl}">
+						</c:when>
+						<c:otherwise>
+							<img src="../../static/img/NoPhotoFull.jpg">
+						</c:otherwise>
+					</c:choose>
 				</div>
 			</div>
 		</div>

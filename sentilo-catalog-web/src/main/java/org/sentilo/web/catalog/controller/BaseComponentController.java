@@ -26,13 +26,14 @@
 package org.sentilo.web.catalog.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
+import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.ComponentTypesService;
@@ -42,6 +43,7 @@ import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -60,6 +62,9 @@ public abstract class BaseComponentController extends CrudController<Component> 
   @Autowired
   private SensorService sensorService;
 
+  @Autowired
+  private LocalDateFormatter localDateFormat;
+
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
     return Constants.MENU_COMPONENT;
@@ -73,11 +78,13 @@ public abstract class BaseComponentController extends CrudController<Component> 
     row.add(component.getDescription());
     row.add(component.getProviderId());
     if (component.isMobileComponent()) {
-      row.add(FormatUtils.label(getMessageSource().getMessage("mobile", null, Locale.getDefault())));
+      row.add(FormatUtils.label(getMessageSource().getMessage("mobile", null, LocaleContextHolder.getLocale())));
     } else {
-      row.add(FormatUtils.label(getMessageSource().getMessage("static", null, Locale.getDefault())));
+      row.add(FormatUtils.label(getMessageSource().getMessage("static", null, LocaleContextHolder.getLocale())));
     }
-    row.add(FormatUtils.formatDate(component.getCreatedAt()));
+    row.add(FormatUtils.label(component.getComponentType()));
+    row.add(String.valueOf(component.getPublicAccess()));
+    row.add(localDateFormat.printAsLocalTime(component.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
@@ -98,7 +105,13 @@ public abstract class BaseComponentController extends CrudController<Component> 
 
   @Override
   protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
+    final String providerId = request.getParameter("providerId");
     final String parentId = request.getParameter("parentId");
+
+    if (StringUtils.hasText(providerId)) {
+      filter.addAndParam("providerId", providerId);
+    }
+
     if (StringUtils.hasText(parentId)) {
       filter.addAndParam("parentId", parentId);
     }
@@ -107,6 +120,12 @@ public abstract class BaseComponentController extends CrudController<Component> 
   @Override
   protected void doBeforeViewResource(final String componentId, final Model model) {
     addComponentIconTo(model, componentId);
+  }
+
+  @Override
+  protected void initViewNames() {
+    // TODO Auto-generated method stub
+
   }
 
   /**
@@ -123,6 +142,16 @@ public abstract class BaseComponentController extends CrudController<Component> 
         model.addAttribute(Constants.MODEL_COMPONENT_ICON, type.getIcon());
       }
     }
+  }
+
+  @Override
+  protected void doBeforeExcelBuilder(final Model model) {
+    final String[] listColumnNames =
+        {Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.PROVIDER_ID_PROP, Constants.LOCATION_PROP, Constants.TYPE_PROP,
+            Constants.PUBLIC_ACCESS_PROP, Constants.CREATED_AT_PROP};
+
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "component");
   }
 
   protected ComponentService getComponentService() {

@@ -2,17 +2,22 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
+<c:set var="providerTable" value="providerTable"/>
+
 <spring:url value="/admin/provider/new" var="newProviderLink" />
 <spring:url value="/admin/provider/" var="detailPrefix" />
 <spring:url value="/admin/provider/delete" var="deleteURL" />
-
+<spring:url value="/admin/provider/list/excel?tableName=${providerTable}" var="excelSource" />
 <spring:url value="/admin/provider/list/json" var="sAjaxSource" />
+
+
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
 <script type="text/javascript">
 $(document).ready(function() {	
-	makeTableAsync('${sAjaxSource}', '#providerTable', '${detailPrefix}');
+	
+	var tableProvider =	makeTableAsync('${providerTable}', '${sAjaxSource}');
+	
 });
 </script>
 
@@ -40,7 +45,7 @@ $(document).ready(function() {
 						<form:form method="post" onkeypress="return preventEnterSubmit(event);" modelAttribute="providers"
 							action="${deleteURL}">
 
-							<table class="table table-striped" id="providerTable">
+							<table class="table table-striped" id="${providerTable}">
 								<thead>
 									<tr>
 										<td>&nbsp;
@@ -54,13 +59,18 @@ $(document).ready(function() {
 								<tbody />
 							</table>
 							<br />
+							<div class="control-group pull-left" id="excel_${providerTable}">
+								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
+									<spring:message code="button.excel" /> 
+								</a>
+							</div>
+							
 							<div class="control-group pull-right">
 								<a href="#" onclick="deleteSelected('providers','${deleteProviderConfirmMessage}');" class="btn btn-danger">
 									<spring:message code="provider.delete.title" /> </a> <a href="#"
 									onclick="window.location.href='${newProviderLink}';" class="btn"> <spring:message code="provider.new.title" />
 								</a>
 							</div>
-
 						</form:form>
 					</div>
 				</div>

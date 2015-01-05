@@ -28,6 +28,8 @@ package org.sentilo.web.catalog.service;
 import java.util.Collection;
 
 import org.sentilo.web.catalog.domain.Component;
+import org.sentilo.web.catalog.search.SearchFilter;
+import org.sentilo.web.catalog.search.SearchFilterResult;
 
 public interface ComponentService extends CrudService<Component> {
 
@@ -36,4 +38,8 @@ public interface ComponentService extends CrudService<Component> {
   void deleteComponents(String[] componentsIds);
 
   Component findByName(String providerId, String component);
+
+  SearchFilterResult<Component> geoSpatialSearch(SearchFilter filter);
+
+  void changeAccessType(String[] componentsIds, boolean isPublicAccess);
 }

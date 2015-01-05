@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.SubscribeType;
@@ -66,15 +67,12 @@ public class SubscribeServiceImplTest {
   private AlarmSubscription alarmSubscription;
   @Mock
   private OrderSubscription orderSubscription;
-
+  @InjectMocks
   private SubscribeServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    service = new SubscribeServiceImpl();
-    service.setJedisTemplate(jedisTemplate);
-    service.setListenerContainer(listenerContainer);
   }
 
   @Test
@@ -180,7 +178,7 @@ public class SubscribeServiceImplTest {
 
     verify(jedisTemplate).hGetAll(key);
     assertTrue(subscriptions.size() == buildSubscriptions().size());
-    for (Subscription subscription : subscriptions) {
+    for (final Subscription subscription : subscriptions) {
       assertNull(subscription.getSecretCallbackKey());
     }
 

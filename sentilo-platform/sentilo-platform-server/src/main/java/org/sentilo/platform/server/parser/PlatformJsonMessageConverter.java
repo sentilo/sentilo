@@ -68,6 +68,13 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     }
   }
 
+  /**
+   * Normalize to UTC input timestamps.
+   * 
+   * @param timestamp
+   * @return
+   * @throws JsonConverterException
+   */
   protected Long parseTimestamp(final String timestamp) throws JsonConverterException {
     try {
       return DateUtils.parseTimestamp(timestamp);
@@ -92,29 +99,29 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     }
   }
 
-  protected JsonConverterException buildJsonFieldError(String type, String value, Throwable cause) {
-    String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
+  protected JsonConverterException buildJsonFieldError(final String type, final String value, final Throwable cause) {
+    final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
     getLogger().error("{} - Error unmarshalling JSON payload. Wrong {} value: {}.", internalErrorCode, type, value, cause);
-    String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
-    List<String> errorDetails = new ArrayList<String>();
+    final String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
+    final List<String> errorDetails = new ArrayList<String>();
     errorDetails.add(String.format(UNMARSHAL_JSON_FIELD_ERROR_TEMPLATE, type, value));
 
     return new JsonConverterException(errorMessage, errorDetails);
   }
 
-  protected JsonConverterException buildMarshalJsonException(Object obj, Throwable cause) {
-    String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_MARSHAL_ERROR);
+  protected JsonConverterException buildMarshalJsonException(final Object obj, final Throwable cause) {
+    final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_MARSHAL_ERROR);
     getLogger().error("{} - Error marshalling object of type {} to JSON.", internalErrorCode, obj.getClass().getName(), cause);
 
-    String errorMessage = String.format(MARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
+    final String errorMessage = String.format(MARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
     return new JsonConverterException(errorMessage);
   }
 
   protected JsonConverterException buildUnmarshallJsonException(final Class<?> clazz, final Throwable cause) {
-    String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
+    final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.JSON_UNMARSHAL_ERROR);
     getLogger().error("{} - Error unmarshalling JSON payload to class {}.", internalErrorCode, clazz.getName(), cause);
 
-    String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
+    final String errorMessage = String.format(UNMARSHAL_JSON_ERROR_TEMPLATE, internalErrorCode);
     return new JsonConverterException(errorMessage, cause);
   }
 

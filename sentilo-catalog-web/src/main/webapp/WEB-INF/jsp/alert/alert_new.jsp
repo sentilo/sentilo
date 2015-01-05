@@ -5,17 +5,19 @@
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/alert/${alert.id}/edit" var="actionURL" />
 	<spring:message code="alert.edit.title" var="pageTitle" />
+	<spring:url value="/admin/alert/${alert.id}/detail" var="backURL" />
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/alert/create" var="actionURL" />
 	<spring:message code="alert.new.title" var="pageTitle" />
+	<spring:url value="/admin/alert/list?nameTableRecover=alertTable&fromBack=true" var="backURL" />
 </c:if>
 
 <c:set var="editMode" value="${mode == 'edit' }" />
 
 <spring:url value="/admin/sensor/search/json" var="sensorSearchURL" />
 <spring:url value="/admin/component/search/json" var="componentSearchURL" />
-<spring:url value="/admin/alert/list" var="backURL" />
+
 
 
 <spring:message code="alert.sensorId.instructions" var="sensorIdPlaceholder" javaScriptEscape="false" htmlEscape="false" />
@@ -336,9 +338,7 @@ $(document).ready(function() {
 
 							<div class="control-group">
 								<div class="controls">
-									<a href="${backURL}" class="btn"> 
-										<spring:message code="button.back" /> 
-									</a> 
+									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%> 
 									<a href="#" onclick="$('form#alert').submit();" class="btn btn-primary"> 
 										<spring:message code="button.save" /> 
 									</a>
