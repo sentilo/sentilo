@@ -56,7 +56,7 @@ $(document).ready(function() {
 		<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
 		<br /> <br />
 		<div class="pull-right">			
-			<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> Close</a>
+			<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> <spring:message code="component.map.component.details.hide" /></a>
 		</div>
 		<br />
 		<div class="">
