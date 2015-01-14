@@ -27,7 +27,7 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.sentilo.common.alert.server.SentiloAgentServer</mainClass>	
+							<mainClass>org.sentilo.agent.common.server.SentiloAgentServer</mainClass>	
 							<commandLineArguments>				            
 				              <commandLineArgument>alert-context.xml</commandLineArgument>
 				            </commandLineArguments>						
