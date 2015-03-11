@@ -20,19 +20,27 @@ var tempMarker = new google.maps.Marker();
 var highlightIcon = {
   url: "https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_yellow.png",
   size: new google.maps.Size(12,20),
-  origin: new google.maps.Size(6,20)
+  origin: new google.maps.Point(0,0)
 };
 
 var tempIcon = {
   url: "https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_green.png",
   size: new google.maps.Size(12,20),
-  origin: new google.maps.Size(6,20)
+  origin: new google.maps.Point(0,0)
 };
 
 var locationIcon = {
   url: "https://maps.gstatic.com/mapfiles/ridefinder-images/mm_20_blue.png",
   size: new google.maps.Size(12,20),
-  origin: new google.maps.Size(6,20)
+  origin: new google.maps.Point(0,0)
+};
+
+google.maps.Polyline.prototype.getBounds = function() {
+    var bounds = new google.maps.LatLngBounds();
+    this.getPath().forEach(function(e) {
+      bounds.extend(e);
+    });
+    return bounds;
 };
 
 function updateAddressAndPosition() {	
@@ -45,40 +53,40 @@ function updateAddressAndPosition() {
 	}
 }
 
-function toggleMobile(value) {
+function toggleMobile(value) {	
+	$('#mobile').val(value);
+};
+
+
+function initLocationControls() {	
 	var lat = $('#txtlatitude');
 	var lon = $('#txtlongitude');
 	var locaddr = $('#locationaddress');
 	var mapCanvas = $('#input_location_map_canvas');
 	var mapControls = $('#map_controls');
+	var mobile = $('#mobile');
 	
+	if (mobile.val() == '0' || mobile.val() == 'false') {
+		$('#btnStatic').addClass('active');
+		toggleMobile(0);
+	} else {
+		$('#btnMobile').addClass('active');
+		toggleMobile(1);
+	}
+			
 	mapCanvas.show();
 	mapControls.show();
 	initializeInputLocationMap();	
 		
 	lat.focusout(updateAddressAndPosition);
-	lon.focusout(updateAddressAndPosition);
-
-	$('#mobile').val(value);
+	lon.focusout(updateAddressAndPosition);	
 };
 
-function initializeMobileControls() {
-	var mobile = $('#mobile');
-	if (mobile.val() == '0' || mobile.val() == 'false') {
-		$('#btnStatic').addClass('active');
-		toggleMobile(0);
-		updateAddressAndPosition();
-	} else {
-		$('#btnMobile').addClass('active');
-		toggleMobile(1);
-	}
-};
-
-function initializeLocation(){		
+function initComponentLocation(){		
 	<c:if test="${mode == 'edit' && fn:length(component.location.coordinates) eq 1}">
 	 	$('#txtlatitude').val(${component.location.centroid[1]});
 	 	$('#txtlongitude').val(${component.location.centroid[0]});
-	 //updateAddressAndPosition();
+	    updateAddressAndPosition();
 	</c:if>
 	
 	<c:if test="${mode == 'edit' && fn:length(component.location.coordinates) ge 1}">
@@ -104,8 +112,8 @@ function addLocationToList(lat, lng) {
   locations.push(newLocation);      	
  }
  
-// Diplay component path on Map and initialize custom map events like click, dbclick, drag, ..
-function initializeComponentMapElements() {          
+// Initialize custom map events like click, dbclick, drag, ..
+function initMapElements() {          
   tempMarker.setOptions({icon: tempIcon, draggable: true});    
   google.maps.event.addListener(map, "click", showTempMarker);   
   displayPath = new google.maps.Polyline({
@@ -139,13 +147,18 @@ function updateLocationFieldsFromTempMarkerPosition(){
 	geocodeAddress(location);
 }
 
-//Add a location to the location list.
+
+/**
+ * Adds a new location into the map. Gets the location coordinates from the values filled in the input fields txtlatitude and txtlongitude
+ * @param lat Latitude 
+ * @param lng Longitude
+ */
 function addLocationFromInput() {
   var lat = $('#txtlatitude').val();
   var pLat = parseFloat(lat);
 
   if (pLat.toString() != lat || pLat < -90 || pLat > 90) {
-    alert('Invalid latitude entered. Must be in range of -90 to 90');
+    alert("<spring:message code='location.error.latitude' javaScriptEscape='true' htmlEscape='false'/>");
     return;
   }  
 
@@ -153,13 +166,18 @@ function addLocationFromInput() {
   var pLong = parseFloat(lng);
 
   if (pLong.toString() != lng || pLong < -180 || pLong > 180) {
-    alert('Invalid longitude entered. Must be in range of -180 to 180');
+	  alert("<spring:message code='location.error.longitude' javaScriptEscape='true' htmlEscape='false'/>");
     return;
   }    
 
   addLocation(lat, lng);
 }
 
+/**
+ * Adds a new location into the map. Gets two params (lat, lng) with the location coordinates
+ * @param lat Latitude 
+ * @param lng Longitude
+ */
 function addLocation(lat, lng) {
     var newLocation = new google.maps.LatLng(lat, lng);
     markers.push(createLocationMarker(newLocation));
@@ -168,6 +186,10 @@ function addLocation(lat, lng) {
     displayPath.setPath(latlngs);        
  }
  
+/**
+ * Adds a new marker on the map associated with the position given by param
+ * @param location Initial position where marker must be located
+ */
 function createLocationMarker(location) {
     if (tempMarker) {
       tempMarker.setMap(null);
@@ -210,7 +232,9 @@ function createLocationMarker(location) {
     return locationMarker;
 }
 
-//Returns the index of the marker in the polyline.
+/**
+ * Returns the index of the marker in the polyline. 
+ */
 function findMarkerIndex(locationMarker) {
   var index = -1;
 
@@ -224,7 +248,9 @@ function findMarkerIndex(locationMarker) {
   return index;
 }
 
-// Highlights the location specified by index in both the map and the location list.
+/**
+* Highlights the location specified by index in both the map and the location list.
+*/
 function highlight(index) {
   if (selectedMarker == null) {
     selectedMarker = markers[index];
@@ -243,7 +269,9 @@ function highlight(index) {
   }
 }
 
-//Delete a location
+/**
+ * Removes the selected location from the location list
+ */
 function deleteLocation() {
   if (locations.length > 0) {
     var locationToRemove = document.getElementById('locations').selectedIndex;
@@ -271,10 +299,11 @@ function deleteLocation() {
   }
 }
 
-//Delete *all* the locations from the polyline, with confirmation dialog before
-// deletion.
+/**
+ * Clear the location list
+ */
 function deleteAllLocations() {
-  var deleteConfirm = confirm("Are you sure you want to remove all the locations from this component?");
+  var deleteConfirm = confirm("<spring:message code='location.button.delete.all.confirm' javaScriptEscape='true' htmlEscape='false'/>");
 
   if (deleteConfirm) {
 	  document.getElementById('locations').options.length = 0;
@@ -289,36 +318,30 @@ function deleteAllLocations() {
   }
 }
 
-google.maps.Polyline.prototype.getBounds = function() {
-    var bounds = new google.maps.LatLngBounds();
-    this.getPath().forEach(function(e) {
-      bounds.extend(e);
-    });
-    return bounds;
-};
-
-  
-
- // Move the map to the selected location in the location list.
- function jumpToLocation() {
+/** 
+ * Move the map to the selected location in the location list.
+ */
+function jumpToLocation() {
    var locationList = document.getElementById('locations');
    if (locationList.selectedIndex >= 0) {
      var location = locations[locationList.selectedIndex];
      map.setCenter(new google.maps.LatLng(location.Latitude, location.Longitude));
    }
  }
+ 
+ 
+ 
 
 $(document).ready(function() {			
-	initializeMobileControls();		
-	initializeComponentMapElements();		
-	initializeLocation();	
+	initLocationControls();		
+	initMapElements();		
+	initComponentLocation();	
 	
 	$('form#component').submit(function( event ) {
 		// Before submit content form, update location hidden field with the new coordinates of the component		  
 		$('#location').val(displayPath.getPath().getArray().toString());
 		return;
-	});
-	
+	});	
 });
 </script>
 
@@ -337,12 +360,10 @@ $(document).ready(function() {
 </div>
 
 <!--  Coordinates list block  -->
-<!--  location list se debe rellenar con el contenido de component.location.coordinates -->
-
 <div class="control-group">
 	<label for="locationaddress" class="control-label"> <spring:message code="location.address" /> </label>
 	<div class="controls">
-		<input type="text" id="locationaddress" />
+		<input type="text" id="locationaddress"/>
 	</div>
 </div>
 
@@ -362,19 +383,21 @@ $(document).ready(function() {
 
 <div class="control-group">		
 	<div class="controls">
-		<input type="button" value="Add Location" class="btn" onclick="addLocationFromInput()"/>
+		<input type="button" value="<spring:message code="location.button.addLocation"/>" class="btn" onclick="addLocationFromInput()"/>
 	</div>	
 </div>
 
  <div class="control-group">
-    <label for="locations" class="control-label"> Locations list </label>
+    <label for="locations" class="control-label"> <spring:message code="location.locations.list"/></label>
     <div class="controls">
     	<form:hidden path="location" />
     	<select id="locations" size="4" class="input-large" style="width:310px" onchange="highlight(this.selectedIndex)" ondblclick="jumpToLocation()"></select>
     </div>
+ </div>
+ <div class="control-group">
     <div class="controls">
-    	<input type="button" value="Delete Selected Location" class="btn" onclick="deleteLocation()"/>
-      	<input type="button" value="Delete All Locations" class="btn" onclick="deleteAllLocations()"/>
+    	<input type="button" value="<spring:message code="location.button.delete"/>" class="btn" onclick="deleteLocation()"/>
+      	<input type="button" value="<spring:message code="location.button.delete.all"/>" class="btn" onclick="deleteAllLocations()"/>
     </div>        
 </div>
 
