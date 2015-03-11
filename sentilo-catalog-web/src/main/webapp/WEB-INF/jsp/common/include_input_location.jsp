@@ -157,7 +157,7 @@ function addLocationFromInput() {
   var lat = $('#txtlatitude').val();
   var pLat = parseFloat(lat);
 
-  if (pLat.toString() != lat || pLat < -90 || pLat > 90) {
+  if (!$.isNumeric(lat) || pLat < -90 || pLat > 90) {
     alert("<spring:message code='location.error.latitude' javaScriptEscape='true' htmlEscape='false'/>");
     return;
   }  
@@ -165,7 +165,7 @@ function addLocationFromInput() {
   var lng = $('#txtlongitude').val();
   var pLong = parseFloat(lng);
 
-  if (pLong.toString() != lng || pLong < -180 || pLong > 180) {
+  if (!$.isNumeric(lng) || pLong < -180 || pLong > 180) {
 	  alert("<spring:message code='location.error.longitude' javaScriptEscape='true' htmlEscape='false'/>");
     return;
   }    
