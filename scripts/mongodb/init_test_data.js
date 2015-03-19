@@ -19,10 +19,10 @@ db.permission.insert({ "_id" : "testApp@testApp", "_class" : "org.sentilo.web.ca
 
 // Insert component types
 print("Load component types");
-db.componentType.insert({ "_id" : "generic", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Generic", "description" : "Generic component type", "icon" : "1", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
-db.componentType.insert({ "_id" : "electricity_meter", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Electricity meter", "icon" : "1", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
-db.componentType.insert({ "_id" : "noise", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Noise meter", "icon" : "2", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
-db.componentType.insert({ "_id" : "meteo", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Meteo", "icon" : "4", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
+db.componentType.insert({ "_id" : "generic", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Generic", "description" : "Generic component type", "icon" : "pins1", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
+db.componentType.insert({ "_id" : "electricity_meter", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Electricity meter", "icon" : "pins2", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
+db.componentType.insert({ "_id" : "noise", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Noise meter", "icon" : "pins3", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
+db.componentType.insert({ "_id" : "meteo", "_class" : "org.sentilo.web.catalog.domain.ComponentType", "name" : "Meteo", "icon" : "pins4", "createdAt" : ISODate("2013-11-08T10:28:01.226Z") });
 
 // Insert sensor types
 print("Load sensor types");
