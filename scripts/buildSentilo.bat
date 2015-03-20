@@ -56,7 +56,17 @@ call %COMMAND%
 if not "%ERRORLEVEL%" == "0" goto error
 
 cd %CURRENT_DIR%/../sentilo-agent-relational
-echo ... and finally sentilo-agent-relational
+echo Now sentilo-agent-relational
+echo.
+echo Press enter when ready.
+
+pause
+
+call %COMMAND%
+if not "%ERRORLEVEL%" == "0" goto error
+
+cd %CURRENT_DIR%/../sentilo-agent-location-updater
+echo ... and finally sentilo-agent-location-updater
 echo.
 echo Press enter when ready.
 

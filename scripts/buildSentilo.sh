@@ -72,9 +72,9 @@ if [ "$ERROR_LEVEL" == "1" ]; then error; fi
 cd $CURRENT_DIR/../sentilo-platform/sentilo-platform-server
 COMMAND="mvn package appassembler:assemble -P dev"
 echo ""
-echo "=================================================="
-echo "Step 2.1: Generate scripts for start java processes "
-echo "=================================================="
+echo "==========================================================="
+echo "Step 2.1: Generate script for start Sentilo PubSub server  "
+echo "==========================================================="
 echo "This command will compile and build platform code via Maven:"
 echo "$COMMAND"
 echo ""
@@ -90,9 +90,9 @@ if [ "$ERROR_LEVEL" == "1" ]; then error; fi
 
 cd $CURRENT_DIR/../sentilo-agent-alert;
 echo ""
-echo "=================================================="
-echo "Step 2.2: Generate scripts to start java processes "
-echo "=================================================="
+echo "========================================================="
+echo "Step 2.2: Generate script to start Sentilo Alert agent   "
+echo "========================================================="
 echo "This command will compile and build platform code via Maven:"
 echo "$COMMAND"
 echo ""
@@ -108,9 +108,9 @@ if [ "$ERROR_LEVEL" == "1" ]; then error; fi
 
 cd "$CURRENT_DIR/../sentilo-agent-relational"
 echo ""
-echo "=================================================="
-echo "Step 2.3: Generate scripts to start java processes "
-echo "=================================================="
+echo "============================================================="
+echo "Step 2.3: Generate script to start Sentilo Relational agent  "
+echo "============================================================="
 echo "This command will compile and build platform code via Maven:"
 echo "$COMMAND"
 echo ""
@@ -123,6 +123,25 @@ read
 eval ${COMMAND}
 ERROR_LEVEL=$?
 if [ "$ERROR_LEVEL" == "1" ]; then error; fi
+
+cd $CURRENT_DIR/../sentilo-agent-location-updater;
+echo ""
+echo "==================================================================="
+echo "Step 2.4: Generate scripts to start Sentilo Location Updater agent "
+echo "==================================================================="
+echo "This command will compile and build platform code via Maven:"
+echo "$COMMAND"
+echo ""
+echo "for ====== sentilo-agent-location-updater ======"
+echo ""
+echo "Press enter when ready."
+
+read
+
+eval ${COMMAND}
+ERROR_LEVEL=$?
+if [ "$ERROR_LEVEL" == "1" ]; then error; fi
+
 
 cd $CURRENT_DIR;
 echo ""
