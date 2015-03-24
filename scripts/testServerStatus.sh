@@ -1,15 +1,15 @@
 #!/bin/bash
 
 #Config
-# - token: it is the token associated to sentilo-catalog application
-###################
+# - token: it is the default token associated to sentilo-catalog application (@see ./mongodb/init_data.js)
+##################################################################################################################
 token="c956c302086a042dd0426b4e62652273e05a6ce74d0b77f8b5602e0811025066"
 tomcatServer=http://127.0.0.1:8080
 apiServer=http://127.0.0.1:8081
 
 
 #Help
-###################
+##################################################################################################################
 function usage()
 {
 	echo
@@ -22,7 +22,7 @@ function usage()
 }
 
 #Params
-###################
+##################################################################################################################
 verbose=false
 while [ "$1" != "" ]; do
 	PARAM=`echo $1 | awk -F= '{print $1}'`

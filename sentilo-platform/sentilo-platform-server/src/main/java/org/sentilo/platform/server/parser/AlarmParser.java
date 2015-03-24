@@ -44,7 +44,7 @@ public class AlarmParser extends PlatformJsonMessageConverter {
 
     if (inputMessage != null) {
       inputMessage.setSender(request.getEntitySource());
-      if (StringUtils.hasText(inputMessage.getAlertId())) {
+      if (StringUtils.hasText(request.getResourcePart(0))) {
         inputMessage.setAlertId(request.getResourcePart(0));
       }
     }
@@ -62,8 +62,7 @@ public class AlarmParser extends PlatformJsonMessageConverter {
     return new AlarmInputMessage(alertId, parseDate(from), parseDate(to), parseInteger(limit));
   }
 
-  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final List<Alarm> alarmsList) throws PlatformException {
-    // transformar a objeto de tipo AlarmsMessage
+  public void writeResponse(final SentiloRequest request, final SentiloResponse response, final List<Alarm> alarmsList) throws PlatformException {    
     final AlarmsMessage message = parseAlarmsListToAlarmsMessage(alarmsList);
     writeInternal(message, response);
   }
