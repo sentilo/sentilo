@@ -8,7 +8,7 @@
                 <ul class="dropdown-menu" aria-labelledby="drop4" role="menu">
                         <li><a href="javascript:;" onclick="changeLocale('ca');">Catal&agrave;</a></li>
                         <li><a href="javascript:;" onclick="changeLocale('en');">English</a></li>
-			<li><a href="javascript:;" onclick="changeLocale('es');">Espa&ntilde;ol</a></li>
+                        <li><a href="javascript:;" onclick="changeLocale('es');">Espa&ntilde;ol</a></li>
                         <li><a href="javascript:;" onclick="changeLocale('it');">Italiano</a></li>
                 </ul>
         </li>
