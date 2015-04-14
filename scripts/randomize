@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#
+# This script randomizes default tokens and the Platform User credentials. The default Admin password for the Catalog web App won't be changed, as it can be modified at any moment.
+#
+# You must run this script once, before creating default objects into MongoDB and before building the application.
+#
+# Please note:
+#
+# 1) This script refers to the standard Sentilo application path schema. You can't move it, even though you can run it from any position.
+#
+# 2) You need to have write permissions on the Sentilo's application files.
+#
+# 3) Changes can't be undone.
+#
+# This script is strongly recommended for production environments.
+#
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )
+
+OLDCatalogAppToken="c956c302086a042dd0426b4e62652273e05a6ce74d0b77f8b5602e0811025066"
+OLDTestAppToken="646967a9f99ae76cfb836026d0015c4b80f8c0e1efbd3d261250156efd8fb96f"
+OLDTestAppProviderToken="563093ec5252147edc8860c2d667be5db0c010325b6953ed5b323724bcc00e05"
+OLDPlatformUserUsername="platform_user"
+OLDPlatformUserPassword="sentilo"
+
+CatalogAppToken=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 64)
+TestAppToken=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 64)
+TestAppProviderToken=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 64)
+PlatformUserUsername="platform_user"
+PlatformUserPassword=$(cat /dev/urandom | tr -cd 'a-zA-Z0-9' | head -c 16)
+
+printf "\nRandomizing Catalog App Token, using $CatalogAppToken"
+sed -i "s/$OLDCatalogAppToken/$CatalogAppToken/g" "$DIR/scripts/testServerStatus.sh"
+sed -i "s/$OLDCatalogAppToken/$CatalogAppToken/g" "$DIR/scripts/mongodb/init_data.js"
+sed -i "s/$OLDCatalogAppToken/$CatalogAppToken/g" "$DIR/sentilo-agent-alert/src/main/resources/properties/platform-client-config.properties"
+sed -i "s/$OLDCatalogAppToken/$CatalogAppToken/g" "$DIR/sentilo-catalog-web/src/main/resources/properties/catalog-config.properties"
+
+printf "\nRandomizing Test App Token, using $TestAppToken"
+sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/scripts/mongodb/init_test_data.js"
+sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/sentilo-platform-client-java/src/test/resources/properties/test-platform-client-config.properties"
+sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/sentilo-platform/sentilo-platform-server/src/test/java/org/sentilo/platform/server/test/auth/AuthenticationServiceImplTest.java"
+
+printf "\nRandomizing Test App Provider Token, using $TestAppProviderToken"
+sed -i "s/$OLDTestAppProviderToken/$TestAppProviderToken/g" "$DIR/scripts/mongodb/init_test_data.js"
+sed -i "s/$OLDTestAppProviderToken/$TestAppProviderToken/g" "$DIR/sentilo-platform-client-java/src/test/resources/properties/test-platform-client-config.properties"
+
+printf "\nRandomizing Platform User Credentials, using $PlatformUserUsername:$PlatformUserPassword"
+sed -i "s/$OLDPlatformUserUsername\", \"_class\" : \"org.sentilo.web.catalog.domain.User\", \"password\" : \"$OLDPlatformUserPassword\", \"passwordRepeat\" : \"$OLDPlatformUserPassword/$PlatformUserUsername\", \"_class\" : \"org.sentilo.web.catalog.domain.User\", \"password\" : \"$PlatformUserPassword\", \"passwordRepeat\" : \"$PlatformUserPassword/g" "$DIR/scripts/mongodb/init_data.js"
+sed -i "s/$OLDPlatformUserUsername:$OLDPlatformUserPassword/$PlatformUserUsername:$PlatformUserPassword/g" "$DIR/sentilo-agent-location-updater/src/main/resources/properties/catalog-config.properties"
+sed -i "s/$OLDPlatformUserUsername:$OLDPlatformUserPassword/$PlatformUserUsername:$PlatformUserPassword/g" "$DIR/sentilo-platform/sentilo-platform-service/src/main/resources/properties/integration.properties"
+
+printf "\nDone.\n"
