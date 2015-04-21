@@ -12,6 +12,11 @@ sentilopath="/opt"	# Where services are installed
 startwait=6		# Seconds to wait before starting the next service
 stopwait=3		# Seconds to wait before stopping the next service
 
+# Enabled agents. Change to "false" to disable.
+EnableRelational=true
+EnableAlert=true
+EnableLocationUpdater=true
+
 checkroot() {
 	if [ $UID != 0 ]; then
 		echo "Aborting Sentilo script: you must be root"
@@ -45,43 +50,55 @@ start() {
 		fi
         fi
         printf "\nStarting relational database agent.........: "
-        if [ ! -z $sars_PID ]; then
-                printf "Already running, PID $sars_PID"
+	if [ $EnableRelational == true ]; then
+	        if [ ! -z $sars_PID ]; then
+        	        printf "Already running, PID $sars_PID"
+        	else
+                	eval '$sentilopath/sentilo-agent-relational/bin/sentilo-agent-relational-server >/dev/null 2>&1 &'
+                	sleep $startwait
+                	getpids
+                	if [ ! -z $sars_PID ]; then
+                        	printf "Started, PID $sars_PID"
+                	else
+                        	printf "ERROR"
+                	fi
+        	fi
         else
-                eval '$sentilopath/sentilo-agent-relational/bin/sentilo-agent-relational-server >/dev/null 2>&1 &'
-                sleep $startwait
-                getpids
-                if [ ! -z $sars_PID ]; then
-                        printf "Started, PID $sars_PID"
-                else
-                        printf "ERROR"
-                fi
+                printf "Disabled"
         fi
         printf "\nStarting alerts agent......................: "
-        if [ ! -z $saas_PID ]; then
-                printf "Already running, PID $saas_PID"
+	if [ $EnableAlert == true ]; then
+	        if [ ! -z $saas_PID ]; then
+        	        printf "Already running, PID $saas_PID"
+        	else
+                	eval '$sentilopath/sentilo-agent-alert/bin/sentilo-agent-alert-server >/dev/null 2>&1 &'
+                	sleep $startwait
+                	getpids
+                	if [ ! -z $saas_PID ]; then
+                        	printf "Started, PID $saas_PID"
+                	else
+                        	printf "ERROR"
+                	fi
+        	fi
         else
-                eval '$sentilopath/sentilo-agent-alert/bin/sentilo-agent-alert-server >/dev/null 2>&1 &'
-                sleep $startwait
-                getpids
-                if [ ! -z $saas_PID ]; then
-                        printf "Started, PID $saas_PID"
-                else
-                        printf "ERROR"
-                fi
+                printf "Disabled"
         fi
 	printf "\nStarting location updater agent............: "
-        if [ ! -z $salus_PID ]; then
-                printf "Already running, PID $salus_PID"
+	if [ $EnableLocationUpdater == true ]; then
+	        if [ ! -z $salus_PID ]; then
+        	        printf "Already running, PID $salus_PID"
+        	else
+                	eval '$sentilopath/sentilo-agent-location-updater/bin/sentilo-agent-location-updater-server >/dev/null 2>&1 &'
+                	sleep $startwait
+                	getpids
+                	if [ ! -z $salus_PID ]; then
+                        	printf "Started, PID $salus_PID"
+                	else
+                        	printf "ERROR"
+                	fi
+        	fi
         else
-                eval '$sentilopath/sentilo-agent-location-updater/bin/sentilo-agent-location-updater-server >/dev/null 2>&1 &'
-                sleep $startwait
-                getpids
-                if [ ! -z $salus_PID ]; then
-                        printf "Started, PID $salus_PID"
-                else
-                        printf "ERROR"
-                fi
+                printf "Disabled"
         fi
 	printf "\n"
 }
@@ -92,43 +109,55 @@ stop() {
 	getpids
 	printf "\nSTOPPING SENTILO"
         printf "\nStopping location updater agent............: "
-        if [ -z $salus_PID ]; then
-                printf "Not running"
+	if [ $EnableLocationUpdater == true ]; then
+	        if [ -z $salus_PID ]; then
+        	        printf "Not running"
+        	else
+			kill $salus_PID
+                	sleep $stopwait
+                	getpids
+                	if [ -z $salus_PID ]; then
+                        	printf "Stopped"
+                	else
+                        	printf "ERROR"
+                	fi
+        	fi
         else
-		kill $salus_PID
-                sleep $stopwait
-                getpids
-                if [ -z $salus_PID ]; then
-                        printf "Stopped"
-                else
-                        printf "ERROR"
-                fi
+                printf "Disabled"
         fi
         printf "\nStopping alerts agent......................: "
-        if [ -z $saas_PID ]; then
-                printf "Not running"
+	if [ $EnableAlert == true ]; then
+	        if [ -z $saas_PID ]; then
+        	        printf "Not running"
+        	else
+			kill $saas_PID
+                	sleep $stopwait
+                	getpids
+                	if [ -z $saas_PID ]; then
+                        	printf "Stopped"
+                	else
+                        	printf "ERROR"
+                	fi
+        	fi
         else
-		kill $saas_PID
-                sleep $stopwait
-                getpids
-                if [ -z $saas_PID ]; then
-                        printf "Stopped"
-                else
-                        printf "ERROR"
-                fi
+                printf "Disabled"
         fi
         printf "\nStopping relational database agent.........: "
-        if [ -z $sars_PID ]; then
-                printf "Not running"
+	if [ $EnableRelational == true ]; then
+	        if [ -z $sars_PID ]; then
+        	        printf "Not running"
+       		else
+                	kill $sars_PID
+                	sleep $stopwait
+                	getpids
+                	if [ -z $sars_PID ]; then
+                        	printf "Stopped"
+                	else
+                        	printf "ERROR"
+                	fi
+        	fi
         else
-                kill $sars_PID
-                sleep $stopwait
-                getpids
-                if [ -z $sars_PID ]; then
-                        printf "Stopped"
-                else
-                        printf "ERROR"
-                fi
+                printf "Disabled"
         fi
         printf "\nStopping subscription/publication server...: "
         if [ -z $ss_PID ]; then
@@ -158,22 +187,34 @@ status() {
                 printf "Not running"
         fi
         printf "\nChecking relational database agent.........: "
-        if [ ! -z $sars_PID ]; then
-                printf "Running, PID $sars_PID"
-        else
-                printf "Not running"
-        fi
+	if [ $EnableRelational == true ]; then
+	        if [ ! -z $sars_PID ]; then
+        	        printf "Running, PID $sars_PID"
+        	else
+                	printf "Not running"
+        	fi
+	else
+		printf "Disabled"
+	fi
         printf "\nChecking alerts agent......................: "
-        if [ ! -z $saas_PID ]; then
-                printf "Running, PID $saas_PID"
+        if [ $EnableAlert == true ]; then
+	        if [ ! -z $saas_PID ]; then
+        	        printf "Running, PID $saas_PID"
+        	else
+                	printf "Not running"
+        	fi
         else
-                printf "Not running"
+                printf "Disabled"
         fi
         printf "\nChecking location updater agent............: "
-        if [ ! -z $salus_PID ]; then
-                printf "Running, PID $salus_PID"
+        if [ $EnableLocationUpdater == true ]; then
+        	if [ ! -z $salus_PID ]; then
+                	printf "Running, PID $salus_PID"
+        	else
+                	printf "Not running"
+        	fi
         else
-                printf "Not running"
+                printf "Disabled"
         fi
         printf "\n"
 }
