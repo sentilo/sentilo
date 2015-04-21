@@ -75,7 +75,6 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
 
     // For each registered alert, the message value must be checked to validate that verifies all
     // alerts's restriction rules (for not frozen alerts)
-    boolean validValue = true;
     final List<InternalAlert> alertsToCheck = getAlerts();
     final List<InternalAlert> frozenAlerts = new ArrayList<InternalAlert>();
 
@@ -83,17 +82,14 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
       for (final InternalAlert alert : alertsToCheck) {
         if (AlertTriggerType.FROZEN.name().equals(alert.getTrigger().name())) {
           frozenAlerts.add(alert);
-        } else if (valueVerifiesRestriction(alert, value)) {
-          validValue = false;
+        } else {
+          valueVerifiesRestriction(alert, value);
         }
       }
     }
 
-    // If value is not rejected, set it as last accepted value
-    if (validValue) {
-      triggerEvaluator.setLastAcceptedValue(value);
-      logger.debug("Value {} no rejected by any alert from messageListener {}", value, getName());
-    }
+    // Set value as previousValue in triggerEvaluator for the next iterator
+    triggerEvaluator.setPreviousValue(value);
 
     // Finally, updates the timeout for each frozen alert associated with this listener
     if (!CollectionUtils.isEmpty(frozenAlerts)) {

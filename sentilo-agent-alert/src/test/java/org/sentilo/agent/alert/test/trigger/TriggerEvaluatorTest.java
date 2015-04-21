@@ -160,7 +160,7 @@ public class TriggerEvaluatorTest {
     final InternalAlert alert = new InternalAlert("ALARM-1");
     alert.setTrigger(AlertTriggerType.CHANGE);
 
-    triggerEvaluator.setLastAcceptedValue("abc");
+    triggerEvaluator.setPreviousValue("abc");
 
     final TriggerResult result = triggerEvaluator.evaluate(alert, "abc");
 
@@ -182,7 +182,7 @@ public class TriggerEvaluatorTest {
     final InternalAlert alert = new InternalAlert("ALARM-1");
     alert.setTrigger(AlertTriggerType.CHANGE);
 
-    triggerEvaluator.setLastAcceptedValue("abc");
+    triggerEvaluator.setPreviousValue("abc");
 
     final TriggerResult result = triggerEvaluator.evaluate(alert, "bca");
 
@@ -194,7 +194,7 @@ public class TriggerEvaluatorTest {
     final InternalAlert alert = new InternalAlert("ALARM-1");
     alert.setTrigger(AlertTriggerType.CHANGE_DELTA);
     alert.setExpression("20");
-    triggerEvaluator.setLastAcceptedValue("5");
+    triggerEvaluator.setPreviousValue("5");
 
     final TriggerResult result = triggerEvaluator.evaluate(alert, "4.5");
 
@@ -206,7 +206,7 @@ public class TriggerEvaluatorTest {
     final InternalAlert alert = new InternalAlert("ALARM-1");
     alert.setTrigger(AlertTriggerType.CHANGE_DELTA);
     alert.setExpression("20");
-    triggerEvaluator.setLastAcceptedValue("5");
+    triggerEvaluator.setPreviousValue("5");
 
     final TriggerResult result = triggerEvaluator.evaluate(alert, "2");
 
