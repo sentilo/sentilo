@@ -66,16 +66,21 @@ public class MessageListenerImplTest {
 
     final InternalAlert alert2 = new InternalAlert("alertDELTA");
     alert2.setTrigger(AlertTriggerType.CHANGE_DELTA);
-    alert2.setExpression("40");
+    // If percent change is greater than 25%, an alarm should be published
+    alert2.setExpression("25");
+
+    final InternalAlert alert3 = new InternalAlert("alertCHANGE");
+    alert3.setTrigger(AlertTriggerType.CHANGE);
 
     messageListener.addAlert(alert1);
     messageListener.addAlert(alert2);
+    messageListener.addAlert(alert3);
   }
 
   @Test
-  public void publishAlert() {
+  public void publishAlarm() {
     final String info = buildDataEventMessage();
-    final String channel = "data:provider1:sensor1";
+    final String channel = "data:app_demo_provider:appdemo_sensor_test";
 
     when(message.getBody()).thenReturn(serializer.serialize(info));
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -86,15 +91,15 @@ public class MessageListenerImplTest {
   }
 
   @Test
-  public void publishTwoAlerts() {
+  public void publishTwoAlarms() {
     final String info = buildDataEventMessage();
-    final String channel = "data:provider1:sensor1";
+    final String channel = "data:app_demo_provider:appdemo_sensor_test";
 
-    final InternalAlert alert3 = new InternalAlert("alertLT");
-    alert3.setTrigger(AlertTriggerType.LT);
-    alert3.setExpression("40");
+    final InternalAlert alert4 = new InternalAlert("alertLT");
+    alert4.setTrigger(AlertTriggerType.LT);
+    alert4.setExpression("40");
 
-    messageListener.addAlert(alert3);
+    messageListener.addAlert(alert4);
 
     when(message.getBody()).thenReturn(serializer.serialize(info));
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -104,9 +109,34 @@ public class MessageListenerImplTest {
     verify(publishService, times(2)).publishAlarm(any(InternalAlert.class), any(String.class));
   }
 
+  @Test
+  public void publishTwiceChangeAlarms() {
+    final String info = buildDataEventMessage();
+    final String info2 = buildDataEventMessage2();
+    final String channel = "data:app_demo_provider:appdemo_sensor_test";
+
+    when(message.getBody()).thenReturn(serializer.serialize(info), serializer.serialize(info2));
+    when(message.getChannel()).thenReturn(serializer.serialize(channel));
+
+    // Publish two messages with different values
+    messageListener.onMessage(message, null);
+    messageListener.onMessage(message, null);
+
+    // 3 alarms will be published: one alarm of type GT, one of type CHANGE and one of type
+    // CHANGE_DELTA
+    verify(publishService, times(3)).publishAlarm(any(InternalAlert.class), any(String.class));
+  }
+
   private String buildDataEventMessage() {
     final String event =
         "{\"message\":\"36\",\"timestamp\":\"28/04/2014T11:37:44\",\"topic\":\"data:app_demo_provider:appdemo_sensor_test\",\"type\":\"DATA\",\"sensor\":\"appdemo_sensor_test\",\"provider\":\"app_demo_provider\"}";
+
+    return event;
+  }
+
+  private String buildDataEventMessage2() {
+    final String event =
+        "{\"message\":\"16\",\"timestamp\":\"28/04/2014T11:40:44\",\"topic\":\"data:app_demo_provider:appdemo_sensor_test\",\"type\":\"DATA\",\"sensor\":\"appdemo_sensor_test\",\"provider\":\"app_demo_provider\"}";
 
     return event;
   }

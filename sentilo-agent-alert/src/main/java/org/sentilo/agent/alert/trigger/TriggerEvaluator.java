@@ -39,7 +39,8 @@ public class TriggerEvaluator {
 
   private final Logger logger = LoggerFactory.getLogger(TriggerEvaluator.class);
 
-  private String lastAcceptedValue;
+  /** Stores the previous value published by the sensor which is related to this TriggerEvaluator */
+  private String previousValue;
 
   public TriggerResult evaluate(final InternalAlert alert, final String value) {
     // GT, GTE, LT, LTE, EQ, CHANGE, CHANGE_DELTA
@@ -74,11 +75,10 @@ public class TriggerEvaluator {
           break;
       }
     } catch (final ParseException pe) {
-      // Esta excepcion no deberia ocurrir nunca ya que al dar de alta la alarma en el catalogo se
-      // valida
-      // el formato numerico de la expresion, y antes de aplicar cualquier evaluacion se valida que
-      // el valor
-      // del sensor sea numerico. Pero es mejor controlarla que retornar una excepcion o ignorarla.
+      // This exception should never occurs because the format of alert expression is validated when
+      // alert is created/updated in the Catalog, and, before applying any evaluation over a sensor
+      // value, a number format validation is applied over its value.
+
       result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     }
 
@@ -87,8 +87,8 @@ public class TriggerEvaluator {
     return result;
   }
 
-  public void setLastAcceptedValue(final String lastAcceptedValue) {
-    this.lastAcceptedValue = lastAcceptedValue;
+  public void setPreviousValue(final String previousValue) {
+    this.previousValue = previousValue;
   }
 
   private boolean isNumberValue(final String value) {
@@ -169,8 +169,8 @@ public class TriggerEvaluator {
   private TriggerResult evaluateChangeTrigger(final InternalAlert alert, final String value) {
     TriggerResult result = null;
     final String errorMessage = buildErrorMessage(Constants.TEMPLATE_CHANGE_MESSAGE, alert, value);
-    if (StringUtils.hasText(lastAcceptedValue)) {
-      result = (value.equals(lastAcceptedValue) ? new TriggerResult() : new TriggerResult(errorMessage));
+    if (StringUtils.hasText(previousValue)) {
+      result = (value.equals(previousValue) ? new TriggerResult() : new TriggerResult(errorMessage));
     } else {
       result = new TriggerResult();
     }
@@ -181,20 +181,21 @@ public class TriggerEvaluator {
   private TriggerResult evaluateChangeDeltaTrigger(final InternalAlert alert, final String value) throws ParseException {
     TriggerResult result = null;
 
-    // La comparacion consiste en ver si la variacion entre el valor recibido (B) y el ultimo valor
-    // almacenado (A)
-    // es superior al % indicado
-    // Variacion = (|A-B|/|A|)*100
-    if (StringUtils.hasText(lastAcceptedValue)) {
+    // CHANGE_DELTA alert will publish a new alarm when the percent change between the current
+    // sensor's value (B) and the previous published value (A) is greater than a configured delta.
+
+    // The percent change (or variation) is equal to: (|A-B|/|A|)*100
+
+    if (StringUtils.hasText(previousValue)) {
 
       if (!isNumberValue(value)) {
         result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
       } else {
         final float limit = AlertUtils.transformNumber(alert.getExpression()).floatValue();
         final float absValue = Math.abs(AlertUtils.transformNumber(value).floatValue());
-        final float absLastAccepted = Math.abs(AlertUtils.transformNumber(lastAcceptedValue).floatValue());
+        final float absPreviousValue = Math.abs(AlertUtils.transformNumber(previousValue).floatValue());
 
-        final float variation = ((absLastAccepted - absValue) / absLastAccepted) * 100;
+        final float variation = Math.abs(((absPreviousValue - absValue) / absPreviousValue)) * 100;
 
         final String errorMessage = buildErrorMessage(Constants.TEMPLATE_CHANGE_DELTA_MESSAGE, alert, value);
         result = (variation > limit ? new TriggerResult(errorMessage) : new TriggerResult());
