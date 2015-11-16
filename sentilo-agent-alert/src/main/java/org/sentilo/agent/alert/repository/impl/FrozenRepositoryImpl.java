@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.agent.alert.repository.impl;
 
@@ -50,9 +57,9 @@ import org.springframework.util.StringUtils;
 @Repository
 public class FrozenRepositoryImpl implements FrozenRepository {
 
-  private final Logger logger = LoggerFactory.getLogger(FrozenRepositoryImpl.class);
-  private final String sortedSetKey = "alerts:frozen:sorted";
-  private final String lastSyncKey = "agent:alert:lastSync";
+  private static final Logger LOGGER = LoggerFactory.getLogger(FrozenRepositoryImpl.class);
+  private static final String SORTED_SET_KEY = "alerts:frozen:sorted";
+  private static final String LAST_SYNC_KEY = "agent:alert:lastSync";
 
   @Autowired
   private RedisTemplate<String, String> redisTemplate;
@@ -64,9 +71,9 @@ public class FrozenRepositoryImpl implements FrozenRepository {
    */
   public List<InternalAlert> checkFrozenAlerts() {
     final long currentTimestamp = System.currentTimeMillis();
-    logger.debug("Quering frozen alerts with a timeout between 0 and {}", currentTimestamp);
-    final Set<String> members = redisTemplate.opsForZSet().rangeByScore(sortedSetKey, 0, currentTimestamp);
-    logger.debug("Found {} alerts which must publish a frozen alarm", members.size());
+    LOGGER.debug("Querying frozen alerts with a timeout between 0 and {}", currentTimestamp);
+    final Set<String> members = redisTemplate.opsForZSet().rangeByScore(SORTED_SET_KEY, 0, currentTimestamp);
+    LOGGER.debug("Found {} alerts which must publish a frozen alarm", members.size());
     final List<InternalAlert> alerts = new ArrayList<InternalAlert>();
     for (final String member : members) {
       final String[] tokens = member.split(Constants.REDIS_MEMBER_TOKEN);
@@ -95,13 +102,13 @@ public class FrozenRepositoryImpl implements FrozenRepository {
     final long currentTimestamp = System.currentTimeMillis();
     try {
       final String value = AlertUtils.buildFrozenAlertMember(frozenAlert);
-      logger.debug("Updating frozen timeout for member {}", value);
+      LOGGER.debug("Updating frozen timeout for member {}", value);
       final double maxFrozenMinutes = AlertUtils.transformNumber(frozenAlert.getExpression()).doubleValue();
       final double score = currentTimestamp + (maxFrozenMinutes * 60 * 1000);
-      redisTemplate.opsForZSet().add(sortedSetKey, value, score);
-      logger.debug("Frozen timeout for member {} updated to {}", value, score);
+      redisTemplate.opsForZSet().add(SORTED_SET_KEY, value, score);
+      LOGGER.debug("Frozen timeout for member {} updated to {}", value, score);
     } catch (final ParseException e) {
-      logger.warn("Cannot update frozen timeout for alert {}", frozenAlert.getId(), e);
+      LOGGER.warn("Cannot update frozen timeout for alert {}", frozenAlert.getId(), e);
     }
   }
 
@@ -112,7 +119,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
    * org.sentilo.agent.alert.repository.FrozenRepository#synchronizeAlerts(java.util.Collection)
    */
   public void synchronizeAlerts(final Collection<InternalAlert> frozenAlerts) {
-    logger.debug("Synchronizing  frozen alerts with the repository");
+    LOGGER.debug("Synchronizing  frozen alerts with the repository");
 
     // First step is to update the frozen alerts stored on the repository
     updateAlertsModified(frozenAlerts);
@@ -125,39 +132,39 @@ public class FrozenRepositoryImpl implements FrozenRepository {
   }
 
   private void updateAlertsModified(final Collection<InternalAlert> frozenAlerts) {
-    final String lastSyncValue = redisTemplate.opsForValue().get(lastSyncKey);
-    final long lastSyncTimestamp = (StringUtils.hasText(lastSyncValue) ? Long.parseLong(lastSyncValue) : 0l);
+    final String lastSyncValue = redisTemplate.opsForValue().get(LAST_SYNC_KEY);
+    final long lastSyncTimestamp = StringUtils.hasText(lastSyncValue) ? Long.parseLong(lastSyncValue) : 0L;
     for (final InternalAlert frozenAlert : frozenAlerts) {
-      // Frozen alert must be updated into sortedSetKey if and only if has been updated/created
+      // Frozen alert must be updated into SORTED_SET_KEY if and only if has been updated/created
       // after the last synchronization
-      final Date updateAt = frozenAlert.getUpdateAt();
-      if (updateAt != null && updateAt.getTime() >= lastSyncTimestamp) {
+      final Date updatedAt = frozenAlert.getUpdatedAt();
+      if (updatedAt != null && updatedAt.getTime() >= lastSyncTimestamp) {
         updateFrozenTimeout(frozenAlert);
       }
     }
   }
 
   private void removeDeprecatedAlerts(final Collection<InternalAlert> frozenAlerts) {
-    final Cursor<TypedTuple<String>> scanCursor = redisTemplate.opsForZSet().scan(sortedSetKey, ScanOptions.NONE);
+    final Cursor<TypedTuple<String>> scanCursor = redisTemplate.opsForZSet().scan(SORTED_SET_KEY, ScanOptions.NONE);
     final List<String> membersToRemove = new ArrayList<String>();
     while (scanCursor.hasNext()) {
       final TypedTuple<String> member = scanCursor.next();
-      // member verifies pattern providerId:sensorId:alertId
+      // member verifies pattern providerId#sensorId#alertId
       final String[] tokens = member.getValue().split(Constants.REDIS_MEMBER_TOKEN);
       if (!frozenAlerts.contains(new InternalAlert(tokens[2]))) {
         membersToRemove.add(member.getValue());
       }
     }
 
-    logger.debug("Found {} members on Redis that need to be remove because them no longer exist on Catalog", membersToRemove.size());
+    LOGGER.debug("Found {} members on Redis that need to be remove because them no longer exist on Catalog", membersToRemove.size());
     if (!CollectionUtils.isEmpty(membersToRemove)) {
       // Remove in blocks of 20 members maximum to not penalize Redis
       final int blockSize = 20;
       int fromIndex = 0;
-      int toIndex = (membersToRemove.size() < blockSize ? membersToRemove.size() : blockSize);
+      int toIndex = membersToRemove.size() < blockSize ? membersToRemove.size() : blockSize;
       do {
         final List<String> subListToRemove = membersToRemove.subList(fromIndex, toIndex);
-        redisTemplate.opsForZSet().remove(sortedSetKey, subListToRemove.toArray(new Object[subListToRemove.size()]));
+        redisTemplate.opsForZSet().remove(SORTED_SET_KEY, subListToRemove.toArray(new Object[subListToRemove.size()]));
 
         fromIndex = toIndex;
         toIndex = ((toIndex + blockSize) < membersToRemove.size() ? toIndex + blockSize : membersToRemove.size());
@@ -168,8 +175,8 @@ public class FrozenRepositoryImpl implements FrozenRepository {
 
   private void updateLastSyncValue() {
     final long newLastSyncValue = System.currentTimeMillis();
-    redisTemplate.opsForValue().set(lastSyncKey, Long.toString(newLastSyncValue));
-    logger.debug("New lastSync value updated to {}", newLastSyncValue);
+    redisTemplate.opsForValue().set(LAST_SYNC_KEY, Long.toString(newLastSyncValue));
+    LOGGER.debug("New lastSync value updated to {}", newLastSyncValue);
   }
 
 }

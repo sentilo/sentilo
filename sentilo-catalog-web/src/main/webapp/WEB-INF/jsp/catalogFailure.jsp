@@ -32,12 +32,12 @@
 
 						<div class="alert alert-error">
 							<h2>
-								<spring:message code="error.data.access.title" />
+								<spring:message code="error.information.title" />
 							</h2>
 
 							<c:if test="${not empty exception}">
 								<h4>
-									<spring:message code="error.data.acces.detail" />
+									<spring:message code="error.detail.title" />
 								</h4>
 								<c:choose>
 									<c:when test="${not empty exception.errorMessageKey}">
@@ -53,7 +53,7 @@
 								<br />
 								<button class="btn btn-danger" onclick="toggleErrorTrace();">
 									<i class="icon-warning-sign icon-white"></i>
-									<spring:message code="error.data.access.stacktrace" />
+									<spring:message code="error.stacktrace" />
 								</button>
 
 								<div id="errorTrace">

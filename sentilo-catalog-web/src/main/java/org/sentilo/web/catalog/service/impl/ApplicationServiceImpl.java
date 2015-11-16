@@ -1,51 +1,67 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.service.impl;
 
 import java.util.Collection;
+import java.util.List;
 
+import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.Application;
 import org.sentilo.web.catalog.repository.ApplicationRepository;
+import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.PermissionService;
+import org.sentilo.web.catalog.service.TenantPermissionService;
 import org.sentilo.web.catalog.utils.IdentityKeyGenerator;
+import org.sentilo.web.catalog.utils.TenantUtils;
 import org.sentilo.web.catalog.validator.EntityKeyValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
-public class ApplicationServiceImpl extends AbstractBaseServiceImpl<Application> implements ApplicationService {
+public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Application> implements ApplicationService {
 
   @Autowired
   private ApplicationRepository repository;
 
   @Autowired
   private PermissionService permissionService;
+
+  @Autowired
+  private TenantPermissionService tenantPermissionService;
 
   @Autowired
   @Qualifier("appsAndProvidersKeyValidator")
@@ -71,8 +87,55 @@ public class ApplicationServiceImpl extends AbstractBaseServiceImpl<Application>
     return entity.getId();
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.service.ApplicationService#findAllowed()
+   */
   @Override
-  public Application create(final Application application) {
+  public List<Application> findAllowed() {
+    final SearchFilter filter = new SearchFilter();
+    if (TenantContextHolder.isEnabled()) {
+      filter.addParam("tenantsAuth", TenantUtils.getCurrentTenant());
+    }
+    final Query query = buildQuery(filter);
+    return getMongoOps().find(query, Application.class);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.service.ApplicationService#deleteFromTenant(java.lang.String)
+   */
+  @Override
+  public void deleteFromTenant(final String tenantId) {
+    final SearchFilter filter = new SearchFilter();
+    filter.addAndParam("tenantId", tenantId);
+    final Query query = buildQuery(filter);
+    final List<Application> applications = getMongoOps().find(query, Application.class);
+    delete(applications);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.service.ApplicationService#isApplicationFromTenant(java.lang.
+   * String, java.lang.String)
+   */
+  @Override
+  public boolean isApplicationFromTenant(final String applicationId, final String tenantId) {
+    final Application application = findAndThrowErrorIfNotExist(new Application(applicationId));
+    return tenantId.equals(application.getTenantId());
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
+   * .web.catalog.domain.CatalogDocument)
+   */
+  protected void doBeforeCreate(final Application application) {
     // El identificador se informa por pantalla (es obligatorio). El nombre, en caso de no estar
     // informado, se rellena con el valor del identificador.
     if (!StringUtils.hasText(application.getName())) {
@@ -85,29 +148,33 @@ public class ApplicationServiceImpl extends AbstractBaseServiceImpl<Application>
 
     application.setToken(IdentityKeyGenerator.generateNewToken(application.getId()));
 
+    // Create the related permissions
     permissionService.createRelated(application);
-    return getRepository().save(application);
   }
 
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(java.lang.Object)
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.
+   * web.catalog.domain.CatalogDocument)
    */
-  public void delete(final Application application) {
-    super.delete(application);
+  protected void doAfterDelete(final Application application) {
     permissionService.deleteRelated(application);
+    tenantPermissionService.deleteRelatedEntity(application);
   }
 
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(java.util.Collection)
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.Collection
+   * )
    */
-  public void delete(final Collection<Application> applications) {
-    super.delete(applications);
+  protected void doAfterDelete(final Collection<Application> applications) {
     for (final Application application : applications) {
       permissionService.deleteRelated(application);
     }
   }
+
 }

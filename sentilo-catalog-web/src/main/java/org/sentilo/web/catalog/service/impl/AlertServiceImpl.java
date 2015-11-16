@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.service.impl;
 
@@ -43,7 +50,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 @Service
-public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements AlertService {
+public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert> implements AlertService {
 
   @Autowired
   private AlertRepository repository;
@@ -68,31 +75,15 @@ public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements 
   /*
    * (non-Javadoc)
    * 
-   * @see
-   * org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#create(org.sentilo.web.catalog
-   * .domain.CatalogDocument)
-   */
-  public Alert create(final Alert alert) {
-    // If name is null, we initialize it with the id value
-    if (alert.getName() == null) {
-      alert.setName(alert.getId());
-    }
-
-    return super.create(alert);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
    * @see org.sentilo.web.catalog.service.AlertService#getAlertsByEntities(java.util.Collection,
    * java.util.Map)
    */
   public List<Alert> getAlertsByEntities(final Collection<String> entities, final Map<String, Object> filterParams) {
     final List<Alert> alerts = new ArrayList<Alert>();
 
-    // Podemos filtrar la búsqueda de alertas por lo siguientes criterios:
-    // 1. Tipo: INTERNAL o EXTERNAL
-    // 2. Trigger: codificado según el valor de la enumeracion alarm.Type
+    // Search could be filtered by :
+    // 1. Alert type: INTERNAL or EXTERNAL
+    // 2. Trigger type (view AlertTriggerType)
     if (!CollectionUtils.isEmpty(entities)) {
       final Query queryForProviderAlerts = buildQuery("providerId", entities, filterParams);
       final Query queryForClientAppAlerts = buildQuery("applicationId", entities, filterParams);
@@ -148,6 +139,20 @@ public class AlertServiceImpl extends AbstractBaseServiceImpl<Alert> implements 
 
     getMongoOps().remove(buildQuery("id", alertsIds, filterParams), Alert.class);
 
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
+   * .web.catalog.domain.CatalogDocument)
+   */
+  protected void doBeforeCreate(final Alert alert) {
+    // If name is null, we initialize it with the id value
+    if (alert.getName() == null) {
+      alert.setName(alert.getId());
+    }
   }
 
   private Query buildQuery(final String paramName, final Collection<String> values, final Map<String, Object> filterParams) {

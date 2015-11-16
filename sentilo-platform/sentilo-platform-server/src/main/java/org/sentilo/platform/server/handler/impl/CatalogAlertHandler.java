@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.handler.impl;
 
@@ -53,7 +60,7 @@ import com.google.common.collect.Multimaps;
 @Controller
 public class CatalogAlertHandler extends AbstractHandler {
 
-  private final Logger logger = LoggerFactory.getLogger(CatalogAlertHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CatalogAlertHandler.class);
 
   @Autowired
   private CatalogService catalogService;
@@ -63,7 +70,7 @@ public class CatalogAlertHandler extends AbstractHandler {
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing catalog alert DELETE request");
+    LOGGER.debug("Executing catalog alert DELETE request");
     debug(request);
 
     doRealOnDelete(request, false);
@@ -71,20 +78,19 @@ public class CatalogAlertHandler extends AbstractHandler {
 
   @Override
   public void onGet(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing catalog alert GET request");
+    LOGGER.debug("Executing catalog alert GET request");
     debug(request);
 
-    // La peticion sólo puede ser de la siguiente manera
-    // GET /catalog/alert/<entity>
-    // Ademas, puede haber parametros en la URL con los cuales filtrar las alertas a retornar
+    // The request follows the following pattern:
+    // GET /catalog/alert/{entityId}
+    // where {entityId} is not mandatory.
+    // Furthermore, it could have parameters used to filter the alerts on the response
 
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parseGetRequest(request);
     validator.validateRequestMessageOnGet(inputMessage);
     validateAdminAcess(request.getEntitySource(), inputMessage.getEntityId());
 
-    // Aqui no tiene sentido hacer ninguna validación de autorizacion ya que se aplica sobre la
-    // misma entidad que hace la peticion
     final CatalogResponseMessage responseMessage = catalogService.getAuthorizedAlerts(inputMessage);
     checkCatalogResponseMessage(responseMessage);
 
@@ -93,11 +99,12 @@ public class CatalogAlertHandler extends AbstractHandler {
 
   @Override
   public void onPost(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing catalog alert POST request");
+    LOGGER.debug("Executing catalog alert POST request");
     debug(request);
 
-    // La peticion sólo puede ser de la siguiente manera
-    // POST /catalog/alert/<entity>
+    // The request follows the following pattern:
+    // POST /catalog/alert/{entityId}
+    // where {entityId} is not mandatory and there must be a message on the body.
 
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parsePostRequest(request);
@@ -105,14 +112,13 @@ public class CatalogAlertHandler extends AbstractHandler {
     validateAdminAcess(request.getEntitySource(), inputMessage.getEntityId());
     validateAuthorization(inputMessage, request);
 
-    // Redirigir peticion al catálogo --> Cliente REST para el catálogo.
     final CatalogResponseMessage responseMessage = catalogService.insertAlerts(inputMessage);
     checkCatalogResponseMessage(responseMessage);
   }
 
   @Override
   public void onPut(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing catalog alert PUT request");
+    LOGGER.debug("Executing catalog alert PUT request");
     debug(request);
 
     final String method = request.getRequestParameter("method");
@@ -121,15 +127,15 @@ public class CatalogAlertHandler extends AbstractHandler {
     } else {
       doRealOnPut(request);
     }
-
   }
 
   private void doRealOnDelete(final SentiloRequest request, final boolean simulate) throws PlatformException {
-    logger.debug("Executing catalog alert DELETE request");
+    LOGGER.debug("Executing catalog alert DELETE request");
     debug(request);
 
-    // La peticion sólo puede ser de la siguiente manera
-    // DELETE /catalog/alert/<entity>
+    // The request follows the following pattern:
+    // DELETE /catalog/alert/{entityId}
+    // where {entityId} is not mandatory
 
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parseDeleteRequest(request, simulate);
@@ -138,15 +144,15 @@ public class CatalogAlertHandler extends AbstractHandler {
 
     final CatalogResponseMessage responseMessage = catalogService.deleteAlerts(inputMessage);
     checkCatalogResponseMessage(responseMessage);
-
   }
 
   private void doRealOnPut(final SentiloRequest request) throws PlatformException {
-    logger.debug("Executing catalog alert PUT request");
+    LOGGER.debug("Executing catalog alert PUT request");
     debug(request);
 
-    // La peticion sólo puede ser de la sigiente manera
-    // PUT /catalog/alert/<entity>
+    // The request follows the following pattern:
+    // PUT /catalog/alert/{entityId}
+    // where {entityId} is not mandatory and there must be a message on the body.
 
     validateResourceNumberParts(request, 0, 1);
     final CatalogAlertInputMessage inputMessage = parser.parsePutRequest(request);

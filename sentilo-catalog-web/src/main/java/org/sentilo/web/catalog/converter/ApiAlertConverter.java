@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.converter;
 
@@ -46,6 +53,11 @@ public abstract class ApiAlertConverter {
   private static final String NOT_VALID_ALERT_TRIGGER_TYPE_MESSAGE =
       "Alert %s: invalid trigger type value %s. Review doc to see which are valid values for that field.";
   private static final String ALERT_NOT_FOUND = "Alert %s: alert with this id and type %s has not been found in the system.";
+
+  private ApiAlertConverter() {
+    // this prevents even the native class from calling this ctor as well :
+    throw new AssertionError();
+  }
 
   public static List<CatalogAlert> convertToCatalogAlertList(final List<Alert> alerts) {
     final List<CatalogAlert> catalogAlerts = new ArrayList<CatalogAlert>();
@@ -83,7 +95,7 @@ public abstract class ApiAlertConverter {
     return owners;
   }
 
-  public static List<Alert> buildAlertsFromCatalogAlerts(final ApiAlertConverterContext context) {
+  public static List<Alert> buildAlertsFromCatalogAlerts(final ApiAlertConverterContext context, final String catalogUser) {
     final List<Alert> alerts = new ArrayList<Alert>();
     final List<CatalogAlert> catalogAlerts = context.getMessage().getAlerts();
     final boolean isUpdateAction = context.isUpdateAction();
@@ -92,7 +104,8 @@ public abstract class ApiAlertConverter {
 
     if (!context.getResults().hasErrors() && !CollectionUtils.isEmpty(catalogAlerts)) {
       for (final CatalogAlert catalogAlert : catalogAlerts) {
-        final Alert alert = (isUpdateAction ? buildAlertToUpdate(catalogAlert, context) : buildNewAlert(catalogAlert, context));
+        final Alert alert =
+            isUpdateAction ? buildAlertToUpdate(catalogAlert, context, catalogUser) : buildNewAlert(catalogAlert, context, catalogUser);
         alerts.add(alert);
       }
     }
@@ -100,15 +113,16 @@ public abstract class ApiAlertConverter {
     return alerts;
   }
 
-  private static Alert buildNewAlert(final CatalogAlert catalogAlert, final ApiAlertConverterContext context) {
+  private static Alert buildNewAlert(final CatalogAlert catalogAlert, final ApiAlertConverterContext context, final String catalogUser) {
     final Alert alert = new Alert();
-    final String entityId = (StringUtils.hasText(catalogAlert.getEntity()) ? catalogAlert.getEntity() : context.getMessage().getEntityId());
+    final String entityId = StringUtils.hasText(catalogAlert.getEntity()) ? catalogAlert.getEntity() : context.getMessage().getEntityId();
     final boolean isEntityProvider = context.getProviderService().exist(entityId);
 
     alert.setId(catalogAlert.getId());
     alert.setName(catalogAlert.getName());
     alert.setDescription(catalogAlert.getDescription());
     alert.setCreatedAt(new Date());
+    alert.setCreatedBy(catalogUser);
 
     if (catalogAlert.getType() != null) {
       switch (Type.valueOf(catalogAlert.getType())) {
@@ -128,13 +142,15 @@ public abstract class ApiAlertConverter {
           alert.setTrigger(AlertTriggerType.valueOf(catalogAlert.getTrigger()));
           alert.setExpression(catalogAlert.getExpression());
           break;
+        default:
+          break;
       }
     }
 
     return alert;
   }
 
-  private static Alert buildAlertToUpdate(final CatalogAlert catalogAlert, final ApiAlertConverterContext context) {
+  private static Alert buildAlertToUpdate(final CatalogAlert catalogAlert, final ApiAlertConverterContext context, final String catalogUser) {
     final Alert alert = context.getAlertService().find(new Alert(catalogAlert.getId()));
     final String entityId = (StringUtils.hasText(catalogAlert.getEntity()) ? catalogAlert.getEntity() : context.getMessage().getEntityId());
 
@@ -159,7 +175,8 @@ public abstract class ApiAlertConverter {
         }
       }
 
-      alert.setUpdateAt(new Date());
+      alert.setUpdatedAt(new Date());
+      alert.setUpdatedBy(catalogUser);
     } else {
       final String errorMessage = String.format(ALERT_NOT_FOUND, catalogAlert.getId(), catalogAlert.getType());
       context.getResults().addErrorMessage(errorMessage);
@@ -173,7 +190,7 @@ public abstract class ApiAlertConverter {
   }
 
   private static boolean verifyOwner(final Alert alert, final String actual) {
-    final String owner = (StringUtils.hasText(alert.getApplicationId()) ? alert.getApplicationId() : alert.getProviderId());
+    final String owner = StringUtils.hasText(alert.getApplicationId()) ? alert.getApplicationId() : alert.getProviderId();
     return owner.equals(actual);
   }
 
@@ -217,11 +234,6 @@ public abstract class ApiAlertConverter {
     }
 
     return result;
-  }
-
-  private ApiAlertConverter() {
-    // this prevents even the native class from calling this ctor as well :
-    throw new AssertionError();
   }
 
 }

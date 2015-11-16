@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.test.auth;
 
@@ -29,62 +36,92 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.CredentialMessage;
-import org.sentilo.platform.common.domain.CredentialsMessage;
-import org.sentilo.platform.common.service.CatalogService;
+import org.sentilo.platform.common.security.AnonymousIdentityContext;
+import org.sentilo.platform.common.security.IdentityContextHolder;
+import org.sentilo.platform.common.security.repository.EntityCredentialsRepository;
 import org.sentilo.platform.server.auth.impl.AuthenticationServiceImpl;
 import org.sentilo.platform.server.exception.UnauthorizedException;
 import org.sentilo.platform.server.test.AbstractBaseTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class AuthenticationServiceImplTest extends AbstractBaseTest {
 
-  private final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImplTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationServiceImplTest.class);
   private final String token = "646967a9f99ae76cfb836026d0015c4b80f8c0e1efbd3d261250156efd8fb96f";
-
-  private final AuthenticationServiceImpl authenticationService = new AuthenticationServiceImpl();
+  private final String mockEntity = "mockEntityId";
   private Runnable runnable;
 
+  @InjectMocks
+  private AuthenticationServiceImpl authenticationService;
   @Mock
-  private CatalogService catalogService;
+  private EntityCredentialsRepository credentialsRepository;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     runnable = new AuthenticationRunnable(authenticationService);
-    authenticationService.setCatalogService(catalogService);
 
     final CredentialMessage credential = new CredentialMessage();
     credential.setToken(token);
-    credential.setEntity("periko");
+    credential.setEntity(mockEntity);
 
-    final List<CredentialMessage> credentials = new ArrayList<CredentialMessage>();
-    credentials.add(credential);
+    when(credentialsRepository.containsCredential(token)).thenReturn(Boolean.TRUE);
+    when(credentialsRepository.getCredentials(token)).thenReturn(credential);
+  }
 
-    final CredentialsMessage message = new CredentialsMessage();
-    message.setCredentials(credentials);
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  @Test
+  public void testConcurrence() throws Exception {
 
-    when(catalogService.getCredentials()).thenReturn(message);
+    final int poolSize = 10;
+    final ExecutorService service = Executors.newFixedThreadPool(poolSize);
+    final List<Future<Runnable>> futures = new ArrayList<Future<Runnable>>();
+
+    for (int n = 0; n < poolSize; n++) {
+      final Future f = service.submit(runnable);
+      futures.add(f);
+    }
+
+    // wait for all tasks to complete before continuing
+    for (final Future<Runnable> f : futures) {
+      f.get();
+    }
+
+    // shut down the executor service so that this thread can exit
+    service.shutdownNow();
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testNoValidAnonymousAccess() throws Exception {
+    authenticationService.checkCredential(null);
   }
 
   @Test
-  public void testConcurrence() throws Exception {
-    for (int i = 0; i < 25; i++) {
-      final Thread thread = new Thread(runnable);
-      thread.setName(Integer.toString(i));
-      thread.setDaemon(false);
-      thread.start();
-    }
+  public void testCheckCredential() throws Exception {
+    authenticationService.checkCredential(token);
+    Assert.assertEquals(token, IdentityContextHolder.getContext().getToken());
+  }
 
-    // Wait 4 seconds until all threads are finish
-    Thread.sleep(4000);
+  @Test
+  public void testValidAnonymousAccess() throws Exception {
+    ReflectionTestUtils.setField(authenticationService, "enableAnonymousAccess", Boolean.TRUE);
+    ReflectionTestUtils.setField(authenticationService, "anonymousAppClientId", "ANONYMOUS");
 
+    authenticationService.checkCredential(null);
+    Assert.assertTrue(IdentityContextHolder.getContext() instanceof AnonymousIdentityContext);
   }
 
   public class AuthenticationRunnable implements Runnable {
@@ -97,17 +134,15 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
 
     @Override
     public void run() {
-      logger.debug("Running thread {}", Thread.currentThread().getName());
+      LOGGER.debug("Running thread {}", Thread.currentThread().getName());
       try {
-        if (Integer.valueOf(Thread.currentThread().getName()) % 10 == 0) {
-          authenticationService.loadActiveCredentials();
-        } else {
-          authenticationService.getIdentity(token);
-        }
+        authenticationService.checkCredential(token);
+        Assert.assertEquals(token, IdentityContextHolder.getContext().getToken());
+
       } catch (final UnauthorizedException e) {
-        logger.debug("Error validating credential in thread: {}", Thread.currentThread().getName());
+        LOGGER.debug("Error validating credential in thread: {}", Thread.currentThread().getName());
       } finally {
-        logger.debug("Finished thread {} ", Thread.currentThread().getName());
+        LOGGER.debug("Finished thread {} ", Thread.currentThread().getName());
       }
     }
   }

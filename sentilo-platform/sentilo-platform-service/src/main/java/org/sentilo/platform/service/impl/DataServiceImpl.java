@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.impl;
 
@@ -32,11 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.domain.DataInputMessage;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.common.service.DataService;
 import org.sentilo.platform.common.service.ResourceService;
+import org.sentilo.platform.service.monitor.Metric;
+import org.sentilo.platform.service.monitor.RequestType;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.sentilo.platform.service.utils.PublishMessageUtils;
@@ -52,7 +62,7 @@ import org.springframework.util.StringUtils;
 @Service
 public class DataServiceImpl extends AbstractPlatformServiceImpl implements DataService {
 
-  private final Logger logger = LoggerFactory.getLogger(DataServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataServiceImpl.class);
 
   @Autowired
   private ResourceService resourceService;
@@ -64,6 +74,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
    * org.sentilo.platform.common.service.DataService#setObservations(org.sentilo.platform.common
    * .domain.DataInputMessage)
    */
+  @Metric(requestType = RequestType.PUT, eventType = EventType.DATA)
   public void setObservations(final DataInputMessage message) {
     final List<Observation> observations = message.getObservations();
     for (final Observation observation : observations) {
@@ -93,6 +104,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
    * org.sentilo.platform.common.service.DataService#getLastObservations(org.sentilo.platform.common
    * .domain.DataInputMessage)
    */
+  @Metric(requestType = RequestType.GET, eventType = EventType.DATA)
   public List<Observation> getLastObservations(final DataInputMessage message) {
     // Para recuperar las observaciones del sensor / sensores de un proveedor, debemos hacer lo
     // siguiente:
@@ -103,11 +115,11 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     final List<Observation> globalObservations = new ArrayList<Observation>();
     final Set<String> sids = resourceService.getSensorsToInspect(message.getProviderId(), message.getSensorId());
     if (CollectionUtils.isEmpty(sids)) {
-      logger.debug("Provider {} has not sensors registered", message.getProviderId());
+      LOGGER.debug("Provider {} has not sensors registered", message.getProviderId());
       return globalObservations;
     }
 
-    logger.debug("Retrieving last observations for {} sensors of provider {}", sids.size(), message.getProviderId());
+    LOGGER.debug("Retrieving last observations for {} sensors of provider {}", sids.size(), message.getProviderId());
 
     final Iterator<String> it = sids.iterator();
     while (it.hasNext()) {
@@ -125,17 +137,17 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     final Set<String> sids = resourceService.getSensorsFromProvider(providerId);
 
     if (CollectionUtils.isEmpty(sids)) {
-      logger.debug("Provider {} has not sensors registered", providerId);
+      LOGGER.debug("Provider {} has not sensors registered", providerId);
       return;
     }
 
-    logger.debug("Found {} sensors registered for provider {}", sids.size(), providerId);
+    LOGGER.debug("Found {} sensors registered for provider {}", sids.size(), providerId);
 
     final Iterator<String> it = sids.iterator();
     while (it.hasNext()) {
       final String sid = it.next();
       deleteLastObservation(new Long(sid));
-      logger.debug("Removed last observation from sensor sid {} and provider {}", sid, providerId);
+      LOGGER.debug("Removed last observation from sensor sid {} and provider {}", sid, providerId);
     }
   }
 
@@ -149,12 +161,12 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
 
     deleteLastObservation(sid);
 
-    logger.debug("Removed last observation from sensor {} and provider {}", sensorId, providerId);
+    LOGGER.debug("Removed last observation from sensor {} and provider {}", sensorId, providerId);
   }
 
   private void setObservation(final Observation data) {
     // Si el proveedor y/o el sensor no existen, los registramos en Redis
-    registerProviderAndSensorIfNecessary(data);
+    registerProviderAndSensorIfNeedBe(data);
     // Registramos en Redis la observacion
     registerSensorData(data);
     // Y por ultimo, publicamos la observacion
@@ -236,7 +248,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     final Long sdid = jedisSequenceUtils.getSdid();
 
     final Long timestamp = data.getTimestamp();
-    final String location = (StringUtils.hasText(data.getLocation()) ? data.getLocation() : "");
+    final String location = StringUtils.hasText(data.getLocation()) ? data.getLocation() : "";
     // Guardamos una hash de clave sdid:{sdid} y valores sid, data (aleatorio), timestamp y
     // location.
     final String obsKey = keysBuilder.getObservationKey(sdid);
@@ -259,7 +271,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     // a cada elemento del Set es el timestamp de la observacion.
     jedisTemplate.zAdd(keysBuilder.getSensorObservationsKey(sid), timestamp, sdid.toString());
 
-    logger.debug("Registered in Redis observation {} for sensor {} from provider {}", sdid, data.getSensor(), data.getProvider());
+    LOGGER.debug("Registered in Redis observation {} for sensor {} from provider {}", sdid, data.getSensor(), data.getProvider());
   }
 
   private void publishSensorData(final Observation data) {
@@ -267,10 +279,10 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(data, topic));
   }
 
-  private void registerProviderAndSensorIfNecessary(final Observation data) {
+  private void registerProviderAndSensorIfNeedBe(final Observation data) {
     // Si el proveedor y/o el sensor aun no estan registrados en Redis, los registramos.
-    resourceService.registerProviderIfNecessary(data.getProvider());
-    resourceService.registerSensorIfNecessary(data.getSensor(), data.getProvider());
+    resourceService.registerProviderIfNeedBe(data.getProvider());
+    resourceService.registerSensorIfNeedBe(data.getSensor(), data.getProvider());
   }
 
 }

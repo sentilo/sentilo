@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.listener;
 
@@ -48,7 +55,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 @Component
 public class ConnectionMonitorListener implements SmartLifecycle {
 
-  private final Logger logger = LoggerFactory.getLogger(ConnectionMonitorListener.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionMonitorListener.class);
   private static final String MONITOR_CHANNEL = "/MONITOR/SENTILO*";
 
   @Autowired
@@ -67,7 +74,7 @@ public class ConnectionMonitorListener implements SmartLifecycle {
       monitorListener = new MonitorMessageListenerImpl();
       monitorTopic = ChannelUtils.buildTopic(MONITOR_CHANNEL);
       running = true;
-      logger.debug("ConnectionMonitorListener started");
+      LOGGER.debug("ConnectionMonitorListener started");
     }
   }
 
@@ -81,11 +88,11 @@ public class ConnectionMonitorListener implements SmartLifecycle {
       try {
         // Es importante tener en cuenta que la conexion de subscripcion solo permite invocar a un
         // cjto reducido de comandos de Redis.
-        // Por lo que simplemente nos subscribimos a un canal, y, si todo va bien, nos
+        // Por lo que simplemente nos subscribimos a un canal, y, si el proceso va bien, nos
         // desubscribimos.
         subscribeMonitor();
         removeMonitorSubscription();
-        logger.info("Subscribe connection is OK!");
+        LOGGER.info("Subscribe connection is OK!");
       } catch (final RedisConnectionFailureException e) {
         // Si se produce cualquier problema en el proceso de subscripcion/desubscripcion lo que
         // hacemos es lo siguiente:
@@ -99,38 +106,38 @@ public class ConnectionMonitorListener implements SmartLifecycle {
         // (i.e., lo que hace la
         // llamada subscribeMonitor). También se puede hacer invocando al metodo start del
         // listenerContainer.
-        logger.warn("Found error {} monitoring listener container. We proceed to restart the container", e.getMessage());
+        LOGGER.warn("Found error {} monitoring listener container. We proceed to restart the container", e.getMessage());
         restartListenerContainer();
       } catch (final JedisConnectionException e) {
         // Idem
-        logger.warn("Found error {} monitoring listener container. We proceed to restart the container", e.getMessage());
+        LOGGER.warn("Found error {} monitoring listener container. We proceed to restart the container", e.getMessage());
         restartListenerContainer();
       } catch (final Exception e) {
-        logger.warn("Error validating subscription connection", e);
+        LOGGER.warn("Error validating subscription connection", e);
       }
     }
   }
 
   private void restartListenerContainer() {
-    logger.debug("Stopping listener container");
+    LOGGER.debug("Stopping listener container");
     try {
       listenerContainer.stop();
     } catch (final Exception re) {
-      logger.warn("Found error {} stopping listener container. If it is not running, we proceed to start it", re.getMessage());
+      LOGGER.warn("Found error {} stopping listener container. If it is not running, we proceed to start it", re.getMessage());
     }
-    logger.debug("Starting listener container");
+    LOGGER.debug("Starting listener container");
     if (!listenerContainer.isRunning()) {
       listenerContainer.start();
     }
   }
 
   private void subscribeMonitor() throws RedisConnectionFailureException {
-    logger.debug("Subscribing listener {} to channel {}", monitorListener.getName(), monitorTopic.getTopic());
+    LOGGER.debug("Subscribing listener {} to channel {}", monitorListener.getName(), monitorTopic.getTopic());
     listenerContainer.addMessageListener(monitorListener, monitorTopic);
   }
 
   private void removeMonitorSubscription() throws RedisConnectionFailureException {
-    logger.debug("Removing listener {} from channel {}", monitorListener.getName(), monitorTopic.getTopic());
+    LOGGER.debug("Removing listener {} from channel {}", monitorListener.getName(), monitorTopic.getTopic());
     listenerContainer.removeMessageListener(monitorListener, monitorTopic);
   }
 
@@ -140,13 +147,13 @@ public class ConnectionMonitorListener implements SmartLifecycle {
     if (isRunning()) {
       try {
         listenerContainer.removeMessageListener(monitorListener, monitorTopic);
-        logger.debug("{} -- Subscription to {} removed", monitorListener.getName(), monitorTopic.getTopic());
+        LOGGER.debug("{} -- Subscription to {} removed", monitorListener.getName(), monitorTopic.getTopic());
       } catch (final Exception e) {
       }
       running = false;
     }
 
-    logger.debug("ListenerConnectionMonitor stopped");
+    LOGGER.debug("ListenerConnectionMonitor stopped");
   }
 
   @Override

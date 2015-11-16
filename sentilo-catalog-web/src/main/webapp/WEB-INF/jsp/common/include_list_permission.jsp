@@ -4,24 +4,25 @@
 <c:set var="permissionTable" value="permissionTable"/>
 
 <c:if test="${not empty applicationId}">
-	<spring:url value="/permissions/application/${applicationId}" var="sAjaxSource" />
-	<spring:url value="/permissions/application/${applicationId}/add" var="addPermissionURL" />
-	<spring:url value="/permissions/application/${applicationId}/remove" var="removePermissionURL" />
+	<spring:url value="/admin/permissions/application/${applicationId}" var="sAjaxSource" />
+	<spring:url value="/admin/permissions/application/${applicationId}/add" var="addPermissionURL" />
+	<spring:url value="/admin/permissions/application/${applicationId}/remove" var="removePermissionURL" />
 	<spring:url value="/provider/" var="detailPrefix" />
 	<c:set value="${applicationId}" var="entityId" />
 	<c:set value="providers" var="modelAttribute" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', application)"/>
 	<spring:url value="/admin/application/list?nameTableRecover=applicationTable&fromBack=true" var="backURL" />
-	<spring:url value="/permissions/application/${applicationId}/excel?tableName=${permissionTable}" var="excelSource" />
+	<spring:url value="/admin/permissions/application/${applicationId}/excel?tableName=${permissionTable}" var="excelSource" />
 </c:if>
 <c:if test="${not empty providerId}">
-	<spring:url value="/permissions/provider/${providerId}" var="sAjaxSource" />
-	<spring:url value="/permissions/provider/${providerId}/add" var="addPermissionURL" />
-	<spring:url value="/permissions/provider/${providerId}/remove" var="removePermissionURL" />
+	<spring:url value="/admin/permissions/provider/${providerId}" var="sAjaxSource" />
+	<spring:url value="/admin/permissions/provider/${providerId}/add" var="addPermissionURL" />
+	<spring:url value="/admin/permissions/provider/${providerId}/remove" var="removePermissionURL" />
 	<spring:url value="/sensor/" var="detailPrefix" />
 	<c:set value="${providerId}" var="entityId" />
 	<c:set value="sensors" var="modelAttribute" />
 	<spring:url value="/admin/provider/list?nameTableRecover=providerTable&fromBack=true" var="backURL" />
-<%-- <spring:url value="/permissions/list/excel?tableName=${permissionTable}" var="excelSource" /> --%>
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', provider)"/>
 </c:if>
 
 
@@ -71,11 +72,13 @@
 	</div>	
 	<div class="control-group pull-right">
 		<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-		<a href="#" onclick="unassignSelected('${modelAttribute}');" class="btn btn-danger"> 
-			<spring:message code="permission.remove" /> 
-		</a> 
-		<a href="#" onclick="window.location.href='${addPermissionURL}';" class="btn"> 
-			<spring:message code="permission.add" /> 
-		</a>
+		<c:if test="${showAdminControls}">
+			<a href="#" onclick="unassignSelected('${modelAttribute}');" class="btn btn-danger"> 
+				<spring:message code="permission.remove" /> 
+			</a> 
+			<a href="#" onclick="window.location.href='${addPermissionURL}';" class="btn"> 
+				<spring:message code="permission.add" /> 
+			</a>
+		</c:if>
 	</div>
 </form:form>

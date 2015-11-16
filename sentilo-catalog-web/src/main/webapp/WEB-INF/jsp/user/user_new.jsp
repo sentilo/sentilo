@@ -6,11 +6,13 @@
 	<spring:url value="/admin/users/${user.userName}/edit" var="actionURL" />
 	<spring:message code="user.edit.title" var="pageTitle" />
 	<spring:url value="/admin/users/${user.userName}/detail" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('EDIT', user)"/>
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/users/create" var="actionURL" />
 	<spring:message code="user.new.title" var="pageTitle" />
 	<spring:url value="/admin/users/list?nameTableRecover=userTable&fromBack=true" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('CREATE', 'org.sentilo.web.catalog.domain.User')"/>	
 </c:if>
 
 <script type="text/javascript">
@@ -30,10 +32,10 @@ function validate() {
 <div class="container-fluid">
 	<div class="content">
 		<div class="row-fluid">
-			<div class="span2">
+			<div class="span3">
 				<%@include file="/WEB-INF/jsp/common/include_sidebar.jsp"%>
 			</div>
-			<div class="span10">
+			<div class="span9">
 
 				<div class="row-fluid">
 					<div class="span12">
@@ -56,6 +58,7 @@ function validate() {
 									<c:if test="${mode == 'edit' }">
 										<form:input path="userName" readonly="true" />
 										<form:hidden path="createdAt" />
+										<form:hidden path="createdBy" />
 									</c:if>
 									<form:errors path="userName" cssClass="text-error" htmlEscape="false" />
 								</div>
@@ -119,20 +122,41 @@ function validate() {
 									<spring:message code="user.rols" />
 								</form:label>
 								<div class="controls">
-									<form:select path="roles" multiple="true">
+									<form:select path="roles" multiple="false">
 										<form:option value="ADMIN" label="ADMIN" />
 										<form:option value="USER" label="USER" />
 										<form:option value="PLATFORM" label="PLATFORM" />
+										<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
+										<form:option value="SUPER_ADMIN" label="SUPER-ADMIN" />
+										</security:authorize>
 									</form:select>
 									<form:errors path="roles" cssClass="text-error" htmlEscape="false" />
 								</div>
 							</div>
-
+							<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
+								<div class="control-group">
+									<form:label path="active" class="control-label">
+										<spring:message code="user.tenant" />
+									</form:label>
+									<div class="controls">
+										<form:select path="tenantId">
+											<form:option value="">${emptySelectMessage}</form:option>
+											<form:options items="${tenants}" itemValue="id" itemLabel="name" />
+										</form:select>
+										<form:errors path="tenantId" cssClass="text-error" htmlEscape="false" />
+									</div>
+								</div>
+							</security:authorize>
+							<security:authorize access="hasRole('ROLE_ADMIN')">
+								<input type="hidden" name="tenantId" id="tenantId" value="${tenantId}" />
+							</security:authorize>
+							
 							<div class="control-group">
 								<div class="controls">
 									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-									<a href="#" onclick="validate();"
-										class="btn btn-success"> <spring:message code="button.save" /> </a>
+									<c:if test="${showAdminControls}">
+										<a href="#" onclick="validate();" class="btn btn-success"> <spring:message code="button.save" /> </a>
+									</c:if>
 								</div>
 							</div>
 						</form:form>

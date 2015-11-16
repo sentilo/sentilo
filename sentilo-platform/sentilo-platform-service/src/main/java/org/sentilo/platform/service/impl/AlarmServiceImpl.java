@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.impl;
 
@@ -34,12 +41,16 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sentilo.common.domain.AlertOwner;
+import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.domain.Alarm;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
 import org.sentilo.platform.common.exception.CatalogAccessException;
+import org.sentilo.platform.common.exception.ResourceNotFoundException;
 import org.sentilo.platform.common.service.AlarmService;
 import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.common.service.ResourceService;
+import org.sentilo.platform.service.monitor.Metric;
+import org.sentilo.platform.service.monitor.RequestType;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.sentilo.platform.service.utils.PublishMessageUtils;
@@ -51,11 +62,12 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Service
 public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements AlarmService {
 
-  private final Logger logger = LoggerFactory.getLogger(AlarmServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AlarmServiceImpl.class);
 
   @Autowired
   private CatalogService catalogService;
@@ -72,21 +84,25 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
    * org.sentilo.platform.common.service.AlarmService#setAlarm(org.sentilo.platform.common.domain
    * .AlarmInputMessage)
    */
+  @Metric(requestType = RequestType.PUT, eventType = EventType.ALARM)
   public void setAlarm(final AlarmInputMessage message) {
-    // Si la alarma no existe, la registramos en Redis
-    registerAlarmIfNecessary(message);
-    // Registramos en Redis el mensaje asociado a la alarma
+    // Register alert in Redis if it does not exists
+    registerAlertIfNeedBe(message);
+    // Add alarm in Redis
     registerAlarmMessage(message);
-    // Y por ultimo, publicamos el mensaje de la alarma
+    // and finally, publish the alarm
     publish(message);
   }
 
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.platform.common.service.AlarmService#getAlarmOwner(java.lang.String)
+   * @see org.sentilo.platform.common.service.AlarmService#getAlertOwner(java.lang.String)
    */
-  public String getAlertOwner(final String alertId) {
+  public String getAlertOwner(final String alertId) throws ResourceNotFoundException {
+    if (alertsOwners.get(alertId) == null) {
+      throw new ResourceNotFoundException(alertId, "Alert");
+    }
     return alertsOwners.get(alertId);
   }
 
@@ -94,13 +110,14 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
    * (non-Javadoc)
    * 
    * @see
-   * org.sentilo.platform.common.service.AlarmService#getLastMessages(org.sentilo.platform.common
-   * .domain.AlarmInputMessage)
+   * org.sentilo.platform.common.service.AlarmService#getLastAlarms(org.sentilo.platform.common.
+   * domain.AlarmInputMessage)
    */
-  public List<Alarm> getLastMessages(final AlarmInputMessage message) {
-    // Para recuperar los mensajes asociados a una alarma, debemos hacer lo siguiente:
-    // 1. Recuperar el identificador interno de la alarma en Redis
-    // 2. Si este no es null, recuperar los mensajes asociados a esta alarma que cumplen el criterio
+  @Metric(requestType = RequestType.GET, eventType = EventType.ALARM)
+  public List<Alarm> getLastAlarms(final AlarmInputMessage message) {
+    // Para recuperar las alarmas asociadas a una alerta, debemos hacer lo siguiente:
+    // 1. Recuperar el identificador interno de la alerta en Redis
+    // 2. Si este no es null, recuperar las alarmas asociadas a esta alerta que cumplen el criterio
     // de busqueda
     final List<Alarm> messages = new ArrayList<Alarm>();
     final Long aid = jedisSequenceUtils.getAid(message.getAlertId());
@@ -111,9 +128,8 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     return messages;
   }
 
-  private void registerAlarmIfNecessary(final AlarmInputMessage message) {
-    // Si la alarma aun no esta registrada en Redis, la registramos.
-    resourceService.registerAlarmIfNecessary(message.getAlertId());
+  private void registerAlertIfNeedBe(final AlarmInputMessage message) {
+    resourceService.registerAlertIfNeedBe(message.getAlertId());
   }
 
   private void registerAlarmMessage(final AlarmInputMessage message) {
@@ -124,13 +140,13 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
 
   private void registerAlarmMessage(final Long aid, final Long amid, final AlarmInputMessage message) {
     final Long timestamp = System.currentTimeMillis();
-    // Definimos una reverse lookup key con la cual recuperar rapidamente los mensajes de una alarma
-    // A continuacion, añadimos el amid al Sorted Set alarm:{aid}:messages. La puntuacion, o score,
+    // Definimos una reverse lookup key con la cual recuperar rapidamente las alarmas de una alerta
+    // A continuacion, añadimos el amid al Sorted Set alert:{aid}:messages. La puntuacion, o score,
     // que se asocia
     // a cada elemento del Set es el timestamp del mensaje.
-    jedisTemplate.zAdd(keysBuilder.getAlarmMessagesKey(aid), timestamp, amid.toString());
+    jedisTemplate.zAdd(keysBuilder.getAlertAlarmsKey(aid), timestamp, amid.toString());
 
-    logger.debug("Registered in Redis message {} for alarm {}", amid, message.getAlertId());
+    LOGGER.debug("Registered in Redis alarm {} for alert {}", amid, message.getAlertId());
   }
 
   private Long persistAlarmMessage(final AlarmInputMessage message) {
@@ -138,13 +154,17 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
 
     final Long timestamp = System.currentTimeMillis();
 
-    final String alarmKey = keysBuilder.getMessageKey(amid);
+    final String alarmKey = keysBuilder.getAlarmKey(amid);
 
-    // Guardamos una hash de clave amid:{amid} y valores source, message y timestamp.
+    // Build a new hash with key amid:{amid} and values source, message, timestamp and alertType.
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put(SENDER, message.getSender());
     fields.put(MESSAGE, message.getMessage());
     fields.put(TIMESTAMP, timestamp.toString());
+    if (StringUtils.hasText(message.getAlertType())) {
+      fields.put(ALERT_TYPE, message.getAlertType());
+    }
+
     jedisTemplate.hmSet(alarmKey, fields);
 
     // if expireSeconds is defined and !=0, set the expire time to key
@@ -156,7 +176,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   }
 
   private void publish(final AlarmInputMessage message) {
-    logger.debug("Publish alarm event message {} associated with alarm {}", message.getMessage(), message.getAlertId());
+    LOGGER.debug("Publish alarm event message {} associated with alert {}", message.getMessage(), message.getAlertId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, message.getAlertId());
     jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
   }
@@ -167,12 +187,10 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     final Integer limit = QueryFilterParamsUtils.getLimit(message);
 
     // La sentencia a utilizar en Redis es:
-    // ZREVRANGEBYSCORE aid:{aid}:messages to from LIMIT 0 limit
+    // ZREVRANGEBYSCORE aid:{aid}:alarms to from LIMIT 0 limit
 
-    final Set<String> amids = jedisTemplate.zRevRangeByScore(keysBuilder.getAlarmMessagesKey(aid), to, from, 0, limit);
-    final List<Alarm> alarmMessages = (!CollectionUtils.isEmpty(amids) ? getAlarms(amids, message.getAlertId()) : Collections.<Alarm>emptyList());
-
-    return alarmMessages;
+    final Set<String> amids = jedisTemplate.zRevRangeByScore(keysBuilder.getAlertAlarmsKey(aid), to, from, 0, limit);
+    return !CollectionUtils.isEmpty(amids) ? getAlarms(amids, message.getAlertId()) : Collections.<Alarm>emptyList();
   }
 
   private List<Alarm> getAlarms(final Set<String> amids, final String alarmId) {
@@ -195,7 +213,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     String ts = null;
     String sender = null;
 
-    final Map<String, String> infoSoid = jedisTemplate.hGetAll(keysBuilder.getMessageKey(amid));
+    final Map<String, String> infoSoid = jedisTemplate.hGetAll(keysBuilder.getAlarmKey(amid));
     if (!CollectionUtils.isEmpty(infoSoid)) {
       message = infoSoid.get(MESSAGE);
       ts = infoSoid.get(TIMESTAMP);
@@ -210,7 +228,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   @Scheduled(initialDelay = 5000, fixedRate = 900000)
   public void loadAlertsOwners() {
     try {
-      logger.debug("Actualizando cache de propietarios de alertas");
+      LOGGER.debug("Updating alert owners cache");
       final List<AlertOwner> owners = catalogService.getAlertsOwners().getOwners();
       final Map<String, String> auxAlertsOwners = new HashMap<String, String>();
       if (!CollectionUtils.isEmpty(owners)) {
@@ -222,7 +240,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
       replaceActiveAlertsOwners(auxAlertsOwners);
 
     } catch (final CatalogAccessException e) {
-      logger.warn("Error al llamar al catalogo para recuperar la lista de propietarios de alarmas", e);
+      LOGGER.warn("Error calling the catalog for get the list of alert owners", e);
     }
   }
 

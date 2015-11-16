@@ -1,32 +1,38 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +43,7 @@ import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.SubscribeService;
+import org.sentilo.platform.service.listener.MessageListenerFactory;
 import org.sentilo.platform.service.listener.MessageListenerImpl;
 import org.sentilo.platform.service.listener.MockMessageListenerImpl;
 import org.sentilo.platform.service.listener.NotificationParams;
@@ -55,18 +62,21 @@ import org.springframework.util.StringUtils;
 @Service
 public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements SubscribeService {
 
-  private final Logger logger = LoggerFactory.getLogger(SubscribeServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SubscribeServiceImpl.class);
 
   @Autowired
   private RedisMessageListenerContainer listenerContainer;
+  @Autowired
+  private MessageListenerFactory listenerFactory;
 
   private final Map<String, MessageListenerImpl> listeners = new HashMap<String, MessageListenerImpl>();
 
-  private boolean subscriptionsRegistered = false;
+  private boolean storedSubscriptionsActivated = false;
   private static final String DUMMY_TOPIC = "/trash/dummy";
 
   @Scheduled(initialDelay = 30000, fixedDelay = 300000)
   public void loadSubscriptions() {
+
     // Al iniciar la plataforma, en caso de existir subscripciones registradas en Redis,
     // inicializamos los MessageListeners correspondientes y los
     // registramos en el container:
@@ -80,46 +90,48 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // for 'psubscribe' command;" la cual está asociada a que la conexión de subscripción no es
     // válida
     final boolean listenerContainerRunning = listenerContainer != null && listenerContainer.isRunning();
-    logger.debug("Listener container isRunning? {}", listenerContainerRunning);
+    LOGGER.debug("Listener container isRunning? {}", listenerContainerRunning);
 
-    if (!subscriptionsRegistered && listenerContainerRunning) {
-      logger.debug("Initialize subscriptions already registered in Redis");
+    if (!storedSubscriptionsActivated && listenerContainerRunning) {
+      LOGGER.debug("Initialize subscriptions already registered in Redis");
       try {
-        final Set<String> subscriptions = jedisTemplate.keys(PubSubConstants.REDIS_SUBS_PATTERN_KEY);
-        if (CollectionUtils.isEmpty(subscriptions)) {
-          logger.debug("Not found subscriptions in Redis");
-          logger.debug("Registering a mock subscription to channel {}", DUMMY_TOPIC);
-          doRegisterMockSubscription();
-          return;
-        }
-
-        logger.debug("Found {} subscriptions in Redis", subscriptions.size());
-
-        for (final String subscriptionKey : subscriptions) {
-          // Cada subscriptionKey corresponde a una entidad subscrita a N canales de la plataforma
-          // Toda la información de cada una de estas subscripciones está almacenada en una hash,
-          // donde cada entrada corresponde a la info <canal,endpoint>
-          final Map<String, String> activeSubscriptions = jedisTemplate.hGetAll(subscriptionKey);
-          if (CollectionUtils.isEmpty(activeSubscriptions)) {
-            return;
-          }
-
-          final Set<String> channels = activeSubscriptions.keySet();
-          final String listenerName = listenerNameFromSubscriptionKey(subscriptionKey);
-
-          for (final String channel : channels) {
-            doRegisterSubscription(listenerName, ChannelUtils.buildTopic(channel), activeSubscriptions.get(channel));
-          }
-        }
-        subscriptionsRegistered = true;
+        final Set<String> storedSubscriptions = jedisTemplate.keys(PubSubConstants.REDIS_SUBS_PATTERN_KEY);
+        activateStoredSubscriptions(storedSubscriptions);
+        storedSubscriptionsActivated = true;
       } catch (final Exception e) {
-        subscriptionsRegistered = false;
+        storedSubscriptionsActivated = false;
+      }
+    }
+  }
+
+  private void activateStoredSubscriptions(final Set<String> storedSubscriptions) {
+    if (CollectionUtils.isEmpty(storedSubscriptions)) {
+      doRegisterMockSubscription();
+      return;
+    }
+
+    LOGGER.debug("Found {} subscriptions stored in Redis", storedSubscriptions.size());
+
+    for (final String subscriptionKey : storedSubscriptions) {
+      // Cada subscriptionKey corresponde a una entidad subscrita a N canales de la plataforma
+      // Toda la información de cada una de estas subscripciones está almacenada en una hash,
+      // donde cada entrada corresponde a la info <canal,endpoint>
+      final Map<String, String> storedSubscription = jedisTemplate.hGetAll(subscriptionKey);
+      if (CollectionUtils.isEmpty(storedSubscription)) {
+        return;
+      }
+
+      final Set<String> channels = storedSubscription.keySet();
+      final String listenerName = listenerNameFromSubscriptionKey(subscriptionKey);
+
+      for (final String channel : channels) {
+        activateSubscription(listenerName, ChannelUtils.buildTopic(channel), storedSubscription.get(channel));
       }
     }
   }
 
   private String listenerNameFromSubscriptionKey(final String subscriptionKey) {
-    // subscriptionKey has the expression subs:<listenerName> and
+    // subscriptionKey follows the expression subs:<listenerName>
     final int pos = subscriptionKey.lastIndexOf(PubSubConstants.REDIS_KEY_TOKEN);
     return subscriptionKey.substring(pos + 1);
   }
@@ -145,12 +157,12 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     final String notificationParamsChain = buildNotificationParams(subscription);
 
     // Habilitamos listener
-    doRegisterSubscription(subscription.getSourceEntityId(), topic, notificationParamsChain);
+    activateSubscription(subscription.getSourceEntityId(), topic, notificationParamsChain);
 
     // Persistimos en Redis la subscripcion
     jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(), notificationParamsChain);
 
-    logger.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
+    LOGGER.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
   }
 
   private String buildNotificationParams(final Subscription subscription) {
@@ -165,20 +177,34 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     return sb.toString();
   }
 
-  private void doRegisterSubscription(final String listenerName, final Topic topic, final String notificationParamsChain) {
+  private void activateSubscription(final String listenerName, final Topic topic, final String notificationParamsChain) {
     MessageListenerImpl listener = listeners.get(listenerName);
     if (listener == null) {
-      listener = new MessageListenerImpl(listenerName);
-      listeners.put(listener.getName(), listener);
+      listener = addNewListener(listenerName);
     }
 
-    logger.debug("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
+    LOGGER.debug("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
 
     listenerContainer.addMessageListener(listener, topic);
     listener.addSubscription(topic, new NotificationParams(notificationParamsChain));
   }
 
+  private MessageListenerImpl addNewListener(final String listenerName) {
+    MessageListenerImpl listener = null;
+    try {
+      listenerFactory.setListenerName(listenerName);
+      listener = listenerFactory.getObject();
+      listeners.put(listener.getName(), listener);
+    } catch (final Exception e) {
+      LOGGER.warn("Has been unable to build MessageListener {}. ", listenerName, e);
+    }
+    return listener;
+
+  }
+
   private void doRegisterMockSubscription() {
+    LOGGER.debug("Not found stored subscriptions in Redis.");
+    LOGGER.debug("Registering a mock subscription to channel {}", DUMMY_TOPIC);
     final MessageListenerImpl listener = new MockMessageListenerImpl(DUMMY_TOPIC);
     listenerContainer.addMessageListener(listener, ChannelUtils.buildTopic(DUMMY_TOPIC));
   }
@@ -207,7 +233,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   private void removeSubscription(final Subscription subscription) {
     final Topic topic = ChannelUtils.getChannel(subscription);
 
-    logger.debug("Removing subscription to channel {} for listener {} ", topic.getTopic(), subscription.getSourceEntityId());
+    LOGGER.debug("Removing subscription to channel {} for listener {} ", topic.getTopic(), subscription.getSourceEntityId());
 
     final MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
     if (listener != null) {
@@ -218,11 +244,11 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // Eliminamos en Redis la subscripcion del listener al topic
     jedisTemplate.hDel(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic());
 
-    logger.debug("Subscription from listener {} subscribe to channel {} removed", subscription.getSourceEntityId(), topic.getTopic());
+    LOGGER.debug("Subscription from listener {} subscribe to channel {} removed", subscription.getSourceEntityId(), topic.getTopic());
   }
 
   private void removeAllSubscriptions(final Subscription subscription) {
-    logger.debug("Removing all subscriptions for listener {}", subscription.getSourceEntityId());
+    LOGGER.debug("Removing all subscriptions for listener {}", subscription.getSourceEntityId());
 
     final MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
 
@@ -238,7 +264,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // Por ultimo, eliminamos en Redis la hash de subscripciones de este listener:
     jedisTemplate.del(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));
 
-    logger.debug("Subscriptions removed for listener {} ", subscription.getSourceEntityId());
+    LOGGER.debug("Subscriptions removed for listener {} ", subscription.getSourceEntityId());
   }
 
   private void removeSubscriptionsOfOneType(final Subscription subscription) {
@@ -249,7 +275,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // cada una, si se trata de una subscripcion del tipo indicado se pasa a eliminar el listener
     // de su lista de listeners.
 
-    logger.debug("Removing all subscriptions of type {} for listener {}", subscription.getType(), subscription.getSourceEntityId());
+    LOGGER.debug("Removing all subscriptions of type {} for listener {}", subscription.getType(), subscription.getSourceEntityId());
 
     // Recuperamos todos los canales a los cuales esta subscrito el listener.
     final Set<String> topics = jedisTemplate.hKeys(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));
@@ -265,7 +291,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
       }
     }
 
-    logger.debug("Number of subscriptions to remove in Redis: {}", topicsToRemove.size());
+    LOGGER.debug("Number of subscriptions to remove in Redis: {}", topicsToRemove.size());
 
     if (!CollectionUtils.isEmpty(topicsToRemove)) {
       // Por ultimo, eliminamos en Redis de la hash de subscripciones todas aquellas que
@@ -273,36 +299,38 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
       jedisTemplate.hDel(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topicsToRemove.toArray(new String[0]));
     }
 
-    logger.debug("Subscriptions of type {} removed for listener {} ", subscription.getType(), subscription.getSourceEntityId());
+    LOGGER.debug("Subscriptions of type {} removed for listener {} ", subscription.getType(), subscription.getSourceEntityId());
   }
 
   @Override
   public List<Subscription> get(final Subscription subscription) {
-    // Las subscripciones de una entidad estan registradas bajo la clave subs:idEntity en el
-    // Redis. El valor asociado a la clave es una hash de pares <channel, notificationParamsChain
-    // --> endpoint#@#secret>
-    // donde cada channel representa una subscripción activa de esa entidad.
+    // Las subscripciones de una entidad estan registradas bajo la clave subs:idEntity en Redis
+    // El valor asociado a la clave es una hash de pares <channel, notificationParamsChain
+    // --> endpoint#@#secret> donde cada channel representa una subscripción activa de esa entidad.
 
-    logger.debug("Retrieving subscriptions for entity {}", subscription.getSourceEntityId());
+    LOGGER.debug("Retrieving active subscriptions for entity {}", subscription.getSourceEntityId());
 
-    List<Subscription> subscriptionList = null;
     final String key = keysBuilder.getSubscriptionKey(subscription.getSourceEntityId());
     final Map<String, String> subscriptions = jedisTemplate.hGetAll(key);
+    final List<Subscription> subscriptionList = buildEntitySubscriptions(subscription, subscriptions);
+
+    LOGGER.debug("Entity {} has {} subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
+
+    return subscriptionList;
+  }
+
+  private List<Subscription> buildEntitySubscriptions(final Subscription subscription, final Map<String, String> subscriptions) {
+    final List<Subscription> subscriptionList = new ArrayList<Subscription>();
     if (!CollectionUtils.isEmpty(subscriptions)) {
-      subscriptionList = new ArrayList<Subscription>();
       final Iterator<String> it = subscriptions.keySet().iterator();
-      final SubscribeType type = subscription.getType();
+      final SubscribeType filterType = subscription.getType();
       while (it.hasNext()) {
         final String field = it.next();
-        if (type == null || ChannelUtils.isTopicOfType(field, type)) {
+        if (filterType == null || ChannelUtils.isTopicOfType(field, filterType)) {
           subscriptionList.add(ChannelUtils.getSubscription(subscription.getSourceEntityId(), field, subscriptions.get(field)));
         }
       }
-    } else {
-      subscriptionList = Collections.emptyList();
     }
-
-    logger.debug("Entity {} has {} subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
 
     return subscriptionList;
   }

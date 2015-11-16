@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sentilo</groupId>
   <artifactId>sentilo-parent-pom</artifactId>
-  <version>1.4.0</version>
+  <version>1.5.0</version>
   <packaging>pom</packaging>
   <name>sentilo-parent-pom</name>
   <description>Parent pom for the Sentilo's modules</description>
@@ -21,7 +21,7 @@
 		<jackson.version>1.9.11</jackson.version>
 		<junit.version>4.11</junit.version>
 		<mockito.version>1.9.5</mockito.version>
-		<platform.version>1.4.0</platform.version>				
+		<platform.version>1.5.0</platform.version>				
 		<maven.compiler.source>1.6</maven.compiler.source>
 	    <maven.compiler.target>1.6</maven.compiler.target>		
   </properties>
@@ -40,6 +40,7 @@
 	<module>./sentilo-agent-relational</module>
 	<module>./sentilo-catalog-web</module>		
 	<module>./sentilo-agent-location-updater</module>	
+	<module>./sentilo-agent-activity-monitor</module>
   </modules>
 	
   <profiles>
@@ -74,12 +75,13 @@
 		          <maxmem>256m</maxmem>
 		          <aggregate>true</aggregate>
 		        <instrumentation>
-		        <ignoreTrivial>true</ignoreTrivial>
-		        <excludes>
-		          <exclude>org/sentilo/common/test/*.class</exclude>		          
-		          <exclude>org/sentilo/**/utils/*Constants.class</exclude>
-		        </excludes>
-		        </instrumentation>
+			        <ignoreTrivial>true</ignoreTrivial>
+			        <excludes>
+			          <exclude>org/sentilo/common/test/*.class</exclude>		          
+			          <exclude>org/sentilo/**/utils/*Constants.class</exclude>
+			          <exclude>org/sentilo/**/domain/*.class</exclude>
+			        </excludes>
+			        </instrumentation>
 		        </configuration>
 		      </plugin>
 	          <plugin>

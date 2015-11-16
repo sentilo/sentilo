@@ -1,31 +1,39 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.utils;
 
 import org.sentilo.web.catalog.domain.Permission;
+import org.sentilo.web.catalog.domain.TenantPermission;
 
 public abstract class Constants {
 
@@ -41,6 +49,7 @@ public abstract class Constants {
   public static final String MODEL_COMPONENTS = "components";
   public static final String MODEL_COMPONENT_ICON = "componentIcon";
   public static final String MODEL_COMPONENT_TYPES = "componentTypes";
+  public static final String MODEL_COMPONENT_TYPES_EDIT = "componentTypesEdit";
   public static final String MODEL_COMPONENT_TYPE_ICONS = "componentTypeIcons";
   public static final String MODEL_COMPONENT_COMPONENTS = "componentComponents";
   public static final String MODEL_COMPONENT_SENSORS = "componentSensors";
@@ -67,8 +76,16 @@ public abstract class Constants {
   public static final String MODEL_ENERGY_TYPES = "energyTypes";
   public static final String MODEL_CONNECTIVITY_TYPES = "connectivityTypes";
   public static final String MODEL_MAP_TYPE = "mapType";
+  public static final String MODEL_TENANT = "tenant";
+  public static final String MODEL_TENANTS = "tenants";
+  public static final String MODEL_TENANT_ID = "tenantId";
+  public static final String MODEL_TENANT_PERMISSION = "tenantPermission";
+  public static final String MODEL_TENANT_PERMISSIONS = "permissions";
+  public static final String MODEL_TENANT_CUSTOM_PARAMS = "tenantCustomParams";
 
   public static final String MODEL_DATE_UPDATED = "dateUpdated";
+
+  public static final String VIEW_ERROR_ACCESS_NOT_ALLOWED = "accessNotAllowed";
 
   public static final String VIEW_NEW_COMPONENT = "component/component_new";
   public static final String VIEW_COMPONENT_DETAIL = "component/component_detail";
@@ -104,6 +121,11 @@ public abstract class Constants {
   public static final String VIEW_ALERT_LIST = "alert/alert_list";
   public static final String VIEW_NEW_ALERT = "alert/alert_new";
   public static final String VIEW_ALERT_DETAIL = "alert/alert_detail";
+  public static final String VIEW_TENANT_LIST = "tenant/tenant_list";
+  public static final String VIEW_NEW_TENANT = "tenant/tenant_new";
+  public static final String VIEW_TENANT_DETAIL = "tenant/tenant_detail";
+  public static final String VIEW_ADD_TENANT_PERMISSIONS = "tenant/tenant_permissions_add";
+  public static final String VIEW_EDIT_TENANT_PERMISSIONS = "tenant/tenant_permissions_edit";
 
   public static final String VIEW_SENSOR_TYPE_LIST = "sensorType/sensor_type_list";
   public static final String VIEW_NEW_SENSOR_TYPE = "sensorType/sensor_type_new";
@@ -122,10 +144,10 @@ public abstract class Constants {
 
   public static final String MODEL_ACTIVE_MENU = "activeMenu";
 
-  public static final String VALIDATION_ENTITY_NAME_REGEXP = "[0-9a-zA-Z-_:]+";
+  public static final String VALIDATION_ENTITY_NAME_REGEXP = "[0-9a-zA-Z-_]+";
 
   public static final String DATE_FORMAT = "dd/MM/yyyy";
-  public static final String DATETIME_FORMAT = "dd/MM/yyyy hh:mm";
+  public static final String DATETIME_FORMAT = "dd/MM/yyyy HH:mm";
 
   public static final int STATIC = 0;
   public static final int MOBILE = 1;
@@ -133,6 +155,7 @@ public abstract class Constants {
   public static final int TAB_1 = 1;
   public static final int TAB_2 = 2;
   public static final int TAB_3 = 3;
+  public static final int TAB_4 = 4;
 
   public static final String ORIGIN_SENSOR = "sensor";
   public static final String ORIGIN_PROVIDER = "provider";
@@ -147,8 +170,10 @@ public abstract class Constants {
   public static final String MENU_COMPONENT = "/component";
   public static final String MENU_ALERT = "/alert";
   public static final String MENU_COMPONENT_MAP = "/componentMap";
+  public static final String MENU_TENANT = "/tenant";
 
   public static final Permission.Type CATALOG_PERMISSION_TYPE = Permission.Type.ADMIN;
+  public static final TenantPermission.Type CATALOG_TENANT_PERMISSION_TYPE = TenantPermission.Type.WRITE;
 
   public static final String DEFAULT_COMPONENT_TYPE = "generic";
 
@@ -184,6 +209,8 @@ public abstract class Constants {
   public static final String MESSAGE_KEYS_PREFFIX = "keysPreffix";
   public static final String LIST_COLUMN_NAMES = "listColumnNames";
   public static final String RESULT_LIST = "resultList";
+
+  public static final String AUDIT_LOGGER_NAME = "AUDIT";
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.request;
 
@@ -42,6 +49,7 @@ import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.IdentityContextHolder;
 import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.dto.ErrorMessage;
 import org.sentilo.platform.server.handler.AbstractHandler;
@@ -55,7 +63,7 @@ import org.slf4j.LoggerFactory;
 
 public class SentiloRequestHandler implements HttpRequestHandler {
 
-  private final Logger logger = LoggerFactory.getLogger(SentiloRequestHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SentiloRequestHandler.class);
 
   private final HandlerLocator handlerLocator;
   private final AuthenticationService authenticationService;
@@ -86,20 +94,23 @@ public class SentiloRequestHandler implements HttpRequestHandler {
       prepareErrorResponse(httpResponse, errorCode, e.getMessage(), e.getErrorDetails());
     } catch (final PlatformAccessException e) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_ACCESS_ERROR);
-      logger.error("{} - Internal access error.", internalErrorCode, e);
+      LOGGER.error("{} - Internal access error.", internalErrorCode, e);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
       prepareErrorResponse(httpResponse, errorCode, errorMessage);
-    } catch (final Throwable e) {
+    } catch (final Exception e) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_UNKNOWN_ERROR);
-      logger.error("{} - Internal server error.", internalErrorCode, e);
+      LOGGER.error("{} - Internal server error.", internalErrorCode, e);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
       prepareErrorResponse(httpResponse, errorCode, errorMessage);
+    } finally {
+      debug(httpResponse);
+      IdentityContextHolder.clearContext();
     }
-    debug(httpResponse);
+
   }
 
   private void prepareErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage) {
@@ -126,7 +137,7 @@ public class SentiloRequestHandler implements HttpRequestHandler {
   }
 
   private AbstractHandler lookupHandlerForRequest(final SentiloRequest request) throws PlatformException {
-    logger.debug("Looking handler for request {}", request.getUri());
+    LOGGER.debug("Looking handler for request {}", request.getUri());
 
     final AbstractHandler handler = handlerLocator.lookup(request);
     if (handler == null) {
@@ -136,32 +147,32 @@ public class SentiloRequestHandler implements HttpRequestHandler {
   }
 
   private void debug(final SentiloRequest request) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("New http {} request: {}", request.getMethod(), request.getUri());
-      logger.debug("Content-Type: {}", request.getContentType());
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("New http {} request: {}", request.getMethod(), request.getUri());
+      LOGGER.debug("Content-Type: {}", request.getContentType());
     }
   }
 
   private void debug(final HttpResponse httpResponse) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("New http response:");
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("New http response:");
 
       if (httpResponse.getStatusLine() != null) {
         final int status = httpResponse.getStatusLine().getStatusCode();
-        logger.debug("Status: {}", status);
+        LOGGER.debug("Status: {}", status);
       }
 
       final Header[] header = httpResponse.getHeaders(HttpHeader.CONTENT_TYPE.toString());
       if (header != null && header.length > 0) {
         final String contentType = header[0].getValue();
-        logger.debug("{} : {}", HttpHeader.CONTENT_TYPE.toString(), contentType);
+        LOGGER.debug("{} : {}", HttpHeader.CONTENT_TYPE.toString(), contentType);
       }
 
       if (httpResponse.getEntity() != null) {
         try {
-          logger.debug("Entity body: {} ", EntityUtils.toString(httpResponse.getEntity()));
+          LOGGER.trace("Entity body: {} ", EntityUtils.toString(httpResponse.getEntity()));
         } catch (final Exception e) {
-          logger.error("Error parsing body", e);
+          LOGGER.error("Error parsing body", e);
         }
       }
     }

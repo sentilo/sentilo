@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('LIST', 'org.sentilo.web.catalog.domain.User')"/>
+
 <c:set value="userTable" var="userTable" />
 
 <spring:url value="/admin/users/delete" var="deleteURL" />
@@ -62,6 +64,7 @@ $(document).ready(function() {
 								</a>
 							</div>
 							
+							<c:if test="${showAdminControls}">
 							<div class="control-group pull-right">
 								<a href="#" onclick="deleteSelected('users');" class="btn btn-danger"> 
 									<spring:message code="user.delete.title" /> 
@@ -70,6 +73,7 @@ $(document).ready(function() {
 									<spring:message code="user.new.title" /> 
 								</a>
 							</div>
+							</c:if>
 						</form:form>
 					</div>
 				</div>

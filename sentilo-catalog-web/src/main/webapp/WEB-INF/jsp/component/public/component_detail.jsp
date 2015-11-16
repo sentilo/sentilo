@@ -13,6 +13,7 @@
 
 <c:set var="search" value="'" />
 <c:set var="replace" value="\\'" />
+<c:set var="btnclose" value="${param.btnclose}" />
 
 <security:authorize access="isAuthenticated()">
 	<c:set var="showAllSensors" value="true" />	
@@ -181,6 +182,16 @@ $(document).ready(function() {
 	
 	initializeMap('${component.location.centroid[1]}','${component.location.centroid[0]}', componentPath.split(','), '${componentIcon}');
 	
+	<c:if test="${alternative eq 'true' && btnclose eq 'off'}">
+	    // Hook to remove margin top when detail is show in a third-party window 
+		$("div.content").css( "margin-top",0);
+		$("div.content div").css( "margin-top",0);
+	    
+	    // Show accordions divs expanded	    
+	    $('#photoAccordion a').click();	    
+	    $('#locationAccordion a').click();
+	</c:if>
+	
 	<c:if test="${not empty componentSensors}">
 		var firstSelPublicSensor=null;
 		<c:set var="alreadySet" value="${false}"/>
@@ -202,9 +213,12 @@ $(document).ready(function() {
 
 <div class="container-fluid">
 	<div class="content">
-
-		<%@ include file="/WEB-INF/jsp/component/public/include_component_detail_header.jsp"%>
-
+		
+		<div class="row-fluid" style="margin-top:35px; margin-bottom:20px;">
+			<div class="span12" >		
+				<%@ include file="/WEB-INF/jsp/component/public/include_component_detail_header.jsp"%>
+			</div>
+		</div>
 		<div class="row-fluid">
 			<div class="span9">
 				<%@include file="/WEB-INF/jsp/common/include_location_map.jsp"%>

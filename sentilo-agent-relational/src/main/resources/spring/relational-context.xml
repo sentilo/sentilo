@@ -12,10 +12,11 @@
 	<import resource="classpath:spring/relational-persistence-context.xml" />
 	<import resource="classpath:spring/relational-pubsub-context.xml" />
 
-	<context:component-scan base-package="org.sentilo.agent.relational.business.service" />
-	<context:component-scan base-package="org.sentilo.agent.relational.business.repository" />
+	<context:component-scan base-package="org.sentilo.agent.relational.service" />
+	<context:component-scan base-package="org.sentilo.agent.relational.repository" />	
 	<context:component-scan base-package="org.sentilo.agent.relational.event" />
-	<context:component-scan base-package="org.sentilo.agent.common.listener" />
+	<context:component-scan base-package="org.sentilo.agent.relational.hook" />
+	<context:component-scan base-package="org.sentilo.agent.common.listener" />	
 	
 	<task:annotation-driven scheduler="platformScheduler" />
 	<task:scheduler id="platformScheduler" pool-size="5" />	

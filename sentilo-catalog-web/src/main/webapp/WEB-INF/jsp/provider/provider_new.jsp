@@ -2,17 +2,17 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-
-
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/provider/${provider.id}/edit" var="actionURL" />
 	<spring:message code="provider.edit.title" var="pageTitle" />
 	<spring:url value="/admin/provider/${provider.id}/detail" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('EDIT',provider)"/>
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/provider/create" var="actionURL" />
 	<spring:message code="provider.new.title" var="pageTitle" />
 	<spring:url value="/admin/provider/list?nameTableRecover=providerTable&fromBack=true" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('CREATE','org.sentilo.web.catalog.domain.Provider')"/>
 </c:if>
 
 <div class="container-fluid">
@@ -31,6 +31,14 @@
 				</h1>
 
 				<form:form method="post" modelAttribute="provider" action="${actionURL}" class="form-horizontal">
+					<c:choose>
+						<c:when test="${mode == 'create' }">
+							<input type="hidden" id="tenantId" name="tenantId" value="${tenantId}" />
+						</c:when>
+						<c:otherwise>
+							<form:hidden path="tenantId" />
+						</c:otherwise>
+					</c:choose>
 					<fieldset>
 						<%@include file="/WEB-INF/jsp/common/include_input_token.jsp"%>
 						<div class="control-group">
@@ -44,6 +52,7 @@
 								<c:if test="${mode == 'edit' }">
 									<form:input path="id" readonly="true" />
 									<form:hidden path="createdAt" />
+									<form:hidden path="createdBy" />
 								</c:if>
 								<form:errors path="id" cssClass="text-error" htmlEscape="false" />
 							</div>
@@ -92,9 +101,11 @@
 						<div class="control-group">
 							<div class="controls">
 								<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+								<c:if test="${showAdminControls}">
 								<a href="#" onclick="$('form#provider').submit();" class="btn btn-success">
 									<spring:message code="button.save" />
 								</a>
+								</c:if>
 							</div>
 						</div>
 					</fieldset>

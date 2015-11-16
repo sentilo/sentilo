@@ -1,6 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
+
+<spring:url value="/admin/permissions/application/${permissions.parentEntityId}/add" var="addPermissionURL" />
 
 <div class="container-fluid">
 	<div class="content">
@@ -12,9 +15,7 @@
 			<div class="span9">
 
 				<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp"%>
-
-				<spring:url value="/permissions/application/${permissions.parentEntityId}/add" var="addPermissionURL" />
-
+				
 				<h1 class="lead">
 					<spring:message code="permissions.new.title" />
 				</h1>

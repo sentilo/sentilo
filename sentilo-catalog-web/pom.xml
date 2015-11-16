@@ -11,7 +11,7 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.4.0</version>		
+		<version>1.5.0</version>		
 	</parent>
 
 	<properties>				
@@ -130,30 +130,14 @@
 	      <groupId>org.springframework.data</groupId>
 	      <artifactId>spring-data-mongodb</artifactId>
 	      <version>${org.springframework.data.mongodb.version}</version>	      
-	    </dependency>		    	    
+	    </dependency>	     		    	   
 		<!-- Added to remove stupid JSP validations errors like pageContext not found, ...-->	    	    
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>jsp-api</artifactId>
 			<version>6.0.37</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<version>2.10.4</version>
-		</dependency>
-		<dependency>
-			<groupId>net.wimpi</groupId>
-			<artifactId>telnetd-x</artifactId>
-			<version>2.1.1</version>
-			<exclusions>
-		      <exclusion>
-					<artifactId>log4j</artifactId>
-					<groupId>log4j</groupId>
-			 </exclusion>
-		 	</exclusions>
-		</dependency>
+		</dependency>		
 		<!--  Added for pass ApiValidatorTest suite: HibernateValidator needs log4j in the classpath -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -180,6 +164,12 @@
 			<artifactId>poi</artifactId>
 			<version>3.10.1</version>
 		</dependency>
+		<!--  UrlRewrite to support multitenant based URLs -->
+		<dependency>
+	        <groupId>org.tuckey</groupId>
+	        <artifactId>urlrewritefilter</artifactId>
+	        <version>4.0.3</version>
+	    </dependency>
   	</dependencies>
 	
 </project>

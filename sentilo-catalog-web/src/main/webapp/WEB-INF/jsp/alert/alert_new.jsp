@@ -6,11 +6,13 @@
 	<spring:url value="/admin/alert/${alert.id}/edit" var="actionURL" />
 	<spring:message code="alert.edit.title" var="pageTitle" />
 	<spring:url value="/admin/alert/${alert.id}/detail" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('EDIT', alert)"/>
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/alert/create" var="actionURL" />
 	<spring:message code="alert.new.title" var="pageTitle" />
 	<spring:url value="/admin/alert/list?nameTableRecover=alertTable&fromBack=true" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('CREATE','org.sentilo.web.catalog.domain.Alert')"/>
 </c:if>
 
 <c:set var="editMode" value="${mode == 'edit' }" />
@@ -202,12 +204,14 @@ $(document).ready(function() {
 
 						<form:form method="post" modelAttribute="alert" action="${actionURL}" class="form-horizontal" autocomplete="off">
 							<form:errors cssClass="text-error" />
+							<input type="hidden" id="tenantId" name="tenantId" value="${tenantId}" />
 							<div class="control-group">
 								<form:label path="id" class="control-label">
 									<spring:message code="alert.id" />
 								</form:label>
 								<c:if test="${editMode}">
 									<form:hidden path="createdAt" />
+									<form:hidden path="createdBy" />
 								</c:if>
 								<div class="controls">
 									<form:input path="id" readonly="${editMode}" />
@@ -338,10 +342,12 @@ $(document).ready(function() {
 
 							<div class="control-group">
 								<div class="controls">
-									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%> 
+									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+									<c:if test="${showAdminControls}"> 
 									<a href="#" onclick="$('form#alert').submit();" class="btn btn-primary"> 
 										<spring:message code="button.save" /> 
 									</a>
+									</c:if>
 								</div>
 							</div>
 

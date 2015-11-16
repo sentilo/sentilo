@@ -2,10 +2,10 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', componentType)"/>
+
 <spring:url value="/admin/componenttypes/${componentType.id}/edit" var="editComponentTypeLink" />
-
 <spring:url value="/static/img/icons" var="iconsPath" />
-
 <spring:url value="/admin/componenttypes/list?nameTableRecover=componentTypeTable&fromBack=true" var="backURL" />
 
 <div class="container-fluid">
@@ -67,7 +67,7 @@
 															<strong><spring:message code="componenttype.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="componentType.updateAt" />
+															<spring:eval expression="componentType.updatedAt" />
 														</div>
 													</div>
 													<c:if test="${not empty componentType.icon}">
@@ -88,8 +88,11 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<a href="${editComponentTypeLink}" class="btn btn-primary"> <spring:message
-														code="componenttype.edit.title" /> </a>
+												<c:if test="${showAdminControls}">	
+												<a href="${editComponentTypeLink}" class="btn btn-primary"> 
+													<spring:message code="componenttype.edit.title" /> 
+												</a>
+												</c:if>
 											</div>
 										</div>
 									</div>

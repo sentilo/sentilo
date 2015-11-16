@@ -1,32 +1,40 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.listener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.sentilo.web.catalog.domain.Component;
@@ -51,36 +59,81 @@ public class ComponentEventListener extends AbstractMongoEventListener<Component
 
   @Override
   public void onBeforeConvert(final Component component) {
-    // Before convert component to be persisted, we must do the following steps if location is not
-    // null:
+    changeLocationAndRouteIfNeeded(component);
+  }
+
+  /**
+   * Component location in backend must be changed if, and only if, new location is different from
+   * existing location and its timestamp is greater than existing location timestamp. Additionaly,
+   * new location could be inserted into route list if need be.
+   * 
+   * @param newComponent
+   */
+  private void changeLocationAndRouteIfNeeded(final Component newComponent) {
+    // Before convert component to be persisted, we must do the following steps if new location is
+    // not null:
     // 1. Remove duplicate consecutive coordinates from the location (does not make sense to
     // duplicate consecutive coordinates)
-    // 2. Build(or rebuild) the centroid attribute with the location info
-    // 3. Verify that location fromTsTime is fill in
-    // 4. Likewise, if location has changed and component is mobile, update route locations with
-    // this new one
-    if (component.getLocation() != null) {
-      removeDuplicateConsecutiveCoords(component.getLocation());
-      CentroidBuilder.build(component.getLocation());
-      validateLocationFromTsTime(component);
-      if (component.isMobileComponent()) {
-        storeRouteIfNecessary(component);
+    // 2. Verify that new location changes old location (i.e has different value and its timestamp
+    // is greater than old location timestamp). If so, then build (or rebuild) the centroid
+    // attribute with the new location info
+    // Likewise, if component is mobile and has candidates to be route members, update route list if
+    // need be
+
+    if (newComponent.getLocation() != null) {
+      removeDuplicateConsecutiveCoords(newComponent);
+      updateLocationIfNeedBe(newComponent);
+
+      if (newComponent.isMobileComponent()) {
+        updateRouteIfNeedBe(newComponent);
       }
     }
   }
 
-  private void validateLocationFromTsTime(final Component component) {
-    // If location has changed and fromTsTime is null, initialize it with component update time
-    if (component.getLocation().getFromTsTime() == null) {
-      final Component aux = componentService.find(component);
-      if (aux == null || aux.getLocation() == null || !Arrays.equals(aux.getLocation().getCoordinates(), component.getLocation().getCoordinates())) {
-        component.getLocation().setFromTsTime(component.getUpdateAt().getTime());
+  /**
+   * Verifies if current component location saved into backend must be changed for the new component
+   * location. If so, then component location centroid must be rebuild. Otherwise, new component
+   * location is replaced with the current location saved into backend
+   */
+  private void updateLocationIfNeedBe(final Component newComponent) {
+    boolean locationMustBeUpdated = true;
+    final Location newLocation = newComponent.getLocation();
+
+    // If newLocation timestamp is not filled in, it takes its value from the component update
+    // time field
+    if (newLocation.getFromTsTime() == null) {
+      newLocation.setFromTsTime(newComponent.getUpdatedAt().getTime());
+    }
+
+    // Get the current component info from backend if it exists
+    final Component currentComponent = componentService.find(newComponent);
+
+    if (currentComponent != null && currentComponent.getLocation() != null) {
+      final Location currentLocation = currentComponent.getLocation();
+      final Long newLocationTs = newLocation.getFromTsTime();
+      final Long currentLocationTs =
+          (currentLocation.getFromTsTime() != null ? currentLocation.getFromTsTime() : currentComponent.getUpdatedAt().getTime());
+
+      if (currentLocation.getFromTsTime() == null) {
+        currentLocation.setFromTsTime(currentComponent.getUpdatedAt().getTime());
+      }
+
+      // If coordinates are equals or new location hasn't a timestamp greater than current location
+      // timestamp, location saved into backend mustn't be updated when component will be saved
+      if (Arrays.equals(currentLocation.getCoordinates(), newLocation.getCoordinates()) || newLocationTs <= currentLocationTs) {
+        // Changed new component location for current location
+        newComponent.setLocation(currentLocation);
+        locationMustBeUpdated = false;
       }
     }
 
+    if (locationMustBeUpdated) {
+      CentroidBuilder.build(newLocation);
+    }
   }
 
-  private void removeDuplicateConsecutiveCoords(final Location location) {
+  private void removeDuplicateConsecutiveCoords(final Component component) {
+    final Location location = component.getLocation();
     if (location.getNumberOfCoordinates() != 1) {
       final List<LngLat> newCoordinates = new ArrayList<LngLat>();
       LngLat previousCoords = null;
@@ -101,7 +154,7 @@ public class ComponentEventListener extends AbstractMongoEventListener<Component
     }
   }
 
-  private void storeRouteIfNecessary(final Component component) {
+  private void updateRouteIfNeedBe(final Component component) {
     // Routes not have sense for components with a set of coordinates
     if (component.getLocation().getNumberOfCoordinates() != 1) {
       return;
@@ -116,12 +169,14 @@ public class ComponentEventListener extends AbstractMongoEventListener<Component
       component.setRoutePointList(route);
     }
 
-    // Retrieve the more recent position from the route
-    final RoutePoint lastLocation = route.peek();
+    // If it's not member yet, the current location always is a candidate to be a route member (is
+    // candidate to be the route head)
+    component.addLocationCandidate(component.getLocation());
 
-    final LngLat currentLocation = component.getLocation().getCoordinates()[0];
-    if (lastLocation == null || !currentLocation.equals(lastLocation.getLocation())) {
-      route.add(new RoutePoint(currentLocation, component.getLocation().getFromTsTime()));
+    // For each location route point candidate, validates if must be a route member
+    final Iterator<Location> it = component.getLocationCandidates().iterator();
+    while (it.hasNext()) {
+      route.add(new RoutePoint(it.next()));
     }
   }
 

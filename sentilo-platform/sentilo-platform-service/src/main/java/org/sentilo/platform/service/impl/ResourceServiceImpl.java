@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.impl;
 
@@ -42,7 +49,7 @@ import org.springframework.util.StringUtils;
 @Service
 public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements ResourceService {
 
-  private final Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceServiceImpl.class);
 
   /*
    * (non-Javadoc)
@@ -51,15 +58,15 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * org.sentilo.platform.common.service.ResourceService#registerProviderIfNecessary(java.lang.String
    * )
    */
-  public Long registerProviderIfNecessary(final String providerId) {
+  public Long registerProviderIfNeedBe(final String providerId) {
     Long pid = jedisSequenceUtils.getPid(providerId);
-    if (pid == null) { // se debe registrar el proveedor
+    // Provider must be registered into Redis if its pid doesn't exists
+    if (pid == null) {
       pid = jedisSequenceUtils.setPid(providerId);
       jedisTemplate.set(keysBuilder.getProviderKey(pid), providerId);
-      // Y definimos una reverse lookup key con la cual recuperar rapidamente el pid del proveedor
-      // providerId
+      // Reverse lookup key for quickly get the {pid} from a provider with identifier providerId
       jedisTemplate.set(keysBuilder.getReverseProviderKey(providerId), pid.toString());
-      logger.debug("Registered in Redis provider {} with pid {}", providerId, pid);
+      LOGGER.debug("Registered in Redis provider {} with pid {}", providerId, pid);
     }
 
     return pid;
@@ -72,9 +79,10 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * org.sentilo.platform.common.service.ResourceService#registerSensorIfNecessary(java.lang.String,
    * java.lang.String)
    */
-  public Long registerSensorIfNecessary(final String sensorId, final String providerId) {
+  public Long registerSensorIfNeedBe(final String sensorId, final String providerId) {
     Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
-    if (sid == null) { // se debe registrar el sensor
+    // Sensor must be registered into Redis if its sid doesn't exists
+    if (sid == null) {
       final Long pid = jedisSequenceUtils.getPid(providerId);
       sid = jedisSequenceUtils.setSid(providerId, sensorId);
 
@@ -93,7 +101,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       // rapidamente el dato: /provider1/sensor2/26
       jedisTemplate.set(keysBuilder.getReverseSensorKey(providerId, sensorId), sid.toString());
 
-      logger.debug("Registered in Redis sensor {} from provider {} with sid {}", sensorId, providerId, sid);
+      LOGGER.debug("Registered in Redis sensor {} from provider {} with sid {}", sensorId, providerId, sid);
     }
 
     return sid;
@@ -158,17 +166,16 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * (non-Javadoc)
    * 
    * @see
-   * org.sentilo.platform.common.service.ResourceService#registerAlarmIfNecessary(java.lang.String)
+   * org.sentilo.platform.common.service.ResourceService#registerAlertIfNecessary(java.lang.String)
    */
-  public Long registerAlarmIfNecessary(final String alarmId) {
-    Long aid = jedisSequenceUtils.getAid(alarmId);
-    if (aid == null) { // se debe registrar la alarma
-      aid = jedisSequenceUtils.setAid(alarmId);
-      jedisTemplate.set(keysBuilder.getAlarmKey(aid), alarmId);
-      // Definimos una reverse lookup key con la cual recuperar rapidamente el aid de la alarma
-      // alarmId
-      jedisTemplate.set(keysBuilder.getReverseAlarmKey(alarmId), aid.toString());
-      logger.debug("Registered in Redis alarm {} with aid {}", alarmId, aid);
+  public Long registerAlertIfNeedBe(final String alertId) {
+    Long aid = jedisSequenceUtils.getAid(alertId);
+    if (aid == null) {
+      aid = jedisSequenceUtils.setAid(alertId);
+      jedisTemplate.set(keysBuilder.getAlertKey(aid), alertId);
+      // Reverse lookup key for quickly get the {aid} from an alert with identifier alertId
+      jedisTemplate.set(keysBuilder.getReverseAlertKey(alertId), aid.toString());
+      LOGGER.debug("Registered in Redis alert {} with aid {}", alertId, aid);
     }
 
     return aid;
@@ -180,7 +187,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * @see org.sentilo.platform.common.service.ResourceService#removeProvider(java.lang.String)
    */
   public void removeProvider(final String providerId) {
-    logger.debug("Deleting in Redis provider {} ", providerId);
+    LOGGER.debug("Deleting in Redis provider {} ", providerId);
     final Long pid = jedisSequenceUtils.getPid(providerId);
     if (pid != null) {
       // Remove key pid:{pid}
@@ -203,7 +210,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       jedisSequenceUtils.removePid(providerId);
     }
 
-    logger.debug("Provider {} deleted", providerId);
+    LOGGER.debug("Provider {} deleted", providerId);
   }
 
   /*
@@ -213,13 +220,13 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * java.lang.String)
    */
   public void removeSensor(final String sensorId, final String providerId) {
-    logger.debug("Deleting in Redis sensor {} from provider {}", sensorId, providerId);
+    LOGGER.debug("Deleting in Redis sensor {} from provider {}", sensorId, providerId);
     final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
     if (sid != null) {
       removeSensor(sid, providerId, null);
     }
 
-    logger.debug("Sensor {} from provider {} deleted.", sensorId, providerId);
+    LOGGER.debug("Sensor {} from provider {} deleted.", sensorId, providerId);
   }
 
   private void removeSensor(final Long sid, final String providerId, Long pid) {

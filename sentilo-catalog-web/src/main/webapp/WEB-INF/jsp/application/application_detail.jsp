@@ -2,12 +2,12 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', application)"/>
+
 <spring:url value="/admin/application/${application.id}/edit" var="editApplicationLink" />
 <spring:url value="/admin/application/list?nameTableRecover=applicationTable&fromBack=true" var="backURL" />
 
-
 <c:set var="providerTableId"  value="applicationDetailProviderTable" />
-
 
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
 
@@ -50,6 +50,14 @@
 												<div class="accordion-inner">
 													<div class="row-fluid">
 														<div class="span4">
+															<strong><spring:message code="application.tenant" /> </strong>
+														</div>
+														<div class="span8">
+															<spring:eval expression="application.tenantId" />
+														</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
 															<strong><spring:message code="application.description" /> </strong>
 														</div>
 														<div class="span8">
@@ -75,7 +83,7 @@
 															<strong><spring:message code="application.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="application.updateAt" />
+															<spring:eval expression="application.updatedAt" />
 														</div>
 													</div>
 													<div class="row-fluid">
@@ -94,8 +102,11 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<a href="${editApplicationLink}" class="btn btn-primary"> <spring:message code="application.edit.title" />
+												<c:if test="${showAdminControls}">
+												<a href="${editApplicationLink}" class="btn btn-primary"> 
+													<spring:message code="application.edit.title" />
 												</a>
+												</c:if>
 											</div>
 										</div>
 									</div>
