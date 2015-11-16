@@ -1,48 +1,65 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
+import org.sentilo.web.catalog.exception.BusinessValidationException;
+import org.sentilo.web.catalog.exception.CatalogException;
 import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
+import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ModelUtils;
+import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.core.GenericTypeResolver;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Base controller for CRUD use cases.
@@ -63,10 +80,19 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   protected abstract String getEntityModelKey();
 
   @Autowired
-  private LocalDateFormatter localDateFormat;
+  protected MessageSource messageSource;
 
   @Autowired
-  protected MessageSource messageSource;
+  private LocalDateFormatter localDateFormat;
+
+  @ExceptionHandler(CatalogException.class)
+  public ModelAndView handleCustomException(final CatalogException ex) {
+    final String viewName = (ex instanceof BusinessValidationException ? "validationFailure" : "catalogFailure");
+    final ModelAndView model = new ModelAndView(viewName);
+    model.addObject("exception", ex);
+    model.addObject("tenantCustomParams", getTenantCustomParams());
+    return model;
+  }
 
   protected T addResourceToModel(final String id, final Model model) {
     final T entityToAdd = getService().findAndThrowErrorIfNotExist(buildNewEntity(id));
@@ -75,24 +101,20 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   }
 
   protected void addConfirmationMessageToModel(final String actionFinished, final Model model) {
-    final String messageKey = getTypeShortNameName() + "." + actionFinished;
+    final String messageKey = getTypeShortName() + "." + actionFinished;
     ModelUtils.addConfirmationMessageTo(model, messageKey);
   }
 
-  private String getTypeShortNameName() {
+  private String getTypeShortName() {
     if (typeShortName == null) {
-      // Para obtener el nombre debemos primero tener una instancia del recurso sobre el cual se
-      // hace el CRUD.
-      // Para ello invocamos al metodo buildNewEntity con un valor por defecto
-      final T resource = buildNewEntity("1");
-      final String fullName = resource.getClass().getName();
-      final int lastPos = fullName.lastIndexOf('.');
-      typeShortName = fullName.substring(lastPos + 1).toLowerCase();
+      final Class<?> clazz = GenericTypeResolver.resolveTypeArgument(this.getClass(), SearchController.class);
+      typeShortName = clazz.getSimpleName().toLowerCase();
     }
     return typeShortName;
   }
 
   @RequestMapping(value = "/new", method = RequestMethod.GET)
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'CREATE')")
   public String newResource(final HttpServletRequest request, final Model model) {
     doBeforeNewResource(request, model);
     model.addAttribute(getEntityModelKey(), buildNewEntity(null));
@@ -101,14 +123,16 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   }
 
   @RequestMapping(value = "/{id}/edit", method = RequestMethod.GET)
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'EDIT', #id)")
   public String editResource(@PathVariable final String id, final HttpServletRequest request, final Model model) {
-    doBeforeEditResource(model);
+    doBeforeEditResource(id, model);
     addResourceToModel(id, model);
     ModelUtils.setEditMode(model);
     return getNameOfViewToReturn(NEW_ACTION);
   }
 
   @RequestMapping(value = "/{id}/detail", method = RequestMethod.GET)
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'READ', #id)")
   public String viewResource(@PathVariable final String id, final HttpServletRequest request, final Model model) {
     doBeforeViewResource(id, model);
     addResourceToModel(id, model);
@@ -118,44 +142,63 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   }
 
   @RequestMapping(value = "/delete", method = RequestMethod.POST)
-  public String deleteResource(@RequestParam final String[] selectedIds, final HttpServletRequest request, final Model model) {
-    doBeforeDeleteResource(selectedIds, request, model);
-    getService().delete(buildResourceListFromIds(selectedIds));
-    addConfirmationMessageToModel(RESOURCE_DELETED, model);
-    doAfterDeleteResource(request, model);
-    return getNameOfViewToReturn(LIST_ACTION);
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'DELETE', #selectedIds)")
+  public String deleteResource(@RequestParam final String[] selectedIds, final HttpServletRequest request,
+      final RedirectAttributes redirectAttributes, final Model model) {
+    final List<T> resourcesList = buildResourceListFromIds(selectedIds);
+
+    doBeforeDeleteResources(resourcesList, request, model);
+    getService().delete(resourcesList);
+    addConfirmationMessageToModel(RESOURCE_DELETED, redirectAttributes);
+    doAfterDeleteResources(resourcesList, request, model);
+
+    return redirectToList(model, request, redirectAttributes);
   }
 
   @RequestMapping(value = "/create", method = RequestMethod.POST)
-  public String createResource(@Valid final T resource, final BindingResult result, final Model model) {
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'SAVE_NEW', #resource)")
+  public String createResource(@Valid final T resource, final BindingResult result, final Model model, final RedirectAttributes redirectAttributes,
+      final HttpServletRequest request) {
+
     if (result.hasErrors()) {
-      doBeforeEditResource(model);
+      doBeforeEditResource(null, model);
       ModelUtils.setCreateMode(model);
       return getNameOfViewToReturn(NEW_ACTION);
     }
 
     doBeforeCreateResource(resource, model);
-    resource.setCreatedAt(new Date());
-    resource.setUpdateAt(new Date());
     getService().create(resource);
-    addConfirmationMessageToModel(RESOURCE_CREATED, model);
-    doAfterCreateResource(model);
-    return getNameOfViewToReturn(LIST_ACTION);
+    addConfirmationMessageToModel(RESOURCE_CREATED, redirectAttributes);
+    doAfterCreateResource(resource, model);
+
+    return redirectToList(model, request, redirectAttributes);
   }
 
   @RequestMapping(value = "/{id}/edit", method = RequestMethod.POST)
-  public String updateResource(@Valid final T resource, final BindingResult result, @PathVariable final String id, final Model model) {
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'SAVE', #resource)")
+  public String updateResource(@Valid final T resource, final BindingResult result, @PathVariable final String id, final Model model,
+      final RedirectAttributes redirectAttributes, final HttpServletRequest request) {
+
     if (result.hasErrors()) {
-      doBeforeEditResource(model);
+      doBeforeEditResource(id, model);
       ModelUtils.setEditMode(model);
       return getNameOfViewToReturn(NEW_ACTION);
     }
+
     doBeforeUpdateResource(resource, model);
-    resource.setUpdateAt(new Date());
     getService().update(resource);
-    addConfirmationMessageToModel(RESOURCE_EDITED, model);
-    doAfterUpdateResource(model);
-    return getNameOfViewToReturn(LIST_ACTION);
+    addConfirmationMessageToModel(RESOURCE_EDITED, redirectAttributes);
+    doAfterUpdateResource(resource, model);
+
+    return redirectToList(model, request, redirectAttributes);
+  }
+
+  public LocalDateFormatter getLocalDateFormat() {
+    return localDateFormat;
+  }
+
+  protected Class<? extends CatalogDocument> getRowClass() {
+    return buildNewEntity("1").getClass();
   }
 
   protected List<T> buildResourceListFromIds(final String[] resourceIds) {
@@ -166,15 +209,20 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     return resources;
   }
 
-  public LocalDateFormatter getLocalDateFormat() {
-    return localDateFormat;
+  protected String redirectToList(final Model model, final HttpServletRequest request, final RedirectAttributes redirectAttributes) {
+    final String currentTable = "Table";
+    final String fromBack = "true";
+    // After update a resource, the resource list must be displayed keeping the list's state
+    final String tableName = model.asMap().get(Constants.MODEL_ACTIVE_MENU).toString();
+
+    return getRedirectToListUrl(request, tableName.substring(1) + currentTable, fromBack);
   }
 
   protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
     // To override by subclasses.
   }
 
-  protected void doBeforeEditResource(final Model model) {
+  protected void doBeforeEditResource(final String id, final Model model) {
     // To override by subclasses.
   }
 
@@ -182,7 +230,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     // To override by subclasses.
   }
 
-  protected void doBeforeDeleteResource(final String[] selectedIds, final HttpServletRequest request, final Model model) {
+  protected void doBeforeDeleteResources(final Collection<T> resources, final HttpServletRequest request, final Model model) {
     // To override by subclasses.
   }
 
@@ -194,19 +242,36 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     // To override by subclasses.
   }
 
-  protected void doAfterDeleteResource(final HttpServletRequest request, final Model model) {
+  protected void doAfterDeleteResources(final Collection<T> resources, final HttpServletRequest request, final Model model) {
     // To override by subclasses.
   }
 
-  protected void doAfterCreateResource(final Model model) {
+  protected void doAfterCreateResource(final T resource, final Model model) {
     // To override by subclasses.
   }
 
-  protected void doAfterUpdateResource(final Model model) {
+  protected void doAfterUpdateResource(final T resource, final Model model) {
     // To override by subclasses.
   }
 
   protected void doAfterViewResource(final Model model) {
-    // TODO Auto-generated method stub
+    // To override by subclasses.
+  }
+
+  private String getRedirectToListUrl(final HttpServletRequest request, final String nameTableRecover, final String fromBack) {
+    // postPath follows the expression /admin/{resource}/*** and redirect url will be something like
+    // /admin/{resource}/list?
+    final String postPath = request.getServletPath();
+    final String[] tokens = postPath.split("/");
+
+    final StringBuilder sb = new StringBuilder("/");
+    if (TenantContextHolder.hasContext()) {
+      sb.append(TenantUtils.getCurrentTenant());
+      sb.append("/");
+    }
+
+    sb.append(tokens[1] + "/" + tokens[2] + "/list?nameTableRecover=" + nameTableRecover + "&fromBack=" + fromBack);
+
+    return "redirect:" + sb.toString();
   }
 }

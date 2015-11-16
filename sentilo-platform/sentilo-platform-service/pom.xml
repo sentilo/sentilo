@@ -8,7 +8,7 @@
   <parent>
     <artifactId>sentilo-platform</artifactId>
     <groupId>org.sentilo.platform</groupId>
-    <version>1.4.0</version>      
+    <version>1.5.0</version>      
   </parent>      
   
   <dependencies>    
@@ -28,9 +28,9 @@
     	<version>${platform.version}</version>
     </dependency>
     <dependency>
-    	<groupId>net.wimpi</groupId>
-    	<artifactId>telnetd-x</artifactId>
-    	<version>2.1.1</version>
-    </dependency>
+		<groupId>org.aspectj</groupId>
+		<artifactId>aspectjweaver</artifactId>
+		<version>${org.aspectj.aspectjweaver-version}</version>
+	</dependency>    
   </dependencies>
 </project>

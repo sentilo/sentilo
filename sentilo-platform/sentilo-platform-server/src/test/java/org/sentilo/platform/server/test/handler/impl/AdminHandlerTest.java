@@ -1,37 +1,50 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.test.handler.impl;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.PlatformActivity;
+import org.sentilo.common.domain.PlatformMetricsMessage;
+import org.sentilo.common.domain.PlatformPerformance;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
@@ -136,6 +149,38 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
 
     verify(parser).parsePutRequest(request);
     verify(service).delete(message);
+  }
+
+  @Test
+  public void activityRequest() throws Exception {
+    final Collection<PlatformActivity> metrics = Collections.emptyList();
+    final PlatformMetricsMessage metricsMessage = new PlatformMetricsMessage();
+    metricsMessage.setActivity(metrics);
+    when(parser.parseGetRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.activity);
+    when(service.getActivity()).thenReturn(metricsMessage);
+
+    simulateRequest(HttpMethod.GET, "sentilo-catalog", "/admin/activity");
+    handler.manageRequest(request, response);
+
+    verify(parser).parseGetRequest(request);
+    verify(parser).writeMetricsResponse(request, response, metricsMessage);
+  }
+
+  @Test
+  public void performanceRequest() throws Exception {
+    final Collection<PlatformPerformance> metrics = Collections.emptyList();
+    final PlatformMetricsMessage metricsMessage = new PlatformMetricsMessage();
+    metricsMessage.setPerformance(metrics);
+    when(parser.parseGetRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.performance);
+    when(service.getPerformance()).thenReturn(metricsMessage);
+
+    simulateRequest(HttpMethod.GET, "sentilo-catalog", "/admin/performance");
+    handler.manageRequest(request, response);
+
+    verify(parser).parseGetRequest(request);
+    verify(parser).writeMetricsResponse(request, response, metricsMessage);
   }
 
   @Override

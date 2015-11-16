@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.http;
 
@@ -63,7 +70,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public class RequestListenerThread extends Thread {
 
-  private final Logger logger = LoggerFactory.getLogger(RequestListenerThread.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RequestListenerThread.class);
 
   private ServerSocket serverSocket;
   private HttpParams params;
@@ -110,14 +117,14 @@ public class RequestListenerThread extends Thread {
   public void run() {
     try {
       initialize();
-      logger.info("Listening on port {}", port);
+      LOGGER.info("Listening on port {}", port);
       while (notInterrupted()) {
         manageConnection(new DefaultHttpServerConnection());
       }
     } catch (final IOException ioe) {
-      logger.error("Error while initializing connection thread. {}", ioe);
-    } catch (final Throwable t) {
-      logger.error("Error while running sentilo server on port {}. {}", port, t);
+      LOGGER.error("Error while initializing connection thread. {}", ioe);
+    } catch (final Exception e) {
+      LOGGER.error("Error while running sentilo server on port {}. {}", port, e);
     } finally {
       cleanUp();
     }
@@ -130,7 +137,7 @@ public class RequestListenerThread extends Thread {
   }
 
   private void initialize() throws IOException {
-    logger.info("Initializing server");
+    LOGGER.info("Initializing server");
 
     registerHandlers();
     initializeListener();
@@ -138,12 +145,12 @@ public class RequestListenerThread extends Thread {
     registerURLS();
     initializeThreadPool();
 
-    logger.info("Server is initialized.");
+    LOGGER.info("Server is initialized.");
   }
 
   private void registerHandlers() {
 
-    logger.info("Registering services");
+    LOGGER.info("Registering services");
 
     handlerLocator = new HandlerLocator();
 
@@ -155,16 +162,16 @@ public class RequestListenerThread extends Thread {
     registerHandler(HandlerPath.ADMIN, adminHandler);
     registerHandler(HandlerPath.CATALOG_ALERT, catalogAlertHandler);
 
-    logger.info("Services registered");
+    LOGGER.info("Services registered");
   }
 
   private void registerHandler(final HandlerPath handler, final AbstractHandler handlerImpl) {
-    logger.info("Registering {} handler", handler.toString());
+    LOGGER.info("Registering {} handler", handler.toString());
     handlerLocator.register(handler, handlerImpl);
   }
 
   private void initializeListener() throws IOException {
-    logger.info("Initializing listener on port {}", port);
+    LOGGER.info("Initializing listener on port {}", port);
     serverSocket = new ServerSocket(port);
   }
 
@@ -206,11 +213,11 @@ public class RequestListenerThread extends Thread {
       if (threadPool != null) {
         threadPool.shutdown();
       }
-    } catch (final Throwable e) {
-      // ignore the error
+    } catch (final Exception e) {
+      LOGGER.warn("Error stopping thread pool.", e);
     }
 
-    logger.info("Thread pool shutdown");
+    LOGGER.info("Thread pool shutdown");
   }
 
   private void releaseSocketPort() {
@@ -219,10 +226,10 @@ public class RequestListenerThread extends Thread {
         serverSocket.close();
       }
     } catch (final IOException e) {
-      // ignore the error
+      LOGGER.warn("Error closing socket port.", e);
     }
 
-    logger.info("Listener off on port {}", port);
+    LOGGER.info("Listener off on port {}", port);
   }
 
   public int getPort() {

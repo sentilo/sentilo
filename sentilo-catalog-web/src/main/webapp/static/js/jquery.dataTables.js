@@ -2791,6 +2791,7 @@
 				
 				/* Redraw the table */
 				oSettings._iDisplayLength = parseInt(iVal, 10);
+				oSettings._iDisplayStart = 0;
 				_fnCalculateEnd( oSettings );
 				
 				/* If we have space to show extra rows (backing up from the end point - then do so */

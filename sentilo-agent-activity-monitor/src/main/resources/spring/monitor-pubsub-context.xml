@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:redis="http://www.springframework.org/schema/redis" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd		
+  		http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd  		
+  		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+
+	<!-- Config para la parte de pubsub -->
+	<bean id="jedisPoolConfigPubSub" class="redis.clients.jedis.JedisPoolConfig" p:maxTotal="${jedis.config.pubsub.maxactive}"
+		p:maxIdle="${jedis.config.pubsub.maxidle}" p:maxWaitMillis="${jedis.config.pubsub.maxwait}" p:testOnBorrow="true" />
+
+	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		p:host-name="${jedis.pool.host}" p:port="${jedis.pool.port}" p:password="${jedis.pool.password}" p:timeout="${jedis.pool.timeout}"
+		p:usePool="true" p:poolConfig-ref="jedisPoolConfigPubSub" />
+
+	<redis:listener-container connection-factory="jedisConnectionFactory" />
+	
+	<bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" p:connection-factory-ref="jedisConnectionFactory" />	
+
+	<beans profile="dev">
+		<util:properties id="subscriptionsDef" location="classpath:properties/subscription.properties" />
+	</beans>
+</beans>

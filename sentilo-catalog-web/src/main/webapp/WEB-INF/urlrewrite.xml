@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN"
+        "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
+
+<!--
+
+    Configuration file for UrlRewriteFilter
+    http://www.tuckey.org/urlrewrite/
+
+-->
+<urlrewrite use-context="false">
+
+     
+	<rule>
+	    <name>tenant rule</name>
+	    <condition type="attribute" name="tenant-identifier" operator="notequal">^$</condition>	    
+	    <condition type="attribute" name="tenant-uri-modified" operator="notequal">1</condition>
+	    <condition type="request-uri" operator="notequal">^/sentilo-catalog-web/WEB-INF/(.*)$</condition>
+	    <condition type="request-uri" operator="notequal">^/sentilo-catalog-web/j_spring_security_(.*)$</condition>	    	   		 
+		<from>^/([0-9a-zA-Z-_]+)/?(.*)$</from>                        
+        <set type="request" name="tenant-uri-modified">1</set>
+        <to last="true">/$2</to>         
+	</rule>		
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule1</name>
+	    <condition type="attribute" name="tenant-identifier" operator="notequal">^$</condition>
+	    <!-- <condition type="request-uri" operator="equal">^/sentilo-catalog-web/WEB-INF/(.*)$</condition> -->
+		<from>^/sentilo-catalog-web/(WEB-INF|static)/(.*)$</from>                        
+        <to last="true">-</to> 
+	</outbound-rule>
+		
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule2</name>
+	    <condition type="attribute" name="tenant-identifier" operator="notequal">^$</condition>	    
+		<from>^/sentilo-catalog-web/admin/(.*)$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:tenant-identifier}/admin/$1</to> 
+	</outbound-rule>
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule3</name>
+	    <condition type="attribute" name="tenant-identifier" operator="notequal">^$</condition>	    
+		<from>^/sentilo-catalog-web/(.+)$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:tenant-identifier}/$1</to> 
+	</outbound-rule>	
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule4</name>
+	    <condition type="attribute" name="tenant-identifier" operator="notequal">^$</condition>	    
+		<from>^/sentilo-catalog-web/?$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:tenant-identifier}</to> 
+	</outbound-rule>		
+
+</urlrewrite>
+

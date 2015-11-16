@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.agent.alert.test.service;
 
@@ -33,7 +40,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,7 +66,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class AlertServiceImplTest {
 
@@ -110,25 +116,23 @@ public class AlertServiceImplTest {
   @SuppressWarnings("unchecked")
   @Test
   public void loadAndMonitorInternalFrozenAlerts() throws Exception {
-    final Field field = AlertServiceImpl.class.getDeclaredField("currentListeners");
-    ReflectionUtils.makeAccessible(field);
     final List<InternalAlert> alerts = getFrozenAlerts();
     when(mongoOps.find(any(Query.class), eq(InternalAlert.class), any(String.class))).thenReturn(alerts);
 
     alertService.loadAndMonitorInternalAlerts();
 
+    Object currentListeners = ReflectionTestUtils.getField(alertService, "currentListeners");
+
     verify(mongoOps).find(any(Query.class), eq(InternalAlert.class), any(String.class));
     verify(listenerContainer, times(2)).addMessageListener(isA(MessageListener.class), any(ChannelTopic.class));
     verify(repository).synchronizeAlerts(Matchers.anyCollectionOf(InternalAlert.class));
-    Assert.assertTrue(((Map<String, MessageListenerImpl>) field.get(alertService)).size() == 2);
+    Assert.assertTrue(((Map<String, MessageListenerImpl>) currentListeners).size() == 2);
 
   }
 
   @SuppressWarnings("unchecked")
   @Test
   public void updateAndRegisterListeners() throws Exception {
-    final Field field = AlertServiceImpl.class.getDeclaredField("currentListeners");
-    ReflectionUtils.makeAccessible(field);
     final Map<String, MessageListenerImpl> listeners = new HashMap<String, MessageListenerImpl>();
     listeners.put("topic1", new MessageListenerImpl("topic1"));
     listeners.put("topic2", new MessageListenerImpl("topic2"));
@@ -137,10 +141,12 @@ public class AlertServiceImplTest {
     listeners2.put("topic2", new MessageListenerImpl("topic2"));
 
     alertService.updateAndRegisterListeners(listeners);
-    Assert.assertTrue(((Map<String, MessageListenerImpl>) field.get(alertService)).size() == listeners.size());
+    Object currentListeners = ReflectionTestUtils.getField(alertService, "currentListeners");
+    Assert.assertTrue(((Map<String, MessageListenerImpl>) currentListeners).size() == listeners.size());
 
     alertService.updateAndRegisterListeners(listeners2);
-    Assert.assertTrue(((Map<String, MessageListenerImpl>) field.get(alertService)).size() == listeners2.size());
+    currentListeners = ReflectionTestUtils.getField(alertService, "currentListeners");
+    Assert.assertTrue(((Map<String, MessageListenerImpl>) currentListeners).size() == listeners2.size());
   }
 
   @Test

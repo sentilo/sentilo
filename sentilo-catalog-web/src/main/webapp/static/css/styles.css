@@ -185,9 +185,7 @@ body {
 	border-radius: 6px;
 }
 
-.main {
-	background: url("../img/logo-connecta-url.png") no-repeat scroll -268px
-		-2px transparent;
+.main {	
 	height: 50px;
 	margin: 0px -20px;
 	width: 400px;
@@ -198,10 +196,6 @@ body {
 	transition: all 0.5s linear;
 }
 
-.main:hover {
-	background: url("../img/logo-connecta-url.png") no-repeat scroll 110px
-		-2px transparent;
-}
 
 .navbar .brand {
 	color: #777777;
@@ -234,6 +228,15 @@ navbar .nav > li > a {
 	padding-left: 7px;
 	padding-right: 7px;
 }
+
+.navbar .logotype {
+ 	background: url("../images/logo_header.png");
+ 	background-repeat: no-repeat;
+ 	background-size: 132px 45px;
+ 	background-position: 0px 0px;
+ 	display: block;
+ 	height: 50px;
+ }
 
 ul.nav li.dropdown>ul.dropdown-menu {
 	margin-top: -4px
@@ -370,16 +373,24 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
 .infobox-header {
     font-size: 22px;
     text-align: left;
+    overflow: hidden;  
 }
+
+.infobox-header p{    
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .infobox-header-icon {
     float: left;
     padding-right: 20px;
 }
-.infobox-header-provider {
+.infobox-header-name {
     display: inline-flex;
     font-size: 25px;
     font-weight: 400;
-    padding-top: 10px;    
+    padding-top: 10px;     
 }
 .infobox-header-type {
     font-size: 18px;
@@ -394,6 +405,9 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
     line-height: 1.08333em;
     margin: 0 15px 0 80px;
     min-height: 1.16667em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .infobox-header a {
     display: block;
@@ -780,6 +794,13 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 .container-fluid {
 	max-width: 1280px;
 	margin: 0 auto;
+}
+
+/********** Color picker **********/
+.input-group-addon > i {
+    border: 1px solid;
+    margin: 0 5px;
+    padding: 1px;
 }
 
 /********** Responsive media queries ****************/

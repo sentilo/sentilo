@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.auth.impl;
 
@@ -47,7 +54,7 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class AuthorizationServiceImpl implements AuthorizationService {
 
-  private final Logger logger = LoggerFactory.getLogger(AuthorizationServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServiceImpl.class);
 
   private final Set<String> adminAccessSet = new HashSet<String>();
   private final Set<String> writesAccessSet = new HashSet<String>();
@@ -119,7 +126,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
   @Scheduled(initialDelay = 1000, fixedRate = 300000)
   public void loadActivePermissions() {
     try {
-      logger.debug("Actualizando cache de permisos");
+      LOGGER.debug("Updating permissions cache");
       final PermissionsMessage permissions = catalogService.getPermissions();
       final Set<String> auxAdminAccessSet = new HashSet<String>();
       final Set<String> auxWritesAccessSet = new HashSet<String>();
@@ -147,7 +154,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
       replaceActivePermissions(auxAdminAccessSet, auxWritesAccessSet, auxReadsAccessSet);
 
     } catch (final CatalogAccessException e) {
-      logger.warn("Error al llamar al catalogo para recuperar la lista de autorizaciones", e);
+      LOGGER.warn("Error updating permissions cache", e);
     }
   }
 

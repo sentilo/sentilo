@@ -31,6 +31,26 @@
 		<filter-name>springSecurityFilterChain</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 	</filter>
+	
+	<!--  Filters mandatories in a multi tenant instance of Sentilo -->
+	<!-- 
+	<filter>
+	    <filter-name>UrlRewriteFilter</filter-name>
+	    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+	    <init-param>
+	        <param-name>logLevel</param-name>
+	        <param-value>slf4j</param-value>
+	    </init-param>
+	</filter>
+	
+	
+	<filter>
+		<filter-name>tenantInterceptorFilter</filter-name>
+		<filter-class>org.sentilo.web.catalog.web.TenantInterceptorFilter</filter-class>
+	</filter>
+	-->
+	<!--  End filters mandatories in a multitenant instance -->
+	
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
@@ -43,13 +63,34 @@
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
+	
+	<!--  Multitenant filters must be the first ones to apply in the chain filter -->
+	<!-- 
+	<filter-mapping>
+		<filter-name>tenantInterceptorFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>	    
+	</filter-mapping>
+	<filter-mapping>
+	    <filter-name>UrlRewriteFilter</filter-name>
+	    <url-pattern>/*</url-pattern>
+	    <dispatcher>REQUEST</dispatcher>
+	    <dispatcher>FORWARD</dispatcher>	      
+	</filter-mapping>
+	-->
+	
 	<filter-mapping>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+	    <dispatcher>FORWARD</dispatcher>
 	</filter-mapping>
+	
 	<filter-mapping>
 		<filter-name>characterEncodingFilter</filter-name>
 		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+	    <dispatcher>FORWARD</dispatcher>
 	</filter-mapping>
 	<servlet-mapping>
 		<servlet-name>catalog</servlet-name>
@@ -58,5 +99,9 @@
 	<error-page>
 		<error-code>404</error-code>
 		<location>/WEB-INF/jsp/resourceNotFound.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>403</error-code>
+		<location>/WEB-INF/jsp/accessNotAllowed.jsp</location>
 	</error-page>
 </web-app>

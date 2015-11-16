@@ -2,9 +2,10 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-
 <c:set var="providerId" scope="request" value="${provider.id}" />
 <c:set var="sensorTable"  value="providerDetailSensorTable" />
+
+<spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', provider)"/>
 
 <spring:url value="/admin/provider/${provider.id}/edit" var="editProviderLink" />
 <spring:url value="/admin/sensor/list/json?providerId=${providerId}" var="sensorsAjaxSource" />
@@ -55,6 +56,12 @@
 												<div class="accordion-inner">
 													<div class="row-fluid">
 														<div class="span4">
+															<strong><spring:message code="provider.tenantId" /> </strong>
+														</div>
+														<div class="span8">${provider.tenantId}</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
 															<strong><spring:message code="token" /> </strong>
 														</div>
 														<div class="span8">${provider.token}</div>
@@ -78,7 +85,7 @@
 															<strong><spring:message code="provider.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="provider.updateAt" />
+															<spring:eval expression="provider.updatedAt" />
 														</div>
 													</div>
 													<div class="row-fluid">
@@ -103,7 +110,9 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+												<c:if test="${showAdminControls}">
 												<a href="${editProviderLink }" class="btn btn-primary"> <spring:message code="provider.edit.title" /> </a>
+												</c:if>
 											</div>
 										</div>
 									</div>

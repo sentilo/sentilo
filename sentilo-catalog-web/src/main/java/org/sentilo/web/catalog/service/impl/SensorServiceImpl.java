@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.service.impl;
 
@@ -59,7 +66,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 @Service
-public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implements SensorService {
+public class SensorServiceImpl extends AbstractBaseCrudServiceImpl<Sensor> implements SensorService {
 
   @Autowired
   private SensorRepository repository;
@@ -77,7 +84,7 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#doAfterInit()
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterInit()
    */
   protected void doAfterInit() {
     setEntityKeyValidator(new SensorEntityKeyValidatorImpl(this, new CompoundDuplicateKeyExceptionBuilder("error.sensor.duplicate.key")));
@@ -87,7 +94,7 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#getRepository()
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#getRepository()
    */
   public SensorRepository getRepository() {
     return repository;
@@ -97,8 +104,8 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
    * (non-Javadoc)
    * 
    * @see
-   * org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#getEntityId(org.sentilo.web.catalog
-   * .domain.CatalogDocument)
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#getEntityId(org.sentilo.web
+   * .catalog .domain.CatalogDocument)
    */
   public String getEntityId(final Sensor entity) {
     return entity.getId();
@@ -234,30 +241,30 @@ public class SensorServiceImpl extends AbstractBaseServiceImpl<Sensor> implement
   /*
    * (non-Javadoc)
    * 
-   * @see org.sentilo.web.catalog.service.impl.AbstractBaseServiceImpl#delete(java.util.Collection)
-   */
-  public void delete(final Collection<Sensor> sensors) {
-    final Collection<String> ids = new ArrayList<String>();
-    for (final Sensor sensor : sensors) {
-      ids.add(sensor.getId());
-    }
-    notifySensorsToDelete(buildQueryForIdInCollection(ids));
-
-    super.delete(sensors);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
    * @see org.sentilo.web.catalog.service.SensorService#changeAccessType(java.lang.String[],
    * boolean)
    */
   public void changeAccessType(final String[] sensorsIds, final boolean isPublicAccess) {
     final List<String> values = Arrays.asList(sensorsIds);
     final Query query = buildQueryForIdInCollection(values);
-    final Update update = Update.update("publicAccess", isPublicAccess).set("updateAt", new Date());
+    final Update update = Update.update("publicAccess", isPublicAccess).set("updatedAt", new Date());
     getMongoOps().updateMulti(query, update, Sensor.class);
 
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.Collection
+   * )
+   */
+  protected void doAfterDelete(final Collection<Sensor> sensors) {
+    final Collection<String> ids = new ArrayList<String>();
+    for (final Sensor sensor : sensors) {
+      ids.add(sensor.getId());
+    }
+    notifySensorsToDelete(buildQueryForIdInCollection(ids));
   }
 
   private void deleteSensorsAndAlerts(final Query query) {

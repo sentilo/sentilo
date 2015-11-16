@@ -4,16 +4,21 @@
 <c:set var="alternative" value="${param.alternative}" />
 <c:set var="testPage" value="${param.testPage}" />
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
+<c:set var="requestUriTokens" value="${fn:split(requestScope['javax.servlet.forward.servlet_path'], '/')}" />
+
 
 <!DOCTYPE html>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=9" />
+<meta http-equiv="Cache-Control" content="no-cache" >
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0" >
 <title><spring:message code="generic.title" /></title>
 
 <%@include file="/WEB-INF/jsp/common/styles.jsp"%>
-
 <%@include file="/WEB-INF/jsp/common/scripts.jsp"%>
 
 <style type="text/css">
@@ -49,10 +54,18 @@
 	<link href="${alternativeCSS}" rel="stylesheet" media="all">
 </c:if>
 
-<spring:url value="/static/images/favicon.ico" var="faviconUrl" />
+<c:choose>
+	<c:when test="${not empty tenantCustomParams and not empty tenantCustomParams.tenantId}">
+		<spring:url value="/static/img/tenant/${tenantCustomParams.tenantId}/favicon.ico" var="faviconUrl" />
+	</c:when>
+	<c:otherwise>
+		<spring:url value="/static/images/favicon.ico" var="faviconUrl" />
+	</c:otherwise>
+</c:choose>
 <link href="${faviconUrl}" rel="shortcut icon">
 
 </head>
-<body>
+
+<body class="sntl-${fn:join(requestUriTokens, ' sntl-')}">
 
 	<%@include file="/WEB-INF/jsp/common/navbar.jsp"%>

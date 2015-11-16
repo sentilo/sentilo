@@ -3,12 +3,13 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 <c:set var="alertTable" value="alertTable"/>
 
+<spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('LIST', 'org.sentilo.web.catalog.domain.Alert')"/>
+
 <spring:url value="/admin/alert/delete" var="deleteURL" />
 <spring:url value="/admin/alert/new" var="newAlertLink" />
 <spring:url value="/admin/alert/" var="detailPrefix" />
 <spring:url value="/admin/alert/list/excel?tableName=${alertTable}" var="excelSource" />
 <spring:url value="/admin/alert/list/json" var="sAjaxSource" />
-
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
@@ -54,7 +55,8 @@
 								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
 									<spring:message code="button.excel" /> 
 								</a>
-							</div>							
+							</div>	
+							<c:if test="${showAdminControls}">						
 							<div class="control-group pull-right">
 								<a href="#" onclick="deleteSelected('alerts');" class="btn btn-danger">
 									<spring:message code="alert.delete.title" /> 
@@ -63,6 +65,7 @@
 									<spring:message code="alert.new.title" /> 
 								</a>
 							</div>
+							</c:if>
 						</form:form>
 					</div>
 				</div>

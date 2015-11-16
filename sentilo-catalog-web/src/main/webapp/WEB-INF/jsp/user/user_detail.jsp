@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', user)"/>
+
 <spring:url value="/admin/users/${user.userName}/edit" var="editUserLink" />
 <spring:url value="/admin/users/list?nameTableRecover=userTable&fromBack=true" var="backURL" />
 
@@ -37,13 +39,7 @@
 													class="icon-chevron-down pull-right"></i> </a>
 											</div>
 											<div id="detailAccordionCollapse" class="accordion-body collapse in">
-												<div class="accordion-inner">
-													<div class="row-fluid">
-														<div class="span4">
-															<strong><spring:message code="user.password" /> </strong>
-														</div>
-														<div class="span8">${user.password}</div>
-													</div>
+												<div class="accordion-inner">													
 													<div class="row-fluid">
 														<div class="span4">
 															<strong><spring:message code="user.name" /> </strong>
@@ -69,7 +65,7 @@
 															<strong><spring:message code="user.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="user.updateAt" />
+															<spring:eval expression="user.updatedAt" />
 														</div>
 													</div>
 													<div class="row-fluid">
@@ -86,6 +82,14 @@
 														</div>
 														<div class="span8">${user.roles}</div>
 													</div>
+													<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
+													<div class="row-fluid">
+														<div class="span4">
+															<strong><spring:message code="user.tenant" /> </strong>
+														</div>
+														<div class="span8">${user.tenantId}</div>
+													</div>
+													</security:authorize>
 												</div>
 											</div>
 										</div>
@@ -93,8 +97,10 @@
 									<div class="row-fluid">
 										<div class="span12">
 											<div class="control-group pull-right">
+												<c:if test="${showAdminControls}">	
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 												<a href="${editUserLink}" class="btn btn-primary"> <spring:message code="user.edit.title" /> </a>
+												</c:if>
 											</div>
 										</div>
 									</div>

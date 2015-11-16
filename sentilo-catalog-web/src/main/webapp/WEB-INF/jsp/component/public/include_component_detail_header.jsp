@@ -1,6 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+
+
 <spring:url value="/static/img/icons" var="iconsPath" />
+
+
 
 <script type="text/javascript">
 
@@ -46,41 +50,38 @@ $(document).ready(function() {
 	var latitude = ${component.location.centroid[1]};
 	var longitude = ${component.location.centroid[0]} 	
 	
-	geocodeAddress( latitude, longitude,'#componentAddress');
+	geocodeAddress( latitude, longitude,'#componentAddress');			
 });
 
 </script>
 
-<div class="row-fluid">
-	<div class="span12">
-		<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
-		<br /> <br />
-		<div class="pull-right">			
-			<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> Close</a>
-		</div>
-		<br />
-		<div class="">
-			<div class="pull-left type-icon">
-				<img src="${iconsPath}/${componentIcon}.png">
-			</div>
-			<h1 class="lead">
-				<div class="pull-left">
-					${component.providerId} <br />
-					${component.componentType} <br /> 
-					${component.name} <br />
-						 <small> <span id="componentAddress"></span>
-					<div class="pull-right">
-						<c:if test="${not empty component.tagsAsList}">
-							<i class="icon-tags"></i>
-						</c:if>
-						<c:forEach items="${component.tagsAsList}" var="tag">
-							<span class="badge">${tag}</span>
-						</c:forEach>
-					</div> </small>
-			</div>
-			</h1>
-		</div>
+
+<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
+
+<c:if test="${btnclose ne 'off'}">	
+	<div class="pull-right">			
+		<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> Close</a>
+	</div>	
+</c:if>		
+<div class="">
+	<div class="pull-left type-icon">
+		<img src="${iconsPath}/${componentIcon}.png">
 	</div>
+	<h1 class="lead">
+		<div class="pull-left">
+				<span id="componentAddress"></span><br/>
+				<small> ${component.name} / ${component.componentType} / ${component.providerId} </small><br/>					 															
+		</div>
+	</h1>	
 </div>
+<div class="pull-right tags">
+	<c:if test="${not empty component.tagsAsList}">
+		<i class="icon-tags"></i>
+	</c:if>
+	<c:forEach items="${component.tagsAsList}" var="tag">
+		<span class="badge">${tag}</span>
+	</c:forEach>
+</div>
+	
 
 

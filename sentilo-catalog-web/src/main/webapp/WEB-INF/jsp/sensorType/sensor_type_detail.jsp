@@ -2,10 +2,10 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', sensorType)"/>
+
 <spring:url value="/admin/sensortypes/${sensorType.id}/edit" var="editSensorTypeLink" />
-
 <spring:url value="/static/img" var="iconPrefix" />
-
 <c:set var="sensorTypeTableId"  value="sensorTypeDetailSensorTypeTable" />
 <spring:url value="/admin/sensortypes/list?nameTableRecover=sensorTypeTable&fromBack=true" var="backURL" />
 
@@ -68,7 +68,7 @@
 															<strong><spring:message code="sensortype.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="sensorType.updateAt" />
+															<spring:eval expression="sensorType.updatedAt" />
 														</div>
 													</div>
 												</div>
@@ -79,8 +79,11 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<a href="${editSensorTypeLink}" class="btn btn-primary"> <spring:message code="sensortype.edit.title" />
+												<c:if test="${showAdminControls}">	
+												<a href="${editSensorTypeLink}" class="btn btn-primary">
+													<spring:message code="sensortype.edit.title" />
 												</a>
+												</c:if>
 											</div>
 										</div>
 									</div>

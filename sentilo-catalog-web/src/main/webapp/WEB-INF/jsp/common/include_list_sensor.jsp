@@ -16,7 +16,7 @@ $(document).ready(function() {
 		}; 
 	}
 	
-	var tableSensor =	makeTableAsync('${sensorTable}', '${sensorsAjaxSource}', linkToDetail,firstColumnRenderDelegate);
+	var tableSensor =  makeTableAsync('${sensorTable}', '${sensorsAjaxSource}', linkToDetail,firstColumnRenderDelegate);
 	
 });
 </script>
@@ -43,7 +43,7 @@ $(document).ready(function() {
 			<tr>
 				<td>
 				    <c:choose>
-				    	<c:when test="${empty componentId and empty providerId}">
+				    	<c:when test="${empty componentId and empty providerId and showAdminControls}">
 				    		<input type="checkbox" name="selectAllRows"/>
 				    	</c:when>
 				    	<c:otherwise>&nbsp;</c:otherwise>

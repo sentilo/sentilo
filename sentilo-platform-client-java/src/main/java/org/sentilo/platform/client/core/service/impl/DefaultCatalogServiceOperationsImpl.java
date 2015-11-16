@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.client.core.service.impl;
 
@@ -43,7 +50,7 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperationsImpl implements CatalogServiceOperations {
 
-  private final Logger logger = LoggerFactory.getLogger(DefaultCatalogServiceOperationsImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCatalogServiceOperationsImpl.class);
 
   private CatalogMessageConverter converter = new CatalogMessageConverter();
   private CatalogAlertMessageConverter alertConverter = new CatalogAlertMessageConverter();
@@ -57,14 +64,14 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   @Override
   public CatalogOutputMessage getSensors(final CatalogInputMessage message) {
-    logger.debug("Retrieving authorized sensors from catalog ");
+    LOGGER.debug("Retrieving authorized sensors from catalog ");
     final RequestParameters parameters = new RequestParameters();
     if (!CollectionUtils.isEmpty(message.getParameters())) {
       parameters.put(message.getParameters());
     }
 
     final String response = getRestClient().get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
-    logger.debug("Sensors retrieved ");
+    LOGGER.debug("Sensors retrieved ");
 
     return converter.unmarshall(response);
 
@@ -79,9 +86,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   @Override
   public void registerSensors(final CatalogInputMessage message) {
-    logger.debug("Registering sensors");
+    LOGGER.debug("Registering sensors");
     getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("Sensors registered ");
+    LOGGER.debug("Sensors registered ");
   }
 
   /*
@@ -93,9 +100,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   @Override
   public void updateSensors(final CatalogInputMessage message) {
-    logger.debug("Updating sensors");
+    LOGGER.debug("Updating sensors");
     getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("Sensors updated");
+    LOGGER.debug("Sensors updated");
   }
 
   /*
@@ -107,9 +114,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   @Override
   public void updateComponents(final CatalogInputMessage message) {
-    logger.debug("Updating components");
+    LOGGER.debug("Updating components");
     getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("Components updated");
+    LOGGER.debug("Components updated");
 
   }
 
@@ -122,9 +129,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   @Override
   public void deleteProvider(final CatalogDeleteInputMessage message) {
-    logger.debug("Deleting provider components/sensors");
+    LOGGER.debug("Deleting provider components/sensors");
     getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("Provider components/sensors deleted");
+    LOGGER.debug("Provider components/sensors deleted");
   }
 
   /*
@@ -136,14 +143,14 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    */
   @Override
   public CatalogAlertOutputMessage getAuthorizedAlerts(final CatalogAlertInputMessage message) {
-    logger.debug("Retrieving authorized alerts from catalog ");
+    LOGGER.debug("Retrieving authorized alerts from catalog ");
     final RequestParameters parameters = new RequestParameters();
     if (!CollectionUtils.isEmpty(message.getParameters())) {
       parameters.put(message.getParameters());
     }
 
     final String response = getRestClient().get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
-    logger.debug("alerts retrieved ");
+    LOGGER.debug("alerts retrieved ");
 
     return alertConverter.unmarshall(response);
   }
@@ -156,9 +163,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * .platform.client.core.domain.CatalogAlertInputMessage)
    */
   public void registerAlerts(final CatalogAlertInputMessage message) {
-    logger.debug("Registering alerts");
+    LOGGER.debug("Registering alerts");
     getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("alerts registered ");
+    LOGGER.debug("alerts registered ");
   }
 
   /*
@@ -169,9 +176,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * platform.client.core.domain.CatalogAlertInputMessage)
    */
   public void updateAlerts(final CatalogAlertInputMessage message) {
-    logger.debug("Updating alerts");
+    LOGGER.debug("Updating alerts");
     getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("alerts updated ");
+    LOGGER.debug("alerts updated ");
 
   }
 
@@ -183,9 +190,9 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
    * platform.client.core.domain.CatalogAlertInputMessage)
    */
   public void deleteAlerts(final CatalogAlertInputMessage message) {
-    logger.debug("Deleting alerts");
+    LOGGER.debug("Deleting alerts");
     getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
-    logger.debug("alerts deleted ");
+    LOGGER.debug("alerts deleted ");
 
   }
 

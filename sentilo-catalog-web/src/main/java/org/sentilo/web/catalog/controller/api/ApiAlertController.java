@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.api;
 
@@ -41,6 +48,8 @@ import org.sentilo.web.catalog.converter.ApiAlertConverter;
 import org.sentilo.web.catalog.converter.ApiAlertConverterContext;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Permission;
+import org.sentilo.web.catalog.security.CatalogUserDetails;
+import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.AlertService;
 import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.PermissionService;
@@ -62,7 +71,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/alert")
 public class ApiAlertController {
 
-  private final Logger logger = LoggerFactory.getLogger(ApiAlertController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApiAlertController.class);
 
   @Autowired
   private PermissionService permissionService;
@@ -79,22 +88,25 @@ public class ApiAlertController {
   @Autowired
   private ApiAlertValidator validator;
 
+  @Autowired
+  private CatalogUserDetailsService userDetailsService;
+
   @RequestMapping(value = "/owners", method = RequestMethod.GET)
   @ResponseBody
   public CatalogAlertResponseMessage getOwners() {
-    logger.debug("Catalog Alert API: get alerts owners");
+    LOGGER.debug("Catalog Alert API: get alerts owners");
     CatalogAlertResponseMessage response = null;
 
     try {
       final List<Alert> alerts = alertService.findAll();
       final List<AlertOwner> owners = ApiAlertConverter.convertToAlertOwnersList(alerts);
 
-      logger.debug("Catalog Alert API: found {}  alerts ", owners.size());
+      LOGGER.debug("Catalog Alert API: found {}  alerts ", owners.size());
       response = new CatalogAlertResponseMessage();
       response.setOwners(owners);
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
-      logger.error("{} - Error searching alerts owners. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error searching alerts owners. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
@@ -111,7 +123,7 @@ public class ApiAlertController {
     // propietaria
     // una entidad para la cual la entidad que hace la peticion (aka entidad origen)tiene permiso de
     // lectura.
-    logger.debug("Catalog Alert API: getting authorized alerts. Operation invoked by entity {} ", entityId);
+    LOGGER.debug("Catalog Alert API: getting authorized alerts. Operation invoked by entity {} ", entityId);
     CatalogAlertResponseMessage response = null;
     try {
       // 1. Recuperamos la lista de permisos de la entidad origen.
@@ -126,12 +138,12 @@ public class ApiAlertController {
       final List<Alert> alerts = alertService.getAlertsByEntities(entities, parameters);
       final List<CatalogAlert> catalogAlerts = ApiAlertConverter.convertToCatalogAlertList(alerts);
 
-      logger.debug("Catalog Alert API: found {}  authorized alerts ", alerts.size());
+      LOGGER.debug("Catalog Alert API: found {}  authorized alerts ", alerts.size());
       response = new CatalogAlertResponseMessage();
       response.setAlerts(catalogAlerts);
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
-      logger.error("{} - Error searching authorized alerts for entity {}. ", internalErrorCode, entityId, ex);
+      LOGGER.error("{} - Error searching authorized alerts for entity {}. ", internalErrorCode, entityId, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
@@ -142,11 +154,12 @@ public class ApiAlertController {
   @RequestMapping(value = "/entity/{entityId}", method = RequestMethod.POST)
   @ResponseBody
   public CatalogAlertResponseMessage createAlerts(@PathVariable final String entityId, @RequestBody final CatalogAlertInputMessage message) {
-    logger.debug("Catalog alert API: registering new alerts. Operation invoked by entity {} ", entityId);
+    LOGGER.debug("Catalog alert API: registering new alerts. Operation invoked by entity {} ", entityId);
+    final CatalogUserDetails catalogUser = userDetailsService.getCatalogUserDetails();
     try {
       final ApiAlertConverterContext context = new ApiAlertConverterContext(message, entityId, applicationService, providerService, alertService);
 
-      final List<Alert> alerts = ApiAlertConverter.buildAlertsFromCatalogAlerts(context);
+      final List<Alert> alerts = ApiAlertConverter.buildAlertsFromCatalogAlerts(context, catalogUser.getUsername());
 
       if (!context.getResults().hasErrors()) {
         validator.validate(alerts, context.getResults(), false);
@@ -154,16 +167,16 @@ public class ApiAlertController {
 
       if (context.getResults().hasErrors()) {
         final String errorMessage = "Bad request data. Alerts have not been inserted. Please review the following errors";
-        logger.debug("Catalog alert API: alerts have not been inserted. Found {} errors after validate data. {}", context.getResults()
+        LOGGER.debug("Catalog alert API: alerts have not been inserted. Found {} errors after validate data. {}", context.getResults()
             .getErrorsCount(), context.getResults().toString());
         return new CatalogAlertResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, context.getResults().getErrors());
       } else {
         alertService.insertAll(alerts);
-        logger.debug("Catalog alert API: inserted {} alerts", alerts.size());
+        LOGGER.debug("Catalog alert API: inserted {} alerts", alerts.size());
       }
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error inserting alerts into database. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error inserting alerts into database. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
@@ -174,12 +187,13 @@ public class ApiAlertController {
   @RequestMapping(value = "/entity/{entityId}", method = RequestMethod.PUT)
   @ResponseBody
   public CatalogAlertResponseMessage updateAlerts(@PathVariable final String entityId, @RequestBody final CatalogAlertInputMessage message) {
-    logger.debug("Catalog alert API: updating alerts. Operation invoked by entity {} ", entityId);
+    LOGGER.debug("Catalog alert API: updating alerts. Operation invoked by entity {} ", entityId);
+    final CatalogUserDetails catalogUser = userDetailsService.getCatalogUserDetails();
     try {
       final ApiAlertConverterContext context =
           new ApiAlertConverterContext(message, entityId, applicationService, providerService, alertService, true);
 
-      final List<Alert> alerts = ApiAlertConverter.buildAlertsFromCatalogAlerts(context);
+      final List<Alert> alerts = ApiAlertConverter.buildAlertsFromCatalogAlerts(context, catalogUser.getUsername());
 
       if (!context.getResults().hasErrors()) {
         validator.validate(alerts, context.getResults(), true);
@@ -187,16 +201,16 @@ public class ApiAlertController {
 
       if (context.getResults().hasErrors()) {
         final String errorMessage = "Bad request data. Alerts have not been updated. Please review the following errors";
-        logger.debug("Catalog alert API: alerts have not been updated. Found {} errors after validate data. {}", context.getResults()
+        LOGGER.debug("Catalog alert API: alerts have not been updated. Found {} errors after validate data. {}", context.getResults()
             .getErrorsCount(), context.getResults().toString());
         return new CatalogAlertResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, context.getResults().getErrors());
       } else {
         alertService.updateAll(alerts);
-        logger.debug("Catalog alert API: updated {} alerts", alerts.size());
+        LOGGER.debug("Catalog alert API: updated {} alerts", alerts.size());
       }
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error updating alerts into database. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error updating alerts into database. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }
@@ -211,18 +225,18 @@ public class ApiAlertController {
     // Solo se pueden borrar alarmas externas de las cuales se es el propietario.
     // Las alarmas internas solo se pueden borrar via la web.
 
-    logger.debug("Catalog alert API: deleting alerts. Operation invoked by entity {} ", entityId);
+    LOGGER.debug("Catalog alert API: deleting alerts. Operation invoked by entity {} ", entityId);
     try {
       if (message == null || (CatalogUtils.arrayIsEmpty(message.getAlertsIds()))) {
         alertService.deleteOwnAlerts(entityId);
-        logger.debug("Catalog alert API: deleted all alerts from entity {}", entityId);
+        LOGGER.debug("Catalog alert API: deleted all alerts from entity {}", entityId);
       } else if (!SentiloUtils.arrayIsEmpty(message.getAlertsIds())) {
         alertService.deleteOwnAlerts(Arrays.asList(message.getAlertsIds()), entityId);
-        logger.debug("Catalog alert API: deleted {} alerts", message.getAlertsIds().length);
+        LOGGER.debug("Catalog alert API: deleted {} alerts", message.getAlertsIds().length);
       }
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error deleting alerts. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error deleting alerts. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogAlertResponseMessage(errorMessage);
     }

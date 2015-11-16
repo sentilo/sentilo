@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', component)"/>
+
 <c:set var="componentTable"  value="componentDetailComponentTable" />
 <c:set var="sensorTable"  value="componentDetailSensorTable" />
 <c:set var="componentId" scope="request" value="${component.id}" />
@@ -69,6 +71,12 @@
 												<div class="accordion-inner">
 													<div class="row-fluid">
 														<div class="span4">
+															<strong><spring:message code="component.tenantId" /> </strong>
+														</div>
+														<div class="span8">${component.tenantId}</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
 															<strong><spring:message code="component.type" /> </strong>
 														</div>
 														<div class="span8">
@@ -115,7 +123,7 @@
 															<strong><spring:message code="component.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="component.updateAt" />
+															<spring:eval expression="component.updatedAt" />
 														</div>
 													</div>
 													<c:set value="${component.tagsAsList}" var="tags" scope="request" />
@@ -145,8 +153,11 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<a href="${editComponentLink }" class="btn btn-primary"> <spring:message code="component.edit.title" />
+												<c:if test="${showAdminControls}">
+												<a href="${editComponentLink }" class="btn btn-primary"> 
+													<spring:message code="component.edit.title" />
 												</a>
+												</c:if>
 											</div>
 										</div>
 									</div>
@@ -169,8 +180,11 @@
 											<div class="span12">
 												<div class="control-group pull-right">
 													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-													<a href="${editComponentLink }" class="btn btn-primary"> <spring:message code="component.edit.title" />
+													<c:if test="${showAdminControls}">
+													<a href="${editComponentLink }" class="btn btn-primary">
+														<spring:message code="component.edit.title" />
 													</a>
+													</c:if>
 												</div>
 											</div>
 										</div>
@@ -185,8 +199,11 @@
 											<div class="span12">
 												<div class="control-group pull-right">
 													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-													<a href="${editComponentLink }" class="btn btn-primary"> <spring:message code="component.edit.title" />
+													<c:if test="${showAdminControls}">
+													<a href="${editComponentLink }" class="btn btn-primary">
+														<spring:message code="component.edit.title" />
 													</a>
+													</c:if>
 												</div>
 											</div>
 										</div>
@@ -196,13 +213,15 @@
 									<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
 									<div class="control-group pull-right">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+										<c:if test="${showAdminControls}">
 										<spring:url value="/admin/component/${component.id}/addComponents" var="addComponentsURL" />
 										<a href="#" onclick="deleteSelected('components');" class="btn btn-danger">
 											<spring:message	code="component.unassign.title" />
 										</a>
 										<a href="#" onclick="window.location.href='${addComponentsURL}';" class="btn">
 											<spring:message code="component.assign.title" />
-										 </a>
+										</a>
+										</c:if>
 									</div>
 								</div>
 								<div class="${tab5PaneClass}" id="tab5">

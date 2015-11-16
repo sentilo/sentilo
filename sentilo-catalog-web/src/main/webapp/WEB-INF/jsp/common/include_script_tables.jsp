@@ -22,7 +22,7 @@ var tuneUpTable = function() {
 	if (asyncTable.fnGetData().length && linkable) {		
 		var rows = $(tableSelector + ' tbody tr');
 		rows.click(function () {
-			var aData = asyncTable.fnGetData(this, 0);
+			var aData = asyncTable.fnGetData(this, 0);			
 			document.location.href = detail_prefix + aData + '/detail';
 		});
 		rows.css('cursor', 'pointer');
@@ -104,7 +104,7 @@ function reFillSearch(){
 		$('select[name="' + tableSelector.substring(1)+'_length' + '"]').val(paramsSearchMap.pageSize);
 		var oSettings = asyncTable.fnSettings();
 		oSettings.oPreviousSearch.sSearch = paramsSearchMap.wordToSearch;
-		oSettings._iDisplayLength = paramsSearchMap.pageSize;
+		oSettings._iDisplayLength = parseInt(paramsSearchMap.pageSize);
 		oSettings._iDisplayStart = parseInt(paramsSearchMap.pageNumber,10) * paramsSearchMap.pageSize;
 		asyncTable.oApi._fnUpdateInfo(oSettings);
 		
@@ -120,9 +120,7 @@ var translateRESTParameters = function(url, aoData, fnCallback) {
     for ( var i = 0; i < aoData.length; i++) {
         paramMap[aoData[i].name] = aoData[i].value;
     }
-    
-    
-    
+            
     //page calculations
     var pageSize = paramMap.iDisplayLength;
     var start = paramMap.iDisplayStart;
@@ -203,7 +201,12 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 	
 	if (typeof(firstColumnRenderDelegate) === 'undefined') {
 		firstColumnRenderDelegate = function (data, type, row) {
-			return '<input type="checkbox" name="selectedIds" value="' + data +'" onclick="dontShowDetail(event);"/>';
+			// Checkbox must be displayed if and only if row.length = table.columns.length 
+			if(row.length > this.asyncTable.dataTableSettings[0].aoColumns.length){				
+				return '';
+			}else{
+				return '<input type="checkbox" name="selectedIds" value="' + data +'" onclick="dontShowDetail(event);"/>';
+			}
 		}; 
 	}
 	
@@ -254,7 +257,7 @@ function  makeTableAsync(tableNameSelector, sAjaxSource, detailLink, firstColumn
     var mapSearch;
 	
 	if('${lastSearchParams}'){
-		mapSearch = {'wordToSearch':'${lastSearchParams.wordToSearch}',
+		mapSearch = {'wordToSearch':unescape('${lastSearchParams.wordToSearch}'),
 					'pageSize':'${lastSearchParams.pageSize}',
 					'pageNumber':'${lastSearchParams.pageNumber}',
 					'sortColumn':'${lastSearchParams.sortColum}',
@@ -268,6 +271,14 @@ function  makeTableAsync(tableNameSelector, sAjaxSource, detailLink, firstColumn
 			$("input[name='selectedIds']").prop('checked', checkAll);				
 		});
 	}
+	
+	// If logged in user has role USER then first column must be rendered empty, i.e., no checkbox must be displayed	
+	<security:authorize access="hasRole('ROLE_USER')">	
+		firstColumnRenderDelegate = function (data, type, row) {
+		  return '';
+		};
+	</security:authorize>
+	
 	
 	return _makeTableAsync(sAjaxSource, '#'+tableNameSelector, '${detailPrefix}', mapSearch, detailLink, firstColumnRenderDelegate,orderable);
 }

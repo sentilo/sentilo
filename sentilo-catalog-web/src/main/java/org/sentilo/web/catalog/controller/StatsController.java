@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
@@ -46,7 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/stats")
-public class StatsController {
+public class StatsController extends CatalogBaseController {
 
   private final DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(LocaleContextHolder.getLocale());
 
@@ -76,12 +83,13 @@ public class StatsController {
     result.setTotalRouterDevices(formatter.format(stats.getDevices().getRoutersAndGateways()));
     result.setTotalOtherDevices(formatter.format(stats.getDevices().getOthers()));
 
-    result.setTotalEvents(formatter.format(stats.getEvents().getTotal()));
-    result.setTotalOrderEvents(formatter.format(stats.getEvents().getOrders()));
-    result.setTotalAlarmEvents(formatter.format(stats.getEvents().getAlarms()));
+    result.setTotalEvents(formatter.format(stats.getPerformance().getTotalRequests()));
+    result.setTotalObsEvents(formatter.format(stats.getPerformance().getTotalObs()));
+    result.setTotalOrderEvents(formatter.format(stats.getPerformance().getTotalOrders()));
+    result.setTotalAlarmEvents(formatter.format(stats.getPerformance().getTotalAlarms()));
 
     result.setEventsPerSecond(formatter.format(stats.getPerformance().getInstantAvg()));
-    result.setDailyAverageRate(formatter.format(stats.getPerformance().getDailyAvg()));
+    result.setDailyAverageRate(formatter.format(stats.getPerformance().getMaxDailyAvg()));
     result.setMaxRate(formatter.format(stats.getPerformance().getMaxAvg()));
 
     result.setTotalActiveAccounts(formatter.format(stats.getAccounts().getUsers()));
@@ -95,7 +103,8 @@ public class StatsController {
   @ResponseBody
   public List<Activity> getCurrentActivity() {
     // To display the last activity logs, elements must be show in a reverse order (from the most
-    // ancient to the most recent), but the list returned by the service is immutable
+    // ancient to the most recent), but the list returned by the service is immutable so we need
+    // build a new list to reverse the order.
     final List<Activity> lastActivityLogs = new ArrayList<Activity>(activityService.getLastActivityLogs());
 
     Collections.reverse(lastActivityLogs);

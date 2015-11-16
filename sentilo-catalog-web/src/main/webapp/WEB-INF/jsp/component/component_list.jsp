@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('LIST', 'org.sentilo.web.catalog.domain.Component')"/>
+
 <c:set var="componentTable"  value="componentTable" />
 
 <spring:url value="/admin/component/" var="detailPrefix" />
@@ -34,6 +36,7 @@
 						
 						<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
 						
+						<c:if test="${showAdminControls}">
 						<div class="control-group pull-right">
 							<a href="#" onclick="deleteSelected('components','<spring:escapeBody>${deleteComponentConfirmMessage}</spring:escapeBody>');" class="btn btn-danger">
 								<spring:message code="component.delete.title" /> 
@@ -46,6 +49,7 @@
 							</a>							
 							<a href="#" onclick="window.location.href='${newComponentLink}';" class="btn"> <spring:message code="component.new.title" /> </a>
 						</div>
+						</c:if>
 					</div>
 				</div>
 			</div>

@@ -392,8 +392,10 @@ $(document).ready(function() {
     <div class="controls">
     	<form:hidden path="location" />
     	<select id="locations" size="4" class="input-large" style="width:310px" onchange="highlight(this.selectedIndex)" ondblclick="jumpToLocation()"></select>
+    	<span class="text-error"><form:errors path="location" /></span>
     </div>
  </div>
+ 
  <div class="control-group">
     <div class="controls">
     	<input type="button" value="<spring:message code="location.button.delete"/>" class="btn" onclick="deleteLocation()"/>
