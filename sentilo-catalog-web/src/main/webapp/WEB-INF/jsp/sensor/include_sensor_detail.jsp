@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', sensor)"/>
 
 <div class="tab-content">
 	<div class="${tab1PaneClass}" id="tab1">
@@ -13,6 +13,12 @@
 				</div>
 				<div id="detailAccordionCollapse" class="accordion-body collapse in">
 					<div class="accordion-inner">
+						<div class="row-fluid">
+							<div class="span4">
+								<strong><spring:message code="sensor.tenantId" /> </strong>
+							</div>
+							<div class="span8">${sensor.tenantId}</div>
+						</div>
 						<div class="row-fluid">
 							<div class="span4">
 								<strong><spring:message code="sensor.sensorId" /> </strong>
@@ -59,7 +65,7 @@
 								<strong><spring:message code="sensor.updatedAt" /> </strong>
 							</div>
 							<div class="span8">
-								<spring:eval expression="sensor.updateAt" />
+								<spring:eval expression="sensor.updatedAt" />
 							</div>
 						</div>
 						<div class="row-fluid">
@@ -113,7 +119,9 @@
 			<div class="span12">
 				<div class="control-group  pull-right">
 					<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+					<c:if test="${showAdminControls}">
 					<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
+					</c:if>
 				</div>
 			</div>
 		</div>
@@ -128,7 +136,9 @@
 				<div class="span12">
 					<div class="control-group  pull-right">
 						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+						<c:if test="${showAdminControls}">
 						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
+						</c:if>
 					</div>
 				</div>
 			</div>
@@ -143,7 +153,9 @@
 				<div class="span12">
 					<div class="control-group  pull-right">
 						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+						<c:if test="${showAdminControls}">
 						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
+						</c:if>
 					</div>
 				</div>
 			</div>

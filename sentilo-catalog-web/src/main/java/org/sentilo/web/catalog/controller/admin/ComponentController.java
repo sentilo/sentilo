@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
@@ -62,6 +69,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/component")
@@ -155,11 +163,11 @@ public class ComponentController extends BaseComponentController {
 
   @RequestMapping(value = "/changeAccessType", method = RequestMethod.POST)
   public String changeAccessType(@RequestParam final String newAccessType, @RequestParam final String[] selectedIds,
-      final HttpServletRequest request, final Model model) {
+      final HttpServletRequest request, final RedirectAttributes redirectAttributes, final Model model) {
     final boolean isPublicAccess = (StringUtils.hasText(newAccessType) && "public".equals(newAccessType) ? true : false);
     getComponentService().changeAccessType(selectedIds, isPublicAccess);
     ModelUtils.addConfirmationMessageTo(model, "accessType.changed");
-    return getNameOfViewToReturn(LIST_ACTION);
+    return redirectToList(model, request, redirectAttributes);
   }
 
   @Override
@@ -169,32 +177,66 @@ public class ComponentController extends BaseComponentController {
     getViewNames().put(NEW_ACTION, Constants.VIEW_NEW_COMPONENT);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
+   * HttpServletRequest, org.springframework.ui.Model)
+   */
   @Override
   protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
+    super.doBeforeNewResource(request, model);
+
     final String providerId = request.getParameter("providerId");
     if (StringUtils.hasText(providerId)) {
       model.addAttribute(Constants.MODEL_PROVIDER_ID, providerId);
     }
+
     addProviderListTo(model);
     addEnergyTypesListTo(model);
     addConnectivityTypesListTo(model);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
+   * org.springframework.ui.Model)
+   */
   @Override
-  protected void doBeforeEditResource(final Model model) {
+  protected void doBeforeEditResource(final String id, final Model model) {
+    super.doBeforeEditResource(id, model);
+
     addProviderListTo(model);
     addEnergyTypesListTo(model);
     addConnectivityTypesListTo(model);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.controller.BaseComponentController#doBeforeViewResource(java.lang.String
+   * , org.springframework.ui.Model)
+   */
   @Override
-  protected void doBeforeViewResource(final String componentId, final Model model) {
-    super.doBeforeViewResource(componentId, model);
+  protected void doBeforeViewResource(final String id, final Model model) {
+    super.doBeforeViewResource(id, model);
+
     addProviderListTo(model);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.controller.CrudController#doBeforeUpdateResource(org.sentilo.web.catalog
+   * .domain.CatalogDocument, org.springframework.ui.Model)
+   */
   @Override
   protected void doBeforeUpdateResource(final Component resource, final Model model) {
+    super.doBeforeUpdateResource(resource, model);
+
     // Before update the component, if it is mobile verify that it has the routePointList attribute
     // fill in. If it is null, first we load the route attribute from backend and we assign it to
     // the component to update.
@@ -245,7 +287,7 @@ public class ComponentController extends BaseComponentController {
     try {
       label = getMessageSource().getMessage(key, null, LocaleContextHolder.getLocale());
     } catch (final NoSuchMessageException nme) {
-      logger.warn("Message key {} couldn't be resolved. Return default value {}", key, defaultValue);
+      LOGGER.warn("Message key {} couldn't be resolved. Return default value {}", key, defaultValue);
     }
 
     return label;

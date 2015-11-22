@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('LIST', 'org.sentilo.web.catalog.domain.SensorType')"/>
+
 <c:set var="sensorTypeTable" value="sensorTypeTable"/>
 
 <spring:url value="/admin/sensortypes/new" var="newSensorTypeURL" />
@@ -59,7 +61,8 @@ $(document).ready(function() {
 								<a href="#" type="button" onclick="window.location.href='${excelSource}';" class="btn"> 
 									<spring:message code="button.excel" /> 
 								</a>
-							</div>							
+							</div>	
+							<c:if test="${showAdminControls}">						
 							<div class="control-group pull-right">
 								<a href="#" onclick="deleteSelected('sensorTypes');" class="btn btn-danger"> 
 									<spring:message code="sensortype.delete.title" /> 
@@ -68,6 +71,7 @@ $(document).ready(function() {
 									<spring:message code="sensortype.new.title" /> 
 								</a>
 							</div>
+							</c:if>
 						</form:form>
 					</div>
 				</div>

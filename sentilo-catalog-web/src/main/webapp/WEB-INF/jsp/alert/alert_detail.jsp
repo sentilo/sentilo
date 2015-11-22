@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', alert)"/>
+
 <spring:url value="/admin/alert/${alert.id}/edit" var="editAlertLink" />
 <spring:url value="/admin/alert/list?nameTableRecover=alertTable&fromBack=true" var="backURL" />
 
@@ -40,6 +42,12 @@
 												<div class="accordion-inner">
 													<div class="row-fluid">
 														<div class="span4">
+															<strong><spring:message code="alert.tenantId" /> </strong>
+														</div>
+														<div class="span8">${alert.tenantId}</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
 															<strong><spring:message code="alert.description" /> </strong>
 														</div>
 														<div class="span8">${alert.description}</div>
@@ -57,7 +65,7 @@
 															<strong><spring:message code="alert.updatedAt" /> </strong>
 														</div>
 														<div class="span8">
-															<spring:eval expression="alert.updateAt" />
+															<spring:eval expression="alert.updatedAt" />
 														</div>
 													</div>
 													<div class="row-fluid">
@@ -134,7 +142,11 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<a href="${editAlertLink}" class="btn btn-primary"> <spring:message code="alert.edit.title" /> </a>
+												<c:if test="${showAdminControls}">
+												<a href="${editAlertLink}" class="btn btn-primary"> 
+													<spring:message code="alert.edit.title" /> 
+												</a>
+												</c:if>
 											</div>
 										</div>
 									</div>

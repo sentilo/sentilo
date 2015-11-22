@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.handler.impl;
 
@@ -46,7 +53,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class DataHandler extends AbstractHandler {
 
-  private final Logger logger = LoggerFactory.getLogger(DataHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataHandler.class);
 
   @Autowired
   private DataService dataService;
@@ -56,33 +63,36 @@ public class DataHandler extends AbstractHandler {
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing data DELETE request");
+    LOGGER.debug("Executing data DELETE request");
     debug(request);
 
-    // La peticion puede ser de dos tipos
-    // DELETE /data/idProv
-    // DELETE /data/idProv/idSensor
+    // The request follows the following pattern:
+    // DELETE /data/{providerId}/{sensorId}
+    // where URI parameter {sensorId} is not mandatory
+
     validateResourceNumberParts(request, 1, 2);
     final DataInputMessage inputMessage = parser.parseDeleteRequest(request);
     validator.validateRequestMessageOnDelete(inputMessage);
     validateWriteAccess(request.getEntitySource(), inputMessage.getProviderId());
+
     dataService.deleteLastObservations(inputMessage);
   }
 
   @Override
   public void onGet(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing data GET request");
+    LOGGER.debug("Executing data GET request");
     debug(request);
 
-    // La peticion puede ser de dos tipos
-    // GET /data/idProv
-    // GET /data/idProv/idSensor
-    // Ademas, en ambos casos pueden haber parametros en la URL
+    // The request follows the following pattern:
+    // GET /data/{providerId}/{sensorId}
+    // where URI parameter {sensorId} is not mandatory
+    // Furthermore, it could have parameters
 
     validateResourceNumberParts(request, 1, 2);
     final DataInputMessage inputMessage = parser.parseGetRequest(request);
     validator.validateRequestMessageOnGet(inputMessage);
     validateReadAccess(request.getEntitySource(), inputMessage.getProviderId());
+
     final List<Observation> lastObservations = dataService.getLastObservations(inputMessage);
 
     parser.writeResponse(request, response, lastObservations);
@@ -95,26 +105,19 @@ public class DataHandler extends AbstractHandler {
 
   @Override
   public void onPut(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing data PUT request");
+    LOGGER.debug("Executing data PUT request");
     debug(request);
 
-    // La peticion puede ser de dos tipos
-    // PUT /data/idProv
-    // PUT /data/idProv/idSensor
-    // PUT /data/idProv/idSensor/value
+    // The request follows the following pattern:
+    // PUT /data/{providerId}/{sensorId}/{sensorValue}
+    // where URI parameters {sensorId} and {sensorValue} are not mandatory.
+    // If {sensorId} is not filled in then request will have a message on the body
 
     validateResourceNumberParts(request, 1, 3);
     final DataInputMessage inputMessage = parser.parsePutRequest(request);
     validator.validateRequestMessageOnPut(inputMessage);
     validateWriteAccess(request.getEntitySource(), inputMessage.getProviderId());
+
     dataService.setObservations(inputMessage);
-  }
-
-  public void setDataService(final DataService dataService) {
-    this.dataService = dataService;
-  }
-
-  public void setDataParser(final DataParser parser) {
-    this.parser = parser;
   }
 }

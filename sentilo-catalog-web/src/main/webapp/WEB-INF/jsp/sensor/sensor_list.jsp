@@ -2,7 +2,10 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('LIST', 'org.sentilo.web.catalog.domain.Sensor')"/>
+
 <c:set var="sensorTable"  value="sensorTable" />
+
 <spring:url value="/admin/sensor/list/json" var="sensorsAjaxSource" />
 <spring:url value="/admin/sensor/delete" var="deleteURL" />
 <spring:url value="/admin/sensor/new" var="newSensorURL" />
@@ -35,6 +38,7 @@
 
 						<%@include file="/WEB-INF/jsp/common/include_list_sensor.jsp"%>
 						
+						<c:if test="${showAdminControls}">
 						<div class="control-group pull-right">
 							<a href="#" onclick="deleteSelected('sensors','<spring:escapeBody>${deleteSensorConfirmMessage} </spring:escapeBody>');" class="btn btn-danger"> 
 								<spring:message	code="sensor.delete.title" /> 
@@ -47,6 +51,7 @@
 							</a>							
 							<a href="#" onclick="window.location.href='${newSensorURL}';" class="btn"> <spring:message code="sensor.new.title" /> </a>
 						</div>
+						</c:if>
 					</div>
 				</div>
 			</div>

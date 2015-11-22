@@ -61,8 +61,8 @@ $(document).ready(function() {
 									<strong><spring:message code="sensor.observation.timestamp" /> </strong>
 								</div>
 								<div class="span8">
-									<c:if test="${not empty sensorLatObservation}">
-										<spring:eval expression="sensorLastObservation.date" />
+									<c:if test="${not empty sensorLastObservation}">
+										${fn:replace(sensorLastObservation.timestamp,'T', ' ')} 										
 									</c:if>
 								</div>
 							</div>

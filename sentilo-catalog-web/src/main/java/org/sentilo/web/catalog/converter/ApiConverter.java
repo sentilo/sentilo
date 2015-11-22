@@ -1,32 +1,41 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.converter;
 
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +50,6 @@ import org.sentilo.common.domain.SensorLocationElement;
 import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.domain.Component;
-import org.sentilo.web.catalog.domain.LngLat;
 import org.sentilo.web.catalog.domain.Location;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.Sensor.DataType;
@@ -54,6 +62,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public abstract class ApiConverter {
+
+  private ApiConverter() {
+    // this prevents even the native class from calling this ctor as well :
+    throw new AssertionError();
+  }
 
   public static List<CatalogSensor> convertToCatalogSensorList(final List<Sensor> sensors, final List<Component> components) {
     final List<CatalogSensor> catalogSensors = new ArrayList<CatalogSensor>();
@@ -101,7 +114,7 @@ public abstract class ApiConverter {
 
     if (!CollectionUtils.isEmpty(catalogSensors)) {
       for (final CatalogSensor catalogSensor : catalogSensors) {
-        final Sensor sensor = (isUpdateAction ? buildSensorToUpdate(catalogSensor, context) : buildNewSensor(catalogSensor, context));
+        final Sensor sensor = isUpdateAction ? buildSensorToUpdate(catalogSensor, context) : buildNewSensor(catalogSensor, context);
         if (sensor != null) {
           sensors.add(sensor);
         }
@@ -114,11 +127,11 @@ public abstract class ApiConverter {
   public static List<Component> buildComponentsFromCatalogComponents(final ApiConverterContext context) {
     final List<Component> components = new ArrayList<Component>();
     final boolean isUpdateAction = context.isUpdateAction();
-    final List<? extends CatalogElement> resources = (isUpdateAction ? context.getMessage().getComponents() : context.getMessage().getSensors());
+    final List<? extends CatalogElement> resources = isUpdateAction ? context.getMessage().getComponents() : context.getMessage().getSensors();
 
     if (!CollectionUtils.isEmpty(resources)) {
       for (final CatalogElement resource : resources) {
-        final Component component = (isUpdateAction ? buildComponentToUpdate(resource, context) : buildNewComponent(resource, context));
+        final Component component = isUpdateAction ? buildComponentToUpdate(resource, context) : buildNewComponent(resource, context);
         if (component != null && !components.contains(component)) {
           components.add(component);
         }
@@ -129,48 +142,70 @@ public abstract class ApiConverter {
   }
 
   /**
-   * Build a ordered list of components that need update its location and/or its routeList (if
-   * component is mobile) Order is fixed by the location timestamp. Older timestamps are first on
-   * the list
+   * Translate SensorLocationElement list into a Component list where each component will have a
+   * list of location route point candidates. Every SensorLocationElement is parsed into a new
+   * location candidate
    * 
    * @param context
    * @return
    */
   public static List<Component> buildMobileComponentsFromSensorLocationElements(final ApiConverterContext context) {
+    // Each component in components list will have a list of location route point candidates.
     final List<Component> components = new ArrayList<Component>();
-    // Every entry from this set has the format <componentId>+<location Ts>
-    final HashSet<String> componentsAddedKeys = new HashSet<String>();
     final List<SensorLocationElement> resources = context.getMessage().getLocations();
 
-    // The resources list contains sensor locations, but as two sensors from the same component have
-    // the same location, the list could contains different sensors with the same location and
-    // timestamp related to the same component. The first thing to do is to remove these
-    // "duplicate" sensors from the resources list (it is controlled by the componentsAddedKeys
-    // Set).
-    final List<Component> auxComponents = new ArrayList<Component>();
     if (!CollectionUtils.isEmpty(resources)) {
       for (final SensorLocationElement resource : resources) {
-        final Component component = buildComponentWithLocationUpdated(resource, context);
-        // component is added to the components lists if and only if is not null
-        // and not exists another entry from the same component with equals location timestamp
-        if (component != null && componentsAddedKeys.add(component.getId() + "." + component.getLocation().getFromTsTime().toString())) {
-          auxComponents.add(component);
+        final Component auxComponent = getComponent(context, resource);
+        final Location locationCandidate = buildLocationCandidate(resource);
+        if (auxComponent != null) {
+          if (!components.contains(auxComponent)) {
+            components.add(auxComponent);
+          }
+
+          final Component component = components.get(components.indexOf(auxComponent));
+          // add candidate to list only if component contains no element location such that
+          // location.equals(locationCandidate)
+          component.addLocationCandidate(locationCandidate);
         }
       }
     }
 
-    // Finally, only locations changes must be returned so entries that not modify the previous
-    // location must be remove from the list
-    final Map<String, LngLat> componentLastLocations = new HashMap<String, LngLat>();
-    for (final Component component : auxComponents) {
-      final LngLat previousComponentLocation = componentLastLocations.get(component.getId());
-      if (!component.getLocation().getCoordinates()[0].equals(previousComponentLocation)) {
-        componentLastLocations.put(component.getId(), component.getLocation().getCoordinates()[0]);
-        components.add(component);
+    // Finally, the location candidate with the maximum timestamp (i.e. the last location published)
+    // will be the candidate to be the new component location
+    for (final Component component : components) {
+      final List<Location> locationCandidates = new ArrayList<Location>(component.getLocationCandidates());
+      if (!CollectionUtils.isEmpty(locationCandidates)) {
+        Collections.sort(locationCandidates, new Comparator<Location>() {
+
+          @Override
+          public int compare(final Location o1, final Location o2) {
+            return o1.getFromTsTime().compareTo(o2.getFromTsTime());
+          }
+        });
+
+        component.setLocation(locationCandidates.get(locationCandidates.size() - 1));
       }
     }
 
     return components;
+  }
+
+  private static Component getComponent(final ApiConverterContext context, final SensorLocationElement resource) {
+    Component component = null;
+
+    final Sensor sensor = context.getSensorService().findByName(resource.getProvider(), resource.getSensor());
+    if (sensor != null) {
+      component = context.getComponentService().find(new Component(sensor.getComponentId()));
+    }
+
+    return component;
+  }
+
+  private static Location buildLocationCandidate(final SensorLocationElement resource) {
+    final Location newLocation = CatalogUtils.convertStringLocation(resource.getLocation());
+    newLocation.setFromTsTime(resource.getFromTsTime());
+    return newLocation;
   }
 
   private static Sensor buildNewSensor(final CatalogSensor catalogSensor, final ApiConverterContext context) {
@@ -199,7 +234,7 @@ public abstract class ApiConverter {
     }
 
     sensor.setCreatedAt(new Date());
-    sensor.setUpdateAt(new Date());
+    sensor.setUpdatedAt(new Date());
     return sensor;
   }
 
@@ -252,7 +287,7 @@ public abstract class ApiConverter {
         }
       }
 
-      sensor.setUpdateAt(new Date());
+      sensor.setUpdatedAt(new Date());
     }
 
     return sensor;
@@ -298,7 +333,6 @@ public abstract class ApiConverter {
   }
 
   private static Component buildNewComponent(final CatalogElement resource, final ApiConverterContext context) {
-
     final CatalogSensor catalogSensor = (CatalogSensor) resource;
 
     // Convenciones para el registro de los componentes:
@@ -350,7 +384,7 @@ public abstract class ApiConverter {
 
       component.setId(Component.buildId(context.getProviderId(), component.getName()));
       component.setCreatedAt(new Date());
-      component.setUpdateAt(new Date());
+      component.setUpdatedAt(new Date());
 
       return component;
     } else {
@@ -400,49 +434,10 @@ public abstract class ApiConverter {
         }
       }
 
-      component.setUpdateAt(new Date());
+      component.setUpdatedAt(new Date());
     }
 
     return component;
-  }
-
-  private static Component buildComponentWithLocationUpdated(final SensorLocationElement resource, final ApiConverterContext context) {
-    Component component = null;
-    boolean locationUpdated = false;
-    final Sensor sensor = context.getSensorService().findByName(resource.getProvider(), resource.getSensor());
-    if (sensor != null) {
-      component = context.getComponentService().find(new Component(sensor.getComponentId()));
-      if (locationMustToBeUpdated(component, resource)) {
-        final Location newLocation = CatalogUtils.convertStringLocation(resource.getLocation());
-        newLocation.setFromTsTime(resource.getFromTsTime());
-        component.setLocation(newLocation);
-        component.setUpdateAt(new Date());
-        locationUpdated = true;
-      }
-    }
-
-    return (locationUpdated ? component : null);
-  }
-
-  /**
-   * Component location must be updated if and only if it is mobile and its timestamp is older than
-   * resource timestamp
-   * 
-   * @param component
-   * @param resource
-   * @return
-   */
-  private static boolean locationMustToBeUpdated(final Component component, final SensorLocationElement resource) {
-    boolean locationMustToBeUpdated = false;
-    if (component != null && component.isMobileComponent() && resource.getFromTsTime() != null) {
-      final Long newLocTs = resource.getFromTsTime();
-      final Location currentLocation = component.getLocation();
-      if (currentLocation == null || currentLocation.getFromTsTime() == null || currentLocation.getFromTsTime().compareTo(newLocTs) < 0) {
-        locationMustToBeUpdated = true;
-      }
-    }
-
-    return locationMustToBeUpdated;
   }
 
   private static String[] getNullPropertyNames(final Object source) {
@@ -460,8 +455,4 @@ public abstract class ApiConverter {
     return emptyNames.toArray(result);
   }
 
-  private ApiConverter() {
-    // this prevents even the native class from calling this ctor as well :
-    throw new AssertionError();
-  }
 }

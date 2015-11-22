@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
@@ -34,6 +41,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.dto.DataTablesDTO;
 import org.sentilo.web.catalog.dto.LastSearchParamsDTO;
@@ -44,17 +52,22 @@ import org.sentilo.web.catalog.search.builder.Column;
 import org.sentilo.web.catalog.search.builder.DefaultSearchFilterBuilderImpl;
 import org.sentilo.web.catalog.search.builder.SearchFilterBuilder;
 import org.sentilo.web.catalog.search.builder.SearchFilterUtils;
+import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.TenantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,7 +77,7 @@ import org.springframework.web.servlet.ModelAndView;
 /**
  * Base controller for search use cases.
  */
-public abstract class SearchController<T extends CatalogDocument> implements SearchFilterResolver {
+public abstract class SearchController<T extends CatalogDocument> extends CatalogBaseController implements SearchFilterResolver {
 
   protected static final String LIST_ACTION = "list";
   protected static final String EXCEL_VIEW = "excelView";
@@ -76,7 +89,11 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
    */
   private static final String LAST_SEARCH_PARAMS_MAP = "lastSearchParamsMap";
 
-  protected final Logger logger = LoggerFactory.getLogger(SearchController.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(SearchController.class);
+
+  @Autowired
+  protected CatalogUserDetailsService userDetailsService;
+
   private final SearchFilterBuilder searchFilterBuilder = new DefaultSearchFilterBuilderImpl();
   private final Map<String, String> viewNames = new HashMap<String, String>();
 
@@ -88,14 +105,23 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
 
   protected abstract void initViewNames();
 
+  protected abstract Class<? extends CatalogDocument> getRowClass();
+
+  @ModelAttribute(Constants.MODEL_TENANT_ID)
+  public String getCurrentTenant() {
+    return TenantUtils.getCurrentTenant();
+  }
+
   @Override
   public SearchFilterBuilder getSearchFilterBuilder() {
     return this.searchFilterBuilder;
   }
 
   @RequestMapping(value = {"/", "/list"}, method = RequestMethod.GET)
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'LIST')")
   public String emptyList(final Model model, final HttpServletRequest request, @RequestParam final String nameTableRecover,
       @RequestParam(required = false) final String fromBack) {
+
     final LastSearchParamsDTO lastSearchParamsDTO = getLastSearch(request, nameTableRecover);
     if (lastSearchParamsDTO != null) {
       // lastSearchParamsMap must be cleaned when the user selects any option from the menu (last
@@ -111,10 +137,13 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
       model.addAttribute(LAST_SEARCH_PARAMS, lastSearchParamsDTO);
     }
 
+    doBeforeShowListPage(model);
+
     return getNameOfViewToReturn(LIST_ACTION);
   }
 
   @RequestMapping("/list/json")
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'LIST')")
   @ResponseBody
   public DataTablesDTO getPageList(final Model model, final HttpServletRequest request, final Pageable pageable, @RequestParam final Integer sEcho,
       @RequestParam final String tableName, @RequestParam(required = false) final String search) {
@@ -127,6 +156,7 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
   }
 
   @RequestMapping(value = "/list/excel", method = RequestMethod.GET)
+  @PreAuthorize("@accessControlHandler.checkAccess(this, 'LIST')")
   public ModelAndView getExcel(final Model model, final HttpServletRequest request, final HttpServletResponse response,
       @RequestParam final String tableName) throws IOException {
     // Extract the list with all his search parameters into an Excel.
@@ -152,9 +182,36 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
 
     for (final T resource : resources) {
       final List<String> row = toRow(resource);
+      addRowMetadata(resource, row);
       dataTables.add(row);
     }
     return dataTables;
+  }
+
+  /**
+   * Row metadata allows to add additional info needed to render the row
+   * 
+   * @param resource
+   * @param row
+   */
+  protected void addRowMetadata(final T resource, final List<String> row) {
+    if (TenantContextHolder.hasContext()) {
+      checkResourceOwner(resource, row);
+    }
+  }
+
+  /**
+   * If multitenant feature is enabled, only resources which are owned by the user's tenant must
+   * render the first column as a checkbox.
+   * 
+   * @param resource
+   * @param row
+   */
+  private void checkResourceOwner(final T resource, final List<String> row) {
+    if (!TenantUtils.isCurrentTenantResource(resource)) {
+      final String rowMetadata = "{hideCheckbox:true}";
+      row.add(rowMetadata);
+    }
   }
 
   protected String getNameOfViewToReturn(final String actionName) {
@@ -163,6 +220,10 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
     }
 
     return getViewNames().get(actionName);
+  }
+
+  protected void doBeforeShowListPage(final Model model) {
+    // To override by subclasses.
   }
 
   protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
@@ -213,7 +274,8 @@ public abstract class SearchController<T extends CatalogDocument> implements Sea
   }
 
   private SearchFilterResult<T> getResultList(final HttpServletRequest request, final Pageable pageable, final String search) {
-    final SearchFilter filter = getSearchFilterBuilder().buildSearchFilter(request, pageable, CatalogUtils.decodeAjaxParam(search));
+    final SearchFilter filter =
+        getSearchFilterBuilder().buildSearchFilter(request, pageable, CatalogUtils.decodeAjaxParam(search), userDetailsService);
     doBeforeSearchPage(request, filter);
     return getService().search(filter);
   }

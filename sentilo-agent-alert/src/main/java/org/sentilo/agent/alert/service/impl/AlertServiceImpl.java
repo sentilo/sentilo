@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.agent.alert.service.impl;
 
@@ -55,7 +62,7 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class AlertServiceImpl implements AlertService, ApplicationListener<CheckFrozenAlertEvent> {
 
-  private final Logger logger = LoggerFactory.getLogger(AlertServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AlertServiceImpl.class);
   private static final String DUMMY_TOPIC = "/trash/dummy";
 
   @Autowired
@@ -81,27 +88,24 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
    * @see org.sentilo.agent.alert.service.AlertService#loadAndMonitorInternalAlerts()
    */
   public void loadAndMonitorInternalAlerts() {
-    // Las alertas a monitorizar vienen dadas por las alertas internas definidas en el catalogo
-    // Por lo tanto, el primer paso es recuperar del catálogo todas las alertas de tipo interno:
-    // esta petición la haremos accediendo directamente al repositorio del catálogo.
-
-    // Despues agruparemos las alertas por sensor, y para cada grupo registraremos un
-    // MessageListener el cual estará subscrito a los datos del sensor y, para cada dato que se
-    // reciba, se encargará de procesar la validez del conjunto de reglas asociadas a las alertas
-    // del sensor.
 
     frozenAlertsCache.clear();
+
+    // First, retrieve the internal alerts defined in the Catalog repository
     final List<InternalAlert> internalAlerts = getInternalAlerts();
 
     final Map<String, MessageListenerImpl> listeners = new HashMap<String, MessageListenerImpl>();
 
+    // Therefore, groups the alerts by sensor and for each group registers a new MessageListener
+    // which should be subscribe to get all observations published by this sensor.
+
     if (!CollectionUtils.isEmpty(internalAlerts)) {
-      logger.debug("Found {} internal alerts to monitor", internalAlerts.size());
+      LOGGER.debug("Found {} internal alerts to monitor", internalAlerts.size());
 
       for (final InternalAlert alert : internalAlerts) {
-        // El identificador unívoco de cada listener vendrá definido por el nombre del canal (topic)
-        // al cual estará asociado, que verifica el patrón /data/<provider>/<sensor>, ya que toda
-        // alerta interna tiene un proveedor y un sensor.
+        // Every listener will have an unique identifier, defined by the channel name
+        // /data/<provider>/<sensor>
+
         final String topicToListen = generateTopicName(alert);
         if (listeners.get(topicToListen) == null) {
           listeners.put(topicToListen, new MessageListenerImpl(topicToListen, publishService, frozenRepository));
@@ -114,18 +118,18 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
         }
       }
     } else {
-
-      // Si no se hace ninguna subscripción, el agente no permanecerá a la escucha y se parará. Si
-      // lo que queremos es que esté siempre alerta, debemos subscribirlo almenos a un canal (por
-      // ejemplo un canal mock y de esta manera forzar que siempre esté escuchando)
-      logger.info("No found internal alarms to process. Register dummy listener to keep alive the agent.");
+      // If no subscriptions are done, the agent will be stopped. Therefore, if we want to ensure
+      // that the agent will be always running we should have at least one subscription: a
+      // subscription to a mock channel.
+      LOGGER.info("No found internal alerts to process. Register dummy listener to keep alive the agent.");
       if (!mockListenerActive) {
         registerSubscriptionIntoContainer(new MockMessageListenerImpl(DUMMY_TOPIC), DUMMY_TOPIC);
         mockListenerActive = true;
       }
     }
 
-    // Finally, sync current alerts/listeners with the new alerts/listeners
+    // Finally, sync current alerts/listeners with the new alerts/listeners loaded from the
+    // repository
     if (!CollectionUtils.isEmpty(listeners)) {
       updateAndRegisterListeners(listeners);
     }
@@ -149,29 +153,30 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
   }
 
   public void updateAndRegisterListeners(final Map<String, MessageListenerImpl> listeners) {
-    // Para cada listener definido en listeners vemos si ya forma parte de la colección de listeners
-    // existentes.
-    // 1. Si existe, actualizamos su lista de alertas.
-    // 2. Si no existe, lo añadimos y lo registramos en el listenerContainer
+    // For each listener, the method verifies if it is member of the currentListeners list:
+    // 1. If already exists, the method updates its internal alert list
+    // 2. Otherwise, adds it to the currentListeners list and registers it into the
+    // listenerContainer.
 
-    // Por último, si alguno de los listeners ya existentes no forma parte de la nueva lista lo
-    // eliminamos tanto de la colección currentListeners como del listenerContainer
+    // Finally, if any of the listeners into currentListeners is out-of-dated (i.e. it is not member
+    // of the listeners list), it should be deleted from both the currentListeners list and the
+    // listener container.
 
     for (final String listenerName : listeners.keySet()) {
       if (currentListeners.containsKey(listenerName)) {
-        logger.debug("Updating alerts collection for listener {}", listenerName);
+        LOGGER.debug("Updating alerts collection for listener {}", listenerName);
         final MessageListenerImpl listener = listeners.get(listenerName);
         final MessageListenerImpl currentListener = currentListeners.get(listenerName);
         currentListener.updateAlerts(listener.getAlerts());
       } else {
-        logger.debug("Registering new listener to topic {}", listenerName);
+        LOGGER.debug("Registering new listener to topic {}", listenerName);
         final MessageListenerImpl listener = listeners.get(listenerName);
         currentListeners.put(listenerName, listener);
         registerSubscriptionIntoContainer(listener, listenerName);
       }
     }
 
-    // Finally, unsubscribe and remove listeners from the container that are not longer required
+    // Unsubscribe and remove listeners from the container that are not longer required
     checkAndRemoveDeprecatedListeners(listeners);
   }
 
@@ -188,50 +193,57 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
 
   private void removeDeprecatedListeners(final List<String> listenersToRemove) {
     for (final String listenerName : listenersToRemove) {
-      logger.debug("Removing listener to topic {}", listenerName);
+      LOGGER.debug("Removing listener to topic {}", listenerName);
       listenerContainer.removeMessageListener(currentListeners.get(listenerName));
       currentListeners.remove(listenerName);
     }
   }
 
   private List<InternalAlert> getInternalAlerts() {
-    logger.debug("Searching internal alerts ....");
+    LOGGER.debug("Searching internal alerts ....");
     final Criteria queryCriteria = Criteria.where("type").is(AlertType.INTERNAL.name());
     final List<InternalAlert> content = mongoOps.find(new Query(queryCriteria), InternalAlert.class, "alert");
-    logger.debug("... and found {} alerts to monitor.", content.size());
+    LOGGER.debug("... and found {} alerts to monitor.", content.size());
     return content;
   }
 
   private String generateTopicName(final InternalAlert alert) {
-    return AlertUtils.buildDataTopicAssociateToAlert(alert);
+    return AlertUtils.buildAlertDataTopic(alert);
   }
 
   private void registerSubscriptionIntoContainer(final MessageListener messageListener, final String topic) {
     listenerContainer.addMessageListener(messageListener, new ChannelTopic(topic));
-    logger.debug("Subscription to topic {} registered succesfully", topic);
+    LOGGER.debug("Subscription to topic {} registered succesfully", topic);
   }
 
   private void checkFrozenAlerts() {
-    logger.info("Checking possible frozen sensors");
+    LOGGER.info("Checking possible frozen sensors");
 
-    // Each frozen alert retrieve from the repository doesn't have the expression value filled in.
-    // (and it is mandatory to publish an alarm). This value is given from the frozenAlertsCache
+    // List of candidates to be frozen alerts. This list is retrieve from the frozen repository
     final List<InternalAlert> frozenAlerts = frozenRepository.checkFrozenAlerts();
+
+    // List of real frozen alerts that should update the frozen timeout once the alarms will be
+    // published.
     final List<InternalAlert> updatedFrozenAlerts = new ArrayList<InternalAlert>();
+
     for (final InternalAlert frozenAlert : frozenAlerts) {
       final InternalAlert aux = frozenAlertsCache.get(frozenAlert.getId());
       // If cache doesn't contains the alert means that this alert is deprecated in the repository
       // and must be ignored.
       if (aux != null) {
+        // Each frozen alert retrieved from the repository doesn't have neither the expression value
+        // filled in nor the trigger type (and them are mandatory fields to publish a new alarm).
+        // These values are given from the frozenAlertsCache
         frozenAlert.setExpression(aux.getExpression());
+        frozenAlert.setTrigger(aux.getTrigger());
         publishService.publishFrozenAlarm(frozenAlert);
         updatedFrozenAlerts.add(frozenAlert);
       }
     }
 
-    logger.info("Found and published {} frozen alarms", updatedFrozenAlerts.size());
+    LOGGER.info("Found and published {} frozen alarms", updatedFrozenAlerts.size());
 
-    // and finally, updates the repository timeouts for every frozen alert
+    // and finally, updates the repository timeouts for each frozen alert
     frozenRepository.updateFrozenTimeouts(updatedFrozenAlerts);
   }
 

@@ -6,14 +6,17 @@
 	<spring:url value="/admin/sensor/${sensor.id}/edit" var="actionURL" />
 	<spring:message code="sensor.edit.title" var="pageTitle" />
 	<spring:url value="/admin/sensor/${sensor.id}/detail" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('EDIT', sensor)"/>
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/component/search/json" var="componentSearchURL" />
 	<spring:url value="/admin/sensor/create" var="actionURL" />
 	<spring:message code="sensor.new.title" var="pageTitle" />
 	<spring:message code="select.empty" var="emptySelectMessage" />
-	<spring:url value="/admin/sensor/list" var="backURL" />
+	<spring:url value="/admin/sensor/list?nameTableRecover=sensorTable&fromBack=true" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('CREATE', 'org.sentilo.web.catalog.domain.Sensor')"/>
 </c:if>
+
 <c:if test="${not empty providerId}">
 	<spring:url value="/admin/provider/${providerId}/detail" var="backURL" />
 </c:if>
@@ -77,6 +80,7 @@ function emptyComponentSelect() {
 						</h1>
 
 						<form:form method="post" modelAttribute="sensor" action="${actionURL}" class="form-horizontal" autocomplete="off">
+							<input type="hidden" id="tenantId" name="tenantId" value="${tenantId}" />
 							<fieldset>
 								<div class="tabbable">
 									<ul class="nav nav-tabs">
@@ -87,6 +91,7 @@ function emptyComponentSelect() {
 									<c:if test="${editMode}">
 										<form:hidden path="id" />
 										<form:hidden path="createdAt" />
+										<form:hidden path="createdBy" />
 									</c:if>
 									<div class="tab-content">
 										<div class="tab-pane active" id="tab1">
@@ -240,7 +245,9 @@ function emptyComponentSelect() {
 								<div class="control-group">
 									<div class="controls">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+										<c:if test="${showAdminControls}">
 										<a href="#" onclick="$('form#sensor').submit();" class="btn btn-success"> <spring:message code="button.save" /> </a>
+										</c:if>
 									</div>
 								</div>
 							</fieldset>

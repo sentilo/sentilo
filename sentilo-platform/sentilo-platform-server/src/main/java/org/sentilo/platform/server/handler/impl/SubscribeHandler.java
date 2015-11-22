@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.handler.impl;
 
@@ -49,7 +56,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class SubscribeHandler extends AbstractHandler {
 
-  private final Logger logger = LoggerFactory.getLogger(SubscribeHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SubscribeHandler.class);
 
   @Autowired
   private SubscribeService subscribeService;
@@ -62,36 +69,37 @@ public class SubscribeHandler extends AbstractHandler {
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing subscribe DELETE request");
+    LOGGER.debug("Executing subscribe DELETE request");
     debug(request);
-    // La peticion puede ser:
-    // DEL /subscribe
-    // DEL /subscribe/eventType
-    // DEL /subscribe/eventType/resourceId con resourceId pudiendo ser compuesto por 2 ids (caso
-    // provider+sensor)
+    // The request follows the following pattern:
+    // DEL /subscribe/{eventType}/{resourceId}
+    // where all parameters are not mandatory. Furthermore, {resourceId} may be composed by
+    // providerId and sensorId.
 
     validateResourceNumberParts(request, 0, 3);
     final Subscription subscription = parser.parseBasicRequest(request);
     validator.validateRequestMessageOnDelete(new SubscribeInputMessage(subscription));
-    // En este caso no hace falta validar la autorizacion ya que el remove solo se aplica sobre las
-    // subscripciones de quien hace la peticion
+    // Only own subscriptions could be deleted by this action, so it is not necessary to validate
+    // the authorization
+
     subscribeService.remove(subscription);
   }
 
   @Override
   public void onGet(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing subscribe GET request");
+    LOGGER.debug("Executing subscribe GET request");
     debug(request);
 
-    // La peticion puede ser:
-    // GET /subscribe
-    // GET /subscribe/eventType
+    // The request follows the following pattern:
+    // GET /subscribe/{eventType}
+    // where {eventType} parameter is not mandatory.
 
     validateResourceNumberParts(request, 0, 1);
     final Subscription subscription = parser.parseBasicRequest(request);
     validator.validateRequestMessageOnGet(new SubscribeInputMessage(subscription));
-    // En este caso no hace falta validar la autorizacion ya que el get solo retorna subscripciones
-    // de quien hace la peticion
+    // Only own subscriptions could be returned by this action, so it is not necessary to validate
+    // the authorization
+
     final List<Subscription> subscriptions = subscribeService.get(subscription);
     parser.writeResponse(response, subscriptions);
   }
@@ -103,28 +111,25 @@ public class SubscribeHandler extends AbstractHandler {
 
   @Override
   public void onPut(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    logger.debug("Executing subscribe PUT request");
+    LOGGER.debug("Executing subscribe PUT request");
     debug(request);
 
-    // En este caso, si la peticion no tiene informado el tipo se entiende que este es DATA.
-    // Igualmente, el path siempre debe tener informado almenos un token (evento o resourceId).
+    // The request follows the following pattern:
+    // PUT /subscribe/{eventType}/{resourceId}
+    // where all parameters are not mandatory, but at least one must be filled in.
+    // Furthermore, if {eventType} is not filled in, then its value is set to DATA,
+    // and {resourceId} may be composed by providerId and sensorId.
+
     validateResourceNumberParts(request, 1, 3);
     final Subscription subscription = parser.parseRequest(request, SubscribeType.DATA);
     validator.validateRequestMessageOnPut(new SubscribeInputMessage(subscription));
     if (subscription.getType().equals(SubscribeType.ALARM)) {
       subscription.setOwnerEntityId(alarmService.getAlertOwner(((AlarmSubscription) subscription).getAlertId()));
     }
-    // Validamos que quien hace la peticion de subscripcion tiene permiso de lectura sobre la
-    // entidad propietaria del recurso (data, order o alarm)
+
     validateReadAccess(request.getEntitySource(), subscription.getOwnerEntityId());
+
     subscribeService.subscribe(subscription);
   }
 
-  public void setSubscribeService(final SubscribeService subscribeService) {
-    this.subscribeService = subscribeService;
-  }
-
-  public void setSubscribeParser(final SubscribeParser parser) {
-    this.parser = parser;
-  }
 }

@@ -10,20 +10,18 @@
 	<context:annotation-config />
 	<tx:annotation-driven />
 
-	<!-- Transaction manager -->
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
-		p:dataSource-ref="dataSource" p:defaultTimeout="120" />
-
-	<!-- AbstractRoutingDataSource bean que nos permite dinamicamente fijar el Ds a utilizar de una lista predefinida de Ds. 
-		Este bean es necesario para poder configurar el transactionManager con una lista de Ds dependiente del entorno de ejecución. -->
-	<bean id="dataSource" class="org.sentilo.agent.relational.jdbc.SentiloRoutingDataSource">
-		<property name="targetDataSources" ref="dataSources" />
-	</bean>
-
+	<!-- Custom AbstractRoutingDataSource which allows working with several databases, picking up one database on the fly based on some info associated with the data to persist. --> 		
+	<bean id="dataSourceRouting" class="org.sentilo.agent.relational.jdbc.SentiloRoutingDataSource" p:targetDataSources-ref="dataSources"/>		
+	
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy" p:targetDataSource-ref="dataSourceRouting"/>
+		
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" p:dataSource-ref="dataSource" p:defaultTimeout="120"/>		
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" p:dataSource-ref="dataSource"/>
+	
+	
 	<beans profile="dev">
-		<!-- Define el conjunto de datasources a utilizar a la hora de persistir la información. En cada entorno, la lista de Ds 
-			a utilizar puede variar: por ejemplo en PRE podemos tener unos Ds diferentes a los de DSV. Por ello, la lista de Ds a utilizar 
-			vendrá dada por una lista util:list que a su vez dependera del entorno de ejecucion, lo cual lo sabemos por el profile activo -->
+		<!--  Map with the multiple databases where data could be persisted -->				
 		<util:map id="dataSources">
 			<entry key="sentiloDs" value-ref="sentiloDs" />
 		</util:map>

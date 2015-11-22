@@ -10,3 +10,11 @@ db.user.insert({ "_id" : "platform_user", "_class" : "org.sentilo.web.catalog.do
 // Insert permissions
 print("Load permissions");
 db.permission.insert({ "_id" : "sentilo-catalog@sentilo-catalog", "_class" : "org.sentilo.web.catalog.domain.Permission", "source" : "sentilo-catalog", "target" : "sentilo-catalog", "type" : "ADMIN" });
+
+//Create a default tenant with default params (name Sentilo, location centered at Barcelona, ...)
+print("Load default tenant");
+db.tenant.insert({ "_id" : "sentilo", "_class" : "org.sentilo.web.catalog.domain.Tenant", "name" : "Sentilo", "description" : "Sentilo tenant", "isDefault": true, "contactName" : "Fill in your contact details", "contactEmail" : "fill_in@your.mail", "isPublic" : true, "mapParams" : { "zoomLevel" : 14, "center" : { "latitude" : 41.4001221, "longitude" : 2.172839 }}, "createdAt" : new ISODate(), "createdBy" : "sentilo"});
+
+// Create a default super admin user 
+print("Load default super-admin user");
+db.user.insert({ "_id" : "sadmin", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "change_it", "passwordRepeat" : "change_it", "name" : "SuperAdmin user", "description" : "SuperAdmin user.", "email" : "fill_in@your.mail", "createdAt" : new ISODate(), "active" : true, "roles" : [  "SUPER_ADMIN" ] });

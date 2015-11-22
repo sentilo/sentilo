@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.server.request;
 
@@ -41,6 +48,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.sentilo.common.utils.SentiloUtils;
+import org.sentilo.platform.common.security.IdentityContextHolder;
 import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.exception.UnauthorizedException;
 import org.sentilo.platform.server.http.HttpHeader;
@@ -52,7 +60,7 @@ import org.springframework.util.StringUtils;
 
 public class SentiloRequest {
 
-  private final Logger logger = LoggerFactory.getLogger(SentiloRequestHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SentiloRequestHandler.class);
   private static final String UTF8 = "UTF-8";
 
   private HttpRequest httpRequest;
@@ -63,7 +71,6 @@ public class SentiloRequest {
   private String handlerPath;
   private String uri;
   private String path;
-  private String entitySource;
   private ContentType contentType;
   private HttpMethod method;
 
@@ -76,7 +83,7 @@ public class SentiloRequest {
 
   public void checkCredentialIntegrity(final AuthenticationService authenticationService) throws UnauthorizedException {
     final String credential = extractHeader(HttpHeader.IDENTITY_KEY);
-    entitySource = authenticationService.getIdentity(credential);
+    authenticationService.checkCredential(credential);
   }
 
   public String getResourcePart(final int pos) {
@@ -91,20 +98,15 @@ public class SentiloRequest {
     return parameters.getParameters();
   }
 
-  /*
-   * public void processResource(final String path) { resource = new
-   * SentiloResource(RequestUtils.extractResource(path)); }
-   */
-
   public void setPathParts(final String handlerPath, final String resourcePath) {
     this.handlerPath = handlerPath;
     resource = new SentiloResource(resourcePath);
   }
 
   private void debug(final HttpEntity entity) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Default charset: {}", Charset.defaultCharset());
-      logger.debug("Entity Content-Type: {}", org.apache.http.entity.ContentType.getOrDefault(entity));
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Default charset: {}", Charset.defaultCharset());
+      LOGGER.debug("Entity Content-Type: {}", org.apache.http.entity.ContentType.getOrDefault(entity));
     }
   }
 
@@ -126,7 +128,7 @@ public class SentiloRequest {
     } catch (final ParseException pe) {
       contentType = getDefaultContentType();
     }
-    logger.debug("Parsed Content-type: {}", contentTypeValue);
+    LOGGER.debug("Parsed Content-type: {}", contentTypeValue);
   }
 
   private void parseUri() {
@@ -145,7 +147,7 @@ public class SentiloRequest {
   }
 
   private String extractHeader(final HttpHeader header) {
-    logger.debug("extractHeader: {}", header.toString());
+    LOGGER.debug("extractHeader: {}", header.toString());
 
     final Header[] requestHeaders = httpRequest.getHeaders(header.toString());
     return (SentiloUtils.arrayIsEmpty(requestHeaders) ? null : requestHeaders[0].getValue());
@@ -173,8 +175,13 @@ public class SentiloRequest {
     return contentType;
   }
 
+  /**
+   * Returns the entity's identity that has done the request
+   * 
+   * @return
+   */
   public String getEntitySource() {
-    return entitySource;
+    return IdentityContextHolder.getContext().getEntityId();
   }
 
   private ContentType getDefaultContentType() {
@@ -191,7 +198,7 @@ public class SentiloRequest {
 
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("\n\t Entity source:  " + entitySource);
+    sb.append("\n\t Entity source:  " + getEntitySource());
     sb.append("\n\t Service: " + handlerPath);
     if (resource != null) {
       sb.append("\n\t Resource: " + resource.toString());

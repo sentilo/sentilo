@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sentilo</groupId>
   <artifactId>sentilo-parent-pom</artifactId>
-  <version>1.4.0</version>
+  <version>1.5.1</version>
   <packaging>pom</packaging>
   <name>sentilo-parent-pom</name>
   <description>Parent pom for the Sentilo's modules</description>
@@ -11,7 +11,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<logback.version>1.0.9</logback.version>
 		<slf4j.version>1.7.2</slf4j.version>
-		<org.springframework.version>3.2.0.RELEASE</org.springframework.version>
+		<org.springframework.version>3.2.3.RELEASE</org.springframework.version>
 		<org.springframework.data.mongodb.version>1.3.3.RELEASE</org.springframework.data.mongodb.version>
 		<!-- org.springframework.data.redis.version>1.0.6.RELEASE</org.springframework.data.redis.version-->
 		<org.springframework.data.redis.version>1.4.1.RELEASE</org.springframework.data.redis.version>		
@@ -21,9 +21,7 @@
 		<jackson.version>1.9.11</jackson.version>
 		<junit.version>4.11</junit.version>
 		<mockito.version>1.9.5</mockito.version>
-		<platform.version>1.4.0</platform.version>				
-		<maven.compiler.source>1.6</maven.compiler.source>
-	    <maven.compiler.target>1.6</maven.compiler.target>		
+		<platform.version>1.5.1</platform.version>							
   </properties>
   
   <prerequisites>
@@ -40,9 +38,30 @@
 	<module>./sentilo-agent-relational</module>
 	<module>./sentilo-catalog-web</module>		
 	<module>./sentilo-agent-location-updater</module>	
+	<module>./sentilo-agent-activity-monitor</module>
   </modules>
 	
   <profiles>
+  		<profile>
+  			<id>jdk 1.6</id>
+		    <activation>
+		      <jdk>1.6</jdk>
+		    </activation>
+		    <properties>
+			    <maven.compiler.source>1.6</maven.compiler.source>
+		    	<maven.compiler.target>1.6</maven.compiler.target>		
+	  		</properties>	
+		</profile>
+		<profile>
+			<id>jdk 1.7+</id>
+		    <activation>
+		      <jdk>[1.7,1.8)</jdk>
+		    </activation>
+		    <properties>
+			    <maven.compiler.source>1.7</maven.compiler.source>
+		    	<maven.compiler.target>1.7</maven.compiler.target>		
+	  		</properties>	
+		</profile>
 	    <profile>
 	      <id>dev</id>	
 	      <activation>
@@ -74,12 +93,13 @@
 		          <maxmem>256m</maxmem>
 		          <aggregate>true</aggregate>
 		        <instrumentation>
-		        <ignoreTrivial>true</ignoreTrivial>
-		        <excludes>
-		          <exclude>org/sentilo/common/test/*.class</exclude>		          
-		          <exclude>org/sentilo/**/utils/*Constants.class</exclude>
-		        </excludes>
-		        </instrumentation>
+			        <ignoreTrivial>true</ignoreTrivial>
+			        <excludes>
+			          <exclude>org/sentilo/common/test/*.class</exclude>		          
+			          <exclude>org/sentilo/**/utils/*Constants.class</exclude>
+			          <exclude>org/sentilo/**/domain/*.class</exclude>
+			        </excludes>
+			        </instrumentation>
 		        </configuration>
 		      </plugin>
 	          <plugin>

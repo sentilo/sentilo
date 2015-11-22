@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.test.service;
 
@@ -34,16 +41,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.AlertOwner;
+import org.sentilo.common.domain.CatalogAlertResponseMessage;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
+import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.dao.JedisTemplate;
@@ -53,6 +66,8 @@ import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 
 public class AlarmServiceImplTest {
 
+  final static String ALERT_ID = "alert1";
+
   @Mock
   private AlarmInputMessage message;
   @Mock
@@ -61,6 +76,10 @@ public class AlarmServiceImplTest {
   private JedisSequenceUtils jedisSequenceUtils;
   @Mock
   private ResourceService resourceService;
+  @Mock
+  private CatalogService catalogService;
+  @Mock
+  private CatalogAlertResponseMessage catalogResponseMessage;
   @InjectMocks
   private AlarmServiceImpl service;
 
@@ -71,8 +90,8 @@ public class AlarmServiceImplTest {
 
   @Test
   public void setAlarm() {
-    when(message.getMessage()).thenReturn("Evento de alarma");
-    when(message.getAlertId()).thenReturn("alarm1");
+    when(message.getMessage()).thenReturn("Alarm event");
+    when(message.getAlertId()).thenReturn("alert1");
 
     final String channel = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, message.getAlertId()).getTopic();
     service.setAlarm(message);
@@ -81,15 +100,14 @@ public class AlarmServiceImplTest {
   }
 
   @Test
-  public void getLastMessagesFromAlarm() {
-    final String alarm = "alarm1";
+  public void getLastAlertAlarms() {
     final Set<String> amids = buildAmids();
 
-    when(message.getAlertId()).thenReturn(alarm);
+    when(message.getAlertId()).thenReturn(ALERT_ID);
     when(jedisSequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
     when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(amids);
 
-    service.getLastMessages(message);
+    service.getLastAlarms(message);
 
     verify(message, times(2)).getAlertId();
     verify(jedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
@@ -97,18 +115,34 @@ public class AlarmServiceImplTest {
   }
 
   @Test
-  public void getEmptyLastMessagesFromAlarm() {
-    final String alarm = "alarm1";
-
-    when(message.getAlertId()).thenReturn(alarm);
+  public void getEmptyLastAlertAlarms() {
+    when(message.getAlertId()).thenReturn(ALERT_ID);
     when(jedisSequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
     when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(Collections.<String>emptySet());
 
-    service.getLastMessages(message);
+    service.getLastAlarms(message);
 
     verify(message, times(1)).getAlertId();
     verify(jedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
     verify(jedisTemplate, times(0)).hGetAll(anyString());
+  }
+
+  @Test(expected = ResourceNotFoundException.class)
+  public void getUnknownAlertOwner() throws ResourceNotFoundException {
+    service.getAlertOwner(ALERT_ID);
+  }
+
+  @Test
+  public void getAlertOwner() throws ResourceNotFoundException {
+    final String owner = "mockOwner";
+    final AlertOwner[] alertOwners = {new AlertOwner(ALERT_ID, owner)};
+    when(catalogService.getAlertsOwners()).thenReturn(catalogResponseMessage);
+    when(catalogResponseMessage.getOwners()).thenReturn(Arrays.asList(alertOwners));
+    service.loadAlertsOwners();
+    final String actualOwner = service.getAlertOwner(ALERT_ID);
+
+    verify(catalogService).getAlertsOwners();
+    Assert.assertEquals(owner, actualOwner);
   }
 
   private Set<String> buildAmids() {

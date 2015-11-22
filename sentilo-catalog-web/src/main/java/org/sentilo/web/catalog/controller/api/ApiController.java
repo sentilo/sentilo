@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.api;
 
@@ -73,7 +80,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api")
 public class ApiController {
 
-  private final Logger logger = LoggerFactory.getLogger(ApiController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApiController.class);
 
   @Autowired
   private PermissionService permissionService;
@@ -105,18 +112,18 @@ public class ApiController {
   @RequestMapping(value = "/credentials", method = RequestMethod.GET)
   @ResponseBody
   public CredentialsDTO getAuthorizations() {
-    logger.debug("Catalog API: get credentials");
+    LOGGER.debug("Catalog API: get credentials");
     final CredentialsDTO credentials = new CredentialsDTO();
     credentials.addAllApplications(applicationService.findAll());
     credentials.addAllProviders(providerService.findAll());
-    logger.debug("Catalog API: found {} credentials", credentials.getCredentials().size());
+    LOGGER.debug("Catalog API: found {} credentials", credentials.getCredentials().size());
     return credentials;
   }
 
   @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.POST)
   @ResponseBody
   public CatalogResponseMessage registerSensors(@RequestBody final CatalogInputMessage message, @PathVariable final String providerId) {
-    logger.debug("Catalog API: register sensors");
+    LOGGER.debug("Catalog API: register sensors");
     try {
       final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId);
 
@@ -130,17 +137,17 @@ public class ApiController {
 
       if (validationResults.hasErrors()) {
         final String errorMessage = "Bad request data. Sensors have not been inserted. Please review the following errors";
-        logger.debug("Catalog API: sensors have not been inserted. Found {} errors after validate data. {}", validationResults.getErrorsCount(),
+        LOGGER.debug("Catalog API: sensors have not been inserted. Found {} errors after validate data. {}", validationResults.getErrorsCount(),
             validationResults.toString());
         return new CatalogResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, validationResults.getErrors());
       } else {
         componentService.insertAll(components);
         sensorService.insertAll(sensors);
-        logger.debug("Catalog API: inserted {} components and {} sensors", components.size(), sensors.size());
+        LOGGER.debug("Catalog API: inserted {} components and {} sensors", components.size(), sensors.size());
       }
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error inserting data into database.", internalErrorCode, ex);
+      LOGGER.error("{} - Error inserting data into database.", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
@@ -151,7 +158,7 @@ public class ApiController {
   @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.PUT)
   @ResponseBody
   public CatalogResponseMessage updateComponentOrSensors(@RequestBody final CatalogInputMessage message, @PathVariable final String providerId) {
-    logger.debug("Catalog API: update sensors or components");
+    LOGGER.debug("Catalog API: update sensors or components");
     try {
       final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId, true);
       // 1. Build the list of components or sensors to update
@@ -165,18 +172,18 @@ public class ApiController {
       // do the update
       if (validationResults.hasErrors()) {
         final String errorMessage = "Bad request data. Resources have not been updated. Please review the following errors";
-        logger.debug("Catalog API: resources have not been updated. Found {} errors after validate data. {}", validationResults.getErrorsCount(),
+        LOGGER.debug("Catalog API: resources have not been updated. Found {} errors after validate data. {}", validationResults.getErrorsCount(),
             validationResults.toString());
         return new CatalogResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, validationResults.getErrors());
       } else {
         componentService.updateAll(components);
         sensorService.updateAll(sensors);
-        logger.debug("Catalog API: updated {} components and {} sensors", components.size(), sensors.size());
+        LOGGER.debug("Catalog API: updated {} components and {} sensors", components.size(), sensors.size());
       }
 
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error updating data into database. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error updating data into database. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
@@ -187,7 +194,7 @@ public class ApiController {
   @ResponseBody
   public CatalogResponseMessage getAuthorizedProviders(@PathVariable final String entityId,
       @RequestParam(required = false) final Map<String, String> parameters) {
-    logger.debug("Catalog API: getting authorized sensors and providers for entity {} ", entityId);
+    LOGGER.debug("Catalog API: getting authorized sensors and providers for entity {} ", entityId);
     final List<AuthorizedProvider> authorizedProviders = new ArrayList<AuthorizedProvider>();
     try {
       final List<Permission> permissions = permissionService.getActivePermissions(entityId);
@@ -202,12 +209,12 @@ public class ApiController {
       }
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error searching authorized providers. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error searching authorized providers. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
 
-    logger.debug("Catalog API: found {}  authorized providers ", authorizedProviders.size());
+    LOGGER.debug("Catalog API: found {}  authorized providers ", authorizedProviders.size());
     return new CatalogResponseMessage(authorizedProviders);
   }
 
@@ -215,21 +222,21 @@ public class ApiController {
   @ResponseBody
   public CatalogResponseMessage deleteProviderChilds(@RequestBody(required = false) final CatalogDeleteInputMessage message,
       @PathVariable final String providerId) {
-    logger.debug("Catalog API: deleting {} resources ", providerId);
+    LOGGER.debug("Catalog API: deleting {} resources ", providerId);
     try {
       if (message == null || (SentiloUtils.arrayIsEmpty(message.getSensorsIds()) && SentiloUtils.arrayIsEmpty(message.getComponentsIds()))) {
         providerService.deleteChilds(new Provider(providerId));
-        logger.debug("Catalog API: deleted all resources");
+        LOGGER.debug("Catalog API: deleted all resources");
       } else if (!SentiloUtils.arrayIsEmpty(message.getSensorsIds())) {
         sensorService.deleteSensors(message.getSensorsIds());
-        logger.debug("Catalog API: deleted {} sensors", message.getSensorsIds().length);
+        LOGGER.debug("Catalog API: deleted {} sensors", message.getSensorsIds().length);
       } else if (!SentiloUtils.arrayIsEmpty(message.getComponentsIds())) {
         componentService.deleteComponents(message.getComponentsIds());
-        logger.debug("Catalog API: deleted {} components", message.getComponentsIds().length);
+        LOGGER.debug("Catalog API: deleted {} components", message.getComponentsIds().length);
       }
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error deleting childs from provider {} . ", internalErrorCode, providerId, ex);
+      LOGGER.error("{} - Error deleting childs from provider {} . ", internalErrorCode, providerId, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
     }
@@ -240,28 +247,22 @@ public class ApiController {
   @RequestMapping(value = "/location", method = RequestMethod.PUT)
   @ResponseBody
   public CatalogResponseMessage updateMobileComponentsLocation(@RequestBody final CatalogInputMessage message) {
-    logger.debug("Catalog API: updating mobile component locations");
+    LOGGER.debug("Catalog API: updating mobile component locations");
 
     // message contains a list with N CatalogSensorElement instances. This list is ordered by
-    // timestamp, and not contains duplicate objects.
+    // timestamp.
 
     try {
       final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService);
       final List<Component> components = ApiConverter.buildMobileComponentsFromSensorLocationElements(context);
-      logger.debug("Catalog API: build {} components that need update its locations ", components.size());
+
+      LOGGER.debug("Catalog API: build {} components that need update its locations ", components.size());
       componentService.updateAll(components);
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
-      logger.error("{} - Error updating location for sensors. ", internalErrorCode, ex);
+      LOGGER.error("{} - Error updating location for sensors. ", internalErrorCode, ex);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       return new CatalogResponseMessage(errorMessage);
-
-      // TODO Mikel: Pensar en retornar un mensaje que permita recuperarse del error o reintentar la
-      // llamada desde el lado servidor.
-      // Esta API sólo es invocada por el servidor PubSub, por lo que la respuesta no debe ser tan
-      // amigable y si contener
-      // la información necesaria para recuperarse del problema (por ejemplo, retornar ids de
-      // recursos problematicos, ... )
     }
 
     return new CatalogResponseMessage();

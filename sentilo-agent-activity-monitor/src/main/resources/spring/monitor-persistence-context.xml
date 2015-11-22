@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+
+	<!-- Default bean name is 'mongo' -->
+	<mongo:mongo host="${catalog.mongodb.host}" port="${catalog.mongodb.port}" />
+
+	<!-- Default bean name is 'mongoDbFactory' -->
+	<mongo:db-factory dbname="${catalog.mongodb.database}" mongo-ref="mongo" username="${catalog.mongodb.user}"
+		password="${catalog.mongodb.password}" />
+
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate" c:mongoDbFactory-ref="mongoDbFactory" />
+
+	<bean class="org.springframework.data.mongodb.core.MongoExceptionTranslator" />
+
+</beans>

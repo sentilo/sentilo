@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.test.dao;
 
@@ -48,7 +55,7 @@ public class JedisSequenceUtilsTest {
 
   final String providerId = "provider1";
   final String sensorId = "sensor1";
-  final String alarmId = "alarm1";
+  final String alertId = "alert1";
 
   @Mock
   private JedisTemplate<String, String> jedisTemplate;
@@ -119,30 +126,30 @@ public class JedisSequenceUtilsTest {
 
   @Test
   public void getAid() {
-    when(jedisTemplate.get("alarm:" + alarmId + ":aid")).thenReturn("1");
+    when(jedisTemplate.get("alert:" + alertId + ":aid")).thenReturn("1");
 
-    jedisSequenceUtils.getAid(alarmId);
-    jedisSequenceUtils.getAid(alarmId);
+    jedisSequenceUtils.getAid(alertId);
+    jedisSequenceUtils.getAid(alertId);
 
-    verify(jedisTemplate, times(1)).get("alarm:" + alarmId + ":aid");
+    verify(jedisTemplate, times(1)).get("alert:" + alertId + ":aid");
   }
 
   @Test
   public void setAid() {
-    jedisSequenceUtils.setAid(alarmId);
-    jedisSequenceUtils.setAid(alarmId);
+    jedisSequenceUtils.setAid(alertId);
+    jedisSequenceUtils.setAid(alertId);
 
     verify(jedisTemplate, times(1)).getKeyNextValue(AID_KEY);
   }
 
   @Test
   public void removeAid() {
-    jedisSequenceUtils.setAid(alarmId);
-    jedisSequenceUtils.getAid(alarmId);
-    jedisSequenceUtils.removeAid(alarmId);
-    jedisSequenceUtils.getAid(alarmId);
+    jedisSequenceUtils.setAid(alertId);
+    jedisSequenceUtils.getAid(alertId);
+    jedisSequenceUtils.removeAid(alertId);
+    jedisSequenceUtils.getAid(alertId);
 
-    verify(jedisTemplate, times(1)).get("alarm:" + alarmId + ":aid");
+    verify(jedisTemplate, times(1)).get("alert:" + alertId + ":aid");
   }
 
   @Test

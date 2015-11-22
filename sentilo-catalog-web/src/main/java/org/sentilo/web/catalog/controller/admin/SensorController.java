@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
@@ -39,6 +46,7 @@ import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.domain.Sensor.DataType;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.dto.ObservationDTO;
 import org.sentilo.web.catalog.dto.OptionDTO;
@@ -67,6 +75,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/sensor")
@@ -107,7 +116,7 @@ public class SensorController extends CrudController<Sensor> {
   public List<Sensor> search(final HttpServletRequest request, @RequestParam(required = true) final String search,
       @RequestParam(required = true) final String providerId, @RequestParam(required = false) final String componentId, final Model model) {
     // This method is called in the alert maintenance to select the sensor of the alert.
-    final SearchFilter filter = getSearchFilterBuilder().buildSearchFilter(request, null, search);
+    final SearchFilter filter = getSearchFilterBuilder().buildSearchFilter(request, null, search, userDetailsService);
     filter.addAndParam("providerId", providerId);
     if (StringUtils.hasText(componentId)) {
       filter.addAndParam("componentId", componentId);
@@ -140,7 +149,14 @@ public class SensorController extends CrudController<Sensor> {
   public List<Observation> getLastObservations(@PathVariable final String sensorId) {
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
     final List<Observation> observations = sensorService.getLastObservations(sensor);
-    Collections.reverse(observations);
+
+    // If sensor data is not TEXT type, reverse order collection to display data from left to right
+    // in the graphic (most recent right).
+    // Elsewhere, data will be read from up to bottom (most recent up)
+    if (!DataType.TEXT.equals(sensor.getDataType())) {
+      Collections.reverse(observations);
+    }
+
     return observations;
   }
 
@@ -164,11 +180,11 @@ public class SensorController extends CrudController<Sensor> {
 
   @RequestMapping(value = "/changeAccessType", method = RequestMethod.POST)
   public String changeAccessType(@RequestParam final String newAccessType, @RequestParam final String[] selectedIds,
-      final HttpServletRequest request, final Model model) {
+      final HttpServletRequest request, final RedirectAttributes redirectAttributes, final Model model) {
     final boolean isPublicAccess = (StringUtils.hasText(newAccessType) && "public".equals(newAccessType) ? true : false);
     sensorService.changeAccessType(selectedIds, isPublicAccess);
     ModelUtils.addConfirmationMessageTo(model, "accessType.changed");
-    return getNameOfViewToReturn(LIST_ACTION);
+    return redirectToList(model, request, redirectAttributes);
   }
 
   @Override
@@ -205,8 +221,16 @@ public class SensorController extends CrudController<Sensor> {
     return Constants.MODEL_SENSOR;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
+   * HttpServletRequest, org.springframework.ui.Model)
+   */
   @Override
   protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
+    super.doBeforeNewResource(request, model);
+
     if (CollectionUtils.isEmpty(addProviderListTo(model))) {
       ModelUtils.addErrorMessageTo(model, "error.no.providers");
     }
@@ -219,22 +243,46 @@ public class SensorController extends CrudController<Sensor> {
     addConnectivityTypesListTo(model);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
+   * org.springframework.ui.Model)
+   */
   @Override
-  protected void doBeforeEditResource(final Model model) {
+  protected void doBeforeEditResource(final String id, final Model model) {
+    super.doBeforeEditResource(id, model);
+
     addProviderListTo(model);
     addComponentListTo(model);
     addEnergyTypesListTo(model);
     addConnectivityTypesListTo(model);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeViewResource(java.lang.String,
+   * org.springframework.ui.Model)
+   */
   @Override
-  protected void doBeforeViewResource(final String sensorId, final Model model) {
+  protected void doBeforeViewResource(final String id, final Model model) {
+    super.doBeforeViewResource(id, model);
+
     addProviderListTo(model);
     addComponentListTo(model);
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.SearchController#doBeforeSearchPage(javax.servlet.http.
+   * HttpServletRequest, org.sentilo.web.catalog.search.SearchFilter)
+   */
   @Override
   protected void doBeforeSearchPage(final HttpServletRequest request, final SearchFilter filter) {
+    super.doBeforeSearchPage(request, filter);
+
     // Filter the list of sensors per provider, if need be
     final String providerId = request.getParameter("providerId");
     if (StringUtils.hasText(providerId)) {
@@ -311,7 +359,7 @@ public class SensorController extends CrudController<Sensor> {
     try {
       label = messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     } catch (final NoSuchMessageException nme) {
-      logger.warn("Message key {} couldn't be resolved. Return default value {}", key, defaultValue);
+      LOGGER.warn("Message key {} couldn't be resolved. Return default value {}", key, defaultValue);
     }
 
     return label;

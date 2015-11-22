@@ -12,6 +12,7 @@
 <spring:url value="/static/css/font-awesome-ie7.min.css" var="awesomeFontIE7CSS" />
 <spring:url value="/static/css/jquery.pnotify.default.css" var="jqueryPinesNotifyCSS" />
 <spring:url value="/static/css/jquery.tagsinput.css" var="jqueryTagsInputCSS" />
+<spring:url value="/static/css/bootstrap-colorpicker.min.css" var="bootstrapColorPickerCSS" />
 
 <link href="${bootstrapCSS}" rel="stylesheet" media="all">
 <link href="${bootstrapResponsiveCSS}" rel="stylesheet" media="all">
@@ -23,6 +24,7 @@
 <link href="${catalogCSS}" rel="stylesheet" media="all">
 <link href="${jqueryPinesNotifyCSS}" rel="stylesheet" media="all">
 <link href="${jqueryTagsInputCSS}" rel="stylesheet" media="all">
+<link href="${bootstrapColorPickerCSS}" rel="stylesheet" media="all">
 
 <!--[if IE 7]>
 	<link rel="stylesheet" href="${awesomeFontIE7CSS}">

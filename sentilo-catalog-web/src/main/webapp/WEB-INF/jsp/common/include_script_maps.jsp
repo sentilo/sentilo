@@ -379,14 +379,18 @@
 			bodyContent += '</div>';
 			bodyContent += '<div style="clear: both;"></div>';
 			
-			var content = '<div class="infobox" id="infobox">';
+			var detailUrl = buildPublicComponentDetailUrl(poi);
+			
+			var content = '<a href="' + detailUrl + '">';
+			content += '<div class="infobox" id="infobox">';
 			content += '<div class="infobox-content" style="display:block">';
 			content += fillInfoWindowHeader(poi);
 			content += fillInfoWindowBody(poi, bodyContent, observationDiv, bodyStyle);
 			content += fillInfoWindowFooter(poi, data.lastUpdateTimeMessage, footerDiv);
-	    	content += '</div>';    	
-	    	content += '<div class="arrow"></div>';
-	    	content += '</div>';																		
+	    	content += '</div>';  	    		    	
+	    	content += '<div class="arrow"></div>';	    	
+	    	content += '</div>';			
+	    	content += '</a>';
 			
 			if(!infowindow){			
 		    	infowindow = new InfoBox(boxOptions);
@@ -412,21 +416,21 @@
     };
         
     
-    function fillInfoWindowHeader(poi){    	    	    	    
-    	var detailUrl = buildPublicComponentDetailUrl(poi);
-    	
+    function fillInfoWindowHeader(poi){    	    	    	    		    	
     	var provider = poi.componentId.split('.')[0];
     	var name = poi.componentId.split('.')[1];
     	var poiIcon = '${iconsPath}' + poi.iconName + '.png';
+    	var headerTypeStyle = (poi.type.length > 12 ? "min-width:250px":'');
+    	var poiTypeName = $("#componentDropdown").find("li#"+poi.type).find("a").text().trim();
     	
     	var content = '<div class="infobox-header">';
     	content += '<div class="infobox-header-icon"><img src="'+poiIcon+'"/></div>';
-    	content += '<div class="infobox-header-provider"><p>'+provider+'</p></div>';
-    	content += '<div class="infobox-header-type"><p>'+ poi.type  +'</p></div>';    	
-    	content += '<h3><a href="' + detailUrl + '">' + name +'</a></h3>';
+    	content += '<div class="infobox-header-name"><p>'+name+'</p></div>';
+    	content += '<div class="infobox-header-type" style="'+ headerTypeStyle+'"><p>'+ poiTypeName  +'</p></div>';    	
+    	content += '<h3>' + provider +'</h3>';
     	content += '</div>';
     	
-    	return content;    	
+    	return content;       	
     };
     
     function buildPublicComponentDetailUrl(poi){
@@ -804,10 +808,10 @@
 		};
 		
 		var polyOptions = {			
-		  strokeColor: "#FF0000",
+		  strokeColor: "#0000FF",
 	      strokeOpacity: 0.8,
 	      strokeWeight: 2,
-	      fillColor: "#FF0000",
+	      fillColor: "#0000FF",
 	      fillOpacity: 0.35			
 		};
 		

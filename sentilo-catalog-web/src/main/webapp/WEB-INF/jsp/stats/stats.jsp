@@ -9,8 +9,10 @@
 
 <script type="text/javascript">
 
-//Refresh every ten seconds
-var refreshIntervalMS = 1000 * 30;
+//Refresh stats every 30 seconds and activity every 5 minutes
+var refreshStatsMS = 1000 * 30;
+var refreshActivityMS = 1000 * 60 * 5;
+
 
 var datasets = [];
 
@@ -83,13 +85,7 @@ var initializeChart = function() {
          + val.label + '</label>');
     });
     choiceContainer.find("input").click(plotAccordingToChoices);
-
-        
-    //Esta ultima funcion es la que se encarga de dibujar el grafico
-    // Por lo tanto, la idea es:
-    // 1. Recuperar registros del servidor
-    // 2. Relennar datasets
-    // 3. Pintar
+            
     plotAccordingToChoices();
     $("#placeholder").UseTooltip();
 } 
@@ -155,20 +151,6 @@ function refreshActivityGraph(lastActivityLogs){
         xAxisLabels.push(timestamp);
     });   
     
-    /* datasets['data'].data.push(["1", 0]); 
-    datasets['data'].data.push(["2", 0]);
-    datasets['data'].data.push(["3", 0]);
-   
-    
-    datasets['orders'].data.push(["1", 0]);
-    datasets['orders'].data.push(["2", 0]); 
-    datasets['orders'].data.push(["3", 0]); 
-    
-    datasets['alarms'].data.push(["1", 0]);
-    datasets['alarms'].data.push(["2", 0]);
-    datasets['alarms'].data.push(["3", 0]); */ 
-    
-	
 	plotAccordingToChoices();
     $("#placeholder").UseTooltip();
 }
@@ -177,8 +159,8 @@ $(document).ready(function() {
 	initializeChart();
 	ajaxStats();
 	ajaxActivity();
-	setInterval(ajaxStats, refreshIntervalMS);
-	setInterval(ajaxActivity, refreshIntervalMS);	
+	setInterval(ajaxStats, refreshStatsMS);
+	setInterval(ajaxActivity, refreshActivityMS);	
 });
 </script>
 

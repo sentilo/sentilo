@@ -3,11 +3,15 @@
 
 //Insert applications
 print("Load applications");
-db.application.insert({ "_id" : "testApp", "_class" : "org.sentilo.web.catalog.domain.Application", "name" : "Demo de la plataforma", "token" : "646967a9f99ae76cfb836026d0015c4b80f8c0e1efbd3d261250156efd8fb96f", "description" : "App demo de la plataforma", "email" : "sentilo@sentilo.org", "createdAt" : ISODate("2013-02-22T10:20:19.963Z"), "authorizedProviders" : [ ] });
+db.application.insert({ "_id" : "testApp", "_class" : "org.sentilo.web.catalog.domain.Application", "name" : "testApp", "token" : "646967a9f99ae76cfb836026d0015c4b80f8c0e1efbd3d261250156efd8fb96f", "description" : "Platform test app", "email" : "sentilo@sentilo.org", "createdAt" : ISODate("2013-02-22T10:20:19.963Z"), "authorizedProviders" : [ ] });
 
 // Insert providers
 print("Load providers");
-db.provider.insert({ "_id" : "testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Provider", "name" : "testApp_provider", "token" : "563093ec5252147edc8860c2d667be5db0c010325b6953ed5b323724bcc00e05", "description" : "Desc de testApp_provider", "createdAt" : ISODate("2013-03-15T08:48:42.966Z"), "contact" : { "name" : "Sentilo", "email" : "sentilo@sentilo.org" }});
+db.provider.insert({ "_id" : "testApp_provider", "_class" : "org.sentilo.web.catalog.domain.Provider", "name" : "testApp_provider", "token" : "563093ec5252147edc8860c2d667be5db0c010325b6953ed5b323724bcc00e05", "description" : "Provider to do integration tests", "createdAt" : ISODate("2013-03-15T08:48:42.966Z"), "contact" : { "name" : "Sentilo", "email" : "sentilo@sentilo.org" }});
+
+// Insert alerts
+print("Load alerts");
+db.alert.insert({ "_id" : "testAlert", "_class" : "org.sentilo.web.catalog.domain.Alert", "name" : "testAlert", "description" : "Alert to do integration tests. Do not remove.", "createdAt" : ISODate("2015-05-18T10:49:23.438Z"), "type" : "EXTERNAL", "providerId" : "testApp_provider" })
 
 // Insert permissions
 print("Load permissions");

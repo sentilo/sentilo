@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
@@ -29,6 +36,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -103,30 +111,6 @@ public class ComponentTypesController extends CrudController<ComponentType> {
   }
 
   @Override
-  protected void doBeforeCreateResource(final ComponentType componentType, final Model model) {
-    // We save all id of type of components in lower case letter to do comparatives in a quickly way
-    // in the new component by API
-    componentType.setId(componentType.getId().toLowerCase());
-  }
-
-  @Override
-  protected void doBeforeDeleteResource(final String[] selectedIds, final HttpServletRequest request, final Model model) {
-    for (final String componentType : selectedIds) {
-      throwExceptionIfComponentsFoundWithType(componentType);
-    }
-  }
-
-  @Override
-  protected void doBeforeEditResource(final Model model) {
-    setIconsListToModel(model);
-  }
-
-  @Override
-  protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
-    setIconsListToModel(model);
-  }
-
-  @Override
   protected void doBeforeExcelBuilder(final Model model) {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
 
@@ -134,9 +118,66 @@ public class ComponentTypesController extends CrudController<ComponentType> {
     model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "componenttype");
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
+   * HttpServletRequest, org.springframework.ui.Model)
+   */
+  @Override
+  protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
+    super.doBeforeNewResource(request, model);
+
+    setIconsListToModel(model);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
+   * org.springframework.ui.Model)
+   */
+  @Override
+  protected void doBeforeEditResource(final String id, final Model model) {
+    super.doBeforeEditResource(id, model);
+
+    setIconsListToModel(model);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.controller.CrudController#doBeforeDeleteResources(java.util.Collection,
+   * javax.servlet.http.HttpServletRequest, org.springframework.ui.Model)
+   */
+  @Override
+  protected void doBeforeDeleteResources(final Collection<ComponentType> resources, final HttpServletRequest request, final Model model) {
+    super.doBeforeDeleteResources(resources, request, model);
+
+    for (final ComponentType componentType : resources) {
+      throwExceptionIfComponentsFoundWithType(componentType.getId());
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.catalog
+   * .domain.CatalogDocument, org.springframework.ui.Model)
+   */
+  @Override
+  protected void doBeforeCreateResource(final ComponentType componentType, final Model model) {
+    super.doBeforeCreateResource(componentType, model);
+
+    // Id is stored in lower case to do comparatives in a quickly way
+    componentType.setId(componentType.getId().toLowerCase());
+  }
+
   private void setIconsListToModel(final Model model) {
-    // To retrieve the icons list is mandatory that application is deployed as an exploded WAR in
-    // Tomcat
+    // To retrieve the icons list is mandatory that application will be deployed as an exploded WAR
+    // in Tomcat server
     String[] iconsNames = {};
     try {
       final String absoluteIconsPath = context.getRealPath("/static/img/icons/");
@@ -162,5 +203,4 @@ public class ComponentTypesController extends CrudController<ComponentType> {
       throw new BusinessValidationException("componenttype.error.cannot.delete", new Object[] {componentType});
     }
   }
-
 }

@@ -1,27 +1,34 @@
 /*
  * Sentilo
+ *  
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
+ * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- * Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * 
- * This program is licensed and may be used, modified and redistributed under the terms of the
- * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
- * as they are approved by the European Commission.
- * 
- * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
- * General Public License as published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied.
- * 
- * See the licenses for the specific language governing permissions, limitations and more details.
- * 
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
- * if not, you may find them at:
- * 
- * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
- * https://www.gnu.org/licenses/lgpl.txt
+ *   
+ * This program is licensed and may be used, modified and redistributed under the
+ * terms  of the European Public License (EUPL), either version 1.1 or (at your 
+ * option) any later version as soon as they are approved by the European 
+ * Commission.
+ *   
+ * Alternatively, you may redistribute and/or modify this program under the terms
+ * of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either  version 3 of the License, or (at your option) any later 
+ * version. 
+ *   
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. 
+ *   
+ * See the licenses for the specific language governing permissions, limitations 
+ * and more details.
+ *   
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
+ * with this program; if not, you may find them at: 
+ *   
+ *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
+ *   http://www.gnu.org/licenses/ 
+ *   and 
+ *   https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.common.rest.impl;
 
@@ -61,10 +68,10 @@ import org.springframework.util.StringUtils;
 
 public class RESTClientImpl implements RESTClient, InitializingBean {
 
-  private final Logger logger = LoggerFactory.getLogger(RESTClientImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RESTClientImpl.class);
 
-  private static final int DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = (60 * 1000);
-  private static final int DEFAULT_READ_TIMEOUT_MILLISECONDS = (60 * 1000);
+  private static final int DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 60 * 1000;
+  private static final int DEFAULT_READ_TIMEOUT_MILLISECONDS = 60 * 1000;
   private static final int DEFAULT_SUCCESS_HTTP_CODE = HttpStatus.SC_OK;
 
   private HttpClient httpClient;
@@ -104,11 +111,11 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   }
 
   public String post(final String path, final String body, final String identityToken) throws RESTClientException {
-    logger.debug("Send post message to host {} and path {}", host, path);
+    LOGGER.debug("Send post message to host {} and path {}", host, path);
     final String url = URIUtils.getURI(host, path);
     final HttpPost post = new HttpPost(url);
-    logger.debug("Token {}", identityToken);
-    logger.debug("Body {}", body);
+    LOGGER.debug("Token {}", identityToken);
+    LOGGER.debug("Body {}", body);
     return executeHttpCall(post, body, identityToken);
   }
 
@@ -135,8 +142,8 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
     // As a request DELETE cannot have body, we simulate the call to DELETE doing a PUT request with
     // the parameter method==delete
-    final String url = (StringUtils.hasText(body) ? URIUtils.getURI(host, path, RequestParameters.buildDelete()) : URIUtils.getURI(host, path));
-    final HttpRequestBase delete = (StringUtils.hasText(body) ? new HttpPut(url) : new HttpDelete(url));
+    final String url = StringUtils.hasText(body) ? URIUtils.getURI(host, path, RequestParameters.buildDelete()) : URIUtils.getURI(host, path);
+    final HttpRequestBase delete = StringUtils.hasText(body) ? new HttpPut(url) : new HttpDelete(url);
 
     return executeHttpCall(delete, body, identityToken);
   }
@@ -164,7 +171,6 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
     if (credentials != null && httpClient instanceof DefaultHttpClient) {
       ((DefaultHttpClient) httpClient).getCredentialsProvider().setCredentials(authScope, credentials);
-
     }
   }
 
@@ -175,6 +181,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   }
 
   private void validateResponse(final HttpResponse response) throws RESTClientException {
+    LOGGER.debug("Response code: {}", response.getStatusLine().getStatusCode());
     if (response.getStatusLine().getStatusCode() != successHttpCode) {
       final StatusLine line = response.getStatusLine();
       final StringBuilder sb = new StringBuilder();
@@ -197,7 +204,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private String executeHttpCall(final HttpRequestBase httpRequest, final String body, final String identityToken) throws RESTClientException {
     try {
-      logger.debug("Executing http call {} ", httpRequest.toString());
+      LOGGER.debug("Executing http call {} ", httpRequest.toString());
       if (StringUtils.hasText(body)) {
         ((HttpEntityEnclosingRequestBase) httpRequest).setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
       }
@@ -226,8 +233,8 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
     final String hmac = HMACBuilder.buildHeader(body, host, secretKey, currentDate);
     httpRequest.addHeader(SentiloConstants.HMAC_HEADER, hmac);
     httpRequest.addHeader(SentiloConstants.DATE_HEADER, currentDate);
-    logger.debug("Add header {} with value {}", SentiloConstants.HMAC_HEADER, hmac);
-    logger.debug("Add header {} with value {}", SentiloConstants.DATE_HEADER, currentDate);
+    LOGGER.debug("Add header {} with value {}", SentiloConstants.HMAC_HEADER, hmac);
+    LOGGER.debug("Add header {} with value {}", SentiloConstants.DATE_HEADER, currentDate);
   }
 
   /**

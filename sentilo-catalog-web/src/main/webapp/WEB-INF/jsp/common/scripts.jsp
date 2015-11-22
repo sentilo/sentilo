@@ -21,10 +21,14 @@ function deleteSelected(formName, deleteConfirmMessage) {
 	}
 };
 
-
 function changeAccessType(formName, confirmMessage, newType, changeAccessTypeUrl){		
 	var accessTypeHiddenField = '<input type="hidden" name="newAccessType" value="'+newType+'" />';
 	confirmFormSubmission(formName, confirmMessage, accessTypeHiddenField, changeAccessTypeUrl);
+}
+
+function changeMapVisibility(formName, confirmMessage, newMapVisibility, changeMapVisibilityUrl){		
+	var changeMapVisibilityHiddenField = '<input type="hidden" name="newMapVisibility" value="'+newMapVisibility+'" />';
+	confirmFormSubmission(formName, confirmMessage, changeMapVisibilityHiddenField, changeMapVisibilityUrl);
 }
 
 function unassignSelected(formName) {
@@ -116,6 +120,7 @@ function changeLocale(locale) {
 <spring:url value="/static/js/bootbox.min.js" var="bootboxJS" />
 <spring:url value="/static/js/jquery.pnotify.min.js" var="jqueryPinesNotifyJS" />
 <spring:url value="/static/js/jquery.tagsinput.js" var="jqueryTagsInputJS" />
+<spring:url value="/static/js/bootstrap-colorpicker.min.js" var="bootstrapColorPickerJS" />
 
 <script type="text/javascript" src="${jqueryJS}"></script>
 <script type="text/javascript" src="${bootstrapJS}"></script>
@@ -123,5 +128,6 @@ function changeLocale(locale) {
 <script type="text/javascript" src="${jqueryDataTablesJS}"></script>
 <script type="text/javascript" src="${jqueryPinesNotifyJS}"></script>
 <script type="text/javascript" src="${jqueryTagsInputJS}"></script>
+<script type="text/javascript" src="${bootstrapColorPickerJS}"></script>
 
 <%@include file="/WEB-INF/jsp/common/customScripts.jsp"%>

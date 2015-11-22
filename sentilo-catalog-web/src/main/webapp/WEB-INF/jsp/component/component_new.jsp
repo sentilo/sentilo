@@ -6,12 +6,14 @@
 	<spring:url value="/admin/component/${component.id}/edit" var="actionURL" />
 	<spring:message code="component.edit.title" var="pageTitle" />
 	<spring:url value="/admin/component/${component.id}/detail" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('EDIT', component)"/>
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/component/create" var="actionURL" />
 	<spring:message code="component.new.title" var="pageTitle" />
 	<spring:message code="select.empty" var="emptySelectMessage" />
 	<spring:url value="/admin/component/list?nameTableRecover=componentTable&fromBack=true" var="backURL" />
+	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('CREATE', 'org.sentilo.web.catalog.domain.Component')"/>
 </c:if>
 
 <c:set var="editMode" value="${mode == 'edit' }" />
@@ -33,6 +35,7 @@
 				</h1>
 
 				<form:form method="post" modelAttribute="component" action="${actionURL}" class="form-horizontal" autocomplete="off">
+					<input type="hidden" name="tenantId" id="tenantId" value="${tenantId}"  />
 					<fieldset>
 						<div class="tabbable">
 							<ul class="nav nav-tabs">
@@ -43,6 +46,7 @@
 							<c:if test="${editMode}">
 								<form:hidden path="id" />
 								<form:hidden path="createdAt" />
+								<form:hidden path="createdBy" />
 							</c:if>
 							<div class="tab-content">
 								<div class="tab-pane active" id="tab1">
@@ -131,9 +135,11 @@
 						<div class="control-group">
 							<div class="controls">
 								<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+								<c:if test="${showAdminControls}">
 								<a href="#" onclick="$('form#component').submit();" class="btn btn-success">
 									 <spring:message code="button.save" />
 								</a>
+								</c:if>
 							</div>
 						</div>
 					</fieldset>
