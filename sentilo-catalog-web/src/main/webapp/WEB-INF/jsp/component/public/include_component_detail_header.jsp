@@ -55,49 +55,16 @@ $(document).ready(function() {
 
 </script>
 
-<<<<<<< HEAD
-<div class="row-fluid">
-	<div class="span12">
-		<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
-		<br /> <br />
-		<div class="pull-right">			
-			<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> <spring:message code="component.map.component.details.hide" /></a>
-		</div>
-		<br />
-		<div class="">
-			<div class="pull-left type-icon">
-				<img src="${iconsPath}/${componentIcon}.png">
-			</div>
-			<h1 class="lead">
-				<div class="pull-left">
-					${component.providerId} <br />
-					${component.componentType} <br /> 
-					${component.name} <br />
-						 <small> <span id="componentAddress"></span>
-					<div class="pull-right">
-						<c:if test="${not empty component.tagsAsList}">
-							<i class="icon-tags"></i>
-						</c:if>
-						<c:forEach items="${component.tagsAsList}" var="tag">
-							<span class="badge">${tag}</span>
-						</c:forEach>
-					</div> </small>
-			</div>
-			</h1>
-		</div>
-=======
-
 <%@include file="/WEB-INF/jsp/common/messages.jsp"%>
 
 <c:if test="${btnclose ne 'off'}">	
 	<div class="pull-right">			
-		<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> Close</a>
+		<a href="javascript: returnToComponentMap();" class="btn btn-danger"><i	class="icon-remove icon-white"></i> <spring:message code="component.map.component.details.hide" /></a>
 	</div>	
 </c:if>		
 <div class="">
 	<div class="pull-left type-icon">
 		<img src="${iconsPath}/${componentIcon}.png">
->>>>>>> upstream/master
 	</div>
 	<h1 class="lead">
 		<div class="pull-left">

@@ -40,6 +40,7 @@ printf "\nRandomizing Test App Token, using $TestAppToken"
 sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/scripts/mongodb/init_test_data.js"
 sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/sentilo-platform-client-java/src/test/resources/properties/test-platform-client-config.properties"
 sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/sentilo-platform/sentilo-platform-server/src/test/java/org/sentilo/platform/server/test/auth/AuthenticationServiceImplTest.java"
+sed -i "s/$OLDTestAppToken/$TestAppToken/g" "$DIR/sentilo-platform/sentilo-platform-common/src/test/java/org/sentilo/platform/common/test/security/EntityCredentialsRepositoryImplTest.java"
 
 printf "\nRandomizing Test App Provider Token, using $TestAppProviderToken"
 sed -i "s/$OLDTestAppProviderToken/$TestAppProviderToken/g" "$DIR/scripts/mongodb/init_test_data.js"
