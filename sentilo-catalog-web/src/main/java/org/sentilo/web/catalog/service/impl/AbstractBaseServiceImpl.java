@@ -96,24 +96,23 @@ public abstract class AbstractBaseServiceImpl {
     // Además, en función del tipo de valor (colección o simple) la comparativa del valor siempre
     // será o bien mediante "es exactamente este valor", es decir, se debe comportar como un EQUALS,
     // o bien mediante "está dentro del conjunto {...}".
+    // andParams admite valores NULL
     final Set<String> andParamsKeys = andParams.keySet();
     final Criteria[] aCriteria = new Criteria[andParamsKeys.size()];
     int i = 0;
     for (final String param : andParamsKeys) {
-      if (andParams.get(param).getClass().isArray()) {
-        aCriteria[i] = Criteria.where(param).in(Arrays.asList((Object[]) andParams.get(param)));
-      } else if (Collection.class.isAssignableFrom(andParams.get(param).getClass())) {
-        aCriteria[i] = Criteria.where(param).in(andParams.get(param));
+      if (isCollectionValue(andParams.get(param))) {
+        aCriteria[i] = Criteria.where(param).in(getCollectionValue(andParams.get(param)));
       } else {
         aCriteria[i] = Criteria.where(param).is(andParams.get(param));
       }
+
       i++;
     }
 
     return aCriteria;
   }
 
-  @SuppressWarnings("unchecked")
   protected Criteria[] buildOrParamsCriteria(final Map<String, Object> orParams) {
     // params contiene la lista de filtros a aplicar en modo disjuncion, es decir, con el operador
     // OR
@@ -123,10 +122,8 @@ public abstract class AbstractBaseServiceImpl {
     final Criteria[] aCriteria = new Criteria[paramsKeys.size()];
     int i = 0;
     for (final String param : paramsKeys) {
-      if (orParams.get(param).getClass().isArray()) {
-        aCriteria[i] = Criteria.where(param).in(Arrays.asList((Object[]) orParams.get(param)));
-      } else if (Collection.class.isAssignableFrom(orParams.get(param).getClass())) {
-        aCriteria[i] = Criteria.where(param).in((Collection<Object>) orParams.get(param));
+      if (isCollectionValue(orParams.get(param))) {
+        aCriteria[i] = Criteria.where(param).in(getCollectionValue(orParams.get(param)));
       } else if (!(orParams.get(param) instanceof String)) {
         aCriteria[i] = Criteria.where(param).is(orParams.get(param));
       } else {
@@ -155,4 +152,24 @@ public abstract class AbstractBaseServiceImpl {
       return false;
     }
   }
+
+  /**
+   * Determines if <code>value</code> represents a collection value, either an array or a colelction
+   * class
+   * 
+   * @param value
+   * @return
+   */
+  private boolean isCollectionValue(Object value) {
+    return value != null && (value.getClass().isArray() || Collection.class.isAssignableFrom(value.getClass()));
+  }
+
+  private Collection<?> getCollectionValue(Object value) {
+    if (value.getClass().isArray()) {
+      return Arrays.asList((Object[]) value);
+    } else {
+      return (Collection<?>) value;
+    }
+  }
+
 }

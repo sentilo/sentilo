@@ -55,7 +55,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 @Service
 public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> implements ActivityService {
@@ -111,7 +110,7 @@ public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> i
   private Activity getPreviousActivity(final PlatformActivity platformActivity) {
     final Pageable pageable = new PageRequest(0, 1, Direction.DESC, "timestamp");
     final SearchFilter filter = new SearchFilter(pageable);
-    if (StringUtils.hasText(platformActivity.getTenant())) {
+    if (TenantContextHolder.isEnabled()) {
       filter.addAndParam("tenant", platformActivity.getTenant());
     }
 
@@ -123,7 +122,7 @@ public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> i
   private SearchFilter buildFilter() {
     final Pageable pageable = new PageRequest(0, 20, Direction.DESC, "timestamp");
     final SearchFilter filter = new SearchFilter(pageable);
-    if (TenantContextHolder.hasContext()) {
+    if (TenantContextHolder.isEnabled()) {
       filter.addAndParam("tenant", TenantUtils.getCurrentTenant());
     }
 
