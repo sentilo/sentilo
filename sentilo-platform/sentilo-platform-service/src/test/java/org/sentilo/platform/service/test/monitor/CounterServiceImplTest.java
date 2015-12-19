@@ -92,11 +92,13 @@ public class CounterServiceImplTest {
 
     service.save(context);
 
-    verify(redisTemplate, times(4)).opsForHash();
+    verify(redisTemplate, times(6)).opsForHash();
     verify(hOperations).increment("counters:master", "data_get", 10);
-    verify(hOperations).increment("counters:master", "requests", 10);
+    verify(hOperations).increment("counters:master", "requests", 1);
+    verify(hOperations).increment("counters:master", "requests_get", 1);
     verify(hOperations).increment("counters:entity:mockentity", "data_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 10);
+    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
+    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
 
     verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
     verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
@@ -113,11 +115,13 @@ public class CounterServiceImplTest {
 
     service.save(context);
 
-    verify(redisTemplate, times(4)).opsForHash();
+    verify(redisTemplate, times(6)).opsForHash();
     verify(hOperations).increment("counters:master", "order_get", 10);
-    verify(hOperations).increment("counters:master", "requests", 10);
+    verify(hOperations).increment("counters:master", "requests", 1);
+    verify(hOperations).increment("counters:master", "requests_get", 1);
     verify(hOperations).increment("counters:entity:mockentity", "order_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 10);
+    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
+    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
 
     verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
     verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
@@ -134,11 +138,13 @@ public class CounterServiceImplTest {
 
     service.save(context);
 
-    verify(redisTemplate, times(4)).opsForHash();
+    verify(redisTemplate, times(6)).opsForHash();
     verify(hOperations).increment("counters:master", "alarm_get", 10);
-    verify(hOperations).increment("counters:master", "requests", 10);
+    verify(hOperations).increment("counters:master", "requests", 1);
+    verify(hOperations).increment("counters:master", "requests_get", 1);
     verify(hOperations).increment("counters:entity:mockentity", "alarm_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 10);
+    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
+    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
 
     verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
     verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
@@ -175,13 +181,16 @@ public class CounterServiceImplTest {
 
     service.save(context);
 
-    verify(redisTemplate, times(6)).opsForHash();
+    verify(redisTemplate, times(9)).opsForHash();
     verify(hOperations).increment("counters:master", "data_get", 10);
-    verify(hOperations).increment("counters:master", "requests", 10);
+    verify(hOperations).increment("counters:master", "requests", 1);
+    verify(hOperations).increment("counters:master", "requests_get", 1);
     verify(hOperations).increment("counters:entity:mockentity", "data_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 10);
+    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
+    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
     verify(hOperations).increment("counters:tenant:mocktenant", "data_get", 10);
-    verify(hOperations).increment("counters:tenant:mocktenant", "requests", 10);
+    verify(hOperations).increment("counters:tenant:mocktenant", "requests", 1);
+    verify(hOperations).increment("counters:tenant:mocktenant", "requests_get", 1);
 
     verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
 

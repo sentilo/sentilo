@@ -1,4 +1,6 @@
 -- LUA script to initialize metrics keys from current event counters
+-- request counter has an approximate initial value because it is impossible to know how many requests 
+-- has  be done from the beginning.
 
 local maxAvg = redis.call('GET', 'stats:avg:max');
 local totalOrders = redis.call('GET', 'global:soid');

@@ -129,7 +129,9 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
   }
 
   protected void incrementRequestsCount(final CounterContext context, final String hashKey) {
-    incrementCounter(hashKey, MonitorConstants.TOTAL_REQUESTS_FIELD, context.getTotal());
+    String hashFieldKey = buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, context.getRequestType().name().toLowerCase());
+    incrementCounter(hashKey, hashFieldKey, 1);
+    incrementCounter(hashKey, MonitorConstants.TOTAL_REQUESTS_FIELD, 1);
   }
 
   protected void incrementCounter(final String hashKey, final String hashField, final int total) {
@@ -167,7 +169,11 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
     final String sRequestType = requestType.name().toLowerCase();
     final String sEventType = eventType.name().toLowerCase();
 
-    return sEventType + "_" + sRequestType;
+    return buildHashField(sEventType, sRequestType);
+  }
+
+  private String buildHashField(final String prefix, final String sRequestType) {
+    return prefix + "_" + sRequestType;
   }
 
 }

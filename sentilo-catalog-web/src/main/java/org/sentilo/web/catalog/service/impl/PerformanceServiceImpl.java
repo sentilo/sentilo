@@ -37,7 +37,6 @@ import java.util.Collection;
 
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.common.domain.PlatformPerformance;
-import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.Activity;
 import org.sentilo.web.catalog.domain.Performance;
 import org.sentilo.web.catalog.repository.PerformanceRepository;
@@ -77,9 +76,7 @@ public class PerformanceServiceImpl extends AbstractBaseCrudServiceImpl<Performa
   public Performance getCurrentPerformance() {
     final Pageable pageable = new PageRequest(0, 1, Direction.DESC, "timestamp");
     final SearchFilter filter = new SearchFilter(pageable);
-    if (TenantContextHolder.hasContext()) {
-      filter.addAndParam("tenant", TenantUtils.getCurrentTenant());
-    }
+    filter.addAndParam("tenant", TenantUtils.getCurrentTenant());
 
     final SearchFilterResult<Performance> result = search(filter);
 
