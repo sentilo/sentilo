@@ -6,6 +6,8 @@
 <spring:message code="select.one" var="selectOneErrorMessage" />
 <spring:message code="ok" var="okButtonLabel" />
 
+<spring:url value="/" var="homeURL" />
+
 <script type="text/javascript">
 function openDetail(url) {
 	window.location.href = url;
@@ -98,6 +100,16 @@ function formatTimestamp(timestamp) {
 
 function isValidDecimalNumber(number) {
 	 return (/^([0-9])*[.]?[0-9]*$/.test(number));
+}
+
+function changeLocale(locale) {
+        $.ajax({
+                'type' : 'GET',
+                'url' : '${homeURL}?locale=' + locale,
+                'async' : false,
+                'cache' : false        
+        });
+        window.location.reload(true);
 }
 
 </script>

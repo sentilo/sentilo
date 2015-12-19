@@ -7,7 +7,7 @@
 		<div class="accordion-heading">
 
 			<div class="accordion-toggle in">
-				<i class="icon-signal "></i> <span class="divider-vertical"></span>Activity
+				<i class="icon-signal "></i> <span class="divider-vertical"></span><spring:message code="component.activity" />
 				<div class="pull-right">
 					<ul class="nav nav-pills">
 						<li class="dropdown active"><a href="#activity" class="dropdown-toggle" data-toggle="dropdown"><spring:message
