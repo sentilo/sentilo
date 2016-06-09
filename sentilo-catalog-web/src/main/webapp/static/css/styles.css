@@ -824,3 +824,9 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 		max-width: 548px;
 	}
 }
+
+/********** GoogleMaps styles ****************/
+.gm-style .gm-style-mtc label {
+        display: inline;
+        font-size: 11px;
+}
