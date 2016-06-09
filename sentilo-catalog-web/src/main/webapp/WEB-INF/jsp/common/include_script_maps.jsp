@@ -158,7 +158,7 @@
 	    $('#map_controls').css({
 	    	position:'absolute',
 	    	top: map_pos.top + 10,
-	    	left: map_pos.left + 50
+	    	left: map_pos.left + 10
 	    });
 	};
 	
@@ -912,6 +912,10 @@
 					zoom : zoomLevel,
 					mapTypeId : google.maps.MapTypeId.STREET,
 					mapTypeControl : true,
+					mapTypeControlOptions : {
+                                                style : google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                                                position: google.maps.ControlPosition.TOP_RIGHT
+                                        },
 					navigationControl : false,
 					panControl : false,
 					scrollwheel : true,
