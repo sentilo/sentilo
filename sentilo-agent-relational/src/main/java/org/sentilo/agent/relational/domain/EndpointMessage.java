@@ -46,11 +46,11 @@ public class EndpointMessage {
   private String topic;
   private final EventMessage event;
 
-  public EndpointMessage(final EventMessage eventMessage, final String topic) {
+  public EndpointMessage(final EventMessage eventMessage) {
     super();
     timestamp = eventMessage.getTimestamp();
     message = eventMessage.getMessage();
-    this.topic = topic;
+    topic = eventMessage.getTopic();
     event = eventMessage;
   }
 
@@ -80,11 +80,12 @@ public class EndpointMessage {
 
   /**
    * Retorna l'observació continguda en el missatge rebut
-   * 
+   *
    * @return l'observació
    */
   public Observation getObservation() {
     final Observation obs = new Observation();
+    obs.setSourceEvent(event);
 
     // El topic siempre tiene el formato /data/provider/sensor
     final String[] ids = topic.split(Constants.TOPIC_TOKEN);
@@ -96,7 +97,9 @@ public class EndpointMessage {
 
     obs.setValue(message);
     obs.setTimestamp(timestamp);
-    obs.setTime(event.getTime());
+    obs.setEventTimestamp(event.getTime());
+    obs.setPublishedAt(event.getPublishedAt());
+    obs.setPublisher(event.getPublisher());
 
     if (StringUtils.hasText(event.getLocation())) {
       obs.setLocation(event.getLocation());
@@ -107,26 +110,32 @@ public class EndpointMessage {
 
   /**
    * Retorna l'alarma continguda en el missatge rebut
-   * 
+   *
    * @return l'alarma
    */
   public Alarm getAlarm() {
     final Alarm alarm = new Alarm();
+    alarm.setSourceEvent(event);
+
     final String[] ids = topic.split(Constants.TOPIC_TOKEN);
     alarm.setAlarm(ids[2]);
     alarm.setMessage(message);
     alarm.setTimestamp(timestamp);
-    alarm.setTime(event.getTime());
+    alarm.setEventTimestamp(event.getTime());
+    alarm.setPublishedAt(event.getPublishedAt());
+    alarm.setPublisher(event.getPublisher());
     return alarm;
   }
 
   /**
    * Retorna l'ordre continguda en el missatge rebut
-   * 
+   *
    * @return l'ordre
    */
   public Order getOrder() {
     final Order order = new Order();
+    order.setSourceEvent(event);
+
     final String[] ids = topic.split(Constants.TOPIC_TOKEN);
     order.setProvider(ids[2]);
     if (ids.length == 4) {
@@ -135,7 +144,9 @@ public class EndpointMessage {
 
     order.setMessage(message);
     order.setTimestamp(timestamp);
-    order.setTime(event.getTime());
+    order.setEventTimestamp(event.getTime());
+    order.setPublishedAt(event.getPublishedAt());
+    order.setPublisher(event.getPublisher());
     return order;
   }
 

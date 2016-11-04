@@ -55,6 +55,7 @@ public abstract class Constants {
   public static final String MODEL_COMPONENT_SENSORS = "componentSensors";
   public static final String MODEL_MESSAGE_KEY = "message";
   public static final String MODEL_CONFIRMATION_MESSAGE_KEY = "confirmationMessage";
+  public static final String MODEL_CONFIRMATION_MESSAGE_ARGS_KEY = "confirmationMessageArgs";
   public static final String MODEL_ERROR_MESSAGE = "errorMessage";
   public static final String MODEL_OPENED_TAB = "openedTab";
   public static final String MODEL_PERMISSIONS = "permissions";
@@ -69,6 +70,8 @@ public abstract class Constants {
   public static final String MODEL_SENSOR_LAST_OBSERVATION = "sensorLastObservation";
   public static final String MODEL_SENSOR_TYPES = "sensorTypes";
   public static final String MODEL_SENSOR_TYPE = "sensorType";
+  public static final String MODEL_SENSOR_STATES = "sensorStates";
+  public static final String MODEL_SENSOR_SUBSTATES = "sensorSubstates";
   public static final String MODEL_COMPONENT_TYPE = "componentType";
   public static final String MODEL_MODE = "mode";
   public static final String MODEL_USERS = "users";
@@ -76,12 +79,18 @@ public abstract class Constants {
   public static final String MODEL_ENERGY_TYPES = "energyTypes";
   public static final String MODEL_CONNECTIVITY_TYPES = "connectivityTypes";
   public static final String MODEL_MAP_TYPE = "mapType";
+  public static final String MODEL_ALERT_RULE = "alertRule";
+  public static final String MODEL_ALERT_RULE_TRIGGERS = "alertRuleTriggers";
+  public static final String MODEL_ALERT_RULE_CONFIRMED_SENSORS = "alertRuleConfirmedSensors";
   public static final String MODEL_TENANT = "tenant";
   public static final String MODEL_TENANTS = "tenants";
   public static final String MODEL_TENANT_ID = "tenantId";
   public static final String MODEL_TENANT_PERMISSION = "tenantPermission";
   public static final String MODEL_TENANT_PERMISSIONS = "permissions";
   public static final String MODEL_TENANT_CUSTOM_PARAMS = "tenantCustomParams";
+  public static final String MODEL_DOCUMENT_FILE = "documentFile";
+  public static final String MODEL_ENTITY_ID = "entityId";
+  public static final String MODEL_ENTITY = "entity";
 
   public static final String MODEL_DATE_UPDATED = "dateUpdated";
 
@@ -91,7 +100,6 @@ public abstract class Constants {
   public static final String VIEW_COMPONENT_DETAIL = "component/component_detail";
   public static final String VIEW_COMPONENT_LIST = "component/component_list";
   public static final String VIEW_ADD_COMPONENTS_TO_COMPONENT = "component/component_add_components";
-  public static final String VIEW_ADD_SENSORS_TO_COMPONENT = "component/component_add_sensors";
 
   public static final String VIEW_PUBLIC_ROUTE_MAP = "component/public/route_map";
   public static final String VIEW_PUBLIC_TRAFFIC_MAP = "component/public/traffic_map";
@@ -135,7 +143,14 @@ public abstract class Constants {
   public static final String VIEW_NEW_COMPONENT_TYPE = "componentType/component_type_new";
   public static final String VIEW_COMPONENT_TYPE_DETAIL = "componentType/component_type_detail";
 
+  public static final String VIEW_ALERT_RULE_LIST = "alertRule/alertRule_list";
+  public static final String VIEW_ALERT_RULE_DETAIL = "alertRule/alertRule_detail";
+  public static final String VIEW_NEW_ALERT_RULE = "alertRule/alertRule_new";
+
   public static final String VIEW_STATS = "stats/stats";
+
+  public static final String VIEW_PROVIDER_DOCUMENT_FILES_LIST = "provider/provider_documents_list";
+  public static final String VIEW_PROVIDER_ADD_DOCUMENT_FILE = "provider/provider_documents_add";
 
   public static final String MODE_EDIT = "edit";
   public static final String MODE_CREATE = "create";
@@ -145,6 +160,10 @@ public abstract class Constants {
   public static final String MODEL_ACTIVE_MENU = "activeMenu";
 
   public static final String VALIDATION_ENTITY_NAME_REGEXP = "[0-9a-zA-Z-_]+";
+  public static final String VALIDATION_FILENAME_REGEXP = "[0-9a-zA-Z-_.]+";
+
+  public static final String VALIDATION_SUCCESS = "SUCCESS";
+  public static final String VALIDATION_FAIL = "FAIL";
 
   public static final String DATE_FORMAT = "dd/MM/yyyy";
   public static final String DATETIME_FORMAT = "dd/MM/yyyy HH:mm";
@@ -156,6 +175,7 @@ public abstract class Constants {
   public static final int TAB_2 = 2;
   public static final int TAB_3 = 3;
   public static final int TAB_4 = 4;
+  public static final int TAB_5 = 5;
 
   public static final String ORIGIN_SENSOR = "sensor";
   public static final String ORIGIN_PROVIDER = "provider";
@@ -170,6 +190,7 @@ public abstract class Constants {
   public static final String MENU_COMPONENT = "/component";
   public static final String MENU_ALERT = "/alert";
   public static final String MENU_COMPONENT_MAP = "/componentMap";
+  public static final String MENU_ALERT_RULE = "/alertRule";
   public static final String MENU_TENANT = "/tenant";
 
   public static final Permission.Type CATALOG_PERMISSION_TYPE = Permission.Type.ADMIN;
@@ -201,16 +222,22 @@ public abstract class Constants {
   public static final String PUBLIC_ACCESS_PROP = "publicAccess";
   public static final String TYPE_PROP = "type";
   public static final String COMPONENT_TYPE_PROP = "componentType";
+  public static final String SENSOR_TYPE_PROP = "sensorType";
   public static final String USER_NAME_PROP = "userName";
   public static final String EMAIL_PROP = "email";
   public static final String LOCATION_PROP = "location";
   public static final String TARGET_PROP = "target";
+  public static final String EXPRESSION_PROP = "expression";
+  public static final String CONTENT_TYPE_PROP = "contentType";
+  public static final String CREATED_BY_PROP = "createdBy";
 
-  public static final String MESSAGE_KEYS_PREFFIX = "keysPreffix";
+  public static final String MESSAGE_KEYS_PREFIX = "keysPrefix";
   public static final String LIST_COLUMN_NAMES = "listColumnNames";
   public static final String RESULT_LIST = "resultList";
 
   public static final String AUDIT_LOGGER_NAME = "AUDIT";
+
+  public static final String SYNC_FIELD = "synchronized";
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

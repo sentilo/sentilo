@@ -34,6 +34,9 @@ package org.sentilo.platform.server.handler;
 
 import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.ResourceOwnerContext;
+import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.server.auth.AuthorizationService;
 import org.sentilo.platform.server.exception.ForbiddenAccessException;
 import org.sentilo.platform.server.request.SentiloRequest;
@@ -50,6 +53,9 @@ public abstract class AbstractHandler {
 
   @Autowired
   protected AuthorizationService authorizationService;
+
+  @Autowired
+  private EntityMetadataRepository entityMetadataRepository;
 
   @Value("${catalog.id}")
   protected String catalogId;
@@ -88,12 +94,16 @@ public abstract class AbstractHandler {
     if (!authorizationService.hasAccessToRead(source, target)) {
       throw new ForbiddenAccessException(source, target, "READ");
     }
+
+    ResourceOwnerContextHolder.setContext(new ResourceOwnerContext(entityMetadataRepository.getEntityMetadataFromId(target)));
   }
 
   protected void validateWriteAccess(final String source, final String target) throws ForbiddenAccessException {
     if (!authorizationService.hasAccessToWrite(source, target)) {
       throw new ForbiddenAccessException(source, target, "WRITE");
     }
+
+    ResourceOwnerContextHolder.setContext(new ResourceOwnerContext(entityMetadataRepository.getEntityMetadataFromId(target)));
   }
 
   protected void validateAdminAcess(final String source, final String target) throws ForbiddenAccessException {
@@ -101,6 +111,7 @@ public abstract class AbstractHandler {
       throw new ForbiddenAccessException(source, target, "ADMIN");
     }
 
+    ResourceOwnerContextHolder.setContext(new ResourceOwnerContext(entityMetadataRepository.getEntityMetadataFromId(target)));
   }
 
   protected void validateApiAdminInvoke(final String source) throws ForbiddenAccessException {
@@ -118,12 +129,12 @@ public abstract class AbstractHandler {
   }
 
   protected boolean numberArgumentsValid(final String[] arguments, final int min, final int max) {
-    return (arguments == null ? min == 0 : (arguments.length >= min && arguments.length <= max));
+    return arguments == null ? min == 0 : arguments.length >= min && arguments.length <= max;
   }
 
   protected String getCatalogId() {
     // Default value is sentilo-catalog
-    return (StringUtils.hasText(catalogId) ? catalogId : DEFAULT_CATALOG_ID);
+    return StringUtils.hasText(catalogId) ? catalogId : DEFAULT_CATALOG_ID;
   }
 
   protected void debug(final SentiloRequest request) {

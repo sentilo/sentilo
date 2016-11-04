@@ -35,11 +35,14 @@ package org.sentilo.web.catalog.utils;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.sentilo.common.utils.SentiloUtils;
+import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.LngLat;
 import org.sentilo.web.catalog.domain.Location;
+import org.springframework.util.Assert;
 
 public abstract class CatalogUtils extends SentiloUtils {
 
@@ -54,7 +57,7 @@ public abstract class CatalogUtils extends SentiloUtils {
   public static String decodeAjaxParam(final String source) {
     String target = source;
     try {
-      target = (source == null ? source : URLDecoder.decode(source, ISO_8859_1));
+      target = source == null ? source : URLDecoder.decode(source, ISO_8859_1);
     } catch (final UnsupportedEncodingException ex) {
       // ignore
     }
@@ -86,7 +89,7 @@ public abstract class CatalogUtils extends SentiloUtils {
   }
 
   public static String locationToString(final Location location) {
-    return (location == null ? null : location.toString());
+    return location == null ? null : location.toString();
   }
 
   public static String escapeRegexCharacter(final String character) {
@@ -95,6 +98,22 @@ public abstract class CatalogUtils extends SentiloUtils {
 
   public static List<String> tagsToStringList(final String tags) {
     return tags != null ? Arrays.asList(tags.split("\\s*,\\s*")) : null;
+  }
+
+  public static boolean isDouble(final String value) {
+    boolean isDouble = true;
+    try {
+      Double.parseDouble(value);
+    } catch (final NumberFormatException nfe) {
+      isDouble = false;
+    }
+
+    return isDouble;
+  }
+
+  public static Class<? extends CatalogDocument> getCollectionType(final Collection<? extends CatalogDocument> collection) {
+    Assert.notEmpty(collection, "collection must not be empty to get its elements type");
+    return collection.iterator().next().getClass();
   }
 
 }

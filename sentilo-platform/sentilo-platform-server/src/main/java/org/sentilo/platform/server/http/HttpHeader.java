@@ -34,7 +34,7 @@ package org.sentilo.platform.server.http;
 
 public enum HttpHeader {
 
-  CONTENT_TYPE("Content-Type"), IDENTITY_KEY("IDENTITY_KEY");
+  CONTENT_TYPE("Content-Type"), IDENTITY_KEY("IDENTITY_KEY"), X_FORWARDED_PROTO("X-Forwarded-Proto");
 
   private String name;
 

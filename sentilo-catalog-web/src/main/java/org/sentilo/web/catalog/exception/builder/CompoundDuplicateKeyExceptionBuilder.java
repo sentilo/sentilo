@@ -55,7 +55,7 @@ public class CompoundDuplicateKeyExceptionBuilder implements DuplicateKeyExcepti
   }
 
   @Override
-  public DuplicateKeyException buildDuplicateKeyException(final String invalidKey) {
+  public void buildAndThrowDuplicateKeyException(final String invalidKey) throws DuplicateKeyException {
     final String[] tokens = invalidKey.split(CatalogUtils.escapeRegexCharacter(keyTokenSplitter));
     throw new DuplicateKeyException(errorMessageKey, tokens);
   }

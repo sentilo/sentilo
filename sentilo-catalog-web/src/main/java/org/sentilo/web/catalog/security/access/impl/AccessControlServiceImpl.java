@@ -34,6 +34,7 @@ package org.sentilo.web.catalog.security.access.impl;
 
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.context.TenantContextHolder;
+import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Tenant;
 import org.sentilo.web.catalog.domain.TenantResource;
 import org.sentilo.web.catalog.exception.NotAllowedActionException;
@@ -52,22 +53,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class AccessControlServiceImpl implements AccessControlService {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AccessControlServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AccessControlServiceImpl.class);
+
+  private static final int TENANT_LINK_EQ = 0;
+  private static final int TENANT_LINK_AUTH = 1;
+  private static final int TENANT_LINK_OTHER = 2;
 
   @Autowired
-  protected CatalogUserDetailsService userDetailsService;
+  private CatalogUserDetailsService userDetailsService;
 
   @Autowired
   private AccessControlRepository aclRepository;
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.security.access.AccessControlService#checkAccess(org.sentilo.web.catalog
-   * .security.access.AccessControlContext)
+   *
+   * @see org.sentilo.web.catalog.security.access.AccessControlService#checkAccess(org.sentilo.web.
+   * catalog .security.access.AccessControlContext)
    */
-  public void checkAccess(final AccessControlContext acc) throws NotAllowedActionException {
+  public void checkAccess(final AccessControlContext acc) {
 
     if (userDetailsService.getCatalogUserDetails() == null) {
       LOGGER.error("Anonymous users are not allowed to {} resources of type {}", acc.getAction().name(), acc.getResourceClass().getName());
@@ -75,12 +79,12 @@ public class AccessControlServiceImpl implements AccessControlService {
     }
 
     final CatalogUserDetails userDetails = userDetailsService.getCatalogUserDetails();
-    final String userRole = (userDetails.isSuperAdminUser() ? "SA" : (userDetails.isAdminUser() ? "A" : "U"));
+    final String userRole = userDetails.isSuperAdminUser() ? "SA" : userDetails.isAdminUser() ? "A" : "U";
     final ActionGrant[] grants = aclRepository.getGrants(acc.getResourceClass(), userRole);
 
     if (SentiloUtils.arrayIsEmpty(grants) || !checkGrants(grants, userDetails, acc)) {
-      LOGGER.error("User {} is not allowed to {} resources of type {} ", userDetails.getUsername(), acc.getAction().name(), acc.getResourceClass()
-          .getName());
+      LOGGER.error("User {} is not allowed to {} resources of type {} ", userDetails.getUsername(), acc.getAction().name(),
+          acc.getResourceClass().getName());
       throw new NotAllowedActionException();
     }
   }
@@ -88,7 +92,7 @@ public class AccessControlServiceImpl implements AccessControlService {
   private boolean checkGrants(final ActionGrant[] grants, final CatalogUserDetails userDetails, final AccessControlContext acc) {
     boolean allowed = false;
     final int tenantsLink =
-        (userDetails.isSuperAdminUser() || !TenantContextHolder.isEnabled() ? 2 : findTenantsLink(userDetails.getTenantId(), acc));
+        userDetails.isSuperAdminUser() || !TenantContextHolder.isEnabled() ? TENANT_LINK_OTHER : findTenantsLink(userDetails.getTenantId(), acc);
 
     for (final ActionGrant grant : grants) {
       allowed = allowed | checkGrant(grant, acc.getAction(), tenantsLink);
@@ -112,9 +116,8 @@ public class AccessControlServiceImpl implements AccessControlService {
         tenantsLink = getDefaultTenantsLink();
         break;
       case SAVE_NEW:
-        final String resourceTenant =
-            (acc.getResource() instanceof TenantResource ? ((TenantResource) acc.getResource()).getTenantId() : acc.getResource().getId());
-        tenantsLink = (userTenant.equals(resourceTenant) ? 0 : getDefaultTenantsLink());
+        final String resourceTenant = getResourceTenant(acc.getResource());
+        tenantsLink = userTenant.equals(resourceTenant) ? TENANT_LINK_EQ : getDefaultTenantsLink();
         break;
       case SAVE:
       case EDIT:
@@ -130,7 +133,7 @@ public class AccessControlServiceImpl implements AccessControlService {
   }
 
   private int getDefaultTenantsLink() {
-    return 2;
+    return TENANT_LINK_OTHER;
   }
 
   private int findTenantsLinkForAdminAction(final String userTenant, final AccessControlContext acc) {
@@ -138,15 +141,19 @@ public class AccessControlServiceImpl implements AccessControlService {
     if (acc.getResource() instanceof TenantResource) {
       final TenantResource aux = (TenantResource) acc.getService().findAndThrowErrorIfNotExist(acc.getResource());
       if (userTenant.equals(aux.getTenantId())) {
-        tenantsLink = 0;
+        tenantsLink = TENANT_LINK_EQ;
       } else if (aux.getTenantsAuth().contains(userTenant)) {
-        tenantsLink = 1;
+        tenantsLink = TENANT_LINK_AUTH;
       }
     } else if (acc.getResource() instanceof Tenant) {
-      tenantsLink = (userTenant.equals(acc.getResource().getId()) ? 0 : 2);
+      tenantsLink = userTenant.equals(acc.getResource().getId()) ? TENANT_LINK_EQ : TENANT_LINK_OTHER;
     }
 
     return tenantsLink;
+  }
+
+  private String getResourceTenant(final CatalogDocument resource) {
+    return resource instanceof TenantResource ? ((TenantResource) resource).getTenantId() : resource.getId();
   }
 
 }

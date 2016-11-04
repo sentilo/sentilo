@@ -48,18 +48,9 @@ public class JsonConverterException extends PlatformException {
 
   private static final long serialVersionUID = 1L;
 
-  /*
-   * public JsonConverterException(final String message, final Throwable cause, final boolean input)
-   * { super(message, cause);
-   * 
-   * // En funcion de si es un error al parsear los datos de entrada o las datos de respuesta, // el
-   * codigo de error a retornar es diferente. if (input) { setHttpStatus(HttpStatus.SC_BAD_REQUEST);
-   * } else { setHttpStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR); } }
-   */
-
   /**
    * Constructor to call when we want throws an exception caused by a marshal problem
-   * 
+   *
    * @param message Message to show.
    */
   public JsonConverterException(final String message) {
@@ -68,7 +59,7 @@ public class JsonConverterException extends PlatformException {
 
   /**
    * Constructor to call when we want throws an exception caused by an unmarshal problem
-   * 
+   *
    * @param message Message to show.
    * @param cause The origin exception that we use to build the error details field.
    */
@@ -85,7 +76,7 @@ public class JsonConverterException extends PlatformException {
 
   /**
    * Constructor to call when we want throws an exception caused by an unmarshal problem
-   * 
+   *
    * @param message Message to show.
    * @param errorDetails Details of the error.
    */

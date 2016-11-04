@@ -38,8 +38,6 @@ import org.sentilo.platform.client.core.domain.CatalogAlertOutputMessage;
 import org.sentilo.platform.client.core.domain.CatalogDeleteInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogOutputMessage;
-import org.sentilo.platform.client.core.parser.CatalogAlertMessageConverter;
-import org.sentilo.platform.client.core.parser.CatalogMessageConverter;
 import org.sentilo.platform.client.core.service.CatalogServiceOperations;
 import org.sentilo.platform.client.core.utils.RequestUtils;
 import org.slf4j.Logger;
@@ -52,15 +50,11 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCatalogServiceOperationsImpl.class);
 
-  private CatalogMessageConverter converter = new CatalogMessageConverter();
-  private CatalogAlertMessageConverter alertConverter = new CatalogAlertMessageConverter();
-
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.platform.client.core.service.CatalogServiceOperations#getSensors(org.sentilo.platform
-   * .client.core.domain.CatalogInputMessage)
+   *
+   * @see org.sentilo.platform.client.core.service.CatalogServiceOperations#getSensors(org.sentilo.
+   * platform .client.core.domain.CatalogInputMessage)
    */
   @Override
   public CatalogOutputMessage getSensors(final CatalogInputMessage message) {
@@ -73,13 +67,13 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
     final String response = getRestClient().get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
     LOGGER.debug("Sensors retrieved ");
 
-    return converter.unmarshall(response);
+    return (CatalogOutputMessage) converter.unmarshal(response, CatalogOutputMessage.class);
 
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#registerSensors(org.sentilo
    * .platform.client.core.domain.CatalogInputMessage)
@@ -87,13 +81,13 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void registerSensors(final CatalogInputMessage message) {
     LOGGER.debug("Registering sensors");
-    getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().post(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("Sensors registered ");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#updateSensors(org.sentilo
    * .platform.client.core.domain.CatalogInputMessage)
@@ -101,13 +95,13 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void updateSensors(final CatalogInputMessage message) {
     LOGGER.debug("Updating sensors");
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("Sensors updated");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#updateComponents(org.sentilo
    * .platform.client.core.domain.CatalogInputMessage)
@@ -115,14 +109,14 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void updateComponents(final CatalogInputMessage message) {
     LOGGER.debug("Updating components");
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("Components updated");
 
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#deleteProvider(org.sentilo
    * .platform.client.core.domain.CatalogDeleteInputMessage)
@@ -130,16 +124,15 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
   @Override
   public void deleteProvider(final CatalogDeleteInputMessage message) {
     LOGGER.debug("Deleting provider components/sensors");
-    getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().delete(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("Provider components/sensors deleted");
   }
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.platform.client.core.service.CatalogServiceOperations#getAuthorizedAlerts(org.sentilo
-   * .platform.client.core.domain.CatalogAlertInputMessage)
+   *
+   * @see org.sentilo.platform.client.core.service.CatalogServiceOperations#getAuthorizedAlerts(org.
+   * sentilo .platform.client.core.domain.CatalogAlertInputMessage)
    */
   @Override
   public CatalogAlertOutputMessage getAuthorizedAlerts(final CatalogAlertInputMessage message) {
@@ -152,46 +145,46 @@ public class DefaultCatalogServiceOperationsImpl extends AbstractServiceOperatio
     final String response = getRestClient().get(RequestUtils.buildPath(message), parameters, message.getIdentityToken());
     LOGGER.debug("alerts retrieved ");
 
-    return alertConverter.unmarshall(response);
+    return (CatalogAlertOutputMessage) converter.unmarshal(response, CatalogAlertOutputMessage.class);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#registerAlerts(org.sentilo
    * .platform.client.core.domain.CatalogAlertInputMessage)
    */
   public void registerAlerts(final CatalogAlertInputMessage message) {
     LOGGER.debug("Registering alerts");
-    getRestClient().post(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().post(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("alerts registered ");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#updateAlerts(org.sentilo.
    * platform.client.core.domain.CatalogAlertInputMessage)
    */
   public void updateAlerts(final CatalogAlertInputMessage message) {
     LOGGER.debug("Updating alerts");
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("alerts updated ");
 
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.CatalogServiceOperations#deleteAlerts(org.sentilo.
    * platform.client.core.domain.CatalogAlertInputMessage)
    */
   public void deleteAlerts(final CatalogAlertInputMessage message) {
     LOGGER.debug("Deleting alerts");
-    getRestClient().delete(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().delete(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("alerts deleted ");
 
   }

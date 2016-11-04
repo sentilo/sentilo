@@ -38,7 +38,7 @@ import org.sentilo.common.domain.PlatformPerformance;
 
 public interface MetricService {
 
-  void calculateGlobalPerformance();
+  void computeGlobalPerformance();
 
   Collection<PlatformPerformance> getGlobalPerformance();
 }

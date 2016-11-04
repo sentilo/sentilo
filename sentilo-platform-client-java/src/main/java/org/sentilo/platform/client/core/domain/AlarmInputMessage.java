@@ -114,7 +114,7 @@ public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSe
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#getQueryFilters()
    */
   @Override
@@ -124,7 +124,7 @@ public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSe
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#hasQueryFilters()
    */
   @Override
@@ -134,7 +134,7 @@ public class AlarmInputMessage implements PlatformClientInputMessage, PlatformSe
 
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("\n\t --- Alarm ---");
     sb.append("\n\t alert:").append(alertId);
 

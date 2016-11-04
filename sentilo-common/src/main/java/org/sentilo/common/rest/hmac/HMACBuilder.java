@@ -45,7 +45,7 @@ import org.apache.http.entity.ContentType;
 /**
  * Utility class to build an HMAC value from request content to use as header in notification
  * callbacks.
- * 
+ *
  */
 public abstract class HMACBuilder {
 
@@ -94,6 +94,7 @@ public abstract class HMACBuilder {
 
   private static String calculateMD5(final String contentToEncode) throws NoSuchAlgorithmException {
     final MessageDigest digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
+    digest.reset();
     digest.update(contentToEncode.getBytes());
     return new String(Base64.encodeBase64(digest.digest()));
   }

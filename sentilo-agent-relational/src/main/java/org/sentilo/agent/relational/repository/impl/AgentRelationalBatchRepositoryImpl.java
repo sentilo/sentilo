@@ -46,8 +46,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.sql.DataSource;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.sentilo.agent.relational.domain.Alarm;
 import org.sentilo.agent.relational.domain.Data;
 import org.sentilo.agent.relational.domain.Observation;
@@ -71,12 +71,12 @@ public class AgentRelationalBatchRepositoryImpl implements AgentRelationalReposi
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AgentRelationalBatchRepositoryImpl.class);
 
-  private final int defaultNumMaxWorkers = 5;
-  private final int defaultBatchSize = 10;
-  private final int defaultNumMaxRetries = 1;
+  private static final int DEFAULT_NUM_MAX_WORKERS = 5;
+  private static final int DEFAULT_BATCH_SIZE = 10;
+  private static final int DEFAULT_NUM_MAX_RETRIES = 1;
 
   @Value("${relational.tables.prefix}")
-  private String tables_prefix;
+  private String tablesPrefix;
 
   @Value("${relational.batch.size}")
   private int batchSize;
@@ -102,22 +102,22 @@ public class AgentRelationalBatchRepositoryImpl implements AgentRelationalReposi
   private JdbcTemplate jdbcTemplate;
 
   @PostConstruct
-  public void init() throws Exception {
-    if (!StringUtils.hasText(tables_prefix) || tables_prefix.startsWith("$")) {
+  public void init() {
+    if (!StringUtils.hasText(tablesPrefix) || tablesPrefix.startsWith("$")) {
       throw new IllegalStateException(
           "Field tables_prefix is not initialized. Review your properties configuration and confirm that property relational.tables.prefix is defined");
     }
 
     if (numMaxWorkers == 0) {
-      numMaxWorkers = defaultNumMaxWorkers;
+      numMaxWorkers = DEFAULT_NUM_MAX_WORKERS;
     }
 
     if (batchSize == 0) {
-      batchSize = defaultBatchSize;
+      batchSize = DEFAULT_BATCH_SIZE;
     }
 
     if (numMaxRetries == 0) {
-      numMaxRetries = defaultNumMaxRetries;
+      numMaxRetries = DEFAULT_NUM_MAX_RETRIES;
     }
 
     LOGGER.info("Initialize AgentRelationalBatchRepositoryImpl with the following properties: batchSize {},  numMaxRetries {} and numMaxWorkers {} ",
@@ -163,7 +163,7 @@ public class AgentRelationalBatchRepositoryImpl implements AgentRelationalReposi
    * Clear all batch queues and send pending data to persist.
    */
   public void flush() {
-    LOGGER.debug("Call to flush pending tasks");
+    LOGGER.info("Call to flush pending tasks");
     lock.lock();
     try {
       final Iterator<String> it = batchQueues.keySet().iterator();
@@ -171,7 +171,7 @@ public class AgentRelationalBatchRepositoryImpl implements AgentRelationalReposi
         final String targetDs = it.next();
         final List<Data> targetQueue = batchQueues.get(targetDs);
         if (!CollectionUtils.isEmpty(targetQueue)) {
-          LOGGER.debug("Flush {} elements to Ds {}", targetQueue.size(), targetDs);
+          LOGGER.info("Flush {} elements to Ds {}", targetQueue.size(), targetDs);
           final BatchProcessContext context = buildBatchContext(targetQueue, targetDs);
           final BatchProcessWorker worker = new BatchProcessWorker(context);
           worker.call();
@@ -179,7 +179,7 @@ public class AgentRelationalBatchRepositoryImpl implements AgentRelationalReposi
       }
     } finally {
       lock.unlock();
-      LOGGER.debug("Flush process finished");
+      LOGGER.info("Flush process finished");
     }
   }
 
@@ -207,7 +207,7 @@ public class AgentRelationalBatchRepositoryImpl implements AgentRelationalReposi
   }
 
   private BatchProcessContext buildBatchContext(final List<Data> dataToPersist, final String targetDs) {
-    return new BatchProcessContext(dataToPersist, jdbcTemplate, platformTransactionManager, numMaxRetries, tables_prefix, targetDs,
+    return new BatchProcessContext(dataToPersist, jdbcTemplate, platformTransactionManager, numMaxRetries, tablesPrefix, targetDs,
         batchUpdateMonitor);
   }
 

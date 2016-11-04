@@ -32,14 +32,20 @@
  */
 package org.sentilo.agent.relational.repository.batch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.sentilo.agent.common.repository.PendingEventsRepository;
+import org.sentilo.agent.relational.domain.Data;
+import org.sentilo.common.domain.EventMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -52,19 +58,23 @@ public class BatchProcessMonitor implements BatchProcessCallback {
   private long numTasksProcessed;
   private long numTasksOk;
   private long numTasksKo;
-  private long numLostElements;
+  private long numPendingElements;
+
+  @Autowired
+  private PendingEventsRepository pendingEventRepository;
 
   private Map<String, DataSource> dsToMonitor = new HashMap<String, DataSource>();
 
   @Resource
-  public void setDataSources(final Map<String, javax.sql.DataSource> dataSources) {
+  public void setDataSources(final Map<String, DataSource> dataSources) {
 
     if (!CollectionUtils.isEmpty(dataSources)) {
-      LOGGER.debug("Number of dataSources to monitor: {}", dataSources.size());
+      LOGGER.info("Number of dataSources to monitor: {}", dataSources.size());
+      dsToMonitor = dataSources;
 
-      for (final String key : dataSources.keySet()) {
-        dsToMonitor.put(key, (DataSource) dataSources.get(key));
-      }
+      // for (final String key : dataSources.keySet()) {
+      // dsToMonitor.put(key, dataSources.get(key));
+      // }
     }
   }
 
@@ -73,7 +83,8 @@ public class BatchProcessMonitor implements BatchProcessCallback {
     numTasksProcessed++;
     if (result.getNumElementsPersisted() == 0) {
       numTasksKo++;
-      numLostElements += result.getNumElementsToPersist();
+      numPendingElements += result.getNumElementsToPersist();
+      pendingEventRepository.storePendingEvents(toEventMessageList(result.getElementsToPersist()));
     } else {
       numTasksOk++;
     }
@@ -85,10 +96,20 @@ public class BatchProcessMonitor implements BatchProcessCallback {
     final StringBuilder sb = new StringBuilder("\n Num. tasks processed: {}");
     sb.append("\n Num tasks ok: {}");
     sb.append("\n Num tasks ko: {}");
-    sb.append("\n Num lost elements: {}");
-    LOGGER.info(sb.toString(), numTasksProcessed, numTasksOk, numTasksKo, numLostElements);
+    sb.append("\n Num pending elements: {}");
+    LOGGER.info(sb.toString(), numTasksProcessed, numTasksOk, numTasksKo, numPendingElements);
 
     inspectDataSourcesState();
+  }
+
+  private List<EventMessage> toEventMessageList(final List<Data> sourceList) {
+    final List<EventMessage> targetList = new ArrayList<EventMessage>();
+
+    for (final Data data : sourceList) {
+      targetList.add(data.getSourceEvent());
+    }
+
+    return targetList;
   }
 
   private void inspectDataSourcesState() {

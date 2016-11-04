@@ -98,8 +98,8 @@ public class Permission implements CatalogDocument {
     // Hashcode return must be consistent with the equals method
     final int prime = 37;
     int result = 1;
-    result = prime * result + ((source == null) ? 0 : source.hashCode());
-    result = prime * result + ((target == null) ? 0 : target.hashCode());
+    result = prime * result + (source == null ? 0 : source.hashCode());
+    result = prime * result + (target == null ? 0 : target.hashCode());
     return result;
   }
 

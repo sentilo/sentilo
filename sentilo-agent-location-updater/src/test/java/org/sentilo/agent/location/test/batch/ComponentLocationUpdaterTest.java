@@ -153,7 +153,7 @@ public class ComponentLocationUpdaterTest {
       resource.setProvider("Provider");
       resource.setSensor("Sensor");
       resource.setLocation("32.111 43.1234");
-      resource.setFromTsTime((sameTimestamp ? timestamps[i % 3] : System.currentTimeMillis() + size % (i + 1)));
+      resource.setFromTsTime(sameTimestamp ? timestamps[i % 3] : System.currentTimeMillis() + size % (i + 1));
 
       resources.add(resource);
     }

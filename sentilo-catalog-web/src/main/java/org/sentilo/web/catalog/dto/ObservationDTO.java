@@ -39,6 +39,9 @@ public class ObservationDTO {
 
   private String sensor;
   private String sensorType;
+  private String sensorState;
+  private String sensorSubState;
+  private String sensorSubstateDesc;
   private String value;
   private String unit;
   private String dataType;
@@ -57,8 +60,11 @@ public class ObservationDTO {
     this(observation);
     if (sensor != null) {
       this.sensor = sensor.getSensorId();
-      unit = sensor.getUnit();
       sensorType = sensor.getType();
+      sensorState = sensor.getState().name();
+      sensorSubState = sensor.getSubstate();
+      sensorSubstateDesc = sensor.getSubstateDesc();
+      unit = sensor.getUnit();
       dataType = sensor.getDataType().toString();
     }
   }
@@ -85,6 +91,18 @@ public class ObservationDTO {
 
   public String getSensorType() {
     return sensorType;
+  }
+
+  public String getSensorState() {
+    return sensorState;
+  }
+
+  public String getSensorSubState() {
+    return sensorSubState;
+  }
+
+  public String getSensorSubstateDesc() {
+    return sensorSubstateDesc;
   }
 
   public String getDataType() {

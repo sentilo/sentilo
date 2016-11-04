@@ -46,6 +46,9 @@ public class AlertValidator implements Validator {
   @Autowired
   private SensorService sensorService;
 
+  @Autowired
+  private AlertTriggerValidatorComponent alertTriggerValidatorComponent;
+
   @Override
   public boolean supports(final Class<?> clazz) {
     return Alert.class.equals(clazz);
@@ -97,43 +100,7 @@ public class AlertValidator implements Validator {
       }
     }
 
-    validateTriggerType(alert, errors);
-
+    alertTriggerValidatorComponent.validateTriggerType(alert.getTrigger(), alert.getExpression(), errors);
   }
 
-  private void validateTriggerType(final Alert alert, final Errors errors) {
-
-    if (alert.getTrigger() != null) {
-      switch (alert.getTrigger()) {
-        case GT:
-        case GTE:
-        case LT:
-        case LTE:
-        case CHANGE_DELTA:
-        case FROZEN:
-          validateIfExpressionValueIsEmpty(alert, errors);
-          validateIfExpressionValueIsNumeric(alert, errors);
-          break;
-        case EQ:
-          validateIfExpressionValueIsEmpty(alert, errors);
-          break;
-        case CHANGE:
-          break;
-      }
-    } else {
-      errors.reject("alert.error.unknown.trigger", new Object[] {alert.getTrigger()}, "");
-    }
-  }
-
-  private void validateIfExpressionValueIsEmpty(final Alert alert, final Errors errors) {
-    if (!StringUtils.hasText(alert.getExpression())) {
-      errors.rejectValue("expression", "NotBlank");
-    }
-  }
-
-  private void validateIfExpressionValueIsNumeric(final Alert alert, final Errors errors) {
-    if (StringUtils.hasText(alert.getExpression()) && !alert.getExpression().matches("[-+]?\\d+(\\.\\d+)?")) {
-      errors.rejectValue("expression", "NotNumber");
-    }
-  }
 }

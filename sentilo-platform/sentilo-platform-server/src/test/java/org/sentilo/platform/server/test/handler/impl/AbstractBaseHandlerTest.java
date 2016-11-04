@@ -33,16 +33,18 @@
 package org.sentilo.platform.server.test.handler.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.apache.http.HttpStatus;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.server.exception.MethodNotAllowedException;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.RequestUtils;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
-import org.sentilo.platform.server.test.AbstractBaseTest;
 
 public abstract class AbstractBaseHandlerTest extends AbstractBaseTest {
 
@@ -76,6 +78,7 @@ public abstract class AbstractBaseHandlerTest extends AbstractBaseTest {
   }
 
   protected void assertMethodNotAllowed(final PlatformException e) {
+    assertTrue(e instanceof MethodNotAllowedException);
     assertEquals("Must return 405 - Method not allowed", HttpStatus.SC_METHOD_NOT_ALLOWED, e.getHttpStatus());
   }
 

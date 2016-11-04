@@ -102,9 +102,8 @@ public class AccessControlServiceImplTest {
     final Tenant resource = new Tenant("1");
     when(userDetails.isSuperAdminUser()).thenReturn(true);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertTrue(allowedCRUDL);
   }
@@ -128,9 +127,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.DELETE)
-            | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.SAVE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.CREATE)
+        | checkAccess(resource, ActionType.DELETE) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.SAVE);
 
     Assert.assertFalse(allowedCRUDL);
   }
@@ -140,9 +138,8 @@ public class AccessControlServiceImplTest {
     final Tenant resource = new Tenant("1");
     when(userDetails.isUser()).thenReturn(true);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertFalse(allowedCRUDL);
   }
@@ -156,9 +153,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isSuperAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertTrue(allowedCRUDL);
   }
@@ -170,9 +166,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertTrue(allowedCRUDL);
   }
@@ -216,9 +211,8 @@ public class AccessControlServiceImplTest {
     final User resource = new User("1");
     when(userDetails.isUser()).thenReturn(true);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertFalse(allowedCRUDL);
   }
@@ -231,9 +225,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isSuperAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertFalse(allowedCRUDL);
   }
@@ -245,9 +238,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertTrue(allowedCRUDL);
   }
@@ -327,9 +319,8 @@ public class AccessControlServiceImplTest {
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
     when(tenantsAuth.contains(USER_TENANT_ID)).thenReturn(false);
 
-    final boolean allowedCRUD =
-        checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.SAVE)
-            | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUD = checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
     final boolean allowedL = checkAccess(resource, ActionType.LIST);
 
     Assert.assertFalse(allowedCRUD);
@@ -344,9 +335,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isSuperAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertFalse(allowedCRUDL);
   }
@@ -358,9 +348,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
     Assert.assertTrue(allowedCRUDL);
   }
@@ -420,9 +409,8 @@ public class AccessControlServiceImplTest {
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
     when(tenantsAuth.contains(USER_TENANT_ID)).thenReturn(true);
 
-    final boolean allowedCRUD =
-        checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.SAVE)
-            | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUD = checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
     final boolean allowedL = checkAccess(resource, ActionType.LIST);
 
     Assert.assertFalse(allowedCRUD);
@@ -437,9 +425,8 @@ public class AccessControlServiceImplTest {
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
     when(tenantsAuth.contains(USER_TENANT_ID)).thenReturn(false);
 
-    final boolean allowedCRUD =
-        checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.SAVE)
-            | checkAccess(resource, ActionType.DELETE);
+    final boolean allowedCRUD = checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
     final boolean allowedL = checkAccess(resource, ActionType.LIST);
 
     Assert.assertFalse(allowedCRUD);
@@ -453,9 +440,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isSuperAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE);
+    final boolean allowedCRUL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE);
 
     Assert.assertTrue(allowedCRUL);
   }
@@ -493,9 +479,8 @@ public class AccessControlServiceImplTest {
     when(userDetails.isSuperAdminUser()).thenReturn(true);
     when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUL =
-        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.CREATE)
-            | checkAccess(resource, ActionType.SAVE);
+    final boolean allowedCRUL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+        | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE);
 
     Assert.assertTrue(allowedCRUL);
   }

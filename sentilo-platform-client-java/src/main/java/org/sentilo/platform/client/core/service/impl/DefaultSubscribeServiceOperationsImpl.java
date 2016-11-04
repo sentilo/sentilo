@@ -34,7 +34,6 @@ package org.sentilo.platform.client.core.service.impl;
 
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
 import org.sentilo.platform.client.core.domain.SubscriptionsOutputMessage;
-import org.sentilo.platform.client.core.parser.SubscribeMessageConverter;
 import org.sentilo.platform.client.core.service.SubscribeServiceOperations;
 import org.sentilo.platform.client.core.utils.RequestUtils;
 import org.slf4j.Logger;
@@ -45,8 +44,6 @@ import org.springframework.stereotype.Service;
 public class DefaultSubscribeServiceOperationsImpl extends AbstractServiceOperationsImpl implements SubscribeServiceOperations {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSubscribeServiceOperationsImpl.class);
-
-  private SubscribeMessageConverter converter = new SubscribeMessageConverter();
 
   @Override
   public void remove(final SubscribeInputMessage message) {
@@ -60,14 +57,14 @@ public class DefaultSubscribeServiceOperationsImpl extends AbstractServiceOperat
     LOGGER.debug("Retrieving subscriptions {}", message);
     final String response = getRestClient().get(RequestUtils.buildPath(message), message.getIdentityToken());
     LOGGER.debug("Subscriptions retrieved");
-    return converter.unmarshall(response);
+    return (SubscriptionsOutputMessage) converter.unmarshal(response, SubscriptionsOutputMessage.class);
 
   }
 
   @Override
   public void subscribe(final SubscribeInputMessage message) {
     LOGGER.debug("Adding subscription message {}", message);
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("Subscription added");
   }
 

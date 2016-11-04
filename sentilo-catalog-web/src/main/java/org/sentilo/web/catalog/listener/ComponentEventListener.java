@@ -64,9 +64,9 @@ public class ComponentEventListener extends AbstractMongoEventListener<Component
 
   /**
    * Component location in backend must be changed if, and only if, new location is different from
-   * existing location and its timestamp is greater than existing location timestamp. Additionaly,
+   * existing location and its timestamp is greater than existing location timestamp. Additionally,
    * new location could be inserted into route list if need be.
-   * 
+   *
    * @param newComponent
    */
   private void changeLocationAndRouteIfNeeded(final Component newComponent) {
@@ -112,7 +112,7 @@ public class ComponentEventListener extends AbstractMongoEventListener<Component
       final Location currentLocation = currentComponent.getLocation();
       final Long newLocationTs = newLocation.getFromTsTime();
       final Long currentLocationTs =
-          (currentLocation.getFromTsTime() != null ? currentLocation.getFromTsTime() : currentComponent.getUpdatedAt().getTime());
+          currentLocation.getFromTsTime() != null ? currentLocation.getFromTsTime() : currentComponent.getUpdatedAt().getTime();
 
       if (currentLocation.getFromTsTime() == null) {
         currentLocation.setFromTsTime(currentComponent.getUpdatedAt().getTime());
@@ -165,7 +165,7 @@ public class ComponentEventListener extends AbstractMongoEventListener<Component
     if (route == null) {
       // Try to retrieve routePointList from the backend or to set new one if not exists yet
       final Component aux = componentService.find(component);
-      route = (aux != null && aux.getRoutePointList() != null ? aux.getRoutePointList() : new RoutePointList(routeMaxSize));
+      route = aux != null && aux.getRoutePointList() != null ? aux.getRoutePointList() : new RoutePointList(routeMaxSize);
       component.setRoutePointList(route);
     }
 

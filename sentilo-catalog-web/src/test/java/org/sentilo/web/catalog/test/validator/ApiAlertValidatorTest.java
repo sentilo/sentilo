@@ -44,13 +44,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Alert.Type;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.repository.AlertRepository;
 import org.sentilo.web.catalog.service.SensorService;
-import org.sentilo.web.catalog.test.AbstractBaseTest;
+import org.sentilo.web.catalog.validator.AlertTriggerValidatorComponent;
 import org.sentilo.web.catalog.validator.AlertValidator;
 import org.sentilo.web.catalog.validator.ApiAlertValidator;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
@@ -66,6 +67,8 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
   @Mock
   private AlertRepository repository;
 
+  private AlertTriggerValidatorComponent alertTriggerValidatorComponent;
+
   private AlertValidator validator;
 
   private ApiAlertValidator apiAlertValidator;
@@ -75,10 +78,12 @@ public class ApiAlertValidatorTest extends AbstractBaseTest {
     MockitoAnnotations.initMocks(this);
     apiAlertValidator = new ApiAlertValidator();
     validator = new AlertValidator();
+    alertTriggerValidatorComponent = new AlertTriggerValidatorComponent();
 
     ReflectionTestUtils.setField(apiAlertValidator, "repository", repository);
     ReflectionTestUtils.setField(apiAlertValidator, "validator", validator);
     ReflectionTestUtils.setField(validator, "sensorService", sensorService);
+    ReflectionTestUtils.setField(validator, "alertTriggerValidatorComponent", alertTriggerValidatorComponent);
   }
 
   @Test

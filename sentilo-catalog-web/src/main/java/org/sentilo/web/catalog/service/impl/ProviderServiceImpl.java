@@ -42,7 +42,6 @@ import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
-import org.sentilo.web.catalog.event.DeletePlatformResourcesEvent;
 import org.sentilo.web.catalog.repository.ProviderRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.PermissionService;
@@ -55,10 +54,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 @Service
-public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> implements ProviderService {
+public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>implements ProviderService {
 
   @Autowired
   private ProviderRepository repository;
@@ -95,7 +95,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ProviderService#findAllowed()
    */
   @Override
@@ -110,20 +110,18 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
-   * org.sentilo.web.catalog.service.ProviderService#deleteChildDocuments(org.sentilo.web.catalog
-   * .domain.Provider)
+   * org.sentilo.web.catalog.service.ProviderService#deleteChildrens(org.sentilo.web.catalog.domain.
+   * Provider)
    */
-  public void deleteChilds(final Provider provider) {
-    notifyProviderToDelete(provider);
-    deleteRelatedResources(provider);
-    tenantPermissionService.deleteRelatedEntity(provider);
+  public void deleteChildren(final Provider provider) {
+    deleteRelatedResources(provider, false);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ProviderService#addGrantedTenant(java.lang.String,
    * java.lang.String)
    */
@@ -136,7 +134,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ProviderService#removeGrantedTenant(java.lang.String,
    * java.lang.String)
    */
@@ -149,7 +147,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ProviderService#getGrantedTenantsIds(java.lang.String)
    */
   @Override
@@ -159,7 +157,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ProviderService#deleteFromTenant(java.lang.String)
    */
   @Override
@@ -168,12 +166,14 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
     filter.addAndParam("tenantId", tenantId);
     final Query query = buildQuery(filter);
     final List<Provider> providers = getMongoOps().find(query, Provider.class);
-    delete(providers);
+    if (!CollectionUtils.isEmpty(providers)) {
+      delete(providers);
+    }
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ProviderService#isProviderFromTenant(java.lang.String,
    * java.lang.String)
    */
@@ -185,7 +185,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
    * .web.catalog.domain.CatalogDocument)
@@ -197,7 +197,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
       provider.setName(provider.getId());
     }
 
-    // Validamos la unicidad del identificador: no puede sexistir otra entidad (app o provider) con
+    // Validamos la unicidad del identificador: no puede existir otra entidad (app o provider) con
     // el mismo identificador.
     checkIntegrityKey(provider.getId());
 
@@ -208,51 +208,49 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.
    * web.catalog.domain.CatalogDocument)
    */
   protected void doAfterDelete(final Provider provider) {
-    permissionService.deleteRelated(provider);
-    deleteChilds(provider);
+    doAfterDelete(Arrays.asList(new Provider[] {provider}));
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#delete(java.util.Collection)
    */
   protected void doAfterDelete(final Collection<Provider> providers) {
-    notifyProvidersToDelete(providers);
     for (final Provider provider : providers) {
-      permissionService.deleteRelated(provider);
       deleteRelatedResources(provider);
     }
   }
 
   private void deleteRelatedResources(final Provider provider) {
-    // Must be remove all resources related to the provider: alerts, sensors and components
+    deleteRelatedResources(provider, true);
+  }
+
+  private void deleteRelatedResources(final Provider provider, final boolean fullDelete) {
+    // Should be removed all resources related to the provider: alerts, sensors, components,
+    // permissions and tenantPermissions (these resources only in the case of a full delete)
     final SearchFilter childFilter = new SearchFilter();
     childFilter.addAndParam("providerId", provider.getId());
     final Query childQuery = buildQuery(childFilter);
 
-    getMongoOps().remove(childQuery, Alert.class);
-    getMongoOps().remove(childQuery, Sensor.class);
-    getMongoOps().remove(childQuery, Component.class);
+    doDelete(childQuery, Alert.class);
+    doDelete(childQuery, Sensor.class);
+    doDelete(childQuery, Component.class);
 
-    // Also delete all tenant permissions related with it
-    tenantPermissionService.deleteRelatedEntity(provider);
-  }
+    if (fullDelete) {
+      // Also delete all tenant permissions related to it
+      tenantPermissionService.deleteRelatedEntity(provider);
 
-  private void notifyProviderToDelete(final Provider provider) {
-    notifyProvidersToDelete(Arrays.asList(provider));
-  }
-
-  private void notifyProvidersToDelete(final Collection<Provider> providers) {
-    // Create new DeletePlatformResourceEvent to notify what providers will be deleted
-    getContext().publishEvent(new DeletePlatformResourcesEvent<Provider>(this, providers, Provider.class));
+      // And finally remove related permissions over other entities
+      permissionService.deleteRelated(provider);
+    }
   }
 
 }

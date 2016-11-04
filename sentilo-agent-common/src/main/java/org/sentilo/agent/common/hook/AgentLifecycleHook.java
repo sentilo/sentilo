@@ -51,7 +51,7 @@ public abstract class AgentLifecycleHook implements SmartLifecycle {
 
   @Override
   public void start() {
-    LOGGER.debug("AgentLifecycleHook started");
+    LOGGER.info("AgentLifecycleHook started");
     running = true;
   }
 
@@ -73,7 +73,7 @@ public abstract class AgentLifecycleHook implements SmartLifecycle {
 
   @Override
   public void stop() {
-    LOGGER.debug("Call stop method. Is hook running? {}", running);
+    LOGGER.info("Call stop method. Is hook running? {}", running);
     if (running) {
       try {
         // Stop the RedisMessageListenerContainer ...
@@ -90,7 +90,7 @@ public abstract class AgentLifecycleHook implements SmartLifecycle {
         LOGGER.error("Failed doing a graceful shutdown : {}", e.getMessage(), e);
       } finally {
         running = false;
-        LOGGER.debug("Hook stopped.");
+        LOGGER.info("Hook stopped.");
       }
     }
   }

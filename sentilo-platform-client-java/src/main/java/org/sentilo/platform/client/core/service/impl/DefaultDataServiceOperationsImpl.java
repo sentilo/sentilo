@@ -32,6 +32,7 @@
  */
 package org.sentilo.platform.client.core.service.impl;
 
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.platform.client.core.domain.DataInputMessage;
 import org.sentilo.platform.client.core.domain.ObservationsOutputMessage;
 import org.sentilo.platform.client.core.parser.DataMessageConverter;
@@ -46,14 +47,14 @@ public class DefaultDataServiceOperationsImpl extends AbstractServiceOperationsI
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDataServiceOperationsImpl.class);
 
-  private DataMessageConverter converter = new DataMessageConverter();
+  private StringMessageConverter converter = new DataMessageConverter();
 
   @Override
   public ObservationsOutputMessage getLastObservations(final DataInputMessage message) {
     LOGGER.debug("Retrieving last observations  {}", message);
     final String response = getRestClient().get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
     LOGGER.debug("Retrieved last observations");
-    return converter.unmarshall(response);
+    return (ObservationsOutputMessage) converter.unmarshal(response, ObservationsOutputMessage.class);
   }
 
   @Override
@@ -68,7 +69,7 @@ public class DefaultDataServiceOperationsImpl extends AbstractServiceOperationsI
     // Tenemos 3 opciones a la hora de hacer la llamada en función de como esté/esten informadas
     // las observaciones. Pero todas ellas solo afectan al contenido del body.
     LOGGER.debug("Sending observations  {}", message);
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("Observations has been sent");
   }
 

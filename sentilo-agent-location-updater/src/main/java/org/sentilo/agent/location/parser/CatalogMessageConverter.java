@@ -32,9 +32,9 @@
  */
 package org.sentilo.agent.location.parser;
 
+import org.sentilo.common.converter.BaseJsonMessageConverter;
 import org.sentilo.common.domain.CatalogInputMessage;
 import org.sentilo.common.exception.MessageNotWritableException;
-import org.sentilo.common.parser.BaseJsonMessageConverter;
 
 public class CatalogMessageConverter extends BaseJsonMessageConverter {
 

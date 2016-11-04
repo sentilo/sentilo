@@ -35,6 +35,7 @@ package org.sentilo.web.catalog.controller.admin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -44,7 +45,6 @@ import org.sentilo.web.catalog.domain.Tenant;
 import org.sentilo.web.catalog.search.builder.SearchFilterUtils;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.TenantService;
-import org.sentilo.web.catalog.service.UserService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +62,6 @@ public class TenantController extends CrudController<Tenant> {
 
   @Autowired
   private TenantService tenantService;
-
-  @Autowired
-  private UserService userService;
 
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
@@ -97,13 +94,12 @@ public class TenantController extends CrudController<Tenant> {
   }
 
   @Override
-  protected void addRowMetadata(final Tenant resource, final List<String> row) {
-    super.addRowMetadata(resource, row);
+  protected void addRowMetadata(final Tenant resource, final Map<String, String> rowMetadata) {
+    super.addRowMetadata(resource, rowMetadata);
     // If rowMetadata hideCheckbox field has not been added to row yet and tenant is default, then
     // it field is added
-    if (row.size() == 5 && Boolean.TRUE.equals(resource.getIsDefault())) {
-      final String rowMetadata = "{hideCheckbox:true}";
-      row.add(rowMetadata);
+    if (Boolean.TRUE.equals(resource.getIsDefault()) && !rowMetadata.containsKey("hideCheckbox")) {
+      rowMetadata.put("hideCheckbox", Boolean.TRUE.toString());
     }
   }
 
@@ -126,14 +122,14 @@ public class TenantController extends CrudController<Tenant> {
   protected void doBeforeExcelBuilder(final Model model) {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "tenant");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "tenant");
   }
 
   protected String redirectToList(final Model model, final HttpServletRequest request, final RedirectAttributes redirectAttributes) {
     // Admin users must be redirected to detail page instead of list page because them are not
     // allowed to view the tenant list
     if (userDetailsService.getCatalogUserDetails().isAdminUser()) {
-      final String tenantPrefix = (TenantContextHolder.hasContext() ? "/" + TenantUtils.getCurrentTenant() : "");
+      final String tenantPrefix = TenantContextHolder.hasContext() ? "/" + TenantUtils.getCurrentTenant() : "";
       final String id = SearchFilterUtils.getUriVariableValue(request, "/admin/tenant/{id}/edit", "id");
       return "redirect:" + tenantPrefix + "/admin/tenant/" + id + "/detail";
     } else {

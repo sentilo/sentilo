@@ -32,18 +32,22 @@
  */
 package org.sentilo.platform.service.utils;
 
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
-import org.sentilo.common.parser.EventMessageConverter;
 import org.sentilo.common.utils.DateUtils;
 import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.OrderInputMessage;
+import org.sentilo.platform.common.security.RequesterContextHolder;
+import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
 import org.springframework.data.redis.listener.Topic;
+import org.springframework.util.StringUtils;
 
 public abstract class PublishMessageUtils {
 
-  private static final EventMessageConverter converter = new EventMessageConverter();
+  private static final StringMessageConverter converter = new DefaultStringMessageConverter();
 
   private PublishMessageUtils() {
     // this prevents even the native class from calling this ctor as well :
@@ -61,11 +65,13 @@ public abstract class PublishMessageUtils {
     event.setMessage(message.getMessage());
     event.setTimestamp(DateUtils.timestampToString(timestamp));
     event.setTime(timestamp);
-    event.setSender(message.getSender());
     event.setType(EventType.ALARM.name());
     event.setTopic(topic.getTopic());
+    event.setPublisher(message.getSender());
 
-    return converter.marshall(event);
+    setCustomsFields(event);
+
+    return converter.marshal(event);
   }
 
   public static String buildContentToPublish(final OrderInputMessage message, final Topic topic) {
@@ -77,11 +83,12 @@ public abstract class PublishMessageUtils {
     event.setMessage(message.getOrder());
     event.setTimestamp(DateUtils.timestampToString(timestamp));
     event.setTime(timestamp);
-    event.setSender(message.getSender());
     event.setType(EventType.ORDER.name());
     event.setTopic(topic.getTopic());
 
-    return converter.marshall(event);
+    setCustomsFields(event);
+
+    return converter.marshal(event);
   }
 
   public static String buildContentToPublish(final Observation message, final Topic topic) {
@@ -95,6 +102,18 @@ public abstract class PublishMessageUtils {
     event.setType(EventType.DATA.name());
     event.setTopic(topic.getTopic());
 
-    return converter.marshall(event);
+    setCustomsFields(event);
+
+    return converter.marshal(event);
+  }
+
+  private static void setCustomsFields(final EventMessage event) {
+    if (!StringUtils.hasText(event.getPublisher())) {
+      event.setPublisher(RequesterContextHolder.getContext().getEntityId());
+    }
+
+    event.setPublishedAt(RequesterContextHolder.getContext().getRequestTimestamp());
+    event.setPublisherTenant(RequesterContextHolder.getContext().getTenantId());
+    event.setTenant(ResourceOwnerContextHolder.getContext().getTenantId());
   }
 }

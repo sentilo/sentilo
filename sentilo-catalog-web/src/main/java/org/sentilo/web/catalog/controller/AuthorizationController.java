@@ -67,7 +67,7 @@ public class AuthorizationController extends CatalogBaseController {
   }
 
   private String buildRedirectUrl(final String message) {
-    final String prefixRedirectUrl = (TenantContextHolder.hasContext() ? "/" + TenantUtils.getCurrentTenant() : "");
+    final String prefixRedirectUrl = TenantContextHolder.hasContext() ? "/" + TenantUtils.getCurrentTenant() : "";
     return "redirect:" + prefixRedirectUrl + "/auth/login.html?message=" + message;
   }
 }

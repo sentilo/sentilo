@@ -43,7 +43,6 @@ import org.mockito.MockitoAnnotations;
 import org.sentilo.agent.activity.monitor.listener.MessageListenerImpl;
 import org.sentilo.agent.activity.monitor.service.ActivityMonitorService;
 import org.sentilo.common.domain.EventMessage;
-import org.springframework.data.redis.connection.Message;
 
 public class MessageListenerImplTest {
 
@@ -52,8 +51,7 @@ public class MessageListenerImplTest {
 
   @Mock
   private ActivityMonitorService activityMonitorService;
-  @Mock
-  private Message message;
+
   @Mock
   private EventMessage eventMessage;
 
@@ -64,7 +62,7 @@ public class MessageListenerImplTest {
 
   @Test
   public void doWithMessage() {
-    listener.doWithMessage(message, eventMessage);
+    listener.doWithMessage(eventMessage);
 
     verify(activityMonitorService).process(eventMessage);
   }
@@ -73,7 +71,7 @@ public class MessageListenerImplTest {
   public void controlledExceptionWhenDoWithMessage() {
     doThrow(Exception.class).when(activityMonitorService).process(eventMessage);
 
-    listener.doWithMessage(message, eventMessage);
+    listener.doWithMessage(eventMessage);
 
     verify(activityMonitorService).process(eventMessage);
   }

@@ -43,9 +43,17 @@ public interface ComponentTypesService extends CrudService<ComponentType> {
 
   /**
    * Return a list of component types where for each element there exist a component with this type
-   * 
+   *
    * @param onlyPublics If list must shows only component types related to public components.
    * @return
    */
   List<ComponentType> getActiveComponentTypes(boolean onlyPublics);
+
+  /**
+   * Return a list of types of component according to provider components
+   *
+   * @param providerId The provider id. If null, then return all component types
+   * @return List<ComponentType>
+   */
+  List<ComponentType> findComponentTypesByProvider(String providerId);
 }

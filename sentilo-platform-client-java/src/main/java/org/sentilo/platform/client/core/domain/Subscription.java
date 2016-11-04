@@ -40,11 +40,16 @@ public class Subscription {
   private String type;
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private Long maxRetries;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private Long retryDelay;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String provider;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String sensor;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-  private String alarm;
+  private String alert;
 
   public String getEndpoint() {
     return endpoint;
@@ -78,11 +83,27 @@ public class Subscription {
     this.sensor = sensor;
   }
 
-  public String getAlarm() {
-    return alarm;
+  public String getAlert() {
+    return alert;
   }
 
-  public void setAlarm(final String alarm) {
-    this.alarm = alarm;
+  public void setAlert(final String alarm) {
+    alert = alarm;
+  }
+
+  public Long getRetryDelay() {
+    return retryDelay;
+  }
+
+  public void setRetryDelay(final Long retryDelay) {
+    this.retryDelay = retryDelay;
+  }
+
+  public Long getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(final Long maxRetries) {
+    this.maxRetries = maxRetries;
   }
 }

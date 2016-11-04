@@ -64,7 +64,7 @@ public class MetricServiceImpl extends AbstractMetricsServiceImpl implements Met
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.service.monitor.MetricService#getGlobalPerformance()
    */
   public Collection<PlatformPerformance> getGlobalPerformance() {
@@ -81,19 +81,19 @@ public class MetricServiceImpl extends AbstractMetricsServiceImpl implements Met
 
   /*
    * (non-Javadoc)
-   * 
-   * @see org.sentilo.platform.service.monitor.MetricService#calculateGlobalPerformance()
+   *
+   * @see org.sentilo.platform.service.monitor.MetricService#computeGlobalPerformance()
    */
   @Scheduled(initialDelay = 10000, fixedRate = 30000)
-  public void calculateGlobalPerformance() {
-    // Calculate the current performance for the master instance
+  public void computeGlobalPerformance() {
+    // Compute the current performance for the master instance
     // and for each tenant registered into it.
-    LOGGER.debug("Init the process to calculate the current global performance");
+    LOGGER.debug("Init the process to compute the current global performance");
     final long currentTs = System.currentTimeMillis();
-    final Set<String> counters = redisTemplate.keys(MonitorConstants.TENANT_COUNTERS_KEYS_PATTERN);
-    counters.add(MonitorConstants.MASTER_COUNTERS_KEY);
+    final Set<String> counters = getCountersKeys();
+
     for (final String counterKey : counters) {
-      calculatePerformance(counterKey, currentTs);
+      computePerformance(counterKey, currentTs);
     }
     LOGGER.debug("Finished process. Running time (millis) = {}", System.currentTimeMillis() - currentTs);
   }
@@ -101,7 +101,7 @@ public class MetricServiceImpl extends AbstractMetricsServiceImpl implements Met
   /**
    * Get the performance stored in Redis and associated with the site fixed by the activity
    * attribute
-   * 
+   *
    * @param activity
    * @return
    */
@@ -118,27 +118,27 @@ public class MetricServiceImpl extends AbstractMetricsServiceImpl implements Met
   }
 
   /**
-   * Calculates the performance's metrics for the site related to the key <code>counterKey</code>
-   * 
+   * Computes the performance's metrics for the site related to the key <code>counterKey</code>
+   *
    * @param counterKey Redis key of a counter hash related to a Sentilo site (either master or
    *        tenant site)
    */
-  private void calculatePerformance(final String counterKey, final Long currentTs) {
+  private void computePerformance(final String counterKey, final Long currentTs) {
     final String avgsHashKey = buildAvgHashKey(counterKey);
     // First step is to get the counters stored in Redis, more particularly the requests field
     final String totalRequests = getFieldValue(counterKey, MonitorConstants.TOTAL_REQUESTS_FIELD);
     // At second place is to get the last avg stored in Redis
     final Map<Object, Object> avgsHash = getAvgsHash(avgsHashKey);
 
-    // Finally, calculate new instantAvg.
+    // Finally, compute new instantAvg.
     final Long prevTotalRequests = Long.valueOf(getHashValue(avgsHash, MonitorConstants.TOTAL_REQUESTS_FIELD, "0"));
     final long prevTs = Long.parseLong(getHashValue(avgsHash, MonitorConstants.TIMESTAMP_FIELD, "0"));
     final long deltaTsSeconds = (currentTs - prevTs) / 1000;
-    final Float instantAvg = calculateInstantAvg(Long.parseLong(totalRequests), prevTotalRequests, deltaTsSeconds);
+    final Float instantAvg = computeInstantAvg(Long.parseLong(totalRequests == null ? "0" : totalRequests), prevTotalRequests, deltaTsSeconds);
     // Compare with max and daily avgs
     upgradeAvgsIfNeedBe(avgsHash, instantAvg, currentTs, prevTs);
     // and stored it
-    storeAvgsHash(avgsHashKey, avgsHash, instantAvg, totalRequests, currentTs);
+    storeAvgsHash(avgsHashKey, avgsHash, instantAvg, totalRequests == null ? "0" : totalRequests, currentTs);
 
   }
 
@@ -182,13 +182,13 @@ public class MetricServiceImpl extends AbstractMetricsServiceImpl implements Met
     cal.setTimeInMillis(prevTs);
     final int prevDay = cal.get(Calendar.DATE);
 
-    if (currentDay != prevDay || (currentDay == prevDay && instantAvg > maxDailyAvg)) {
+    if (currentDay != prevDay || currentDay == prevDay && instantAvg > maxDailyAvg) {
       avgsHash.put(MonitorConstants.MAX_DAILY_AVG_FIELD, Float.toString(instantAvg));
     }
   }
 
-  private Float calculateInstantAvg(final Long totalRequests, final Long prevTotalRequests, final Long deltaTs) {
-    final Long delta = (prevTotalRequests != 0 ? totalRequests - prevTotalRequests : new Long(0));
+  private Float computeInstantAvg(final Long totalRequests, final Long prevTotalRequests, final Long deltaTs) {
+    final Long delta = prevTotalRequests != 0 ? totalRequests - prevTotalRequests : new Long(0);
 
     final BigDecimal eventsPerSecond = new BigDecimal(delta);
     return delta == 0 ? new Float(0) : eventsPerSecond.divide(new BigDecimal(deltaTs), 2, BigDecimal.ROUND_HALF_EVEN).floatValue();
@@ -203,14 +203,14 @@ public class MetricServiceImpl extends AbstractMetricsServiceImpl implements Met
     sb.append(PubSubConstants.REDIS_KEY_TOKEN);
 
     if (activity.isMaster()) {
-      sb.append(MetricKeyType.MASTER.name());
+      sb.append(MetricKeyType.master.name());
     } else {
-      sb.append(MetricKeyType.TENANT.name());
+      sb.append(MetricKeyType.tenant.name());
       sb.append(PubSubConstants.REDIS_KEY_TOKEN);
       sb.append(activity.getTenant());
     }
 
-    return sb.toString().toLowerCase();
+    return sb.toString();
   }
 
 }

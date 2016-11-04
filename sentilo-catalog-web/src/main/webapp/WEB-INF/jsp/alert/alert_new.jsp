@@ -237,6 +237,15 @@ $(document).ready(function() {
 								</div>
 							</div>
 							<div class="control-group">
+								<form:label path="active" class="control-label">
+									<spring:message code="alert.active" />
+								</form:label>
+								<div class="controls">
+									<form:checkbox path="active" />
+									<form:errors path="active" cssClass="text-error" htmlEscape="false" />
+								</div>
+							</div>							
+							<div class="control-group">
 								<form:label path="type" class="control-label">
 									<spring:message code="alert.type" />
 								</form:label>

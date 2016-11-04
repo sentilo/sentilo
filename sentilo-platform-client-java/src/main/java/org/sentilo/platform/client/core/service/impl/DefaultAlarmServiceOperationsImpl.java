@@ -34,7 +34,6 @@ package org.sentilo.platform.client.core.service.impl;
 
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
 import org.sentilo.platform.client.core.domain.AlarmsOutputMessage;
-import org.sentilo.platform.client.core.parser.AlarmMessageConverter;
 import org.sentilo.platform.client.core.service.AlarmServiceOperations;
 import org.sentilo.platform.client.core.utils.RequestUtils;
 import org.slf4j.Logger;
@@ -46,11 +45,9 @@ public class DefaultAlarmServiceOperationsImpl extends AbstractServiceOperations
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAlarmServiceOperationsImpl.class);
 
-  private AlarmMessageConverter converter = new AlarmMessageConverter();
-
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.client.core.service.AlarmServiceOperations#publish(org.sentilo.platform
    * .client.core.domain.AlarmInputMessage)
@@ -58,23 +55,22 @@ public class DefaultAlarmServiceOperationsImpl extends AbstractServiceOperations
   @Override
   public void publish(final AlarmInputMessage message) {
     LOGGER.debug("Publishing alarm message {}", message);
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshall(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
     LOGGER.debug("alarm published ");
   }
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.platform.client.core.service.AlarmServiceOperations#getLastAlarmMessages(org.sentilo
-   * .platform.client.core.domain.AlarmInputMessage)
+   *
+   * @see org.sentilo.platform.client.core.service.AlarmServiceOperations#getLastAlarmMessages(org.
+   * sentilo .platform.client.core.domain.AlarmInputMessage)
    */
   @Override
   public AlarmsOutputMessage getLastAlarmMessages(final AlarmInputMessage message) {
     LOGGER.debug("Retrieving last alarm messages  {}", message);
     final String response = getRestClient().get(RequestUtils.buildPath(message), RequestUtils.buildParameters(message), message.getIdentityToken());
     LOGGER.debug("Retrieved last alarm messages");
-    return converter.unmarshall(response);
+    return (AlarmsOutputMessage) converter.unmarshal(response, AlarmsOutputMessage.class);
   }
 
 }

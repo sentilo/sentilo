@@ -73,7 +73,7 @@
 								<strong><spring:message code="sensor.type" /> </strong>
 							</div>
 							<div class="span8">
-								<span class="label">${sensor.type}</span>
+								<span class="label label-info">${sensor.type}</span>
 							</div>
 						</div>
 						<c:set value="${sensor.tagsAsList}" var="tags" scope="request" />
@@ -83,7 +83,7 @@
 								<strong><spring:message code="sensor.dataType" /> </strong>
 							</div>
 							<div class="span8">
-								<span class="label"><spring:message code="sensor.dataType.${sensor.dataType}" /> </span>
+								<span class="label label-info"><spring:message code="sensor.dataType.${sensor.dataType}" /> </span>
 							</div>
 						</div>
 						<div class="row-fluid">
@@ -97,20 +97,25 @@
 								<strong><spring:message code="sensor.timeZone" /> </strong>
 							</div>
 							<div class="span8">${sensor.timeZone}</div>
-						</div>											
+						</div>							
 						<div class="row-fluid">
 							<div class="span4">
-								<strong><spring:message code="sensor.validTime" /> </strong>
+								<strong><spring:message code="sensor.state" /> </strong>
 							</div>
-							<div class="span8">${sensor.validTime}</div>
-						</div>
-						<div class="row-fluid">
-							<div class="span4">
-								<strong><spring:message code="sensor.metaData" /> </strong>
+							<div class="span8">
+								<span class="label label-info"><spring:message code="sensor.state.${sensor.state}" /> </span>
 							</div>
-							<div class="span8">${sensor.metaData}</div>
 						</div>
-					</div>
+						<c:if test="${not empty  sensor.substate}">
+							<div class="row-fluid">
+								<div class="span4">
+									<strong><spring:message code="sensor.substate" /> </strong>
+								</div>
+								<div class="span8">
+									<span class="label label-info"><c:out value="${sensor.substateDesc}"/> </span>
+								</div>
+							</div>
+						</c:if>												
 				</div>
 			</div>
 		</div>
@@ -125,6 +130,7 @@
 				</div>
 			</div>
 		</div>
+	</div>
 	</div>
 	<div class="${tab2PaneClass}" id="tab2">
 		<div class="accordion" id="technicalDetailsAccordion">
@@ -161,3 +167,4 @@
 			</div>
 		</div>
 	</div>
+</div>

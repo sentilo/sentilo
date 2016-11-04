@@ -4,6 +4,7 @@
 <spring:url value="/admin/provider/list?nameTableRecover=providerTable" var="providerListURL" />
 <spring:url value="/admin/application/list?nameTableRecover=applicationTable" var="applicationListURL" />
 <spring:url value="/admin/alert/list?nameTableRecover=alertTable" var="alertListURL" />
+<spring:url value="/admin/alertRule/list?nameTableRecover=alertRuleTable" var="alertRuleListURL" />
 <spring:url value="/admin/sensor/list?nameTableRecover=sensorTable" var="sensorListURL" />
 <spring:url value="/admin/users/list?nameTableRecover=userTable" var="userListURL" />
 <spring:url value="/admin/sensortypes/list?nameTableRecover=sensorTypeTable" var="sensorTypesListURL" />
@@ -22,6 +23,7 @@
 <c:set value=" connecta-icon-black" var="classSensorTypeIcon" />
 <c:set value=" connecta-icon-black" var="classComponentTypeIcon" />
 <c:set value=" connecta-icon-black" var="classComponentIcon" />
+<c:set value=" connecta-icon-black" var="classRuleIcon" />
 <c:set value=" connecta-icon-black" var="classTenantIcon" />
  
 <c:if test="${activeMenu == '/application' }">
@@ -55,6 +57,10 @@
 <c:if test="${activeMenu == '/component' || activeMenu == '/componentMap' }">
 	<c:set value=" class='current'" var="classComponent" />
 	<c:set value=" icon-white" var="classComponentIcon" />
+</c:if>
+<c:if test="${activeMenu == '/rule' }">
+	<c:set value=" class='current'" var="classRule" />
+	<c:set value=" icon-white" var="classRuleIcon" />
 </c:if>
 <c:if test="${activeMenu == '/tenant'}">
 	<c:set value=" class='current'" var="classTenant" />
@@ -120,6 +126,12 @@
 			<a href="${alertListURL}"${classAlert}>	
 				<i class="icon-bell-alt${classAlertIcon}"></i>
 				<spring:message code="sidebar.alert.title" /> 
+			</a>
+		</li>
+		<li>
+			<a href="${alertRuleListURL}"${classRule}> 
+				<i class="icon-tasks${classRuleIcon}"></i>
+				<spring:message code="menu.admin.alertrule.title" /> 
 			</a>
 		</li>
 		</security:authorize>

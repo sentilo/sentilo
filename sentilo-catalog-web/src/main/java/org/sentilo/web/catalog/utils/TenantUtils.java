@@ -32,6 +32,7 @@
  */
 package org.sentilo.web.catalog.utils;
 
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Tenant;
@@ -47,7 +48,7 @@ public abstract class TenantUtils extends CatalogUtils {
   /**
    * Returns the resource's tenant owner if resource is a tenant resource and multitenant feature is
    * enabled.
-   * 
+   *
    * @param resource
    * @return resource's tenant owner
    */
@@ -55,7 +56,7 @@ public abstract class TenantUtils extends CatalogUtils {
     String resourceTenantOwner = null;
 
     if (TenantContextHolder.isEnabled() && (resource instanceof Tenant || resource instanceof TenantResource)) {
-      resourceTenantOwner = (resource instanceof Tenant ? ((Tenant) resource).getId() : ((TenantResource) resource).getTenantId());
+      resourceTenantOwner = resource instanceof Tenant ? ((Tenant) resource).getId() : ((TenantResource) resource).getTenantId();
     }
 
     return resourceTenantOwner;
@@ -63,7 +64,7 @@ public abstract class TenantUtils extends CatalogUtils {
 
   /**
    * Checks if the current tenant is the owner of the resource.
-   * 
+   *
    * @param resource
    * @return
    */
@@ -74,7 +75,7 @@ public abstract class TenantUtils extends CatalogUtils {
       final String currentTenant = getCurrentTenant();
       final String resourceTenant = getResourceTenantOwner(resource);
 
-      isCurrentTenantResource = (currentTenant.equals(resourceTenant));
+      isCurrentTenantResource = SentiloUtils.areEquals(currentTenant, resourceTenant);
     }
 
     return isCurrentTenantResource;
@@ -83,11 +84,23 @@ public abstract class TenantUtils extends CatalogUtils {
   /**
    * Return the current tenant associated with the site that the user is browsing or null if
    * multitenant feature is disabled.
-   * 
+   *
    * @return
    */
   public static String getCurrentTenant() {
-    return (TenantContextHolder.hasContext() ? TenantContextHolder.getContext().getCurrentTenant() : null);
+    return TenantContextHolder.hasContext() ? TenantContextHolder.getContext().getCurrentTenant() : null;
+  }
+
+  public static String getRequestTenant() {
+    return TenantContextHolder.hasContext() ? TenantContextHolder.getContext().getRequestTenant() : null;
+  }
+
+  public static String getUserTenant() {
+    return TenantContextHolder.hasContext() ? TenantContextHolder.getContext().getUserTenant() : null;
+  }
+
+  public static String getMenuCurrentTenant() {
+    return TenantContextHolder.hasContext() ? TenantContextHolder.getContext().getCurrentTenant() : "sentilo";
   }
 
 }

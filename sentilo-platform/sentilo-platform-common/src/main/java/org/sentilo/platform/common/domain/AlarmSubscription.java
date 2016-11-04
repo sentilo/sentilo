@@ -39,14 +39,16 @@ public class AlarmSubscription extends Subscription {
 
   private final String alertId;
 
-  public AlarmSubscription(final String sourceEntityId, final String targetEntityId, final String endpoint, final String alertId) {
-    super(sourceEntityId, targetEntityId, endpoint, SubscribeType.ALARM);
+  public AlarmSubscription(final String sourceEntityId, final String targetEntityId, final String alertId,
+      final NotificationParams notificationParams) {
+    super(sourceEntityId, targetEntityId, SubscribeType.ALARM);
     this.alertId = alertId;
+    setNotificationParams(notificationParams);
   }
 
   @Override
   public boolean hasResourceIdentified() {
-    return (StringUtils.hasText(alertId));
+    return StringUtils.hasText(alertId);
   }
 
   public String getAlertId() {

@@ -38,6 +38,7 @@ import org.sentilo.agent.activity.monitor.service.ActivityMonitorService;
 import org.sentilo.agent.activity.monitor.service.CatalogService;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.utils.EventType;
+import org.sentilo.common.utils.SentiloConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -52,7 +53,7 @@ public class ActivityMonitorServiceImpl implements ActivityMonitorService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.agent.activity.monitor.service.ActivityMonitorService#process(org.sentilo.common
    * .domain.EventMessage)
@@ -92,7 +93,7 @@ public class ActivityMonitorServiceImpl implements ActivityMonitorService {
   private void populateAdditionalFields(final EventMessage eventMessage, final EventType eventType) {
     // Depending on the event message type, some additional fields need to be populated before send
     // it to index
-    if (eventType.equals(EventType.ALARM)) {
+    if (eventType.equals(EventType.ALARM) && isInternalAlarm(eventMessage, eventType) && !isGhostSensorAlarm(eventMessage, eventType)) {
       eventMessage.setSensorType(catalogService.getSensorType(eventMessage.getProvider(), eventMessage.getSensor()));
       final CatalogAdditionalFields additionalFields = catalogService.getAdditionalFields(eventMessage.getAlert());
       if (additionalFields != null) {
@@ -101,6 +102,14 @@ public class ActivityMonitorServiceImpl implements ActivityMonitorService {
       }
     }
 
+  }
+
+  private boolean isGhostSensorAlarm(final EventMessage eventMessage, final EventType eventType) {
+    return eventType.equals(EventType.ALARM) && SentiloConstants.GHOST_SENSOR_ALERT.equals(eventMessage.getAlert());
+  }
+
+  private boolean isInternalAlarm(final EventMessage eventMessage, final EventType eventType) {
+    return eventType.equals(EventType.ALARM) && StringUtils.hasText(eventMessage.getProvider()) && StringUtils.hasText(eventMessage.getSensor());
   }
 
   private void publishMessageToElasticSearch(final EventMessage eventMessage) {

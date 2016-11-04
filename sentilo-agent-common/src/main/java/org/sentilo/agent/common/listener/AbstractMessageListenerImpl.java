@@ -32,9 +32,10 @@
  */
 package org.sentilo.agent.common.listener;
 
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.exception.MessageNotWritableException;
-import org.sentilo.common.parser.EventMessageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
@@ -49,7 +50,7 @@ public abstract class AbstractMessageListenerImpl implements MessageListener {
 
   private final String name;
   private RedisSerializer<String> serializer = new StringRedisSerializer();
-  private EventMessageConverter eventConverter = new EventMessageConverter();
+  private StringMessageConverter eventConverter = new DefaultStringMessageConverter();
 
   public AbstractMessageListenerImpl(final String name) {
     super();
@@ -68,21 +69,20 @@ public abstract class AbstractMessageListenerImpl implements MessageListener {
     try {
       // The received message corresponds to a JSON representation of an object of type
       // EventMessage.
-      final EventMessage eventMessage = eventConverter.unmarshall(info);
+      final EventMessage eventMessage = (EventMessage) eventConverter.unmarshal(info, EventMessage.class);
 
-      doWithMessage(message, eventMessage);
+      doWithMessage(eventMessage);
     } catch (final MessageNotWritableException mnwe) {
-      LOGGER.error("Error unmarshalling message {}. Error: {} ", info, mnwe);
+      LOGGER.error("Error unmarshalling message: {}. ", info, mnwe);
     }
   }
 
   /**
    * Every implementation of this class must override this method to implements business logic
-   * 
-   * @param message
+   *
    * @param eventMessage
    */
-  public abstract void doWithMessage(final Message message, final EventMessage eventMessage);
+  public abstract void doWithMessage(final EventMessage eventMessage);
 
   public String getName() {
     return name;

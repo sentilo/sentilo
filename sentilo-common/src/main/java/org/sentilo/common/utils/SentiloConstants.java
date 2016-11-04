@@ -35,6 +35,7 @@ package org.sentilo.common.utils;
 public final class SentiloConstants {
 
   public static final String SENTILO_MULTITENANT_PROP_KEY = "sentilo.multitenant";
+  public static final String SENTILO_MULTITENANT_INFER_PROP_KEY = "sentilo.multitenant.infer";
 
   public static final Integer NUM_MAXIM_ELEMENTS = 10;
   public static final Integer NUM_MAXIM_ELEMENTS_BY_SENSOR = 200;
@@ -54,8 +55,8 @@ public final class SentiloConstants {
   public static final String PROVIDER_TOKEN = "provider";
   public static final String SENSOR_TOKEN = "sensor";
   public static final String ENTITY_TOKEN = "entity";
-  public static final String PERMISSIONS_TOKEN = "permissions";
-  public static final String CREDENTIALS_TOKEN = "credentials";
+  public static final String[] PERMISSIONS_TOKEN = {"entities", "permissions"};
+  public static final String[] METADATA_TOKEN = {"entities", "metadata"};
   public static final String AUTHORIZED_TOKEN = "authorized";
   public static final String DELETE_TOKEN = "delete";
   public static final String OWNERS_TOKEN = "owners";
@@ -70,6 +71,7 @@ public final class SentiloConstants {
   // Internal error messages and codes.
   public static final String INTERNAL_ERROR_MESSAGE_TEMPLATE =
       "Something went wrong. Please try again. If the problem persists, contact your support site and provide the following error code: %s";
+  public static final String RESTRICTED_TO_PROVIDERS_ERROR = "The service you have requested is restricted to providers only";
 
   public static final String SENTILO_ACCESS_ERROR = "SIE00";
   public static final String CATALOG_API_ERROR = "SIE01";
@@ -78,6 +80,18 @@ public final class SentiloConstants {
   public static final String JSON_MARSHAL_ERROR = "SIE04";
   public static final String CATALOG_GENERAL_ERROR = "SIE05";
   public static final String SENTILO_UNKNOWN_ERROR = "SIE99";
+
+  public static final String PUBSUB_RESOURCE_NOT_FOUND = "404.1";
+  public static final String PUBSUB_RESOURCE_NOT_ONLINE = "404.2";
+  public static final String PUBSUB_EVENT_REJECTED = "404.1";
+  public static final String PUBSUB_SSL_REQUIRED = "403.4";
+
+  // Push constants
+  public static final long DEFAULT_MAX_RETRIES = 3;
+  public static final long DEFAULT_RETRY_DELAY = 5;
+
+  public static final String GHOST_SENSOR_ALERT = "_GHOST_SENSOR";
+  public static final String GHOST_SENSOR_SENDER = "SENTILO";
 
   // Cross timestamp pattern
   public static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";

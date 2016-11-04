@@ -33,24 +33,28 @@
 package org.sentilo.web.catalog.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.sentilo.web.catalog.domain.Alert;
+import org.sentilo.web.catalog.domain.CatalogDocument;
+import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.enums.SensorState;
+import org.sentilo.web.catalog.event.SensorsStateChangeEvent;
 import org.sentilo.web.catalog.repository.AlertRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.AlertService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.context.ApplicationListener;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 @Service
-public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert> implements AlertService {
+public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert>implements AlertService, ApplicationListener<SensorsStateChangeEvent> {
 
   @Autowired
   private AlertRepository repository;
@@ -74,7 +78,7 @@ public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert> impleme
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.AlertService#getAlertsByEntities(java.util.Collection,
    * java.util.Map)
    */
@@ -104,7 +108,7 @@ public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert> impleme
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.AlertService#deleteAllAlerts(java.lang.String)
    */
   public void deleteOwnAlerts(final String entityOwnerId) {
@@ -115,12 +119,12 @@ public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert> impleme
     filter.addParam("applicationId", entityOwnerId);
     filter.addAndParam("type", Alert.Type.EXTERNAL.name());
 
-    getMongoOps().remove(buildQuery(filter), Alert.class);
+    delete(filter);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.AlertService#deleteOwnAlerts(java.util.Collection,
    * java.lang.String)
    */
@@ -129,40 +133,48 @@ public class AlertServiceImpl extends AbstractBaseCrudServiceImpl<Alert> impleme
     // providerId or applicationId equals to entityOwnerId
     // and alert type equals to EXTERNAL
     final boolean isEntityProvider = providerService.exist(entityOwnerId);
-    final Map<String, Object> filterParams = new HashMap<String, Object>();
-    filterParams.put("type", "EXTERNAL");
+    final SearchFilter filter = new SearchFilter();
+    filter.addAndParam("type", "EXTERNAL");
     if (isEntityProvider) {
-      filterParams.put("providerId", entityOwnerId);
+      filter.addAndParam("providerId", entityOwnerId);
     } else {
-      filterParams.put("applicationId", entityOwnerId);
+      filter.addAndParam("applicationId", entityOwnerId);
     }
 
-    getMongoOps().remove(buildQuery("id", alertsIds, filterParams), Alert.class);
+    filter.addAndParam("id", alertsIds);
 
+    delete(filter);
+  }
+
+  @Override
+  public void onApplicationEvent(final SensorsStateChangeEvent event) {
+    if (event instanceof SensorsStateChangeEvent) {
+      for (final CatalogDocument sensor : event.getResources()) {
+        final SearchFilter filterParams = new SearchFilter();
+        filterParams.addAndParam("providerId", ((Sensor) sensor).getProviderId());
+        filterParams.addAndParam("sensorId", ((Sensor) sensor).getSensorId());
+
+        final boolean active = SensorState.online.equals(((Sensor) sensor).getState());
+
+        updateMulti(buildQuery(filterParams), Arrays.asList("active"), Arrays.asList(active));
+
+        LOGGER.debug("Change active field value for alerts associated with sensor [{}] and provider [{}] to: {}", ((Sensor) sensor).getSensorId(),
+            ((Sensor) sensor).getProviderId(), active);
+      }
+    }
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
    * .web.catalog.domain.CatalogDocument)
    */
   protected void doBeforeCreate(final Alert alert) {
-    // If name is null, we initialize it with the id value
+    // If name is null, it should be initialize with the id value
     if (alert.getName() == null) {
       alert.setName(alert.getId());
     }
   }
-
-  private Query buildQuery(final String paramName, final Collection<String> values, final Map<String, Object> filterParams) {
-    Criteria queryCriteria = Criteria.where(paramName).in(values);
-    if (!CollectionUtils.isEmpty(filterParams)) {
-      final Criteria[] aCriteria = buildAndParamsCriteria(filterParams);
-      queryCriteria = queryCriteria.andOperator(aCriteria);
-    }
-
-    return new Query(queryCriteria);
-  }
-
 }

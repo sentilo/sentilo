@@ -37,13 +37,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.platform.common.domain.AlarmSubscription;
 import org.sentilo.platform.common.domain.DataSubscription;
+import org.sentilo.platform.common.domain.NotificationParams;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.OrderSubscription;
 import org.sentilo.platform.common.domain.Subscription;
-import org.sentilo.platform.service.listener.NotificationParams;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.Topic;
@@ -52,6 +54,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public final class ChannelUtils {
+
+  private static StringMessageConverter converter = new DefaultStringMessageConverter();
 
   public static enum PubSubChannelPrefix {
     data, order, alarm
@@ -83,7 +87,7 @@ public final class ChannelUtils {
 
   public static boolean isTopicOfType(final String topicName, final SubscribeType type) {
     final String prefixToCompare = PubSubConstants.REDIS_CHANNEL_TOKEN.concat(type.name().toLowerCase());
-    return (type != null && topicName.startsWith(prefixToCompare));
+    return type != null && topicName.startsWith(prefixToCompare);
   }
 
   public static Topic getChannel(final Observation observation) {
@@ -109,34 +113,32 @@ public final class ChannelUtils {
     }
   }
 
-  public static Subscription getSubscription(final String entityId, final String channel, final String notificationParamsChain) {
+  public static Subscription getSubscription(final String entityId, final String channel, final String notificationParamsJson) {
     Assert.notNull(channel);
 
     // channel follow the following format: /<type>/<resourceId1>/<resourceId2>
     // where <resourceId2> is optional
     // and <resouceId1> could represent a pattern (ends with *)
-    // notificationParamsChain --> endpoint#@#secret
 
     final String[] tokens = channel.split(PubSubConstants.REDIS_CHANNEL_TOKEN);
     final PubSubChannelPrefix type = PubSubChannelPrefix.valueOf(tokens[1]);
-    final NotificationParams notificationParams = new NotificationParams(notificationParamsChain);
-    final String endpoint = notificationParams.getEndpoint();
+    final NotificationParams notificationParams = (NotificationParams) converter.unmarshal(notificationParamsJson, NotificationParams.class);
     Subscription subscription = null;
     String providerId, sensorId;
     switch (type) {
       case data:
         providerId = tokens[2];
-        sensorId = (!providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 3 ? tokens[3] : null);
-        subscription = new DataSubscription(entityId, endpoint, providerId, sensorId);
+        sensorId = !providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 3 ? tokens[3] : null;
+        subscription = new DataSubscription(entityId, providerId, sensorId, notificationParams);
         break;
       case order:
         providerId = tokens[2];
-        sensorId = (!providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 3 ? tokens[3] : null);
-        subscription = new OrderSubscription(entityId, providerId, sensorId, endpoint);
+        sensorId = !providerId.endsWith(PubSubConstants.REDIS_CHANNEL_PATTERN_SUFFIX) && tokens.length > 3 ? tokens[3] : null;
+        subscription = new OrderSubscription(entityId, providerId, sensorId, notificationParams);
         break;
       case alarm:
         final String alarmId = tokens[2];
-        subscription = new AlarmSubscription(entityId, null, endpoint, alarmId);
+        subscription = new AlarmSubscription(entityId, null, alarmId, notificationParams);
         break;
     }
 
@@ -179,8 +181,8 @@ public final class ChannelUtils {
 
     // This method transforms a channel with the format /<type>/<resourceId1>/<resourceId2>
     // which represents (in a business sense) a subscription to any data of type <type>
-    // sent to the resource identify by <resourceId1>/<resourceId2>, in a parent pattern channel,
-    // i.e., a channel with the format /<type>/<resourceId1>*.
+    // published by the resource identified by <resourceId1>/<resourceId2>, in a parent pattern
+    // channel, i.e., a channel with the format /<type>/<resourceId1>*.
 
     String pattern = channel;
 

@@ -198,9 +198,8 @@ public class ClientDomainTest {
   @Test
   public void catalogInputMessage() throws Exception {
 
-    final Object[] values =
-        {"mockProvider", Collections.<CatalogSensor>emptyList(), Collections.<CatalogComponent>emptyList(), "mockToken",
-            Collections.<String, String>emptyMap()};
+    final Object[] values = {"mockProvider", Collections.<CatalogSensor>emptyList(), Collections.<CatalogComponent>emptyList(), "mockToken",
+        Collections.<String, String>emptyMap()};
     final String[] attributes = {"providerId", "sensors", "components", "identityToken", "parameters"};
 
     // Case 1: default constructor
@@ -277,8 +276,8 @@ public class ClientDomainTest {
 
   @Test
   public void subscription() throws Exception {
-    final Object[] values = {"mockEndpoint", "mockType", "mockProv", "mockSensor", "mockAlarm"};
-    final String[] attributes = {"endpoint", "type", "provider", "sensor", "alarm"};
+    final Object[] values = {"mockEndpoint", "mockType", "mockProv", "mockSensor", "mockAlert"};
+    final String[] attributes = {"endpoint", "type", "provider", "sensor", "alert"};
 
     bindAndValidateMutableObject(Subscription.class, attributes, values);
   }

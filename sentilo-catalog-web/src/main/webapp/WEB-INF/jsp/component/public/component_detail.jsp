@@ -4,7 +4,6 @@
 
 <c:set var="componentId" scope="request" value="${component.id}" />
 
-<spring:url value="/admin/sensor/list/json?componentId=${component.id}" var="sensorsAjaxSource" />
 <spring:url value="/admin/sensor/lastOb/" var="lastSensorObservationAjaxPrefix" />
 <spring:url value="/admin/sensor/lastObs/" var="activityURLPrefix" />
 <spring:url value="/admin/sensor/lastOrders/" var="ordersURLPrefix" />

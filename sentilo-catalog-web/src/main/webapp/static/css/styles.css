@@ -1,6 +1,3 @@
-@import
-	url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,700)
-	;
 
 #detailComponentId {
 	color: #999999;
@@ -170,6 +167,26 @@ body {
 	*background-color: #003bb3;
 }
 
+.btn-file {
+        position: relative;
+        overflow: hidden;
+ }
+ .btn-file input[type=file] {
+     position: absolute;
+     top: 0;
+     right: 0;
+     min-width: 100%;
+     min-height: 100%;
+     font-size: 100px;
+     text-align: right;
+     filter: alpha(opacity=0);
+     opacity: 0;
+     outline: none;
+     background: white;
+     cursor: inherit;
+     display: block;
+ }
+
 .hero-unit {
 	position: fixed;
 	z-index: 1;
@@ -230,7 +247,7 @@ navbar .nav > li > a {
 }
 
 .navbar .logotype {
- 	background: url("../images/logo_header.png");
+ 	background: url("../img/logo_header.png");
  	background-repeat: no-repeat;
  	background-size: 132px 45px;
  	background-position: 0px 0px;
@@ -380,6 +397,7 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding: 2px 0px;
 }
 
 .infobox-header-icon {
@@ -448,6 +466,10 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
     padding-top: 15px;
     text-align: right;
     text-overflow: ellipsis;
+}
+
+.infobox-body-column > p.offline {
+	color: #ccc
 }
 
 h1 small {
@@ -802,6 +824,45 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
     margin: 0 5px;
     padding: 1px;
 }
+
+/********** Redefine map controls style **********/
+
+#map_controls .btn, #map_controls input {
+    direction: ltr;
+    overflow: hidden;
+    text-align: center;
+    position: relative;
+    color: rgb(0, 0, 0);
+    border-color:transparent;
+    font-family: Roboto, Arial, sans-serif;
+    -webkit-user-select: none;
+    font-size: 11px;
+    padding: 6.9px;
+    border-radius: 2px;
+    -webkit-background-clip: padding-box;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 4px -1px;
+    min-width: 40px;
+    font-weight: 500;
+    background-color: rgb(255, 255, 255);
+    background-clip: padding-box;
+    background-image:none;
+}
+#map_controls .dropdown-menu {
+    overflow: hidden;
+    color: rgb(0, 0, 0);
+    border-color:transparent;
+    font-family: Roboto, Arial, sans-serif;
+    -webkit-user-select: none;
+    font-size: 13px;
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 4px -1px;
+    min-width: 40px;
+    font-weight: 300;
+    padding-right:30px
+}
+#map_controls input {font-weight: 300;}
+#map_controls .add-on {display:none;}
+#map_controls .connecta-icon-location {padding: 8px;}
 
 /********** Responsive media queries ****************/
 @media (max-width: 979px) { 

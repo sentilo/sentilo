@@ -64,7 +64,7 @@ public class OrderInputMessage implements PlatformInputMessage, PlatformSearchIn
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#getQueryFilters()
    */
   public QueryFilterParams getQueryFilters() {
@@ -73,7 +73,7 @@ public class OrderInputMessage implements PlatformInputMessage, PlatformSearchIn
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#hasQueryFilters()
    */
   public boolean hasQueryFilters() {

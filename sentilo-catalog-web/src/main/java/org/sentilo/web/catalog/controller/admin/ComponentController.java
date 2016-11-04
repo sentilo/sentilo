@@ -123,7 +123,8 @@ public class ComponentController extends BaseComponentController {
   }
 
   @RequestMapping(value = "/{id}/removeComponents", method = RequestMethod.POST)
-  public String removeComponents(@PathVariable final String id, @Valid final ComponentsDTO components, final BindingResult result, final Model model) {
+  public String removeComponents(@PathVariable final String id, @Valid final ComponentsDTO components, final BindingResult result,
+      final Model model) {
     if (!SentiloUtils.arrayIsEmpty(components.getSelectedIds())) {
       getComponentService().updateMulti(Arrays.asList(components.getSelectedIds()), PARENT_ID_ATTRIBUTE, null);
     }
@@ -134,22 +135,9 @@ public class ComponentController extends BaseComponentController {
     return Constants.VIEW_COMPONENT_DETAIL;
   }
 
-  @RequestMapping(value = "/{id}/addSensors", method = RequestMethod.POST)
-  public String addSensors(@PathVariable final String id, @Valid final ComponentSensorsDTO componentSensors, final BindingResult result,
-      final Model model) {
-
-    if (!SentiloUtils.arrayIsEmpty(componentSensors.getSelectedIds())) {
-      getSensorService().updateMulti(Arrays.asList(componentSensors.getSelectedIds()), COMPONENT_ID_ATTRIBUTE, id);
-    }
-
-    ModelUtils.addConfirmationMessageTo(model, "sensor.assigned");
-    ModelUtils.addOpenedTabTo(model, Constants.TAB_3);
-    addResourceToModel(id, model);
-    return Constants.VIEW_COMPONENT_DETAIL;
-  }
-
   @RequestMapping(value = "/{id}/removeSensors", method = RequestMethod.POST)
-  public String removeSensors(@PathVariable final String id, @Valid final ComponentSensorsDTO sensors, final BindingResult result, final Model model) {
+  public String removeSensors(@PathVariable final String id, @Valid final ComponentSensorsDTO sensors, final BindingResult result,
+      final Model model) {
 
     if (!SentiloUtils.arrayIsEmpty(sensors.getSelectedIds())) {
       getSensorService().updateMulti(Arrays.asList(sensors.getSelectedIds()), COMPONENT_ID_ATTRIBUTE, null);
@@ -162,9 +150,9 @@ public class ComponentController extends BaseComponentController {
   }
 
   @RequestMapping(value = "/changeAccessType", method = RequestMethod.POST)
-  public String changeAccessType(@RequestParam final String newAccessType, @RequestParam final String[] selectedIds,
-      final HttpServletRequest request, final RedirectAttributes redirectAttributes, final Model model) {
-    final boolean isPublicAccess = (StringUtils.hasText(newAccessType) && "public".equals(newAccessType) ? true : false);
+  public String changeAccessType(@RequestParam final String newAccessType, @RequestParam final String[] selectedIds, final HttpServletRequest request,
+      final RedirectAttributes redirectAttributes, final Model model) {
+    final boolean isPublicAccess = StringUtils.hasText(newAccessType) && "public".equals(newAccessType) ? true : false;
     getComponentService().changeAccessType(selectedIds, isPublicAccess);
     ModelUtils.addConfirmationMessageTo(model, "accessType.changed");
     return redirectToList(model, request, redirectAttributes);
@@ -179,7 +167,7 @@ public class ComponentController extends BaseComponentController {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
    * HttpServletRequest, org.springframework.ui.Model)
    */
@@ -199,7 +187,7 @@ public class ComponentController extends BaseComponentController {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
    * org.springframework.ui.Model)
    */
@@ -214,10 +202,9 @@ public class ComponentController extends BaseComponentController {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.controller.BaseComponentController#doBeforeViewResource(java.lang.String
-   * , org.springframework.ui.Model)
+   *
+   * @see org.sentilo.web.catalog.controller.BaseComponentController#doBeforeViewResource(java.lang.
+   * String , org.springframework.ui.Model)
    */
   @Override
   protected void doBeforeViewResource(final String id, final Model model) {
@@ -228,10 +215,9 @@ public class ComponentController extends BaseComponentController {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.controller.CrudController#doBeforeUpdateResource(org.sentilo.web.catalog
-   * .domain.CatalogDocument, org.springframework.ui.Model)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeUpdateResource(org.sentilo.web.
+   * catalog .domain.CatalogDocument, org.springframework.ui.Model)
    */
   @Override
   protected void doBeforeUpdateResource(final Component resource, final Model model) {

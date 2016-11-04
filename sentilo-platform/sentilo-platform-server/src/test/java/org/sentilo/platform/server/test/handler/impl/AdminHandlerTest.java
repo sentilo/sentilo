@@ -50,14 +50,15 @@ import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.AdminService;
+import org.sentilo.platform.server.converter.AdminConverter;
 import org.sentilo.platform.server.exception.MessageValidationException;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.handler.impl.AdminHandler;
 import org.sentilo.platform.server.http.HttpMethod;
-import org.sentilo.platform.server.parser.AdminParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class AdminHandlerTest extends AbstractBaseHandlerTest {
 
@@ -73,7 +74,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
   @Mock
   private SentiloResponse response;
   @Mock
-  private AdminParser parser;
+  private AdminConverter parser;
   @Mock
   private AdminInputMessage message;
 
@@ -81,9 +82,8 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     handler = new AdminHandler();
-
-    handler.setAdminService(service);
-    handler.setAdminParser(parser);
+    ReflectionTestUtils.setField(handler, "adminService", service);
+    ReflectionTestUtils.setField(handler, "parser", parser);
 
     when(request.getResource()).thenReturn(resource);
   }
@@ -117,7 +117,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
 
   @Test(expected = MessageValidationException.class)
   public void wrongPutRequest() throws Exception {
-    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(parser.parsePostPutRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.stats);
 
     simulateRequest(HttpMethod.PUT, "sentilo-catalog", "/admin/stats");
@@ -127,7 +127,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
 
   @Test
   public void notAllowedPutRequest() throws Exception {
-    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(parser.parsePostPutRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.delete);
 
     simulateRequest(HttpMethod.PUT, PROVIDER1, "/admin/delete");
@@ -141,14 +141,26 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
 
   @Test
   public void deleteRequest() throws Exception {
-    when(parser.parsePutRequest(request)).thenReturn(message);
+    when(parser.parsePostPutRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.delete);
 
     simulateRequest(HttpMethod.PUT, "sentilo-catalog", "/admin/delete");
     handler.manageRequest(request, response);
 
-    verify(parser).parsePutRequest(request);
+    verify(parser).parsePostPutRequest(request);
     verify(service).delete(message);
+  }
+
+  @Test
+  public void saveRequest() throws Exception {
+    when(parser.parsePostPutRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.save);
+
+    simulateRequest(HttpMethod.POST, "sentilo-catalog", "/admin/save");
+    handler.manageRequest(request, response);
+
+    verify(parser).parsePostPutRequest(request);
+    verify(service).save(message);
   }
 
   @Test

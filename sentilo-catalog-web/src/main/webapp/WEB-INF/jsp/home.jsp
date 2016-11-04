@@ -10,28 +10,16 @@
 	});
 </script>
 
-<spring:message code="app.name" var="defaultAppName" htmlEscape="false" />
-<spring:message code="generic.title" var="defaultGenericTitle" />
-
-<c:choose>
-	<c:when test="${not empty tenantCustomParams and not empty tenantCustomParams.tenantId}">
-		<c:set var="messageTenantId" value=".${tenantCustomParams.tenantId}" />
-	</c:when>
-	<c:otherwise>
-		<c:set var="messageTenantId" value="" />
-	</c:otherwise>
-</c:choose>
-
 <div class="container-fluid">
 	<div class="mapcontent">
 		<div class="row-fluid">
 			<div id="heroBanner" class="hero-unit">
 				<br>
-				<h1>
-					<spring:message code="app.name${messageTenantId}" text="${defaultAppName}" htmlEscape="false" />
+				<h1 id="map-title">
+					<spring:message code="app.name" htmlEscape="false" />
 				</h1>
-				<p>
-					<spring:message code="generic.title${messageTenantId}" text="${defaultGenericTitle}"/>
+				<p id="map-sub-title">
+					<spring:message code="generic.title"/>
 					<br />
 				</p>
 				<br />

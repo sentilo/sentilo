@@ -32,7 +32,7 @@
  */
 package org.sentilo.agent.activity.monitor.repository.batch;
 
-import org.sentilo.agent.common.repository.PendingEventRepository;
+import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,14 +51,14 @@ public class BatchProcessMonitor implements BatchProcessCallback {
   private long numLostElements;
 
   @Autowired
-  private PendingEventRepository pendingEventRepository;
+  private PendingEventsRepository pendingEventRepository;
 
   @Override
   public void notifyBatchProcessIsDone(final BatchProcessResult result) {
     numTasksProcessed++;
     if (!CollectionUtils.isEmpty(result.getPendingEvents())) {
       numTasksKo++;
-      numLostElements += (result.getNumElementsToProcess() - result.getNumElementsProcessed());
+      numLostElements += result.getNumElementsToProcess() - result.getNumElementsProcessed();
       pendingEventRepository.storePendingEvents(result.getPendingEvents());
     } else {
       numTasksOk++;
@@ -67,8 +67,8 @@ public class BatchProcessMonitor implements BatchProcessCallback {
 
   @Scheduled(initialDelay = 60000, fixedDelay = 60000 * 10)
   public void writeState() {
-    LOGGER.info(" ---- BatchProcessMonitor ---- ");
-    final StringBuilder sb = new StringBuilder("\n Num. tasks processed: {}");
+    LOGGER.info(" ---- BatchProcessMonitor  ---- ");
+    final StringBuilder sb = new StringBuilder("\n Num. tasks processed : {}");
     sb.append("\n Num tasks ok: {}");
     sb.append("\n Num tasks ko: {}");
     sb.append("\n Num lost elements: {}");

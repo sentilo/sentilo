@@ -39,14 +39,15 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import org.sentilo.agent.alert.domain.InternalAlert;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
-import org.sentilo.common.parser.EventMessageConverter;
 import org.sentilo.common.utils.DateUtils;
 import org.sentilo.common.utils.EventType;
 
 public abstract class AlertUtils {
 
-  private static final EventMessageConverter converter = new EventMessageConverter();
+  private static final StringMessageConverter converter = new DefaultStringMessageConverter();
   private static DecimalFormat decimalFormat;
 
   private AlertUtils() {
@@ -57,7 +58,7 @@ public abstract class AlertUtils {
    * Return the topic to which listener should be subscribed to get the data published by the sensor
    * associated with the alert. These topic follows the syntax
    * <code>/data/{provider}/{sensor}</code>
-   * 
+   *
    * @param alert
    * @return
    */
@@ -80,17 +81,17 @@ public abstract class AlertUtils {
     event.setSensor(alert.getSensorId());
     event.setMessage(value);
     event.setTimestamp(DateUtils.timestampToString(timestamp));
-    event.setSender("SENTILO");
+    event.setPublisher("SENTILO");
     event.setType(EventType.ALARM.name());
     event.setTopic(topic);
 
-    return converter.marshall(event);
+    return converter.marshal(event);
   }
 
   /**
    * Build a String with the main alert info. This String will be stored into a Redis set as a
    * member
-   * 
+   *
    * @param alert
    * @return
    */

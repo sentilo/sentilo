@@ -81,8 +81,8 @@ public class AuditHandler {
   }
 
   public void logRemove(final CatalogDocument resource, final String removedBy, final String elementId) {
-    LOGGER
-        .info("{} resource with id [{}] has been successfully removed from catalog by the user [{}]", getEntityType(resource), elementId, removedBy);
+    LOGGER.info("{} resource with id [{}] has been successfully removed from catalog by the user [{}]", getEntityType(resource), elementId,
+        removedBy);
   }
 
   private String getEntityType(final CatalogDocument resource) {

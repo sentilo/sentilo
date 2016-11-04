@@ -120,7 +120,7 @@ public class TriggerEvaluator {
       result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
       final String errorMessage = buildErrorMessage(Constants.TEMPLATE_GT_MESSAGE, alert, value);
-      result = (compareNumbers(value, alert.getExpression()) == 1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      result = compareNumbers(value, alert.getExpression()) == 1 ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
@@ -133,7 +133,7 @@ public class TriggerEvaluator {
       result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
       final String errorMessage = buildErrorMessage(Constants.TEMPLATE_GTE_MESSAGE, alert, value);
-      result = (compareNumbers(value, alert.getExpression()) != -1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      result = compareNumbers(value, alert.getExpression()) != -1 ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
@@ -146,7 +146,7 @@ public class TriggerEvaluator {
       result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
       final String errorMessage = buildErrorMessage(Constants.TEMPLATE_LT_MESSAGE, alert, value);
-      result = (compareNumbers(value, alert.getExpression()) == -1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      result = compareNumbers(value, alert.getExpression()) == -1 ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
@@ -159,7 +159,7 @@ public class TriggerEvaluator {
       result = new TriggerResult(String.format(Constants.TEMPLATE_NO_NUMBER_MESSAGE, alert.getId(), value, alert.getSensorId()));
     } else {
       final String errorMessage = buildErrorMessage(Constants.TEMPLATE_LTE_MESSAGE, alert, value);
-      result = (compareNumbers(value, alert.getExpression()) != 1) ? new TriggerResult(errorMessage) : new TriggerResult();
+      result = compareNumbers(value, alert.getExpression()) != 1 ? new TriggerResult(errorMessage) : new TriggerResult();
     }
 
     return result;
@@ -168,7 +168,7 @@ public class TriggerEvaluator {
   private TriggerResult evaluateEqualsTrigger(final InternalAlert alert, final String value) {
     TriggerResult result = null;
     final String errorMessage = buildErrorMessage(Constants.TEMPLATE_EQ_MESSAGE, alert, value);
-    result = (value.equals(alert.getExpression()) ? new TriggerResult(errorMessage) : new TriggerResult());
+    result = value.equals(alert.getExpression()) ? new TriggerResult(errorMessage) : new TriggerResult();
 
     return result;
   }
@@ -177,7 +177,7 @@ public class TriggerEvaluator {
     TriggerResult result = null;
     final String errorMessage = buildErrorMessage(Constants.TEMPLATE_CHANGE_MESSAGE, alert, value);
     if (StringUtils.hasText(previousValue)) {
-      result = (value.equals(previousValue) ? new TriggerResult() : new TriggerResult(errorMessage));
+      result = value.equals(previousValue) ? new TriggerResult() : new TriggerResult(errorMessage);
     } else {
       result = new TriggerResult();
     }
@@ -202,10 +202,10 @@ public class TriggerEvaluator {
         final float absValue = Math.abs(AlertUtils.transformNumber(value).floatValue());
         final float absPreviousValue = Math.abs(AlertUtils.transformNumber(previousValue).floatValue());
 
-        final float variation = Math.abs(((absPreviousValue - absValue) / absPreviousValue)) * 100;
+        final float variation = Math.abs((absPreviousValue - absValue) / absPreviousValue) * 100;
 
         final String errorMessage = buildErrorMessage(Constants.TEMPLATE_CHANGE_DELTA_MESSAGE, alert, value);
-        result = (variation > limit ? new TriggerResult(errorMessage) : new TriggerResult());
+        result = variation > limit ? new TriggerResult(errorMessage) : new TriggerResult();
       }
     } else {
       result = new TriggerResult();

@@ -44,12 +44,14 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.service.SensorService;
-import org.sentilo.web.catalog.test.AbstractBaseTest;
+import org.sentilo.web.catalog.validator.AlertTriggerValidatorComponent;
 import org.sentilo.web.catalog.validator.AlertValidator;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.Errors;
 
 public class AlertValidatorTest extends AbstractBaseTest {
@@ -71,6 +73,8 @@ public class AlertValidatorTest extends AbstractBaseTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
+    final AlertTriggerValidatorComponent alertTriggerValidatorComponent = new AlertTriggerValidatorComponent();
+    ReflectionTestUtils.setField(alertValidator, "alertTriggerValidatorComponent", alertTriggerValidatorComponent);
   }
 
   @Test

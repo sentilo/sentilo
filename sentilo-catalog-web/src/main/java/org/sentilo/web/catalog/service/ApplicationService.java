@@ -41,7 +41,7 @@ public interface ApplicationService extends CrudService<Application> {
   /**
    * Return a list with either all the applications or the ones authorized to the current tenant if
    * multitenant feature is enabled.
-   * 
+   *
    * @return
    */
   List<Application> findAllowed();

@@ -32,87 +32,61 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.sentilo.common.domain.CatalogProvider;
-import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.common.rest.RESTClient;
-import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.PlatformAdminInputMessage;
 import org.sentilo.web.catalog.domain.PlatformStatsMessage;
-import org.sentilo.web.catalog.domain.Provider;
-import org.sentilo.web.catalog.domain.Sensor;
-import org.sentilo.web.catalog.event.DeletePlatformResourcesEvent;
-import org.sentilo.web.catalog.parser.PlatformMessageParser;
 import org.sentilo.web.catalog.service.PlatformService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PlatformServiceImpl implements PlatformService, ApplicationListener<DeletePlatformResourcesEvent<CatalogDocument>> {
+public class PlatformServiceImpl implements PlatformService {
 
   @Autowired
   private RESTClient restClient;
 
-  private final PlatformMessageParser parser = new PlatformMessageParser();
+  private final StringMessageConverter parser = new DefaultStringMessageConverter();
 
   @Override
   public PlatformStatsMessage getCurrentPlatformStats() {
     final String response = restClient.get("admin/stats");
-    return parser.unmarshallStatsMessage(response);
+    return (PlatformStatsMessage) parser.unmarshal(response, PlatformStatsMessage.class);
   }
 
   @Override
   public PlatformMetricsMessage getPlatformActivity() {
     final String response = restClient.get("admin/activity");
-    return parser.unmarshallMetricsMessage(response);
+    return (PlatformMetricsMessage) parser.unmarshal(response, PlatformMetricsMessage.class);
   }
 
   @Override
   public PlatformMetricsMessage getPlatformPerformance() {
     final String response = restClient.get("admin/performance");
-    return parser.unmarshallMetricsMessage(response);
+    return (PlatformMetricsMessage) parser.unmarshal(response, PlatformMetricsMessage.class);
   }
 
-  @Override
-  public void onApplicationEvent(final DeletePlatformResourcesEvent<CatalogDocument> event) {
-    final String path = "admin/delete";
-    final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
-    if (event.resourcesAreSensors()) {
-      message.setSensors(translateSensors(event.getResources()));
-    } else {
-      message.setProviders(translateProviders(event.getResources()));
-    }
-
-    restClient.put(path, parser.marshall(message));
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.PlatformService#saveResources(org.sentilo.web.catalog.domain.
+   * PlatformAdminInputMessage)
+   */
+  public void saveResources(final PlatformAdminInputMessage message) {
+    restClient.post("admin/save", parser.marshal(message));
   }
 
-  private Collection<CatalogSensor> translateSensors(final Collection<CatalogDocument> sensors) {
-    final Collection<CatalogSensor> catalogSensors = new ArrayList<CatalogSensor>();
-    for (final CatalogDocument document : sensors) {
-      final CatalogSensor catalogSensor = new CatalogSensor();
-      catalogSensor.setSensor(((Sensor) document).getSensorId());
-      catalogSensor.setProvider(((Sensor) document).getProviderId());
-
-      catalogSensors.add(catalogSensor);
-    }
-
-    return catalogSensors;
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.PlatformService#deleteResources(org.sentilo.web.catalog.domain.
+   * PlatformAdminInputMessage)
+   */
+  public void deleteResources(final PlatformAdminInputMessage message) {
+    restClient.put("admin/delete", parser.marshal(message));
   }
-
-  private Collection<CatalogProvider> translateProviders(final Collection<CatalogDocument> providers) {
-    final Collection<CatalogProvider> catalogProviders = new ArrayList<CatalogProvider>();
-    for (final CatalogDocument document : providers) {
-      final CatalogProvider catalogProvider = new CatalogProvider();
-      catalogProvider.setProvider(((Provider) document).getId());
-
-      catalogProviders.add(catalogProvider);
-    }
-
-    return catalogProviders;
-  }
-
 }

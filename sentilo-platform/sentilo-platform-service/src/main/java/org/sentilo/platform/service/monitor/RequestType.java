@@ -35,7 +35,7 @@ package org.sentilo.platform.service.monitor;
 /**
  * Enumeration of request methods (GET,PUT) and types(PUSH). Intended for use with
  * {@link org.sentilo.platform.service.monitor.RequestType}.
- * 
+ *
  */
 public enum RequestType {
   GET, PUT, PUSH

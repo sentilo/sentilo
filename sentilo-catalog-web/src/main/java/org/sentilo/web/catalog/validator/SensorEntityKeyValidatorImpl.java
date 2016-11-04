@@ -63,7 +63,7 @@ public class SensorEntityKeyValidatorImpl implements EntityKeyValidator {
     filter.addAndParam("providerId", tokens[0]);
     filter.addAndParam("sensorId", tokens[2]);
     if (!CollectionUtils.isEmpty(sensorService.search(filter).getContent())) {
-      duplicateKeyExceptionBuilder.buildDuplicateKeyException(idToCheck);
+      duplicateKeyExceptionBuilder.buildAndThrowDuplicateKeyException(idToCheck);
     }
 
   }

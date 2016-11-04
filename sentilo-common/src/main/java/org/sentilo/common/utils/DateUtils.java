@@ -78,7 +78,7 @@ public abstract class DateUtils {
   public static String timestampToString(final Long timestamp) {
     LOCK_PSAB_DF.lock();
     try {
-      return (timestamp == null ? null : PSAB_DF.format(timestamp));
+      return timestamp == null ? null : PSAB_DF.format(timestamp);
     } finally {
       LOCK_PSAB_DF.unlock();
     }
@@ -93,7 +93,7 @@ public abstract class DateUtils {
     try {
       // First, validate that localTime has TZ defined. If not defined, we will treat it as a UTC
       // date (+0000)
-      return (StringUtils.hasText(date) ? TZ_PSAB_DF.parse(formatToUTC(date)) : null);
+      return StringUtils.hasText(date) ? TZ_PSAB_DF.parse(formatToUTC(date)) : null;
     } catch (final ParseException e) {
       throw new IllegalArgumentException("Error parsing date " + date, e);
     } finally {
@@ -103,7 +103,7 @@ public abstract class DateUtils {
 
   public static Long parseTimestamp(final String timestamp) {
     final Date date = stringToDate(timestamp);
-    return (date != null ? date.getTime() : null);
+    return date != null ? date.getTime() : null;
   }
 
   private static String formatToUTC(final String localTime) {

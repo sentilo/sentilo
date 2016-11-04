@@ -34,7 +34,7 @@ package org.sentilo.web.catalog.exception;
 
 /**
  * Root exception to thows when a validation constraint (or business rule) is violated.
- * 
+ *
  */
 public class BusinessValidationException extends CatalogException {
 

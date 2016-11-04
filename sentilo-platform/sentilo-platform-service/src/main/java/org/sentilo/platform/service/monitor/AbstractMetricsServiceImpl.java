@@ -32,7 +32,9 @@
  */
 package org.sentilo.platform.service.monitor;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.sentilo.platform.service.impl.AbstractPlatformServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,7 @@ public abstract class AbstractMetricsServiceImpl extends AbstractPlatformService
   protected StringRedisTemplate redisTemplate;
 
   protected String getHashValue(final Map<Object, Object> hash, final String fieldName, final String defaultValue) {
-    return (CollectionUtils.isEmpty(hash) || hash.get(fieldName) == null ? defaultValue : (String) hash.get(fieldName));
+    return CollectionUtils.isEmpty(hash) || hash.get(fieldName) == null ? defaultValue : (String) hash.get(fieldName);
   }
 
   protected Long getHashValueAsLong(final Map<Object, Object> hash, final String fieldName) {
@@ -58,5 +60,17 @@ public abstract class AbstractMetricsServiceImpl extends AbstractPlatformService
 
   protected Map<Object, Object> getHashContent(final String hashKey) {
     return redisTemplate.opsForHash().entries(hashKey);
+  }
+
+  protected Set<String> getCountersKeys() {
+    final Set<String> keys = new HashSet<String>();
+    final Set<String> tenants = redisTemplate.opsForSet().members(MonitorConstants.TENANTS_KEY);
+    for (final String tenant : tenants) {
+      keys.add(MonitorConstants.TENANT_COUNTERS_KEY_PREFIX + tenant);
+    }
+
+    keys.add(MonitorConstants.MASTER_COUNTERS_KEY);
+
+    return keys;
   }
 }

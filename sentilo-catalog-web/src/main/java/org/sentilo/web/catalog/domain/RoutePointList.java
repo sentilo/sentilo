@@ -41,7 +41,7 @@ import org.sentilo.common.utils.DateUtils;
 /**
  * This class allows store the route points that a mobile component has followed (limited to the
  * last 20 locations).
- * 
+ *
  * To implement the list, a SortedSet is used because it guarantees that elements into the list are
  * always sorted.
  */
@@ -103,11 +103,11 @@ public class RoutePointList {
   }
 
   private boolean areLocationEquals(final RoutePoint rp1, final RoutePoint rp2) {
-    return (rp1 != null && rp2 != null && rp1.getLocation().equals(rp2.getLocation()));
+    return rp1 != null && rp2 != null && rp1.getLocation().equals(rp2.getLocation());
   }
 
   private boolean areFromTimesEquals(final RoutePoint rp1, final RoutePoint rp2) {
-    return (rp1 != null && rp2 != null && rp1.getFromTimeTs().equals(rp2.getFromTimeTs()));
+    return rp1 != null && rp2 != null && rp1.getFromTimeTs().equals(rp2.getFromTimeTs());
   }
 
   public List<RoutePoint> getInternalList() {

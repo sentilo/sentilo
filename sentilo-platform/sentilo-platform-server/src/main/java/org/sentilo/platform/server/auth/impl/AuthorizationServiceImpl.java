@@ -71,7 +71,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.server.auth.AuthorizationService#hasAccessToRead(java.lang.String,
    * java.lang.String)
    */
@@ -87,7 +87,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.server.auth.AuthorizationService#hasAccessToWrite(java.lang.String,
    * java.lang.String)
    */
@@ -103,7 +103,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.server.auth.AuthorizationService#hasAccessToAdmin(java.lang.String,
    * java.lang.String)
    */

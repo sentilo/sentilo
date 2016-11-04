@@ -10,7 +10,6 @@
 
 <script type="text/javascript">
 
-var tableSelector = '';
 var asyncTable;
 var detail_prefix = '';
 var linkable = true;
@@ -20,7 +19,7 @@ var firstPass = true;
 var tuneUpTable = function() {
 
 	if (asyncTable.fnGetData().length && linkable) {		
-		var rows = $(tableSelector + ' tbody tr');
+		var rows = $(asyncTable.tableSelector + ' tbody tr');
 		rows.click(function () {
 			var aData = asyncTable.fnGetData(this, 0);			
 			document.location.href = detail_prefix + aData + '/detail';
@@ -98,10 +97,10 @@ function updatePaginationNumber (oSettings){
 	
 }
 
-function reFillSearch(){
+function reFillSearch(asyncTable){
 	if(asyncTable && paramsSearchMap){
-		$(tableSelector+'_filter :input').val(paramsSearchMap.wordToSearch);
-		$('select[name="' + tableSelector.substring(1)+'_length' + '"]').val(paramsSearchMap.pageSize);
+		$(asyncTable.tableSelector+'_filter :input').val(paramsSearchMap.wordToSearch);
+		$('select[name="' + asyncTable.tableSelector.substring(1)+'_length' + '"]').val(paramsSearchMap.pageSize);
 		var oSettings = asyncTable.fnSettings();
 		oSettings.oPreviousSearch.sSearch = paramsSearchMap.wordToSearch;
 		oSettings._iDisplayLength = parseInt(paramsSearchMap.pageSize);
@@ -151,7 +150,7 @@ var translateRESTParameters = function(url, aoData, fnCallback) {
     	{'name' : 'page.sort', 'value' : sortName },
     	{'name' : 'page.sort.dir', 'value' : sortDir },
     	{'name' : 'sEcho', 'value' : sEcho },
-    	{'name' : 'tableName', 'value' : tableSelector.substring(1) }
+    	{'name' : 'tableName', 'value' : this.selector.substring(1) }
     ];
     
     if (paramMap.sSearch) {
@@ -197,12 +196,13 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 	
 	detail_prefix = detailPrefix;
 
-	tableSelector = selector;
+	//tableSelector = selector;
 	
 	if (typeof(firstColumnRenderDelegate) === 'undefined') {
 		firstColumnRenderDelegate = function (data, type, row) {
-			// Checkbox must be displayed if and only if row.length = table.columns.length 
-			if(row.length > this.asyncTable.dataTableSettings[0].aoColumns.length){				
+			// Checkbox must be displayed if and only if row.length = table.columns.length
+			var dtColumns = this.asyncTable.dataTableSettings[0].aoColumns.length;
+			if(row.length > dtColumns && row[dtColumns].indexOf('"hideCheckbox":"true"') > -1){				
 				return '';
 			}else{
 				return '<input type="checkbox" name="selectedIds" value="' + data +'" onclick="dontShowDetail(event);"/>';
@@ -233,7 +233,7 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 	}
 	
 	
-	asyncTable = $(tableSelector).dataTable( {
+	asyncTable = $(selector).dataTable( {
 		'sDom': '<"row-fluid"<"span6"l><"span6"f>r>t<"row-fluid"<"span6"i><"span6"p>>',
 		'sPaginationType': 'bootstrap',
 		'oLanguage': tableLabels(),
@@ -247,7 +247,9 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 	    'fnServerData' : translateRESTParameters
 	} );
 	
-	reFillSearch();
+	asyncTable.tableSelector = selector;
+	
+	reFillSearch(asyncTable);
 	
 	return asyncTable;
     

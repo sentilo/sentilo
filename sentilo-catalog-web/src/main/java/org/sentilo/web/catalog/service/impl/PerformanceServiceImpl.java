@@ -37,7 +37,6 @@ import java.util.Collection;
 
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.common.domain.PlatformPerformance;
-import org.sentilo.web.catalog.domain.Activity;
 import org.sentilo.web.catalog.domain.Performance;
 import org.sentilo.web.catalog.repository.PerformanceRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
@@ -56,7 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 @Service
-public class PerformanceServiceImpl extends AbstractBaseCrudServiceImpl<Performance> implements PerformanceService {
+public class PerformanceServiceImpl extends AbstractBaseCrudServiceImpl<Performance>implements PerformanceService {
 
   @Autowired
   private PerformanceRepository repository;
@@ -70,30 +69,32 @@ public class PerformanceServiceImpl extends AbstractBaseCrudServiceImpl<Performa
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.PerformanceService#getCurrentPerformance()
    */
   public Performance getCurrentPerformance() {
     final Pageable pageable = new PageRequest(0, 1, Direction.DESC, "timestamp");
     final SearchFilter filter = new SearchFilter(pageable);
-    filter.addAndParam("tenant", TenantUtils.getCurrentTenant());
+    // Performance view always show data about the request tenant (that could be different from the
+    // user tenant).
+    filter.addAndParam("tenant", TenantUtils.getRequestTenant());
 
     final SearchFilterResult<Performance> result = search(filter);
 
-    return (CollectionUtils.isEmpty(result.getContent()) ? null : result.getContent().get(0));
+    return CollectionUtils.isEmpty(result.getContent()) ? null : result.getContent().get(0);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.PerformanceService#deleteOldPerformanceLogs()
    */
   @Scheduled(initialDelay = 30000, fixedRate = 600000)
   public void deleteOldPerformanceLogs() {
     // Only stores the performance from the last day
-    final long tsToCompare = System.currentTimeMillis() - (24 * 60 * 60 * 1000);
+    final long tsToCompare = System.currentTimeMillis() - 24 * 60 * 60 * 1000;
     final Criteria criteria = Criteria.where("timestamp").lt(tsToCompare);
-    getMongoOps().remove(new Query(criteria), Activity.class);
+    doDelete(new Query(criteria));
   }
 
   /**

@@ -32,13 +32,21 @@
  */
 package org.sentilo.web.catalog.validator;
 
+import static org.sentilo.common.utils.SentiloUtils.arrayContainsValue;
+import static org.sentilo.web.catalog.utils.CatalogUtils.isDouble;
+
 import java.util.List;
 
+import org.sentilo.common.domain.CatalogComponent;
+import org.sentilo.common.domain.CatalogElement;
+import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.common.utils.SentiloUtils;
+import org.sentilo.web.catalog.converter.ApiConverterContext;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
+import org.sentilo.web.catalog.domain.LngLat;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.exception.builder.CompoundDuplicateKeyExceptionBuilder;
@@ -52,10 +60,14 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.DataBinder;
 import org.springframework.validation.Validator;
 
 @org.springframework.stereotype.Component
 public class ApiValidator extends ApiBaseValidator<Sensor> {
+
+  private static final String SENSOR = "Sensor";
+  private static final String COMPONENT = "Component";
 
   @Autowired
   private SensorTypesService sensorTypesService;
@@ -72,20 +84,31 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
   @Autowired
   private Validator validator;
 
-  public ApiValidationResults
-      validateSensorsAndComponents(final List<Sensor> sensors, final List<Component> components, final boolean isUpdateAction) {
+  public ApiValidationResults validateFieldFormatValues(final ApiConverterContext context) {
+    // For each field filled in, validates that it has the right format (number, date, coordinates,
+    // ... )
+    final ApiValidationResults results = new ApiValidationResults();
+
+    // at this moment, only component locations must be validated
+    validateComponentsLocations(results, context);
+
+    return results;
+  }
+
+  public ApiValidationResults validateSensorsAndComponents(final List<Sensor> sensors, final List<Component> components,
+      final boolean isUpdateAction) {
     final ApiValidationResults results = new ApiValidationResults();
     final List<SensorType> sensorTypes = sensorTypesService.findAll();
     final List<ComponentType> componentTypes = componentTypesService.findAll();
     final String connectivityTypes = messageSource.getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale());
     final String energyTypes = messageSource.getMessage(Constants.ENERGY_TYPES_KEY, null, LocaleContextHolder.getLocale());
     final String[] connectivityTypesList =
-        (StringUtils.hasText(connectivityTypes) ? connectivityTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {});
-    final String[] energyTypesList = (StringUtils.hasText(energyTypes) ? energyTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {});
+        StringUtils.hasText(connectivityTypes) ? connectivityTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {};
+    final String[] energyTypesList = StringUtils.hasText(energyTypes) ? energyTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {};
 
     if (!CollectionUtils.isEmpty(sensors)) {
       for (final Sensor sensor : sensors) {
-        validate(results, sensor, sensor.getSensorId(), "Sensor", ApiTranslator.SENSOR_DOMAIN_FIELDS);
+        validate(results, sensor, sensor.getSensorId(), SENSOR, ApiTranslator.SENSOR_DOMAIN_FIELDS);
         validateSensorTypes(results, sensor, sensorTypes);
         validateTechnicalDetails(results, sensor.getTechnicalDetails(), sensor.getSensorId(), sensor, connectivityTypesList, energyTypesList);
       }
@@ -97,47 +120,14 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
 
     if (!CollectionUtils.isEmpty(components)) {
       for (final Component component : components) {
-        validate(results, component, component.getName(), "Component", ApiTranslator.COMPONENT_DOMAIN_FIELDS);
+        validate(results, component, component.getName(), COMPONENT, ApiTranslator.COMPONENT_DOMAIN_FIELDS);
+        validateLocationContent(results, component);
         validateComponentTypes(results, component, componentTypes);
         validateTechnicalDetails(results, component.getTechnicalDetails(), component.getName(), component, connectivityTypesList, energyTypesList);
       }
     }
 
     return results;
-  }
-
-  private void validateSensorTypes(final ApiValidationResults results, final Sensor sensor, final List<SensorType> sensorTypes) {
-    if (!sensorTypes.contains(new SensorType(sensor.getType()))) {
-      final String errorMessage = String.format("Sensor %s : an invalid value was specified for type field.", sensor.getSensorId());
-      results.addErrorMessage(errorMessage);
-    }
-  }
-
-  private void validateComponentTypes(final ApiValidationResults results, final Component component, final List<ComponentType> componentTypes) {
-    if (!componentTypes.contains(new ComponentType(component.getComponentType()))) {
-      final String errorMessage = String.format("Component %s : an invalid value was specified for componentType field.", component.getName());
-      results.addErrorMessage(errorMessage);
-    }
-  }
-
-  private void validateTechnicalDetails(final ApiValidationResults results, final TechnicalDetails technicalDetails, final String resourceId,
-      final CatalogDocument resource, final String[] connectivityTypesList, final String[] energyTypesList) {
-    final String resourceType = (resource instanceof Component ? "Component" : "Sensor");
-    if (technicalDetails != null) {
-      final String connectivity = technicalDetails.getConnectivity();
-      final String energy = technicalDetails.getEnergy();
-
-      if (StringUtils.hasText(energy) && !SentiloUtils.arrayContainsValue(energyTypesList, energy)) {
-        final String errorMessage = String.format("%s %s : an invalid value was specified for energy field.", resourceType, resourceId);
-        results.addErrorMessage(errorMessage);
-      }
-
-      if (StringUtils.hasText(connectivity) && !SentiloUtils.arrayContainsValue(connectivityTypesList, connectivity)) {
-        final String errorMessage = String.format("%s %s : an invalid value was specified for connectivity field.", resourceType, resourceId);
-        results.addErrorMessage(errorMessage);
-      }
-    }
-
   }
 
   protected EntityKeyValidator buildEntityKeyValidator() {
@@ -154,5 +144,98 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
 
   protected Validator getValidator() {
     return validator;
+  }
+
+  private void validateSensorTypes(final ApiValidationResults results, final Sensor sensor, final List<SensorType> sensorTypes) {
+    if (!sensorTypes.contains(new SensorType(sensor.getType()))) {
+      final String errorMessage = String.format("Sensor %s : a wrong value was specified for type field.", sensor.getSensorId());
+      results.addErrorMessage(errorMessage);
+    }
+  }
+
+  private void validateComponentTypes(final ApiValidationResults results, final Component component, final List<ComponentType> componentTypes) {
+    if (!componentTypes.contains(new ComponentType(component.getComponentType()))) {
+      final String errorMessage = String.format("Component %s : a wrong value was specified for componentType field.", component.getName());
+      results.addErrorMessage(errorMessage);
+    }
+  }
+
+  private void validateTechnicalDetails(final ApiValidationResults results, final TechnicalDetails technicalDetails, final String resourceId,
+      final CatalogDocument resource, final String[] connectivityTypesList, final String[] energyTypesList) {
+    final String resourceType = resource instanceof Component ? COMPONENT : SENSOR;
+    if (technicalDetails != null) {
+      final String connectivity = technicalDetails.getConnectivity();
+      final String energy = technicalDetails.getEnergy();
+
+      if (StringUtils.hasText(energy) && !arrayContainsValue(energyTypesList, energy)) {
+        final String errorMessage = String.format("%s %s : a wrong value was specified for energy field.", resourceType, resourceId);
+        results.addErrorMessage(errorMessage);
+      }
+
+      if (StringUtils.hasText(connectivity) && !arrayContainsValue(connectivityTypesList, connectivity)) {
+        final String errorMessage = String.format("%s %s : a wrong value was specified for connectivity field.", resourceType, resourceId);
+        results.addErrorMessage(errorMessage);
+      }
+    }
+
+  }
+
+  private void validateComponentsLocations(final ApiValidationResults results, final ApiConverterContext context) {
+    final boolean isUpdateAction = context.isUpdateAction();
+    final List<? extends CatalogElement> resources = isUpdateAction ? context.getMessage().getComponents() : context.getMessage().getSensors();
+
+    if (!CollectionUtils.isEmpty(resources)) {
+      for (final CatalogElement resource : resources) {
+        final String location = isUpdateAction ? ((CatalogComponent) resource).getLocation() : ((CatalogSensor) resource).getLocation();
+        if (!isValidLocationFormat(location)) {
+          final String resourceType = isUpdateAction ? COMPONENT : SENSOR;
+          final String resourceName = isUpdateAction ? ((CatalogComponent) resource).getComponent() : ((CatalogSensor) resource).getSensor();
+          final String errorMessage = String.format("%s %s : a wrong value was specified for location field.", resourceType, resourceName);
+          results.addErrorMessage(errorMessage);
+        }
+      }
+    }
+  }
+
+  private boolean isValidLocationFormat(final String location) {
+    boolean valid = true;
+    if (SentiloUtils.stringIsNotEmptyOrNull(location)) {
+      final String[] coordinatesList = location.split(Constants.LOCATION_TOKEN_SPLITTER);
+      for (int i = 0; i < coordinatesList.length && valid; i++) {
+        valid = validateCoordinatesFormat(coordinatesList[i]);
+      }
+    }
+
+    return valid;
+  }
+
+  private void validateLocationContent(final ApiValidationResults results, final Component component) {
+    if (component.getLocation() != null && !SentiloUtils.arrayIsEmpty(component.getLocation().getCoordinates())) {
+      final LngLat[] coordinates = component.getLocation().getCoordinates();
+      boolean valid = true;
+      for (int i = 0; i < coordinates.length && valid; i++) {
+        final DataBinder binder = new DataBinder(coordinates[i]);
+        binder.setValidator(getValidator());
+        binder.validate();
+
+        valid = binder.getBindingResult().hasErrors() ? false : true;
+      }
+
+      if (!valid) {
+        final String errorMessage = String.format("Component %s : a wrong value was specified for location field.", component.getName());
+        results.addErrorMessage(errorMessage);
+      }
+    }
+  }
+
+  private boolean validateCoordinatesFormat(final String coordinates) {
+    boolean areValidCoordinates = true;
+    final String coordinatesTrimmed = coordinates.trim();
+    final int pos = coordinatesTrimmed.indexOf(Constants.LOCATION_TOKEN_DIVIDER);
+    if (pos == -1 || !isDouble(coordinatesTrimmed.substring(0, pos).trim()) || !isDouble(coordinatesTrimmed.substring(pos + 1).trim())) {
+      // Coordinates must match the expression [doubleAsString doubleAsString]
+      areValidCoordinates = false;
+    }
+    return areValidCoordinates;
   }
 }

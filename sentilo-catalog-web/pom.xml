@@ -11,7 +11,7 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.5.1</version>		
+		<version>1.6.0</version>		
 	</parent>
 
 	<properties>				
@@ -145,19 +145,7 @@
 			<version>1.6.1</version>
 			<scope>test</scope>			
 		</dependency>
-		<!-- Add to do Junit mocks for all static Class or methods -->
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>1.5.6</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<version>1.5.6</version>
-			<scope>test</scope>
-		</dependency>
+		
 		<!-- Add for export lists to Excel -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
@@ -170,6 +158,12 @@
 	        <artifactId>urlrewritefilter</artifactId>
 	        <version>4.0.3</version>
 	    </dependency>
+	    <!-- Commons File Upload -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.2</version>
+		</dependency>
   	</dependencies>
 	
 </project>

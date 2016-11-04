@@ -31,7 +31,7 @@ function showErrorNotification(title, text) {
 	<script type="text/javascript">
 		$(document).ready(function() {
 			<spring:message code="confirm" var="title"/>
-			<spring:message code="${confirmationMessage}" var="msg"/>
+			<spring:message code="${confirmationMessage}" arguments="${confirmationMessageArgs}" var="msg" javaScriptEscape="true"/>
 			showConfirmNotification('${title}', '${msg}');
 		});
 	</script>
@@ -40,7 +40,7 @@ function showErrorNotification(title, text) {
 	<script type="text/javascript">
 		$(document).ready(function() {
 			<spring:message code="error" var="title"/>
-			<spring:message code="${errorMessage}" var="msg"/>
+			<spring:message code="${errorMessage}" arguments="${errorMessageArgs}" var="msg" javaScriptEscape="true"/>
 			showErrorNotification('${title}', '${msg}');
 		});
 	</script>

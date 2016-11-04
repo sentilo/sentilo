@@ -45,15 +45,11 @@ import org.sentilo.agent.alert.trigger.TriggerResult;
 import org.sentilo.agent.common.listener.AbstractMessageListenerImpl;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.utils.AlertTriggerType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.connection.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 public class MessageListenerImpl extends AbstractMessageListenerImpl {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MessageListenerImpl.class);
   private final Lock lock = new ReentrantLock();
 
   private final TriggerEvaluator triggerEvaluator;
@@ -75,10 +71,8 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
 
   }
 
-  public void doWithMessage(final Message message, final EventMessage eventMessage) {
+  public void doWithMessage(final EventMessage eventMessage) {
     final String value = eventMessage.getMessage();
-
-    LOGGER.debug("Get value {} on messageListener {}", value, getName());
 
     // For each registered alert, the message value must be checked to validate that verifies all
     // alerts's restriction rules (for not frozen alerts)
@@ -138,7 +132,7 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
    * Verifies if the value parameter checks the restriction rule defined by the alert. Returns true
    * if the value checks the restriction rule (i.e. value must be rejected). Otherwise returns false
    * Moreover, if the value verifies the rule restriction then a new alarm is published
-   * 
+   *
    * @param alert
    * @param value
    * @return true/false

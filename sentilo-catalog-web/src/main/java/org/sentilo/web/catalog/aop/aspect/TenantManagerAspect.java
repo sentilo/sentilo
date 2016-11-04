@@ -142,46 +142,59 @@ public class TenantManagerAspect implements Ordered {
   }
 
   private void addTenantFields(final Collection<EntityResource> entityResources) {
-    String entityOwnerTenant = null;
+    TenantResource entityResourceOwner = null;
     for (final EntityResource entityResource : entityResources) {
       // For each tenantResource, its tenant owner must be equals to its entity tenant owner, so
       // the first step is to get the entity tenant owner (it could be a Provider or an Application)
       // And all the resources into collection belongs to the same entity
-      if (entityOwnerTenant == null) {
-        entityOwnerTenant = getEntityOwnerTenant(entityResource);
+      if (entityResourceOwner == null) {
+        entityResourceOwner = getResourceEntityOwner(entityResource);
       }
 
-      addTenantFields((TenantResource) entityResource, entityOwnerTenant);
+      addTenantFields((TenantResource) entityResource, entityResourceOwner);
     }
   }
 
-  private void addTenantFields(final TenantResource tenantResource, final String currentTenant) {
-    // set the current tenant as tenantId owner if it is not null
-    if (StringUtils.hasText(currentTenant)) {
-      tenantResource.setTenantId(currentTenant);
+  private void addTenantFields(final TenantResource resource, final String tenantResourceOwner) {
+    if (resource instanceof EntityResource) {
+      final TenantResource entityResourceOwner = getResourceEntityOwner((EntityResource) resource);
+      addTenantFields(resource, entityResourceOwner);
+    } else {
+      // Firstly, set the tenant resource's owner
+      if (StringUtils.hasText(tenantResourceOwner)) {
+        resource.setTenantId(tenantResourceOwner);
+      }
+
+      // Add tenantId owner as authorized
+      resource.getTenantsAuth().add(resource.getTenantId());
     }
 
-    // Add tenantId owner as authorized
-    tenantResource.getTenantsAuth().add(tenantResource.getTenantId());
-    // And finally, if tenantResource is Component, add currentTenant to tenantsMapVisible map
-    if (tenantResource instanceof Component) {
-      ((Component) tenantResource).getTenantsMapVisible().add(currentTenant);
+  }
+
+  private void addTenantFields(final TenantResource entityResource, final TenantResource entityParent) {
+    // Set tenantId owner equals to entityParent's tenant owner
+    entityResource.setTenantId(entityParent.getTenantId());
+    // Add all tenantsAuth from entityParent (i.e. Provider / Application) as authorized tenants
+    entityResource.getTenantsAuth().addAll(entityParent.getTenantsAuth());
+    // And finally, if entityResource is a Component, add currentTenant to its tenantsMapVisible map
+    if (entityResource instanceof Component) {
+      ((Component) entityResource).getTenantsMapVisible().addAll(entityParent.getTenantsAuth());
     }
   }
 
   private boolean entityBelongsToProvider(final EntityResource entityResource) {
     if (entityResource instanceof Alert) {
-      return (StringUtils.hasText(((Alert) entityResource).getProviderId()) ? true : false);
+      return StringUtils.hasText(((Alert) entityResource).getProviderId()) ? true : false;
     } else {
       return true;
     }
   }
 
-  private String getEntityOwnerTenant(final EntityResource entityResource) {
-    final Class<?> collectionClass = (entityBelongsToProvider(entityResource) ? Provider.class : Application.class);
+  private TenantResource getResourceEntityOwner(final EntityResource entityResource) {
+    final Class<?> collectionClass = entityBelongsToProvider(entityResource) ? Provider.class : Application.class;
     final Criteria criteria = Criteria.where("_id").is(entityResource.getEntityOwner());
     final TenantResource entityOwner = (TenantResource) mongoOps.find(new Query(criteria), collectionClass).get(0);
-    return entityOwner.getTenantId();
+    return entityOwner;
   }
 
   @Override

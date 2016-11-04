@@ -34,16 +34,17 @@ package org.sentilo.platform.server.handler.impl;
 
 import java.util.List;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.AdminService;
+import org.sentilo.platform.server.converter.AdminConverter;
 import org.sentilo.platform.server.exception.MessageValidationException;
+import org.sentilo.platform.server.exception.MethodNotAllowedException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.AdminParser;
+import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.AdminValidator;
@@ -66,12 +67,12 @@ public class AdminHandler extends AbstractHandler {
   @Autowired
   private AdminService adminService;
 
-  private AdminParser parser = new AdminParser();
+  private AdminConverter parser = new AdminConverter();
   private final RequestMessageValidator<AdminInputMessage> validator = new AdminValidator();
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP DELETE method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.DELETE);
 
   }
 
@@ -116,7 +117,11 @@ public class AdminHandler extends AbstractHandler {
 
   @Override
   public void onPost(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP POST method not allowed for the requested resource");
+    LOGGER.debug("Executing admin POST request");
+    debug(request);
+
+    // This method allows synchronize Redis data when any sensor is created on Catalog
+    processOnPostOrPutRequest(request, response);
 
   }
 
@@ -126,31 +131,30 @@ public class AdminHandler extends AbstractHandler {
     debug(request);
 
     // This method allows synchronize Redis data when any sensor or provider is deleted on Catalog
+    processOnPostOrPutRequest(request, response);
+  }
+
+  protected void processOnPostOrPutRequest(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
 
     validateResourceNumberParts(request, 1, 1);
     validateApiAdminInvoke(request.getEntitySource());
-    final AdminInputMessage inputMessage = parser.parsePutRequest(request);
+    final AdminInputMessage inputMessage = parser.parsePostPutRequest(request);
     validator.validateRequestMessageOnPut(inputMessage);
     LOGGER.debug("Type message: {}", inputMessage.getType());
-    LOGGER.debug("Sensors: {}", (!CollectionUtils.isEmpty(inputMessage.getSensors()) ? inputMessage.getSensors().size() : 0));
-    LOGGER.debug("Providers: {}", (!CollectionUtils.isEmpty(inputMessage.getProviders()) ? inputMessage.getProviders().size() : 0));
+    LOGGER.debug("Sensors: {}", !CollectionUtils.isEmpty(inputMessage.getSensors()) ? inputMessage.getSensors().size() : 0);
+    LOGGER.debug("Providers: {}", !CollectionUtils.isEmpty(inputMessage.getProviders()) ? inputMessage.getProviders().size() : 0);
+    LOGGER.debug("Alerts: {}", !CollectionUtils.isEmpty(inputMessage.getAlerts()) ? inputMessage.getAlerts().size() : 0);
 
     switch (inputMessage.getType()) {
       case delete:
         adminService.delete(inputMessage);
         break;
+      case save:
+        adminService.save(inputMessage);
+        break;
       default:
         throw new MessageValidationException(String.format("Request %s not supported", request.getUri()));
     }
-
-  }
-
-  public void setAdminService(final AdminService adminService) {
-    this.adminService = adminService;
-  }
-
-  public void setAdminParser(final AdminParser parser) {
-    this.parser = parser;
   }
 
 }

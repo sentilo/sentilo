@@ -46,7 +46,6 @@ import org.sentilo.common.domain.SubscribeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.Message;
 import org.springframework.util.StringUtils;
 
 public class MessageListenerImpl extends AbstractMessageListenerImpl {
@@ -63,16 +62,16 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
     this.dataTrackService = dataTrackService;
   }
 
-  public void doWithMessage(final Message message, final EventMessage eventMessage) {
+  @Override
+  public void doWithMessage(final EventMessage eventMessage) {
     ThreadLocalProperties.unset();
     ThreadLocalProperties.set(getName());
 
     try {
-      final String channel = getChannel(message);
       validateEventMessage(eventMessage);
-      final EndpointMessage endpointMessage = new EndpointMessage(eventMessage, channel);
+      final EndpointMessage endpointMessage = new EndpointMessage(eventMessage);
 
-      switch (getTopicType(channel)) {
+      switch (getTopicType(eventMessage.getTopic())) {
         case DATA:
           final Observation observation = endpointMessage.getObservation();
           observation.setTargetDs(getName());
@@ -93,7 +92,8 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
     } catch (final DataAccessException e) {
       LOGGER.error("Error processing message. Error: {} ", e);
     } catch (final NoValidEventMessageException e) {
-      LOG_REJECTED.info("Message {} published on topic {} rejected because it is not valid", eventMessage.toString(), getChannel(message));
+      LOG_REJECTED.warn("Message {} published on topic {} has been rejected because it is not valid", eventMessage.toString(),
+          eventMessage.getTopic());
     }
   }
 

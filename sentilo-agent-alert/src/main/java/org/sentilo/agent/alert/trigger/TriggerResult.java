@@ -50,7 +50,7 @@ public class TriggerResult {
   /**
    * Return true if the trigger condition is checked (i.e. value verify the trigger condition) and
    * false if the trigger condition is not checked.
-   * 
+   *
    * @return
    */
   public boolean triggerConditionChecked() {

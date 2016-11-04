@@ -12,7 +12,7 @@
 
 	<!-- Realm config for REST calls -->
 	<http name="apiRestRealm" entry-point-ref="basicAuthEntryPoint" pattern="/api/**" use-expressions="true">
-		<intercept-url pattern="/api/**" access="hasRole('ROLE_PLATFORM')" />
+		<intercept-url pattern="/api/**" access="hasRole('ROLE_PLATFORM') and hasIpAddress('${catalog.api.client.ip}')"  />
 		<custom-filter ref="basicAuthenticationFilter" after="BASIC_AUTH_FILTER" />
 	</http>
 

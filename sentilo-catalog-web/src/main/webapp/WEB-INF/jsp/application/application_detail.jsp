@@ -35,7 +35,7 @@
 								<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message
 											code="application.permissions" /> </a></li>
 								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message
-											code="application.active.subscriptions" /> </a></li>
+											code="subscriptions.active.tab.label" /> </a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="${tab1PaneClass}" id="tab1">
@@ -47,14 +47,12 @@
 													class="icon-chevron-down pull-right"></i> </a>
 											</div>
 											<div id="detailAccordionCollapse" class="accordion-body collapse in">
-												<div class="accordion-inner">
+												<div class="accordion-inner">													
 													<div class="row-fluid">
 														<div class="span4">
-															<strong><spring:message code="application.tenant" /> </strong>
+															<strong><spring:message code="token" /> </strong>
 														</div>
-														<div class="span8">
-															<spring:eval expression="application.tenantId" />
-														</div>
+														<div class="span8">${application.token}</div>
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
@@ -66,9 +64,10 @@
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
-															<strong><spring:message code="token" /> </strong>
+															<strong><spring:message code="application.restHttps" /> </strong>
 														</div>
-														<div class="span8">${application.token}</div>
+														<c:set var="restHttpsChecked" value="${fn:contains(application.restHttps, 'true') ? 'checked' : ''}"/>														
+														<div class="span8"><input type="checkbox" ${restHttpsChecked} disabled="disabled" onclick="javascript:return false;"/></div>
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
@@ -113,11 +112,11 @@
 								</div>
 								<div class="${tab2PaneClass}" id="tab2">
 									<c:set var="applicationId" scope="request" value="${application.id}" />
-									<jsp:include page="/WEB-INF/jsp/common/include_list_permission.jsp" />
+									<jsp:include page="/WEB-INF/jsp/common/include_permission_list.jsp" />
 								</div>
 								<div class="${tab3PaneClass}" id="tab3">
 									<c:set var="applicationId" scope="request" value="${application.id}" />
-									<jsp:include page="/WEB-INF/jsp/application/include_application_subscriptions.jsp" />
+									<jsp:include page="/WEB-INF/jsp/common/include_subscriptions.jsp" />
 									<div class="control-group pull-right">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 									</div>

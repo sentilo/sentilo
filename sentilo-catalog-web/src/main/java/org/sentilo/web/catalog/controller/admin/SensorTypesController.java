@@ -55,6 +55,8 @@ import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/admin/sensortypes")
@@ -109,12 +111,12 @@ public class SensorTypesController extends CrudController<SensorType> {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
 
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "sensortype");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "sensortype");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.CrudController#doBeforeDeleteResources(java.util.Collection,
    * javax.servlet.http.HttpServletRequest, org.springframework.ui.Model)
@@ -130,10 +132,9 @@ public class SensorTypesController extends CrudController<SensorType> {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.catalog
-   * .domain.CatalogDocument, org.springframework.ui.Model)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
+   * catalog .domain.CatalogDocument, org.springframework.ui.Model)
    */
   @Override
   protected void doBeforeCreateResource(final SensorType resource, final Model model) {
@@ -150,6 +151,12 @@ public class SensorTypesController extends CrudController<SensorType> {
     if (!CollectionUtils.isEmpty(sensors.getContent())) {
       throw new BusinessValidationException("sensortype.error.cannot.delete", new Object[] {sensorType});
     }
+  }
+
+  @ResponseBody
+  @RequestMapping("/search/json")
+  public List<SensorType> search(final HttpServletRequest request, @RequestParam(required = true) final String providerId, final Model model) {
+    return sensorTypesService.findSensorTypesByProvider(providerId);
   }
 
 }

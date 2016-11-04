@@ -39,12 +39,13 @@ public class OrderSubscription extends Subscription {
 
   private String sensorId;
 
-  public OrderSubscription(final String sourceEntityId, final String providerId, final String endpoint) {
-    super(sourceEntityId, providerId, endpoint, SubscribeType.ORDER);
+  public OrderSubscription(final String sourceEntityId, final String providerId, final NotificationParams notificationParams) {
+    super(sourceEntityId, providerId, SubscribeType.ORDER);
+    setNotificationParams(notificationParams);
   }
 
-  public OrderSubscription(final String sourceEntityId, final String providerId, final String sensorId, final String endpoint) {
-    this(sourceEntityId, providerId, endpoint);
+  public OrderSubscription(final String sourceEntityId, final String providerId, final String sensorId, final NotificationParams notificationParams) {
+    this(sourceEntityId, providerId, notificationParams);
     this.sensorId = sensorId;
   }
 

@@ -32,6 +32,8 @@
  */
 package org.sentilo.common.cache.impl;
 
+import java.util.concurrent.TimeUnit;
+
 import org.sentilo.common.cache.LRUCache;
 
 import com.google.common.cache.Cache;
@@ -47,12 +49,16 @@ public class LRUCacheImpl<K, V> implements LRUCache<K, V> {
   private Cache<K, V> cache;
 
   public LRUCacheImpl(final int cacheSize) {
-    cache = CacheBuilder.newBuilder().maximumSize(cacheSize).build();
+    this(cacheSize, 60);
+  }
+
+  public LRUCacheImpl(final int cacheSize, final int expireMinutes) {
+    cache = CacheBuilder.newBuilder().maximumSize(cacheSize).expireAfterAccess(expireMinutes, TimeUnit.MINUTES).build();
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.common.cache.LRUCache#put(java.lang.Object, java.lang.Object)
    */
   public void put(final K key, final V item) {
@@ -61,7 +67,7 @@ public class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.common.cache.LRUCache#get(java.lang.Object)
    */
   public V get(final K key) {
@@ -70,7 +76,7 @@ public class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.common.cache.LRUCache#remove(java.lang.Object)
    */
   public void remove(final K key) {
@@ -79,7 +85,7 @@ public class LRUCacheImpl<K, V> implements LRUCache<K, V> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.common.cache.LRUCache#size()
    */
   public long size() {

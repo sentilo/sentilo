@@ -36,7 +36,6 @@ import java.security.GeneralSecurityException;
 
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -72,7 +71,6 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private static final int DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 60 * 1000;
   private static final int DEFAULT_READ_TIMEOUT_MILLISECONDS = 60 * 1000;
-  private static final int DEFAULT_SUCCESS_HTTP_CODE = HttpStatus.SC_OK;
 
   private HttpClient httpClient;
   private Credentials credentials;
@@ -81,7 +79,6 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private String host;
   private String secretKey;
-  private int successHttpCode = DEFAULT_SUCCESS_HTTP_CODE;
 
   public RESTClientImpl() {
   }
@@ -182,19 +179,20 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private void validateResponse(final HttpResponse response) throws RESTClientException {
     LOGGER.debug("Response code: {}", response.getStatusLine().getStatusCode());
-    if (response.getStatusLine().getStatusCode() != successHttpCode) {
-      final StatusLine line = response.getStatusLine();
+    // A response status code between 200 and 299 is considered a success status
+    final StatusLine statusLine = response.getStatusLine();
+    if (statusLine.getStatusCode() < 200 || statusLine.getStatusCode() > 299) {
       final StringBuilder sb = new StringBuilder();
       try {
         if (response.getEntity() != null) {
           sb.append(EntityUtils.toString(response.getEntity()));
         } else {
-          sb.append(line.getReasonPhrase());
+          sb.append(statusLine.getReasonPhrase());
         }
       } catch (final Exception e) {
         // Ignored
       }
-      throw new RESTClientException(line.getStatusCode(), sb.toString());
+      throw new RESTClientException(statusLine.getStatusCode(), sb.toString());
     }
   }
 
@@ -204,7 +202,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private String executeHttpCall(final HttpRequestBase httpRequest, final String body, final String identityToken) throws RESTClientException {
     try {
-      LOGGER.debug("Executing http call {} ", httpRequest.toString());
+      LOGGER.debug("Executing http call to:  {} ", httpRequest.toString());
       if (StringUtils.hasText(body)) {
         ((HttpEntityEnclosingRequestBase) httpRequest).setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
       }
@@ -219,11 +217,18 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
       final HttpResponse response = httpClient.execute(httpRequest);
       validateResponse(response);
-      return EntityUtils.toString(response.getEntity());
+      if (response.getEntity() != null) {
+        return EntityUtils.toString(response.getEntity());
+      } else {
+        return "";
+      }
+
     } catch (final RESTClientException e) {
+      LOGGER.error("Error executing http call: {} ", httpRequest.toString(), e);
       throw e;
     } catch (final Exception e) {
-      final String msg = String.format("Error while executing http call: %s ", httpRequest.toString());
+      LOGGER.error("Error executing http call: {} ", httpRequest.toString(), e);
+      final String msg = String.format("Error executing http call: %s ", httpRequest.toString());
       throw new RESTClientException(msg, e);
     }
   }
@@ -239,7 +244,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   /**
    * Sets the timeout until a connection is established. A value of 0 means <em>never</em> timeout.
-   * 
+   *
    * @param timeout the timeout value in milliseconds
    * @see org.apache.http.params.HttpConnectionParams#setConnectionTimeout(org.apache.http.params.HttpParams,
    *      int)
@@ -254,7 +259,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   /**
    * Set the socket read timeout for the underlying HttpClient. A value of 0 means <em>never</em>
    * timeout.
-   * 
+   *
    * @param timeout the timeout value in milliseconds
    * @see org.apache.http.params.HttpConnectionParams#setSoTimeout(org.apache.http.params.HttpParams,
    *      int)
@@ -284,10 +289,6 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   public void setSecretKey(final String secretKey) {
     this.secretKey = secretKey;
-  }
-
-  public void setSuccessHttpCode(final int successHttpCode) {
-    this.successHttpCode = successHttpCode;
   }
 
 }

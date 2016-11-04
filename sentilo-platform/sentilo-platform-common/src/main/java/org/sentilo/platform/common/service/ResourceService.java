@@ -34,13 +34,19 @@ package org.sentilo.platform.common.service;
 
 import java.util.Set;
 
+import org.sentilo.common.domain.CatalogAlert;
+import org.sentilo.platform.common.domain.Alert;
 import org.sentilo.platform.common.domain.Sensor;
 
 public interface ResourceService {
 
   Long registerProviderIfNeedBe(String providerId);
 
-  Long registerSensorIfNeedBe(String sensorId, String providerId);
+  Long registerSensorIfNeedBe(String providerId, String sensorId, String state, boolean update);
+
+  boolean existsSensor(String providerId, String sensorId);
+
+  boolean isSensorDisabled(String providerId, String sensorId);
 
   Set<String> getSensorsFromProvider(String providerId);
 
@@ -48,9 +54,17 @@ public interface ResourceService {
 
   Set<String> getSensorsToInspect(String providerId, String sensorId);
 
-  Long registerAlertIfNeedBe(String alertId);
+  Long registerAlertIfNeedBe(final CatalogAlert alert, final boolean update);
+
+  boolean existsAlert(String alertId);
+
+  boolean isAlertDisabled(String alertId);
+
+  Alert getAlert(final Long aid);
 
   void removeProvider(String providerId);
 
   void removeSensor(String sensorId, String providerId);
+
+  void removeAlert(final CatalogAlert alert);
 }

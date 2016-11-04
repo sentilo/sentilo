@@ -47,7 +47,7 @@ public class LocalDateFormatter extends DateFormatter {
 
   public String parseUtcTimeToLocalTime(final String utcTimestamp) {
     setPattern(defaultPattern);
-    return (StringUtils.hasText(utcTimestamp) ? print(DateUtils.stringToDate(utcTimestamp), LocaleContextHolder.getLocale()) : utcTimestamp);
+    return StringUtils.hasText(utcTimestamp) ? print(DateUtils.stringToDate(utcTimestamp), LocaleContextHolder.getLocale()) : utcTimestamp;
   }
 
   public String printCurrentAsLocalTime() {
@@ -68,7 +68,7 @@ public class LocalDateFormatter extends DateFormatter {
 
   public String printAsLocalTime(final Date date, final String pattern) {
     setPattern(pattern);
-    return (date != null ? print(date, LocaleContextHolder.getLocale()) : "");
+    return date != null ? print(date, LocaleContextHolder.getLocale()) : "";
   }
 
   public long parseLocalTime(final String localTimestamp) {

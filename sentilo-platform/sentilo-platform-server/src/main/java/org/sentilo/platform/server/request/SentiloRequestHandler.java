@@ -49,14 +49,14 @@ import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
-import org.sentilo.platform.common.security.IdentityContextHolder;
+import org.sentilo.platform.common.security.RequesterContextHolder;
 import org.sentilo.platform.server.auth.AuthenticationService;
+import org.sentilo.platform.server.converter.ErrorConverter;
+import org.sentilo.platform.server.converter.PlatformJsonMessageConverter;
 import org.sentilo.platform.server.dto.ErrorMessage;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
 import org.sentilo.platform.server.http.HttpHeader;
-import org.sentilo.platform.server.parser.ErrorParser;
-import org.sentilo.platform.server.parser.PlatformJsonMessageConverter;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +67,12 @@ public class SentiloRequestHandler implements HttpRequestHandler {
 
   private final HandlerLocator handlerLocator;
   private final AuthenticationService authenticationService;
-  private final ErrorParser errorParser;
+  private final ErrorConverter errorParser;
 
   public SentiloRequestHandler(final HandlerLocator handlerLocator, final AuthenticationService authService) {
     this.handlerLocator = handlerLocator;
     authenticationService = authService;
-    errorParser = new ErrorParser();
+    errorParser = new ErrorConverter();
   }
 
   @Override
@@ -83,13 +83,14 @@ public class SentiloRequestHandler implements HttpRequestHandler {
       final SentiloResponse response = SentiloResponse.build(httpResponse);
       debug(request);
       request.checkCredentialIntegrity(authenticationService);
+      request.checkSSLAAccess();
 
       final AbstractHandler handler = lookupHandlerForRequest(request);
       handler.manageRequest(request, response);
 
       prepareResponse(httpResponse, request.getContentType().toString());
     } catch (final PlatformException e) {
-      final int errorCode = (e.getHttpStatus() != 0 ? e.getHttpStatus() : HttpStatus.SC_INTERNAL_SERVER_ERROR);
+      final int errorCode = e.getHttpStatus() != 0 ? e.getHttpStatus() : HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
       prepareErrorResponse(httpResponse, errorCode, e.getMessage(), e.getErrorDetails());
     } catch (final PlatformAccessException e) {
@@ -108,7 +109,7 @@ public class SentiloRequestHandler implements HttpRequestHandler {
       prepareErrorResponse(httpResponse, errorCode, errorMessage);
     } finally {
       debug(httpResponse);
-      IdentityContextHolder.clearContext();
+      RequesterContextHolder.clearContext();
     }
 
   }

@@ -42,7 +42,6 @@ import org.sentilo.common.utils.SentiloConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.Message;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -68,7 +67,8 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
     sensorTimestampLocationsCache = new LRUCacheImpl<String, String>(10000);
   }
 
-  public void doWithMessage(final Message message, final EventMessage eventMessage) {
+  @Override
+  public void doWithMessage(final EventMessage eventMessage) {
     try {
       if (eventCouldBeProcessed(eventMessage)) {
         processLocation(eventMessage);
@@ -86,7 +86,7 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
 
   private void processLocation(final EventMessage eventMessage) {
     final String key = buildCacheKey(eventMessage);
-    final boolean eventAlreadyProcessed = (sensorTimestampLocationsCache.get(key) != null ? true : false);
+    final boolean eventAlreadyProcessed = sensorTimestampLocationsCache.get(key) != null ? true : false;
 
     // At any given instant, a sensor can only be in one location. This implies that an event must
     // be rejected if a previous event from the same sensor and the same instant has already been

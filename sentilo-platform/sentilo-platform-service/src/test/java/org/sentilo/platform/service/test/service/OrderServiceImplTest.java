@@ -52,6 +52,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.OrderInputMessage;
 import org.sentilo.platform.common.domain.Sensor;
+import org.sentilo.platform.common.exception.EventRejectedException;
+import org.sentilo.platform.common.security.RequesterContext;
+import org.sentilo.platform.common.security.RequesterContextHolder;
+import org.sentilo.platform.common.security.ResourceOwnerContext;
+import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.dao.JedisTemplate;
@@ -71,12 +76,19 @@ public class OrderServiceImplTest {
   private ResourceService resourceService;
   @Mock
   private Sensor sensor;
+  @Mock
+  private RequesterContext requesterContext;
+  @Mock
+  private ResourceOwnerContext resourceOwnerContext;
+
   @InjectMocks
   private OrderServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    RequesterContextHolder.setContext(requesterContext);
+    ResourceOwnerContextHolder.setContext(resourceOwnerContext);
   }
 
   @Test
@@ -84,13 +96,41 @@ public class OrderServiceImplTest {
     when(message.getProviderId()).thenReturn("prov1");
     when(message.getSensorId()).thenReturn("sensor1");
     when(message.getOrder()).thenReturn("stop restart");
-
+    when(jedisSequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(1L);
+    when(resourceService.existsSensor(eq("prov1"), eq("sensor1"))).thenReturn(true);
+    when(resourceService.isSensorDisabled(eq("prov1"), eq("sensor1"))).thenReturn(false);
     final String channel = ChannelUtils.buildTopic(PubSubChannelPrefix.order, message.getProviderId(), message.getSensorId()).getTopic();
+
     service.setOrder(message);
 
-    verify(resourceService).registerProviderIfNeedBe(message.getProviderId());
-    verify(resourceService).registerSensorIfNeedBe(message.getSensorId(), message.getProviderId());
     verify(jedisTemplate).publish(eq(channel), anyString());
+  }
+
+  @Test(expected = EventRejectedException.class)
+  public void setOrderFromUnknowSensor() {
+    when(message.getProviderId()).thenReturn("prov1");
+    when(message.getSensorId()).thenReturn("sensor1");
+    when(message.getOrder()).thenReturn("stop restart");
+    when(jedisSequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(null);
+    when(resourceService.existsSensor(eq("prov1"), eq("sensor1"))).thenReturn(false);
+
+    service.setOrder(message);
+
+    verify(jedisTemplate, times(0)).publish(anyString(), anyString());
+  }
+
+  @Test(expected = EventRejectedException.class)
+  public void setOrderFromDisabledSensor() {
+    when(message.getProviderId()).thenReturn("prov1");
+    when(message.getSensorId()).thenReturn("sensor1");
+    when(message.getOrder()).thenReturn("stop restart");
+    when(jedisSequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(1L);
+    when(resourceService.existsSensor(eq("prov1"), eq("sensor1"))).thenReturn(true);
+    when(resourceService.isSensorDisabled(eq("prov1"), eq("sensor1"))).thenReturn(true);
+
+    service.setOrder(message);
+
+    verify(jedisTemplate, times(0)).publish(anyString(), anyString());
   }
 
   @Test
@@ -105,7 +145,7 @@ public class OrderServiceImplTest {
     when(resourceService.getSensor(anyLong())).thenReturn(sensor);
     when(sensor.getProvider()).thenReturn(providerId);
     when(sensor.getSensor()).thenReturn(sensorId);
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
+    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(1L);
     when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSoids());
 
     service.getLastOrders(message);
@@ -122,7 +162,7 @@ public class OrderServiceImplTest {
     final Set<String> sdids = buildSoids();
 
     when(message.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
+    when(jedisSequenceUtils.getPid(notNull(String.class))).thenReturn(1L);
     when(resourceService.getSensorsToInspect(provider, null)).thenReturn(buildSids());
     when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSoids());
 

@@ -32,26 +32,21 @@
  */
 package org.sentilo.platform.client.core.parser;
 
-import org.sentilo.common.exception.MessageNotReadableException;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
 import org.sentilo.common.exception.MessageNotWritableException;
-import org.sentilo.common.parser.BaseJsonMessageConverter;
 import org.sentilo.platform.client.core.domain.DataInputMessage;
-import org.sentilo.platform.client.core.domain.ObservationsOutputMessage;
 
-public class DataMessageConverter extends BaseJsonMessageConverter {
+public class DataMessageConverter extends DefaultStringMessageConverter {
 
   public String marshall(final DataInputMessage message) throws MessageNotWritableException {
     // El resultado del marshall depende del tipo de mensaje
     if (message.getSensorObservations() != null) {
-      return writeInternalAndReturnString(message.getSensorObservations());
+      return super.marshal(message.getSensorObservations());
     } else if (message.getProviderObservations() != null) {
-      return writeInternalAndReturnString(message.getProviderObservations());
+      return super.marshal(message.getProviderObservations());
     } else {
       return null;
     }
   }
 
-  public ObservationsOutputMessage unmarshall(final String message) throws MessageNotReadableException {
-    return (ObservationsOutputMessage) readInternal(ObservationsOutputMessage.class, message);
-  }
 }

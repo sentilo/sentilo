@@ -56,14 +56,14 @@ public class PlatformActivityAndPerformanceTest {
 
   @Test
   public void marsharAndUnMarshallPerformance() throws Exception {
-    final PlatformActivity activity = new PlatformActivity(null, 1000, 950, 3, 47, System.currentTimeMillis(), true);
+    final PlatformActivity activity = buildActivity(true);
     final PlatformPerformance performance = new PlatformPerformance(activity, 3.45f, 34.32f, 132.87f, System.currentTimeMillis());
     marshallAndUnmarshall(performance);
   }
 
   @Test
   public void marsharAndUnMarshallActivity() throws Exception {
-    final PlatformActivity activity = new PlatformActivity(null, 1000, 950, 3, 47, System.currentTimeMillis(), true);
+    final PlatformActivity activity = buildActivity(true);
     marshallAndUnmarshall(activity);
   }
 
@@ -91,5 +91,23 @@ public class PlatformActivityAndPerformanceTest {
 
   protected JavaType getJavaType(final Class<?> clazz) {
     return objectMapper.getTypeFactory().constructType(clazz);
+  }
+
+  private PlatformActivity buildActivity(final boolean isMaster) {
+    final PlatformActivity platformActivity = new PlatformActivity(isMaster ? null : "mockTenant", 1447164322214l, isMaster);
+    platformActivity.setTotalAlarms(10);
+    platformActivity.setTotalGetAlarms(3);
+    platformActivity.setTotalPutAlarms(7);
+    platformActivity.setTotalOrders(125);
+    platformActivity.setTotalGetOrders(25);
+    platformActivity.setTotalPutOrders(100);
+    platformActivity.setTotalObs(1000);
+    platformActivity.setTotalGetObs(300);
+    platformActivity.setTotalPutObs(700);
+    platformActivity.setTotalRequests(1135);
+    platformActivity.setTotalGetRequests(328);
+    platformActivity.setTotalPutRequests(807);
+
+    return platformActivity;
   }
 }

@@ -34,7 +34,6 @@ package org.sentilo.platform.server.handler.impl;
 
 import java.util.List;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.platform.common.domain.AlarmSubscription;
 import org.sentilo.platform.common.domain.SubscribeInputMessage;
@@ -42,8 +41,10 @@ import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.AlarmService;
 import org.sentilo.platform.common.service.SubscribeService;
+import org.sentilo.platform.server.converter.SubscribeConverter;
+import org.sentilo.platform.server.exception.MethodNotAllowedException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.SubscribeParser;
+import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.RequestMessageValidator;
@@ -64,7 +65,7 @@ public class SubscribeHandler extends AbstractHandler {
   @Autowired
   private AlarmService alarmService;
 
-  private SubscribeParser parser = new SubscribeParser();
+  private SubscribeConverter parser = new SubscribeConverter();
   private final RequestMessageValidator<SubscribeInputMessage> validator = new SubscribeValidator();
 
   @Override
@@ -106,7 +107,7 @@ public class SubscribeHandler extends AbstractHandler {
 
   @Override
   public void onPost(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP POST method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.POST);
   }
 
   @Override
@@ -116,12 +117,10 @@ public class SubscribeHandler extends AbstractHandler {
 
     // The request follows the following pattern:
     // PUT /subscribe/{eventType}/{resourceId}
-    // where all parameters are not mandatory, but at least one must be filled in.
-    // Furthermore, if {eventType} is not filled in, then its value is set to DATA,
-    // and {resourceId} may be composed by providerId and sensorId.
+    // where {resourceId} may be composite (e.g. <providerId>/<sensorId>)
 
-    validateResourceNumberParts(request, 1, 3);
-    final Subscription subscription = parser.parseRequest(request, SubscribeType.DATA);
+    validateResourceNumberParts(request, 2, 3);
+    final Subscription subscription = parser.parseRequest(request);
     validator.validateRequestMessageOnPut(new SubscribeInputMessage(subscription));
     if (subscription.getType().equals(SubscribeType.ALARM)) {
       subscription.setOwnerEntityId(alarmService.getAlertOwner(((AlarmSubscription) subscription).getAlertId()));

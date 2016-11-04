@@ -32,14 +32,22 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.repository.SensorTypesRepository;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Service
-public class SensorTypesServiceImpl extends AbstractBaseCrudServiceImpl<SensorType> implements SensorTypesService {
+public class SensorTypesServiceImpl extends AbstractBaseCrudServiceImpl<SensorType>implements SensorTypesService {
 
   @Autowired
   private SensorTypesRepository repository;
@@ -60,5 +68,31 @@ public class SensorTypesServiceImpl extends AbstractBaseCrudServiceImpl<SensorTy
   @Override
   public String getEntityId(final SensorType entity) {
     return entity.getId();
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<SensorType> findSensorTypesByProvider(final String providerId) {
+    if (StringUtils.hasText(providerId)) {
+      final String sensorCollectionName = getMongoOps().getCollectionName(Sensor.class);
+
+      final Query query = getDistinctSensorByProviderTypeQuery(providerId);
+
+      // Get uniques provider's components types id list
+      final List<String> providerSensorTypes = getMongoOps().getCollection(sensorCollectionName).distinct("type", query.getQueryObject());
+
+      return CollectionUtils.isEmpty(providerSensorTypes) ? Collections.<SensorType>emptyList()
+          : getMongoOps().find(buildQueryForIdInCollection(providerSensorTypes), SensorType.class);
+    } else {
+      // If the provider is null, return all component types
+      return findAll();
+    }
+  }
+
+  public Query getDistinctSensorByProviderTypeQuery(final String providerId) {
+    final Query query = Query.query(Criteria.where("providerId").is(providerId));
+    query.fields().include("type");
+    query.fields().exclude("_id");
+    return query;
   }
 }

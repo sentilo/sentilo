@@ -40,10 +40,10 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
-import org.sentilo.platform.client.core.parser.AlarmMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultAlarmServiceOperationsImpl;
 
 public class DefaultAlarmServiceOperationsImplTest {
@@ -58,7 +58,7 @@ public class DefaultAlarmServiceOperationsImplTest {
   private AlarmInputMessage message;
 
   @Mock
-  private AlarmMessageConverter converter;
+  private StringMessageConverter converter;
 
   @Before
   public void setUp() {

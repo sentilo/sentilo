@@ -78,7 +78,7 @@ public class DataInputMessage implements PlatformInputMessage, PlatformSearchInp
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#getQueryFilters()
    */
   public QueryFilterParams getQueryFilters() {
@@ -87,7 +87,7 @@ public class DataInputMessage implements PlatformInputMessage, PlatformSearchInp
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#hasQueryFilters()
    */
   public boolean hasQueryFilters() {

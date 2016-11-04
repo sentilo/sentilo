@@ -40,6 +40,6 @@ public abstract class FormatUtils {
   }
 
   public static String label(final String message) {
-    return String.format("<span class=\"label\">%s</span>", message);
+    return String.format("<span class=\"label label-info\">%s</span>", message);
   }
 }

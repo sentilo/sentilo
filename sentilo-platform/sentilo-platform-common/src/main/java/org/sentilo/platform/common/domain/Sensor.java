@@ -36,10 +36,12 @@ public class Sensor {
 
   private String sensor;
   private String provider;
+  private String state;
 
-  public Sensor(final String sensor, final String provider) {
+  public Sensor(final String sensor, final String provider, final String state) {
     this.sensor = sensor;
     this.provider = provider;
+    this.state = state;
   }
 
   public String getSensor() {
@@ -56,5 +58,13 @@ public class Sensor {
 
   public void setProvider(final String provider) {
     this.provider = provider;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public void setState(final String state) {
+    this.state = state;
   }
 }

@@ -33,13 +33,17 @@
 package org.sentilo.web.catalog.security.service.impl;
 
 import org.sentilo.web.catalog.context.TenantContextHolder;
+import org.sentilo.web.catalog.context.TenantContextImpl;
 import org.sentilo.web.catalog.domain.User;
 import org.sentilo.web.catalog.exception.UserLoginNotAllowedException;
 import org.sentilo.web.catalog.security.CatalogUserDetails;
 import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.UserService;
 import org.sentilo.web.catalog.utils.TenantUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -50,12 +54,14 @@ import org.springframework.util.StringUtils;
 @Service("userDetailsService")
 public class CatalogUserDetailsServiceImpl implements UserDetailsService, CatalogUserDetailsService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(CatalogUserDetailsServiceImpl.class);
+
   @Autowired
   private UserService userService;
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.springframework.security.core.userdetails.UserDetailsService#loadUserByUsername(java.lang
    * .String)
@@ -64,11 +70,12 @@ public class CatalogUserDetailsServiceImpl implements UserDetailsService, Catalo
 
     final User user = userService.find(new User(userName));
     if (user == null) {
+      LOGGER.debug("User {} not found!", userName);
       throw new UsernameNotFoundException("User " + userName + " is not a valid user");
     }
 
     final CatalogUserDetails catalogUser = new CatalogUserDetails(user);
-
+    LOGGER.debug("TenantContextHolder.isEnabled()? {}", TenantContextHolder.isEnabled());
     if (TenantContextHolder.isEnabled()) {
       checkUserTenant(catalogUser);
     } else if (catalogUser.isSuperAdminUser()) {
@@ -82,17 +89,22 @@ public class CatalogUserDetailsServiceImpl implements UserDetailsService, Catalo
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.security.CatalogUserDetailsService#getCatalogUserDetails()
    */
   public CatalogUserDetails getCatalogUserDetails() {
-    final Object user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    return (user instanceof CatalogUserDetails) ? (CatalogUserDetails) user : null;
+    final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    final Object user = authentication != null ? authentication.getPrincipal() : null;
+    return user != null && user instanceof CatalogUserDetails ? (CatalogUserDetails) user : null;
   }
 
   private void checkUserTenant(final CatalogUserDetails catalogUser) {
     final String currentTenantId = TenantUtils.getCurrentTenant();
+    final boolean superAdminOrPlatformUser = catalogUser.isSuperAdminUser() || catalogUser.isPlatformUser();
 
+    LOGGER.debug("checkUserTenant: user [{}] - tenant user [{}] - current tenant [{}]", catalogUser.getUsername(), catalogUser.getTenantId(),
+        currentTenantId);
+    LOGGER.debug("checkUserTenant: superAdminOrPlatformUser? {} ", superAdminOrPlatformUser);
     if (StringUtils.hasText(currentTenantId)) {
       if (catalogUser.isSuperAdminUser()) {
         throw new UserLoginNotAllowedException("Super admin can't access to an organization site");
@@ -101,8 +113,10 @@ public class CatalogUserDetailsServiceImpl implements UserDetailsService, Catalo
           throw new UserLoginNotAllowedException("User " + catalogUser.getUsername() + " can't access to this organization site");
         }
       }
+    } else if (TenantContextHolder.inferTenantFromLogin() && !superAdminOrPlatformUser && StringUtils.hasText(catalogUser.getTenantId())) {
+      TenantContextHolder.setContext(new TenantContextImpl(catalogUser.getTenantId()));
     } else {
-      if (!catalogUser.isSuperAdminUser() && !catalogUser.isPlatformUser()) {
+      if (!superAdminOrPlatformUser) {
         throw new UserLoginNotAllowedException("Users only can access to their organization site");
       }
     }

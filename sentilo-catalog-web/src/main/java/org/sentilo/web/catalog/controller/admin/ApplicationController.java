@@ -52,6 +52,7 @@ import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -108,12 +109,12 @@ public class ApplicationController extends CrudController<Application> {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
 
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "application");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "application");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.CrudController#doBeforeDeleteResources(java.util.Collection,
    * javax.servlet.http.HttpServletRequest, org.springframework.ui.Model)
@@ -125,7 +126,7 @@ public class ApplicationController extends CrudController<Application> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.CrudController#doAfterViewResource(org.springframework.ui
    * .Model)
@@ -143,7 +144,8 @@ public class ApplicationController extends CrudController<Application> {
       final SearchFilter filter = new SearchFilter();
       filter.addParam("type", Alert.Type.EXTERNAL.toString());
       filter.addAndParam("applicationId", application.getId());
-      final boolean alertFound = alertService.search(filter).getContent().size() > 0;
+      final boolean alertFound = !CollectionUtils.isEmpty(alertService.search(filter).getContent());
+
       if (alertFound) {
         throw new BusinessValidationException("application.error.existing.alerts");
       }

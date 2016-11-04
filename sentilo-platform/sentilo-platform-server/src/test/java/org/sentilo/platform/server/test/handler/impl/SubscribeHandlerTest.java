@@ -45,14 +45,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
+import org.sentilo.platform.common.domain.NotificationParams;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.server.auth.AuthorizationService;
+import org.sentilo.platform.server.converter.SubscribeConverter;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.handler.impl.SubscribeHandler;
 import org.sentilo.platform.server.http.HttpMethod;
-import org.sentilo.platform.server.parser.SubscribeParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
@@ -72,11 +75,17 @@ public class SubscribeHandlerTest extends AbstractBaseHandlerTest {
   @Mock
   private SentiloResponse response;
   @Mock
-  private SubscribeParser parser;
+  private SubscribeConverter parser;
   @Mock
   private Subscription message;
   @Mock
+  private NotificationParams notificationParams;
+  @Mock
   private AuthorizationService authorizationService;
+  @Mock
+  private EntityMetadataRepository entityMetadataRepository;
+  @Mock
+  private EntityMetadataMessage entityMetadataMessage;
 
   @Before
   public void setUp() {
@@ -85,18 +94,20 @@ public class SubscribeHandlerTest extends AbstractBaseHandlerTest {
     when(request.getResource()).thenReturn(resource);
     when(authorizationService.hasAccessToRead(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToWrite(anyString(), anyString())).thenReturn(true);
+    when(entityMetadataRepository.getEntityMetadataFromId(anyString())).thenReturn(entityMetadataMessage);
   }
 
   @Test
   public void putRequest() throws Exception {
-    when(parser.parseRequest(request, SubscribeType.DATA)).thenReturn(message);
+    when(parser.parseRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(SubscribeType.DATA);
-    when(message.getEndpoint()).thenReturn(ENDPOINT);
+    when(message.getNotificationParams()).thenReturn(notificationParams);
+    when(notificationParams.getEndpoint()).thenReturn(ENDPOINT);
 
     simulateRequest(HttpMethod.PUT, PROVIDER1, "/subscribe/provider1/sensor1");
     handler.manageRequest(request, response);
 
-    verify(parser).parseRequest(request, SubscribeType.DATA);
+    verify(parser).parseRequest(request);
     verify(service).subscribe(message);
   }
 
@@ -163,7 +174,7 @@ public class SubscribeHandlerTest extends AbstractBaseHandlerTest {
 
   private List<Subscription> getSubscriptions() {
     final List<Subscription> list = new ArrayList<Subscription>();
-    list.add(new Subscription(PROVIDER1, PROVIDER1, ENDPOINT));
+    list.add(new Subscription(PROVIDER1, PROVIDER1));
     return list;
   }
 }

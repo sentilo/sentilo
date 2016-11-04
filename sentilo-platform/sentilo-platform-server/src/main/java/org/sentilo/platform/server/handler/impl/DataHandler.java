@@ -34,13 +34,14 @@ package org.sentilo.platform.server.handler.impl;
 
 import java.util.List;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.DataInputMessage;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.DataService;
+import org.sentilo.platform.server.converter.DataConverter;
+import org.sentilo.platform.server.exception.MethodNotAllowedException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.DataParser;
+import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.DataValidator;
@@ -58,7 +59,7 @@ public class DataHandler extends AbstractHandler {
   @Autowired
   private DataService dataService;
 
-  private DataParser parser = new DataParser();
+  private DataConverter parser = new DataConverter();
   private final RequestMessageValidator<DataInputMessage> validator = new DataValidator();
 
   @Override
@@ -100,7 +101,7 @@ public class DataHandler extends AbstractHandler {
 
   @Override
   public void onPost(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP POST method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.POST);
   }
 
   @Override
@@ -117,6 +118,9 @@ public class DataHandler extends AbstractHandler {
     final DataInputMessage inputMessage = parser.parsePutRequest(request);
     validator.validateRequestMessageOnPut(inputMessage);
     validateWriteAccess(request.getEntitySource(), inputMessage.getProviderId());
+
+    LOGGER.debug("Entity {} has published a message with {} observations associated with {} sensors", request.getEntitySource(),
+        inputMessage.getObservations().size(), inputMessage.getProviderId());
 
     dataService.setObservations(inputMessage);
   }

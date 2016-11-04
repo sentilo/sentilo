@@ -64,7 +64,7 @@ public class AccessControlContext {
   }
 
   public Class<? extends CatalogDocument> getResourceClass() {
-    return (resourceClass != null ? resourceClass : resource.getClass());
+    return resourceClass != null ? resourceClass : resource.getClass();
   }
 
   public ActionType getAction() {

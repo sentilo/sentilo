@@ -52,10 +52,9 @@ public class PublishServiceImpl implements PublishService {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.agent.alert.service.PublishService#publishFrozenAlarm(org.sentilo.agent.alert.domain
-   * .InternalAlert)
+   *
+   * @see org.sentilo.agent.alert.service.PublishService#publishFrozenAlarm(org.sentilo.agent.alert.
+   * domain .InternalAlert)
    */
   public void publishFrozenAlarm(final InternalAlert alert) {
     final String errorMessage = String.format(Constants.TEMPLATE_FROZEN_ALARM, alert.getId(), alert.getSensorId(), alert.getExpression());
@@ -64,7 +63,7 @@ public class PublishServiceImpl implements PublishService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.agent.alert.service.PublishService#publishAlarm(org.sentilo.agent.alert.domain.
    * InternalAlert, java.lang.String)
@@ -80,6 +79,5 @@ public class PublishServiceImpl implements PublishService {
     alarmMessage.setAlertType(alert.getTrigger().name());
 
     platformClient.getAlarmOps().publish(alarmMessage);
-
   }
 }

@@ -136,7 +136,7 @@ public class TenantAccessControlFilterTest {
     when(userDetails.isSuperAdminUser()).thenReturn(true);
     when(req.getRequestURI()).thenReturn(restrictedRequest);
     when(requestEvaluator.isAllowed(eq("/admin/stats"), any(AnonymousAuthenticationToken.class))).thenReturn(false);
-    when(tenantContext.getCurrentTenant()).thenReturn("mockTenant");
+    when(tenantContext.getRequestTenant()).thenReturn("mockTenant");
 
     filter.doFilter(req, res, chain);
   }
@@ -147,7 +147,7 @@ public class TenantAccessControlFilterTest {
     when(userDetails.isSuperAdminUser()).thenReturn(false);
     when(req.getRequestURI()).thenReturn(restrictedRequest);
     when(requestEvaluator.isAllowed(eq("/admin/stats"), any(AnonymousAuthenticationToken.class))).thenReturn(false);
-    when(tenantContext.getCurrentTenant()).thenReturn("userTenant");
+    when(tenantContext.getRequestTenant()).thenReturn("userTenant");
     when(userDetails.getTenantId()).thenReturn("userTenant");
 
     filter.doFilter(req, res, chain);
@@ -161,7 +161,7 @@ public class TenantAccessControlFilterTest {
     when(userDetails.isSuperAdminUser()).thenReturn(false);
     when(req.getRequestURI()).thenReturn(restrictedRequest);
     when(requestEvaluator.isAllowed(eq("/admin/stats"), any(AnonymousAuthenticationToken.class))).thenReturn(false);
-    when(tenantContext.getCurrentTenant()).thenReturn("mockTenant");
+    when(tenantContext.getRequestTenant()).thenReturn("mockTenant");
     when(userDetails.getTenantId()).thenReturn("userTenant");
 
     filter.doFilter(req, res, chain);

@@ -50,6 +50,10 @@ public class SubscriptionMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String secretCallbackKey;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+  private long maxRetries;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+  private long retryDelay;
 
   public String getEndpoint() {
     return endpoint;
@@ -97,5 +101,21 @@ public class SubscriptionMessage {
 
   public void setSecretCallbackKey(final String secretCallbackKey) {
     this.secretCallbackKey = secretCallbackKey;
+  }
+
+  public long getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(final long maxRetries) {
+    this.maxRetries = maxRetries;
+  }
+
+  public long getRetryDelay() {
+    return retryDelay;
+  }
+
+  public void setRetryDelay(final long retryDelay) {
+    this.retryDelay = retryDelay;
   }
 }

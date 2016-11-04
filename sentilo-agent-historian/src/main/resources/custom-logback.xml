@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+
+<included>  
+  <property name="sentilo.log.file.name" value="sentilo-agent-historian"/>  
+  <contextName>historian</contextName>
+</included>

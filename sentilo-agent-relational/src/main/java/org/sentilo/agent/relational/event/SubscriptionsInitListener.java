@@ -39,15 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.sentilo.agent.common.listener.AbstractSubscriptionsInitListener;
 import org.sentilo.agent.common.utils.Utils;
 import org.sentilo.agent.relational.listener.MessageListenerImpl;
 import org.sentilo.agent.relational.service.DataTrackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -58,7 +57,7 @@ import org.springframework.util.StringUtils;
  * debe estar subscrito este agente.
  */
 @Component
-public class SubscriptionsInitListener implements org.springframework.context.ApplicationListener<org.springframework.context.event.ContextRefreshedEvent> {
+public class SubscriptionsInitListener extends AbstractSubscriptionsInitListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsInitListener.class);
 
@@ -66,18 +65,9 @@ public class SubscriptionsInitListener implements org.springframework.context.Ap
   private Properties subscriptionsDef;
 
   @Autowired
-  private RedisMessageListenerContainer listenerContainer;
-  @Autowired
   private DataTrackService dataTrackService;
 
-  @Override
-  public void onApplicationEvent(final ContextRefreshedEvent event) {
-    LOGGER.info("Executing call to register subscriptions process");
-    subscribe();
-    LOGGER.info("End of process");
-  }
-
-  void subscribe() {
+  public void subscribe() {
     // Este proceso lee las subscripciones definidas en el fichero subscription.properties y las
     // agrupa por el Ds a utilizar para persistir los datos.
     // Para cada grupo define un MessageListener que se subscribirá cada una de las subscripciones
@@ -115,16 +105,14 @@ public class SubscriptionsInitListener implements org.springframework.context.Ap
 
   private void registerMessageListeners(final Map<String, List<String>> dsGroup) {
     // Para cada Ds definido, definimos un grupo de subscripciones, y para cada grupo tendremos un
-    // messageListener. Cada ML estara registrado a todas
-    // las subscripciones del grupo.
+    // messageListener. Cada ML estara registrado a todas las subscripciones del grupo.
     final Iterator<String> dsKeys = dsGroup.keySet().iterator();
     while (dsKeys.hasNext()) {
       final String dsName = dsKeys.next();
       final List<String> dsSubscriptions = dsGroup.get(dsName);
       final MessageListener messageListener = new MessageListenerImpl(dsName, dataTrackService);
       for (final String dsSubscription : dsSubscriptions) {
-        registerSubscriptionIntoContainer(messageListener, dsSubscription);
-        LOGGER.debug("Subscription {} registered succesfully", dsSubscription);
+        registerSubscription(messageListener, Utils.buildTopic(dsSubscription));
       }
     }
   }
@@ -140,17 +128,5 @@ public class SubscriptionsInitListener implements org.springframework.context.Ap
       final List<String> dsSubscriptions = dsGroup.get(dataSourceName);
       dsSubscriptions.add(subscription);
     }
-  }
-
-  private void registerSubscriptionIntoContainer(final MessageListener messageListener, final String topic) {
-    listenerContainer.addMessageListener(messageListener, Utils.buildTopic(topic));
-  }
-
-  public void setListenerContainer(final RedisMessageListenerContainer listenerContainer) {
-    this.listenerContainer = listenerContainer;
-  }
-
-  public void setDataTrackService(final DataTrackService dataTrackService) {
-    this.dataTrackService = dataTrackService;
   }
 }

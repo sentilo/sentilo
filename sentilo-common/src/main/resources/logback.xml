@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration>	
+	<shutdownHook/>		
+	<!--  Each module could override / extend default configuration providing a file with name custom-logback.xml -->	
+	<include optional="true" resource="custom-logback.xml"/>
+	
+	<property name="sentilo.log.file.name" value="${sentilo.log.file.name:-sentilo}"/>
+	<property name="sentilo.log.dir" value="${sentilo.log.dir:-/var/log/sentilo}"/>
+					
+	<!--  Common configuration file for each Sentilo module. With system properties each module can override the default configuration -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%xException{25}%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover and compression of rollover files -->
+			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<!-- Limits log file size up to a maximum of 10MB -->
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+
+			<!-- keep 30 days' worth of history -->
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+
+		<encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%xException{25}%n</pattern>
+		</encoder>
+	</appender>	
+
+	<appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover and compression of rollover files -->
+			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-error-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<!-- Limits log file size up to a maximum of 10MB -->
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+
+			<!-- keep 30 days' worth of history -->
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+
+		<encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%xException S:END%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+	    <appender-ref ref="STDOUT" />
+	</appender>
+
+	<appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
+    	<queueSize>10000</queueSize>
+    	<discardingThreshold>0</discardingThreshold>
+    	<neverBlock>true</neverBlock>
+    	<appender-ref ref="FILE" />
+  	</appender>
+  	  	
+  	<appender name="ASYNCFILE_SENTILO_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+    	<queueSize>10000</queueSize>
+    	<discardingThreshold>0</discardingThreshold>
+    	<neverBlock>true</neverBlock>
+    	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+	      <level>WARN</level>
+	    </filter>
+    	<appender-ref ref="FILE_ERROR" />
+  	</appender>
+  	
+	<logger name="org.sentilo" level="${sentilo.log.level:-DEBUG}" additivity="true">
+		<appender-ref ref="ASYNCFILE_SENTILO_ERROR" />		
+	</logger>
+
+	<root level="WARN">
+		<appender-ref ref="ASYNCSTDOUT" />
+		<appender-ref ref="ASYNCFILE" />
+	</root>
+
+</configuration>

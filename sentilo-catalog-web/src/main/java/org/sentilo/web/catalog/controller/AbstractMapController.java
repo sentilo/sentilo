@@ -46,6 +46,7 @@ import org.sentilo.platform.client.core.domain.Observation;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.domain.SensorSubstate;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.dto.InfoBoxDTO;
 import org.sentilo.web.catalog.dto.ObservationDTO;
@@ -56,6 +57,7 @@ import org.sentilo.web.catalog.search.builder.SearchFilterBuilder;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorService;
+import org.sentilo.web.catalog.service.SensorSubstateService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.utils.LastUpdateMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +90,9 @@ public class AbstractMapController extends CatalogBaseController {
   @Autowired
   private SensorTypesService sensorTypesService;
 
+  @Autowired
+  private SensorSubstateService sensorSubstateService;
+
   private final SearchFilterBuilder searchFilterBuilder = new DefaultSearchFilterBuilderImpl();
 
   @RequestMapping(value = "/{id}/lastOb", method = RequestMethod.GET)
@@ -114,12 +119,18 @@ public class AbstractMapController extends CatalogBaseController {
     // If search must be filtered by timestamp therefore "from" param must be fill in ("to" param is
     // optional).
     final QueryFilterParams filterParams =
-        (StringUtils.hasText(from) ? new QueryFilterParams(DateUtils.stringToDate(from), DateUtils.stringToDate(to), 1) : new QueryFilterParams(1));
+        StringUtils.hasText(from) ? new QueryFilterParams(DateUtils.stringToDate(from), DateUtils.stringToDate(to), 1) : new QueryFilterParams(1);
 
     final List<Long> updatedTimestamps = new ArrayList<Long>();
-    updatedTimestamps.add(0l);
+    updatedTimestamps.add(0L);
 
     for (final Sensor sensor : sensors) {
+
+      if (sensor.getSubstate() != null) {
+        final SensorSubstate ss = sensorSubstateService.find(sensor.getSubstate());
+        sensor.setSubstateDesc(ss.getDescription());
+      }
+
       final Observation observation = getSensorService().getLastObservation(sensor, filterParams);
       translateAndEscapeSensorType(sensor);
       lastObservationsList.add(new ObservationDTO(sensor, observation));
@@ -151,7 +162,7 @@ public class AbstractMapController extends CatalogBaseController {
   /**
    * Replace the sensorType id value of a sensor for the sensorType name, because it is a more
    * friendly name.
-   * 
+   *
    * @param sensor
    */
   protected void translateAndEscapeSensorType(final Sensor sensor) {

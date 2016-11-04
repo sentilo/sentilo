@@ -33,12 +33,14 @@
 package org.sentilo.platform.server.test.handler.impl;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -46,13 +48,16 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.Alarm;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
+import org.sentilo.platform.common.exception.EventRejectedException;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.common.service.AlarmService;
 import org.sentilo.platform.server.auth.AuthorizationService;
+import org.sentilo.platform.server.converter.AlarmConverter;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.handler.impl.AlarmHandler;
 import org.sentilo.platform.server.http.HttpMethod;
-import org.sentilo.platform.server.parser.AlarmParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
@@ -71,11 +76,15 @@ public class AlarmHandlerTest extends AbstractBaseHandlerTest {
   @Mock
   private SentiloResponse response;
   @Mock
-  private AlarmParser parser;
+  private AlarmConverter parser;
   @Mock
   private AlarmInputMessage message;
   @Mock
   private AuthorizationService authorizationService;
+  @Mock
+  private EntityMetadataRepository entityMetadataRepository;
+  @Mock
+  private EntityMetadataMessage entityMetadataMessage;
 
   @Before
   public void setUp() {
@@ -84,14 +93,15 @@ public class AlarmHandlerTest extends AbstractBaseHandlerTest {
     when(request.getResource()).thenReturn(resource);
     when(authorizationService.hasAccessToRead(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToWrite(anyString(), anyString())).thenReturn(true);
+    when(entityMetadataRepository.getEntityMetadataFromId(anyString())).thenReturn(entityMetadataMessage);
   }
 
   @Test
   public void putRequest() throws Exception {
     when(parser.parseRequest(request)).thenReturn(message);
-    when(message.getMessage()).thenReturn("hola");
+    when(message.getMessage()).thenReturn("Lower battery");
 
-    simulateRequest(HttpMethod.PUT, PROVIDER1, "/alarm/alarm1");
+    simulateRequest(HttpMethod.PUT, PROVIDER1, "/alarm/alert1");
     handler.manageRequest(request, response);
 
     verify(parser).parseRequest(request);
@@ -100,20 +110,37 @@ public class AlarmHandlerTest extends AbstractBaseHandlerTest {
 
   @Test
   public void invalidPutRequest() throws Exception {
+    boolean errorThrown = false;
     when(parser.parseRequest(request)).thenReturn(message);
 
-    simulateRequest(HttpMethod.PUT, PROVIDER1, "/alarm/alarm1");
+    simulateRequest(HttpMethod.PUT, PROVIDER1, "/alarm/alert1");
     try {
       handler.manageRequest(request, response);
     } catch (final PlatformException e) {
       assertBadRequest(e);
+      errorThrown = true;
+    } finally {
+      Assert.assertTrue(errorThrown);
     }
+  }
+
+  @Test(expected = EventRejectedException.class)
+  public void unknownAlert() throws Exception {
+    when(parser.parseRequest(request)).thenReturn(message);
+    when(message.getMessage()).thenReturn("Lower battery");
+    doThrow(EventRejectedException.class).when(service).setAlarm(message);
+
+    simulateRequest(HttpMethod.PUT, PROVIDER1, "/alarm/alert1");
+    handler.manageRequest(request, response);
+
+    verify(parser).parseRequest(request);
+    verify(service).setAlarm(message);
   }
 
   @Test
   public void deleteRequest() throws Exception {
     try {
-      simulateRequest(HttpMethod.POST, PROVIDER1, "/alarm/alarm1");
+      simulateRequest(HttpMethod.POST, PROVIDER1, "/alarm/alert1");
       handler.manageRequest(request, response);
     } catch (final PlatformException e) {
       assertMethodNotAllowed(e);
@@ -123,11 +150,11 @@ public class AlarmHandlerTest extends AbstractBaseHandlerTest {
   @Test
   public void getRequest() throws Exception {
     final List<Alarm> alarms = getAlarms();
-    final AlarmInputMessage message = new AlarmInputMessage("alarm1");
+    final AlarmInputMessage message = new AlarmInputMessage("alert1");
     when(parser.parseGetRequest(request)).thenReturn(message);
     when(service.getLastAlarms(message)).thenReturn(alarms);
 
-    simulateRequest(HttpMethod.GET, PROVIDER1, "/alarm/alarm1");
+    simulateRequest(HttpMethod.GET, PROVIDER1, "/alarm/alert1");
     handler.manageRequest(request, response);
 
     verify(parser).parseGetRequest(request);
@@ -138,7 +165,7 @@ public class AlarmHandlerTest extends AbstractBaseHandlerTest {
   @Test
   public void postRequest() throws Exception {
     try {
-      simulateRequest(HttpMethod.POST, PROVIDER1, "/alarm/alarm1");
+      simulateRequest(HttpMethod.POST, PROVIDER1, "/alarm/alert1");
       handler.manageRequest(request, response);
     } catch (final PlatformException e) {
       assertMethodNotAllowed(e);
@@ -147,8 +174,8 @@ public class AlarmHandlerTest extends AbstractBaseHandlerTest {
 
   private List<Alarm> getAlarms() {
     final List<Alarm> alarms = new ArrayList<Alarm>();
-    final Alarm alarm1 = new Alarm("alarm1", "umbral superado", "sender1", System.currentTimeMillis());
-    final Alarm alarm2 = new Alarm("alarm1", "no responde", "sender1", System.currentTimeMillis());
+    final Alarm alarm1 = new Alarm("alert1", "Threshold exceeded", "sender1", System.currentTimeMillis());
+    final Alarm alarm2 = new Alarm("alert1", "Lowe battery", "sender1", System.currentTimeMillis());
 
     alarms.add(alarm1);
     alarms.add(alarm2);

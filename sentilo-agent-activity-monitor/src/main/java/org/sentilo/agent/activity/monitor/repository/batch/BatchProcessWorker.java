@@ -37,38 +37,49 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.sentilo.agent.activity.monitor.parser.BatchProcessResponseConverter;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
-import org.sentilo.common.parser.EventMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 public class BatchProcessWorker implements Callable<BatchProcessResult> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessWorker.class);
+  private static final String DEFAULT_INDEX_NAME = "sentilo";
+  private static final String DEFAULT_INDEX_MATH_DATE_PATTERN = "{now/d}";
 
   private List<EventMessage> initialEventsToProcess;
   private final RESTClient restClient;
   private final BatchProcessCallback callback;
   private int numRetries;
+  private final String indexName;
   private final int numMaxRetries;
-  private final EventMessageConverter converter = new EventMessageConverter();
-  private final BatchProcessResponseConverter responseConverter = new BatchProcessResponseConverter();
+  private final StringMessageConverter converter = new DefaultStringMessageConverter();
 
   public BatchProcessWorker(final BatchProcessContext batchUpdateContext) {
     initialEventsToProcess = batchUpdateContext.getEventsToProcess();
     restClient = batchUpdateContext.getRestClient();
     numMaxRetries = batchUpdateContext.getNumMaxRetries();
     callback = batchUpdateContext.getCallback();
+
+    final String suffixIndexName =
+        System.getProperty("elasticsearch.index.name") == null ? DEFAULT_INDEX_NAME : System.getProperty("elasticsearch.index.name");
+    final String indexMathDatePattern = System.getProperty("elasticsearch.index.date.pattern") == null ? DEFAULT_INDEX_MATH_DATE_PATTERN
+        : System.getProperty("elasticsearch.index.date.pattern");
+    // indexName will be dynamic and depends on the current day. Its final name is derived from a
+    // dath-math-expression
+    indexName = "<" + suffixIndexName + "-" + indexMathDatePattern + ">";
   }
 
   public BatchProcessResult call() {
-    LOGGER.info("Init batch process. Event elements that should be indexed in elasticsearch:  {} ", initialEventsToProcess.size());
+    LOGGER.debug("Init batch process. Event elements that should be indexed in elasticsearch:  {} ", initialEventsToProcess.size());
 
     final List<EventMessage> eventsNoProcessed = doBatchProcess();
     final int numElementsProcessed = initialEventsToProcess.size() - eventsNoProcessed.size();
-    LOGGER.info("Number of elements actually indexed: {}", numElementsProcessed);
+    LOGGER.debug("Number of elements actually indexed: {}", numElementsProcessed);
 
     final BatchProcessResult result = new BatchProcessResult(initialEventsToProcess.size(), eventsNoProcessed);
 
@@ -79,13 +90,9 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
   private List<EventMessage> doBatchProcess() {
     List<EventMessage> eventsToProcess = initialEventsToProcess;
 
-    while (checkRetries()) {
+    while (!CollectionUtils.isEmpty(eventsToProcess) && checkRetries()) {
       final BatchProcessResponse response = callBulkApi(eventsToProcess);
-      if (response.hasErrors()) {
-        eventsToProcess = processResponse(response, eventsToProcess);
-      } else {
-        break;
-      }
+      eventsToProcess = processResponse(response, eventsToProcess);
     }
 
     return eventsToProcess;
@@ -96,9 +103,10 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     LOGGER.debug("Num of attempt: {}", numRetries);
     BatchProcessResponse response = null;
     try {
-      response = responseConverter.unmarshall(restClient.post("/sentilo/_bulk", buildBody(eventsToProcess)));
+      final String jsonResponse = restClient.post("/_bulk", buildBody(eventsToProcess));
+      response = (BatchProcessResponse) converter.unmarshal(jsonResponse, BatchProcessResponse.class);
     } catch (final Exception e) {
-      LOGGER.warn("Error executing batch process: {}", e.getMessage(), e);
+      LOGGER.warn("Error executing bulk request to elasticsearch: {}", e.getMessage(), e);
       response = new BatchProcessResponse(true);
     }
 
@@ -111,25 +119,23 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     } else {
       LOGGER.error("Number of retries {} is greater or equals than the maximum number of retries configured {}. "
           + "Events no indexed will be stored for further processing.", numRetries, numMaxRetries);
-      // Pendiente guardar en Redis
-
       return false;
     }
   }
 
   /**
    * Returns the body associated with the bulk call
-   * 
+   *
    * @param eventsToProcess
    * @return
    */
   private String buildBody(final List<EventMessage> eventsToProcess) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     for (final EventMessage event : eventsToProcess) {
-      sb.append("{ \"index\" : { \"_index\" : \"sentilo\", \"_type\" : \"" + event.getType().toLowerCase() + "\" }}");
+      sb.append("{ \"index\" : { \"_index\" : \"" + indexName + "\", \"_type\" : \"" + event.getType().toLowerCase() + "\" }}");
       sb.append("\n");
-      sb.append(converter.marshall(event));
+      sb.append(converter.marshal(event));
       sb.append("\n");
     }
 
@@ -139,7 +145,7 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
   /**
    * Read response returned by EL and returns a new list with the documents (events) that have not
    * been indexed.
-   * 
+   *
    * @param response Response to the bulk index call.
    * @param eventsToProcess Documents sent to be indexed
    * @return
@@ -161,4 +167,5 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
       return aux;
     }
   }
+
 }

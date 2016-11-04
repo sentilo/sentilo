@@ -55,19 +55,43 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
   private String tenant;
 
   private long requests;
+  private long getRequests;
+  private long putRequests;
   private long observations;
+  private long getObservations;
+  private long putObservations;
   private long alarms;
+  private long getAlarms;
+  private long putAlarms;
   private long orders;
+  private long getOrders;
+  private long putOrders;
   private long timestamp;
 
   @JsonIgnore
   private long totalRequests;
   @JsonIgnore
+  private long totalGetRequests;
+  @JsonIgnore
+  private long totalPutRequests;
+  @JsonIgnore
   private long totalObservations;
+  @JsonIgnore
+  private long totalGetObservations;
+  @JsonIgnore
+  private long totalPutObservations;
   @JsonIgnore
   private long totalAlarms;
   @JsonIgnore
+  private long totalGetAlarms;
+  @JsonIgnore
+  private long totalPutAlarms;
+  @JsonIgnore
   private long totalOrders;
+  @JsonIgnore
+  private long totalGetOrders;
+  @JsonIgnore
+  private long totalPutOrders;
 
   @JsonSerialize(include = Inclusion.NON_EMPTY)
   private String timestampToString;
@@ -89,16 +113,37 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
   public Activity(final PlatformActivity platformActivity, final Activity previous) {
     this();
     tenant = platformActivity.getTenant();
+
     totalAlarms = platformActivity.getTotalAlarms();
+    totalGetAlarms = platformActivity.getTotalGetAlarms();
+    totalPutAlarms = platformActivity.getTotalPutAlarms();
+
     totalObservations = platformActivity.getTotalObs();
+    totalGetObservations = platformActivity.getTotalGetObs();
+    totalPutObservations = platformActivity.getTotalPutObs();
+
     totalOrders = platformActivity.getTotalOrders();
+    totalGetOrders = platformActivity.getTotalGetOrders();
+    totalPutOrders = platformActivity.getTotalPutOrders();
+
     totalRequests = platformActivity.getTotalRequests();
+    totalGetRequests = platformActivity.getTotalGetRequests();
+    totalPutRequests = platformActivity.getTotalPutRequests();
+
     timestamp = platformActivity.getTimestamp();
 
     requests = totalRequests - previous.getTotalRequests();
+    getRequests = totalGetRequests - previous.getTotalGetRequests();
+    putRequests = totalPutRequests - previous.getTotalPutRequests();
     observations = totalObservations - previous.getTotalObservations();
+    getObservations = totalGetObservations - previous.getTotalGetObservations();
+    putObservations = totalPutObservations - previous.getTotalPutObservations();
     orders = totalOrders - previous.getTotalOrders();
+    getOrders = totalGetOrders - previous.getTotalGetOrders();
+    putOrders = totalPutOrders - previous.getTotalPutOrders();
     alarms = totalAlarms - previous.getTotalAlarms();
+    getAlarms = totalGetAlarms - previous.getTotalGetAlarms();
+    putAlarms = totalPutAlarms - previous.getTotalPutAlarms();
 
     buildId();
   }
@@ -110,6 +155,37 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
     }
 
     id = aux;
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final Activity other = (Activity) obj;
+    if (id == null) {
+      if (other.id != null) {
+        return false;
+      }
+    } else if (!id.equals(other.id)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    // Hashcode return must be consistent with the equals method
+    final int prime = 79;
+    int result = 1;
+    result = prime * result + (id == null ? 0 : id.hashCode());
+    return result;
   }
 
   public String getTimestampToString() {
@@ -231,7 +307,7 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
 
   @Override
   public int compareTo(final Activity o1) {
-    return (new Long(timestamp)).compareTo(new Long(o1.getTimestamp()));
+    return new Long(timestamp).compareTo(new Long(o1.getTimestamp()));
   }
 
   public long getRequests() {
@@ -248,6 +324,134 @@ public class Activity implements CatalogDocument, Comparable<Activity> {
 
   public void setTotalRequests(final long totalRequests) {
     this.totalRequests = totalRequests;
+  }
+
+  public long getGetRequests() {
+    return getRequests;
+  }
+
+  public void setGetRequests(final long getRequests) {
+    this.getRequests = getRequests;
+  }
+
+  public long getPutRequests() {
+    return putRequests;
+  }
+
+  public void setPutRequests(final long putRequests) {
+    this.putRequests = putRequests;
+  }
+
+  public long getGetObservations() {
+    return getObservations;
+  }
+
+  public void setGetObservations(final long getObservations) {
+    this.getObservations = getObservations;
+  }
+
+  public long getPutObservations() {
+    return putObservations;
+  }
+
+  public void setPutObservations(final long putObservations) {
+    this.putObservations = putObservations;
+  }
+
+  public long getGetAlarms() {
+    return getAlarms;
+  }
+
+  public void setGetAlarms(final long getAlarms) {
+    this.getAlarms = getAlarms;
+  }
+
+  public long getPutAlarms() {
+    return putAlarms;
+  }
+
+  public void setPutAlarms(final long putAlarms) {
+    this.putAlarms = putAlarms;
+  }
+
+  public long getGetOrders() {
+    return getOrders;
+  }
+
+  public void setGetOrders(final long getOrders) {
+    this.getOrders = getOrders;
+  }
+
+  public long getPutOrders() {
+    return putOrders;
+  }
+
+  public void setPutOrders(final long putOrders) {
+    this.putOrders = putOrders;
+  }
+
+  public long getTotalGetRequests() {
+    return totalGetRequests;
+  }
+
+  public void setTotalGetRequests(final long totalGetRequests) {
+    this.totalGetRequests = totalGetRequests;
+  }
+
+  public long getTotalPutRequests() {
+    return totalPutRequests;
+  }
+
+  public void setTotalPutRequests(final long totalPutRequests) {
+    this.totalPutRequests = totalPutRequests;
+  }
+
+  public long getTotalGetObservations() {
+    return totalGetObservations;
+  }
+
+  public void setTotalGetObservations(final long totalGetObservations) {
+    this.totalGetObservations = totalGetObservations;
+  }
+
+  public long getTotalPutObservations() {
+    return totalPutObservations;
+  }
+
+  public void setTotalPutObservations(final long totalPutObservations) {
+    this.totalPutObservations = totalPutObservations;
+  }
+
+  public long getTotalGetAlarms() {
+    return totalGetAlarms;
+  }
+
+  public void setTotalGetAlarms(final long totalGetAlarms) {
+    this.totalGetAlarms = totalGetAlarms;
+  }
+
+  public long getTotalPutAlarms() {
+    return totalPutAlarms;
+  }
+
+  public void setTotalPutAlarms(final long totalPutAlarms) {
+    this.totalPutAlarms = totalPutAlarms;
+  }
+
+  public long getTotalGetOrders() {
+    return totalGetOrders;
+  }
+
+  public void setTotalGetOrders(final long totalGetOrders) {
+    this.totalGetOrders = totalGetOrders;
+  }
+
+  public long getTotalPutOrders() {
+    return totalPutOrders;
+  }
+
+  public void setTotalPutOrders(final long totalPutOrders) {
+    this.totalPutOrders = totalPutOrders;
   }
 
 }

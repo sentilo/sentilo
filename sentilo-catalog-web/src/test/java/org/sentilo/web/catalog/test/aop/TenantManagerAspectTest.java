@@ -51,6 +51,7 @@ import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.web.catalog.aop.aspect.TenantManagerAspect;
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.context.TenantContextImpl;
+import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.EntityResource;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
@@ -83,10 +84,16 @@ public class TenantManagerAspectTest {
   private Sensor entityResource;
 
   @Mock
+  private Component entityResource2;
+
+  @Mock
   private Provider entityOwner;
 
   @Mock
   private Set<String> tenantsAuth;
+
+  @Mock
+  private Set<String> tenantsMapVisible;
 
   @Before
   public void setUp() throws Exception {
@@ -124,17 +131,21 @@ public class TenantManagerAspectTest {
   @SuppressWarnings("unchecked")
   @Test
   public void insertAll() {
-    final Collection<EntityResource> resources = Arrays.asList(new EntityResource[] {entityResource, entityResource});
+    final Collection<EntityResource> resources = Arrays.asList(new EntityResource[] {entityResource, entityResource2});
     when(auditable.actionType()).thenReturn(AuditingActionType.CREATE);
-    when(entityResource.getTenantsAuth()).thenReturn(tenantsAuth, tenantsAuth);
+    when(entityResource.getTenantsAuth()).thenReturn(tenantsAuth);
+    when(entityResource2.getTenantsAuth()).thenReturn(tenantsAuth);
+    when(entityResource2.getTenantsMapVisible()).thenReturn(tenantsMapVisible);
     when(entityResource.getTenantId()).thenReturn(mockTenant);
     when(mongoOps.find(any(Query.class), any(Class.class))).thenReturn(Arrays.asList(new Object[] {entityOwner}));
     when(entityOwner.getTenantId()).thenReturn(mockTenant);
 
     advice.doCollectionAdvice(jp, resources, auditable);
 
-    verify(entityResource, times(resources.size())).setTenantId(mockTenant);
-    verify(tenantsAuth, times(resources.size())).add(mockTenant);
+    verify(entityResource).setTenantId(mockTenant);
+    verify(entityResource2).setTenantId(mockTenant);
+    verify(tenantsAuth, times(resources.size())).addAll(entityOwner.getTenantsAuth());
+    verify(tenantsMapVisible).addAll(entityOwner.getTenantsAuth());
   }
 
   @SuppressWarnings("unchecked")

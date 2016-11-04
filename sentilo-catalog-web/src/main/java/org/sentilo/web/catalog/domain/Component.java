@@ -145,7 +145,7 @@ public class Component implements CatalogDocument, TenantResource, EntityResourc
     // Hashcode return must be consistent with the equals method
     final int prime = 23;
     int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + (id == null ? 0 : id.hashCode());
     return result;
   }
 

@@ -32,8 +32,16 @@
  */
 package org.sentilo.web.catalog.service;
 
+import org.sentilo.web.catalog.domain.TenantPermission;
+
 public interface TenantResourceService {
 
-  void updateResourceTenantsAuthByProvider(String providerId, String tenantId, boolean addGrant);
+  void addTenantGrantToProviderResources(final TenantPermission tenantPermission);
+
+  void removeTenantGrantFromProviderResources(final String providerId, final String tenantToRemove);
+
+  void addTenantVisibilityToProviderResources(String providerId, String tenantId);
+
+  void removeTenantVisibilityFromProviderResources(final String providerId, final String tenantToRemove);
 
 }

@@ -32,7 +32,6 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
-import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.MapParams;
 import org.sentilo.web.catalog.domain.Tenant;
 import org.sentilo.web.catalog.dto.TenantCustomParamsDTO;
@@ -42,6 +41,7 @@ import org.sentilo.web.catalog.service.TenantService;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class TenantCustomParamsServiceImpl implements TenantCustomParamsService {
@@ -53,19 +53,19 @@ public class TenantCustomParamsServiceImpl implements TenantCustomParamsService 
   public TenantCustomParamsDTO getTenantCustomParams() {
     // To get the parameters to apply to the displayed site there are two options: either apply the
     // tenant map configuration if it exists or apply the default tenant configuration
-    final Tenant tenant = getTenant();
-    final MapParams mapParams = (tenant.getMapParams() == null ? getDefaultTenant().getMapParams() : tenant.getMapParams());
+    final Tenant tenant = getRequestTenant();
+    final MapParams mapParams = tenant.getMapParams() == null ? getDefaultTenant().getMapParams() : tenant.getMapParams();
 
     return new TenantCustomParamsDTO(tenant, getTenantStyleClassUrl(tenant), mapParams);
   }
 
-  private Tenant getTenant() {
+  private Tenant getRequestTenant() {
     Tenant tenant = null;
-    if (TenantContextHolder.hasContext()) {
-      final String tenantId = TenantUtils.getCurrentTenant();
-      tenant = tenantService.find(new Tenant(tenantId));
+    if (StringUtils.hasText(TenantUtils.getRequestTenant())) {
+      final String requestTenant = TenantUtils.getRequestTenant();
+      tenant = tenantService.find(new Tenant(requestTenant));
     }
-    return (tenant != null ? tenant : getDefaultTenant());
+    return tenant != null ? tenant : getDefaultTenant();
   }
 
   private Tenant getDefaultTenant() {
@@ -75,6 +75,6 @@ public class TenantCustomParamsServiceImpl implements TenantCustomParamsService 
   }
 
   private String getTenantStyleClassUrl(final Tenant tenant) {
-    return tenant.getId() + ".css";
+    return "tenant/" + tenant.getId() + "/css/" + tenant.getId() + ".css";
   }
 }

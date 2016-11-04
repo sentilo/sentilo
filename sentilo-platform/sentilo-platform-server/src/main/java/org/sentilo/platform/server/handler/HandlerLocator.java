@@ -40,6 +40,7 @@ import java.util.Queue;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.server.request.RequestUtils;
 import org.sentilo.platform.server.request.SentiloRequest;
+import org.springframework.util.CollectionUtils;
 
 public class HandlerLocator {
 
@@ -69,7 +70,7 @@ public class HandlerLocator {
       }
       handlerPathCandidates.add(RequestUtils.buildPath(tokens[1]));
 
-      while (handlerPathCandidates.size() > 0) {
+      while (!CollectionUtils.isEmpty(handlerPathCandidates)) {
         final String handlerPath = handlerPathCandidates.poll();
         handler = handlers.get(handlerPath);
 

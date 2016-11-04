@@ -32,7 +32,10 @@
  */
 package org.sentilo.web.catalog.test.controller;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyCollectionOf;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -50,11 +53,17 @@ import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.CatalogInputMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
 import org.sentilo.common.domain.SensorLocationElement;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.web.catalog.controller.api.ApiController;
+import org.sentilo.web.catalog.converter.ApiConverterContext;
 import org.sentilo.web.catalog.domain.Component;
+import org.sentilo.web.catalog.domain.Provider;
+import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.service.ComponentService;
+import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.SensorService;
-import org.sentilo.web.catalog.test.AbstractBaseTest;
+import org.sentilo.web.catalog.validator.ApiValidationResults;
+import org.sentilo.web.catalog.validator.ApiValidator;
 
 public class ApiControllerTest extends AbstractBaseTest {
 
@@ -67,6 +76,12 @@ public class ApiControllerTest extends AbstractBaseTest {
   private SensorService sensorService;
   @Mock
   private CatalogInputMessage message;
+  @Mock
+  private ProviderService providerService;
+  @Mock
+  private ApiValidator validator;
+  @Mock
+  private ApiValidationResults validationResult;
 
   @Before
   public void setUp() throws Exception {
@@ -95,6 +110,24 @@ public class ApiControllerTest extends AbstractBaseTest {
 
     verify(componentService, times(0)).updateAll(anyCollectionOf(Component.class));
     Assert.assertEquals(CatalogResponseMessage.INTERNAL_SERVER_ERROR, response.getCode());
+  }
+
+  @Test
+  public void checkProviderIdParameterIsValid() {
+    final Provider provider = new Provider("mockProviderId");
+    final Provider fakeProvider = new Provider("fakeProviderId");
+
+    when(providerService.find(provider)).thenReturn(provider);
+    when(validator.validateFieldFormatValues(any(ApiConverterContext.class))).thenReturn(validationResult);
+    when(validator.validateSensorsAndComponents(anyListOf(Sensor.class), anyListOf(Component.class), anyBoolean())).thenReturn(validationResult);
+    when(validationResult.hasErrors()).thenReturn(Boolean.FALSE);
+    when(providerService.find(fakeProvider)).thenReturn(null);
+
+    final CatalogResponseMessage response = controller.registerSensors(message, provider.getId());
+    final CatalogResponseMessage fakeResponse = controller.registerSensors(message, fakeProvider.getId());
+
+    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
+    Assert.assertEquals(CatalogResponseMessage.FORBIDDEN, fakeResponse.getCode());
   }
 
   protected List<SensorLocationElement> generateRandomSensorLocationList() throws InstantiationException, IllegalAccessException {

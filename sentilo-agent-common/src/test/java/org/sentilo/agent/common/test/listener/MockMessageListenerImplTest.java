@@ -62,6 +62,6 @@ public class MockMessageListenerImplTest {
     final String topic = "/TEST_PATTERN";
     listener.onMessage(message, topic.getBytes());
 
-    verify(listener).doWithMessage(any(Message.class), any(EventMessage.class));
+    verify(listener).doWithMessage(any(EventMessage.class));
   }
 }

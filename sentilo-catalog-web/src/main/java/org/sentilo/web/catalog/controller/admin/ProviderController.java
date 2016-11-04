@@ -97,12 +97,12 @@ public class ProviderController extends CrudController<Provider> {
   protected void doBeforeExcelBuilder(final Model model) {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "provider");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "provider");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.CrudController#doAfterViewResource(org.springframework.ui
    * .Model)

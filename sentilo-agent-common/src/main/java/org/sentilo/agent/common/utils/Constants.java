@@ -44,6 +44,8 @@ public final class Constants {
 
   public static final String TOPIC_TOKEN = REDIS_CHANNEL_TOKEN;
 
+  public static final String PENDING_QUEUE_SUFFIX = ":pending:events";
+
   private Constants() {
     // this prevents even the native class from calling this ctor as well :
     throw new AssertionError();

@@ -40,14 +40,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.sentilo.common.domain.AlertOwner;
+import org.sentilo.common.cache.LRUCache;
+import org.sentilo.common.cache.impl.LRUCacheImpl;
 import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.domain.Alarm;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
-import org.sentilo.platform.common.exception.CatalogAccessException;
+import org.sentilo.platform.common.domain.Alert;
+import org.sentilo.platform.common.exception.EventRejectedException;
+import org.sentilo.platform.common.exception.RejectedResourcesContext;
 import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.exception.ResourceOfflineException;
 import org.sentilo.platform.common.service.AlarmService;
-import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.monitor.Metric;
 import org.sentilo.platform.service.monitor.RequestType;
@@ -59,7 +62,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.listener.Topic;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -70,45 +72,59 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   private static final Logger LOGGER = LoggerFactory.getLogger(AlarmServiceImpl.class);
 
   @Autowired
-  private CatalogService catalogService;
-
-  @Autowired
   private ResourceService resourceService;
 
-  private final Map<String, String> alertsOwners = new HashMap<String, String>();
+  private final LRUCache<String, String> alertsOwners = new LRUCacheImpl<String, String>(1000, 15);
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.AlarmService#setAlarm(org.sentilo.platform.common.domain
    * .AlarmInputMessage)
    */
   @Metric(requestType = RequestType.PUT, eventType = EventType.ALARM)
   public void setAlarm(final AlarmInputMessage message) {
-    // Register alert in Redis if it does not exists
-    registerAlertIfNeedBe(message);
-    // Add alarm in Redis
-    registerAlarmMessage(message);
-    // and finally, publish the alarm
-    publish(message);
+    final RejectedResourcesContext rejectedContext = new RejectedResourcesContext();
+
+    try {
+      checkTargetResourceState(message);
+
+      LOGGER.debug("Set alarm [{}] from alert [{}] ", message.getMessage(), message.getAlertId());
+      // Save alarm in Redis
+      registerAlarmMessage(message);
+      // and finally, publish the alarm
+      publish(message);
+    } catch (final ResourceNotFoundException rnfe) {
+      rejectedContext.rejectEvent(message.getAlertId(), rnfe.getMessage());
+      LOGGER.warn("Alarm [{}] has been rejected because alert [{}] doesn't exists on Sentilo.", message.getMessage(), message.getAlertId());
+    } catch (final ResourceOfflineException roe) {
+      rejectedContext.rejectEvent(message.getSensorId(), roe.getMessage());
+      LOGGER.warn("Alarm [{}] has been rejected because alert [{}] is not enabled on Sentilo.", message.getMessage(), message.getAlertId());
+    }
+
+    if (!rejectedContext.isEmpty()) {
+      throw new EventRejectedException(EventType.ALARM, rejectedContext);
+    }
+
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.common.service.AlarmService#getAlertOwner(java.lang.String)
    */
-  public String getAlertOwner(final String alertId) throws ResourceNotFoundException {
-    if (alertsOwners.get(alertId) == null) {
+  public String getAlertOwner(final String alertId) {
+    final String alertOwner = getOwnerFromCache(alertId);
+    if (alertOwner == null) {
       throw new ResourceNotFoundException(alertId, "Alert");
     }
-    return alertsOwners.get(alertId);
+    return alertOwner;
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.AlarmService#getLastAlarms(org.sentilo.platform.common.
    * domain.AlarmInputMessage)
@@ -128,13 +144,33 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     return messages;
   }
 
-  private void registerAlertIfNeedBe(final AlarmInputMessage message) {
-    resourceService.registerAlertIfNeedBe(message.getAlertId());
+  private String getOwnerFromCache(final String alertId) {
+    if (alertsOwners.get(alertId) == null) {
+      final Long aid = jedisSequenceUtils.getAid(alertId);
+      final Alert alert = resourceService.getAlert(aid);
+      if (alert != null) {
+        alertsOwners.put(alertId, alert.getEntity());
+      }
+    }
+
+    return alertsOwners.get(alertId);
+  }
+
+  /**
+   * If alert has filled in the alertId, checks if it exists and is enabled in Redis. Otherwise
+   * throws an exception.
+   */
+  private void checkTargetResourceState(final AlarmInputMessage message) {
+    if (!resourceService.existsAlert(message.getAlertId())) {
+      throw new ResourceNotFoundException(message.getAlertId(), "Alert");
+    } else if (resourceService.isAlertDisabled(message.getAlertId())) {
+      throw new ResourceOfflineException(message.getAlertId(), "Alert");
+    }
   }
 
   private void registerAlarmMessage(final AlarmInputMessage message) {
     final Long aid = jedisSequenceUtils.getAid(message.getAlertId());
-    final Long amid = persistAlarmMessage(message);
+    final Long amid = persistAlarmMessage(message, aid);
     registerAlarmMessage(aid, amid, message);
   }
 
@@ -146,18 +182,17 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     // a cada elemento del Set es el timestamp del mensaje.
     jedisTemplate.zAdd(keysBuilder.getAlertAlarmsKey(aid), timestamp, amid.toString());
 
-    LOGGER.debug("Registered in Redis alarm {} for alert {}", amid, message.getAlertId());
+    LOGGER.debug("Registered in Redis alarm [{}] from alert [{}]", amid, message.getAlertId());
   }
 
-  private Long persistAlarmMessage(final AlarmInputMessage message) {
+  private Long persistAlarmMessage(final AlarmInputMessage message, final Long aid) {
     final Long amid = jedisSequenceUtils.getAmid();
-
     final Long timestamp = System.currentTimeMillis();
-
     final String alarmKey = keysBuilder.getAlarmKey(amid);
 
     // Build a new hash with key amid:{amid} and values source, message, timestamp and alertType.
     final Map<String, String> fields = new HashMap<String, String>();
+    fields.put(AID, Long.toString(aid));
     fields.put(SENDER, message.getSender());
     fields.put(MESSAGE, message.getMessage());
     fields.put(TIMESTAMP, timestamp.toString());
@@ -176,7 +211,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   }
 
   private void publish(final AlarmInputMessage message) {
-    LOGGER.debug("Publish alarm event message {} associated with alert {}", message.getMessage(), message.getAlertId());
+    LOGGER.debug("Publish alarm event message [{}] associated with alert [{}]", message.getMessage(), message.getAlertId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, message.getAlertId());
     jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
   }
@@ -207,7 +242,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     return alarmMessages;
   }
 
-  private Alarm getAlarm(final Long amid, final String alarmId) {
+  private Alarm getAlarm(final Long amid, final String alertId) {
     Alarm alarm = null;
     String message = null;
     String ts = null;
@@ -219,33 +254,10 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
       ts = infoSoid.get(TIMESTAMP);
       sender = infoSoid.get(SENDER);
 
-      alarm = new Alarm(alarmId, message, sender, Long.parseLong(ts));
+      alarm = new Alarm(alertId, message, sender, Long.parseLong(ts));
     }
 
     return alarm;
   }
 
-  @Scheduled(initialDelay = 5000, fixedRate = 900000)
-  public void loadAlertsOwners() {
-    try {
-      LOGGER.debug("Updating alert owners cache");
-      final List<AlertOwner> owners = catalogService.getAlertsOwners().getOwners();
-      final Map<String, String> auxAlertsOwners = new HashMap<String, String>();
-      if (!CollectionUtils.isEmpty(owners)) {
-        for (final AlertOwner alarmOwner : owners) {
-          auxAlertsOwners.put(alarmOwner.getAlertId(), alarmOwner.getOwnerEntityId());
-        }
-      }
-
-      replaceActiveAlertsOwners(auxAlertsOwners);
-
-    } catch (final CatalogAccessException e) {
-      LOGGER.warn("Error calling the catalog for get the list of alert owners", e);
-    }
-  }
-
-  private void replaceActiveAlertsOwners(final Map<String, String> updatedAlertsOwners) {
-    alertsOwners.clear();
-    alertsOwners.putAll(updatedAlertsOwners);
-  }
 }

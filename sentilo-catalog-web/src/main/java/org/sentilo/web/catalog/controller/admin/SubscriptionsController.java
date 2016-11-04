@@ -127,7 +127,7 @@ public class SubscriptionsController {
       row.add(resource.getProvider());
     }
     row.add(resource.getSensor());
-    row.add(resource.getAlarm());
+    row.add(resource.getAlert());
     row.add(resource.getEndpoint());
     return row;
   }

@@ -89,7 +89,7 @@ public class TestClassesPatternResolver {
   /**
    * Add the class with name <code>className</code> to the classes list If at least one method is
    * annotated with the JUnit <code>@Test</code> annotation
-   * 
+   *
    * @param classes
    * @param className
    * @throws ClassNotFoundException

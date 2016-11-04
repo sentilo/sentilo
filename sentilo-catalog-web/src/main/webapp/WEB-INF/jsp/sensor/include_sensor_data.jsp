@@ -41,7 +41,7 @@ $(document).ready(function() {
 									<strong><spring:message code="sensor.dataType" /> </strong>
 								</div>
 								<div class="span8">
-									<span class="label"><spring:message code="sensor.dataType.${sensor.dataType}" /> </span>
+									<span class="label label-info"><spring:message code="sensor.dataType.${sensor.dataType}" /> </span>
 								</div>
 							</div>
 							<div class="row-fluid">

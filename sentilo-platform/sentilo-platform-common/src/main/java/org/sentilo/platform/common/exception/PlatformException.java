@@ -34,23 +34,20 @@ package org.sentilo.platform.common.exception;
 
 import java.util.List;
 
-public class PlatformException extends Exception {
+import org.springframework.core.NestedRuntimeException;
 
-  /**
-   * 
-   */
+/**
+ * Base class for exceptions thrown by the platform whenever it encounters errors
+ */
+public class PlatformException extends NestedRuntimeException {
+
   private static final long serialVersionUID = 1L;
 
   private int httpStatus;
 
   private List<String> errorDetails;
 
-  public PlatformException() {
-  }
-
-  public PlatformException(final int status) {
-    httpStatus = status;
-  }
+  private String internalErrorCode;
 
   public PlatformException(final String message) {
     super(message);
@@ -67,7 +64,7 @@ public class PlatformException extends Exception {
   }
 
   public PlatformException(final Throwable cause) {
-    super(cause);
+    this(cause.getMessage(), cause);
   }
 
   public PlatformException(final String message, final Throwable cause) {
@@ -75,7 +72,7 @@ public class PlatformException extends Exception {
   }
 
   public PlatformException(final int status, final Throwable cause) {
-    super(cause);
+    this(cause);
     httpStatus = status;
   }
 
@@ -93,5 +90,13 @@ public class PlatformException extends Exception {
 
   public List<String> getErrorDetails() {
     return errorDetails;
+  }
+
+  public String getInternalErrorCode() {
+    return internalErrorCode;
+  }
+
+  public void setInternalErrorCode(final String internalErrorCode) {
+    this.internalErrorCode = internalErrorCode;
   }
 }

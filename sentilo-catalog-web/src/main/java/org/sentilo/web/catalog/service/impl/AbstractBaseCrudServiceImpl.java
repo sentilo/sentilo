@@ -33,19 +33,25 @@
 package org.sentilo.web.catalog.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.sentilo.web.catalog.admin.domain.DeletedResource;
 import org.sentilo.web.catalog.domain.CatalogDocument;
+import org.sentilo.web.catalog.domain.SyncResource;
 import org.sentilo.web.catalog.exception.builder.DefaultCatalogBuilderExceptionImpl;
 import org.sentilo.web.catalog.exception.builder.ResourceNotFoundExceptionBuilder;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.SearchFilterResult;
 import org.sentilo.web.catalog.security.audit.Auditable;
 import org.sentilo.web.catalog.security.audit.AuditingActionType;
+import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
+import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.sentilo.web.catalog.validator.DefaultEntityKeyValidatorImpl;
 import org.sentilo.web.catalog.validator.EntityKeyValidator;
@@ -57,7 +63,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -65,10 +73,13 @@ import com.mongodb.MongoException;
 
 public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> extends AbstractBaseServiceImpl implements CrudService<T>, ApplicationContextAware {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBaseCrudServiceImpl.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractBaseCrudServiceImpl.class);
 
   @Autowired
   private MongoOperations mongoOps;
+
+  @Autowired
+  protected CatalogUserDetailsService userDetailsService;
 
   private ApplicationContext context;
 
@@ -93,7 +104,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework
    * .context.ApplicationContext)
@@ -105,7 +116,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#create(java.lang.Object)
    */
   @Override
@@ -113,12 +124,14 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   public T create(final T entity) {
     doBeforeCreate(entity);
     checkIntegrityKey(entity.getId());
-    return getRepository().save(entity);
+    final T savedObject = getRepository().save(entity);
+    doAfterCreate(entity);
+    return savedObject;
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#update(java.lang.Object)
    */
   @Override
@@ -129,7 +142,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#insertAll(java.util.Collection)
    */
   @Override
@@ -147,12 +160,14 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
       getMongoOps().insert(entitiesFiltered, this.type);
     }
 
+    doAfterCreate(entitiesFiltered);
+
     return entitiesFiltered;
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#updateAll(java.util.Collection)
    */
   @Override
@@ -179,32 +194,55 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#delete(java.lang.Object)
    */
   @Override
   @Auditable(actionType = AuditingActionType.DELETE)
   public void delete(final T entity) {
-    getRepository().delete(entity);
+    // getRepository().delete(entity);
+    doDelete(entity);
     doAfterDelete(entity);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#delete(java.util.Collection)
    */
   @Override
   @Auditable(actionType = AuditingActionType.DELETE)
   public void delete(final Collection<T> entities) {
-    getRepository().delete(entities);
+    // getRepository().delete(entities);
+    doDelete(entities);
     doAfterDelete(entities);
-
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
+   * @see
+   * org.sentilo.web.catalog.service.CrudService#delete(org.sentilo.web.catalog.search.SearchFilter)
+   */
+  public void delete(final SearchFilter filter) {
+    delete(filter, this.type);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.CrudService#delete(org.sentilo.web.catalog.search.SearchFilter,
+   * java.lang.Class)
+   */
+  public <V extends CatalogDocument> void delete(final SearchFilter filter, final Class<V> resourceType) {
+    final Query query = buildQuery(filter);
+    doDelete(query, resourceType);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
    * @see org.sentilo.web.catalog.service.CrudService#find(java.lang.Object)
    */
   @Override
@@ -216,14 +254,14 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   public T findAndThrowErrorIfNotExist(final T entity) {
     final T entityToReturn = find(entity);
     if (entityToReturn == null) {
-      getResourceNotFoundExceptionBuilder().buildResourceNotFoundException(entity.getId());
+      getResourceNotFoundExceptionBuilder().buildAndThrowResourceNotFoundException(entity.getId());
     }
     return entityToReturn;
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#findAll()
    */
   @Override
@@ -239,7 +277,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.CrudService#search(org.sentilo.web.catalog.utils.SearchFilter)
    */
@@ -250,10 +288,11 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
     // el objeto Pageable original. En nuestro caso, como queremos el SearchFilter, lo que hacemos
     // es inspirarnos en esta
     // clase para crear la SearchFilterResult.
-    final Query countQuery = buildCountQuery(filter);
-    final Query query = buildQuery(filter);
 
-    final long total = getMongoOps().count(countQuery, this.type);
+    final Query countQuery = filter.isCountTotal() ? buildCountQuery(filter) : null;
+    final long total = filter.isCountTotal() ? getMongoOps().count(countQuery, this.type) : -1;
+
+    final Query query = buildQuery(filter);
     final List<T> content = getMongoOps().find(query, this.type);
 
     return new SearchFilterResult<T>(content, filter, total);
@@ -261,7 +300,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#count()
    */
   @Override
@@ -271,7 +310,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.CrudService#exist(java.lang.String)
    */
   @Override
@@ -279,8 +318,87 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
     return getRepository().exists(entityId);
   }
 
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.CrudService#updateMulti(java.util.Collection,
+   * java.lang.String, java.lang.Object)
+   */
+  public void updateMulti(final Collection<String> objectIds, final String param, final Object value) {
+    updateMulti(objectIds, Arrays.asList(param), Arrays.asList(value));
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.CrudService#updateMulti(java.util.Collection,
+   * java.util.List, java.util.List)
+   */
+  @Override
+  public <V> void updateMulti(final Collection<String> objectIds, final List<String> params, final List<V> values) {
+    updateMulti(buildQueryForIdInCollection(objectIds), params, values);
+  }
+
+  protected <V> void updateMulti(final Query query, final List<String> params, final List<V> values) {
+    Assert.isTrue(params.size() == values.size());
+
+    final String userName = userDetailsService.getCatalogUserDetails().getUsername();
+    final Update update = Update.update(params.get(0), values.get(0));
+
+    for (int i = 1; i < params.size(); i++) {
+      update.set(params.get(i), values.get(i));
+    }
+
+    update.set("updatedAt", new Date()).set("updatedBy", userName);
+    if (SyncResource.class.isAssignableFrom(type)) {
+      update.set(Constants.SYNC_FIELD, null);
+    }
+
+    getMongoOps().updateMulti(query, update, type);
+  }
+
+  protected void doDelete(final T entity) {
+    final List<String> ids = Arrays.asList(new String[] {entity.getId()});
+    doDelete(buildQueryForIdInCollection(ids), this.type);
+  }
+
+  protected void doDelete(final Collection<T> entities) {
+    final List<String> ids = new ArrayList<String>();
+    for (final T entity : entities) {
+      ids.add(entity.getId());
+    }
+
+    doDelete(buildQueryForIdInCollection(ids), this.type);
+  }
+
+  protected <V extends CatalogDocument> void doDelete(final Query query) {
+    doDelete(query, this.type);
+  }
+
+  protected <V extends CatalogDocument> void doDelete(final Query query, final Class<V> resourceType) {
+    if (SyncResource.class.isAssignableFrom(resourceType)) {
+
+      final String collectionName = getMongoOps().getCollectionName(resourceType);
+      final Query queryFiltered = query;
+      queryFiltered.fields().include("sensorId").include("providerId").include("applicationId");
+      final List<DeletedResource> resources = getMongoOps().find(queryFiltered, DeletedResource.class, collectionName);
+      for (final DeletedResource resource : resources) {
+        resource.set_class(resourceType.getName());
+        resource.setDeletedAt(new Date());
+      }
+
+      getMongoOps().insert(resources, DeletedResource.class);
+    }
+
+    getMongoOps().remove(query, resourceType);
+  }
+
   protected void checkIntegrityKey(final String idToCheck) {
     getEntityKeyValidator().checkIntegrityKey(idToCheck);
+  }
+
+  protected void doAfterUpdateMulti(final Collection<String> objectIds, final String[] params, final Object[] values) {
+    // To override by subclasses.
   }
 
   protected void doBeforeCreate(final T entity) {
@@ -292,6 +410,14 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   }
 
   protected void doAfterDelete(final Collection<T> entities) {
+    // To override by subclasses.
+  }
+
+  protected void doAfterCreate(final T entity) {
+    // To override by subclasses.
+  }
+
+  protected void doAfterCreate(final Collection<T> entities) {
     // To override by subclasses.
   }
 
@@ -311,10 +437,6 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
     }
 
     return entitiesFiltered;
-  }
-
-  public void setMongoOps(final MongoOperations mongoOps) {
-    this.mongoOps = mongoOps;
   }
 
   public MongoOperations getMongoOps() {
@@ -340,4 +462,5 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   protected void setResourceNotFoundExceptionBuilder(final ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder) {
     this.resourceNotFoundExceptionBuilder = resourceNotFoundExceptionBuilder;
   }
+
 }

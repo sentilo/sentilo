@@ -59,7 +59,7 @@ public class RoutePointListTest {
 
   @Test
   public void maxSize() {
-    for (int i = 0; i < (list.getMaxSize() + 15); i++) {
+    for (int i = 0; i < list.getMaxSize() + 15; i++) {
       list.add(new RoutePoint(new LngLat(new Double(i), 2d), System.currentTimeMillis() - i * 1000));
     }
 

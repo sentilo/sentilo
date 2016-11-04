@@ -96,7 +96,7 @@ public class TenantCustomParamsServiceImplTest {
     final TenantCustomParamsDTO customParams = service.getTenantCustomParams();
 
     Assert.assertTrue(customParams.getTenantId().equals("defaultId"));
-    Assert.assertTrue(customParams.getStyleClass().equals("defaultId.css"));
+    Assert.assertTrue(customParams.getStyleClass().equals("tenant/defaultId/css/defaultId.css"));
   }
 
   @Test
@@ -110,7 +110,7 @@ public class TenantCustomParamsServiceImplTest {
     final TenantCustomParamsDTO customParams = service.getTenantCustomParams();
 
     Assert.assertTrue(customParams.getTenantId().equals("defaultId"));
-    Assert.assertTrue(customParams.getStyleClass().equals("defaultId.css"));
+    Assert.assertTrue(customParams.getStyleClass().equals("tenant/defaultId/css/defaultId.css"));
   }
 
   @Test
@@ -135,6 +135,6 @@ public class TenantCustomParamsServiceImplTest {
     Assert.assertEquals(new Double(tenantMapCenterLatitude), customParams.getMapParams().getCenter().getLatitude());
     Assert.assertEquals(new Double(tenantMapCenterLongitude), customParams.getMapParams().getCenter().getLongitude());
     Assert.assertEquals(tenantMapZoomLevel, customParams.getMapParams().getZoomLevel());
-    Assert.assertEquals(defaultTenantId + ".css", customParams.getStyleClass());
+    Assert.assertEquals("tenant/tenantId/css/tenantId.css", customParams.getStyleClass());
   }
 }

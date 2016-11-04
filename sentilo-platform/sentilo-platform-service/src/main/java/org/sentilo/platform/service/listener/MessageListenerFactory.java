@@ -32,22 +32,22 @@
  */
 package org.sentilo.platform.service.listener;
 
-import org.sentilo.platform.common.security.repository.EntityCredentialsRepository;
-import org.springframework.beans.BeansException;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
+import org.sentilo.platform.service.notification.NotificationDeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MessageListenerFactory extends AbstractFactoryBean<MessageListenerImpl> implements ApplicationContextAware {
+public class MessageListenerFactory extends AbstractFactoryBean<MessageListenerImpl> {
 
   private String listenerName;
-  private ApplicationContext context;
 
   @Autowired
-  private EntityCredentialsRepository credentialsRepository;
+  private EntityMetadataRepository credentialsRepository;
+
+  @Autowired
+  private NotificationDeliveryService notificationDeliveryService;
 
   @Override
   public Class<MessageListenerImpl> getObjectType() {
@@ -57,8 +57,8 @@ public class MessageListenerFactory extends AbstractFactoryBean<MessageListenerI
   @Override
   protected MessageListenerImpl createInstance() throws Exception {
     final MessageListenerImpl listener = new MessageListenerImpl(listenerName);
-    listener.setApplicationContext(context);
-    listener.setTenant(credentialsRepository.getTenant(listenerName));
+    listener.setTenant(credentialsRepository.getTenantOwner(listenerName));
+    listener.setNotificationDeliveryService(notificationDeliveryService);
     return listener;
   }
 
@@ -68,12 +68,6 @@ public class MessageListenerFactory extends AbstractFactoryBean<MessageListenerI
 
   public void setListenerName(final String listenerName) {
     this.listenerName = listenerName;
-  }
-
-  @Override
-  public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-    context = applicationContext;
-
   }
 
   public boolean isSingleton() {

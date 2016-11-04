@@ -45,7 +45,7 @@ public abstract class CentroidBuilder {
 
   /**
    * Build the centroid of a set of coordinates
-   * 
+   *
    * @param location
    * @return
    */
@@ -87,8 +87,8 @@ public abstract class CentroidBuilder {
       // weight := d(P,Q)
       final double weight = Math.sqrt(Math.pow(latP - latQ, 2) + Math.pow(lngP - lngQ, 2));
 
-      sumX += ((latP + latQ) / 2) * weight;
-      sumY += ((lngP + lngQ) / 2) * weight;
+      sumX += (latP + latQ) / 2 * weight;
+      sumY += (lngP + lngQ) / 2 * weight;
       totalWeight += weight;
     }
 

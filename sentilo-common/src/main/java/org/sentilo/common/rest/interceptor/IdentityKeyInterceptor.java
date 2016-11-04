@@ -53,7 +53,7 @@ public class IdentityKeyInterceptor implements HttpRequestInterceptor {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.http.HttpRequestInterceptor#process(org.apache.http.HttpRequest,
    * org.apache.http.protocol.HttpContext)
    */

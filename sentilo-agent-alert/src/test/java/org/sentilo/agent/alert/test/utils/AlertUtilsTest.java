@@ -80,7 +80,8 @@ public class AlertUtilsTest {
     final String topic = "/alarm/topic/mock";
 
     final String prefix = "{\"message\":\"alarm message\"";
-    final String suffix = "\"topic\":\"/alarm/topic/mock\",\"type\":\"ALARM\",\"sender\":\"SENTILO\",\"alert\":\"alertTest\"}";
+    final String suffix =
+        "\"topic\":\"/alarm/topic/mock\",\"type\":\"ALARM\",\"alert\":\"alertTest\",\"publisher\":\"SENTILO\",\"sender\":\"SENTILO\"}";
 
     when(alert.getId()).thenReturn(alertId);
 

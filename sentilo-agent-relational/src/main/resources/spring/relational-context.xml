@@ -16,7 +16,10 @@
 	<context:component-scan base-package="org.sentilo.agent.relational.repository" />	
 	<context:component-scan base-package="org.sentilo.agent.relational.event" />
 	<context:component-scan base-package="org.sentilo.agent.relational.hook" />
-	<context:component-scan base-package="org.sentilo.agent.common.listener" />	
+	<context:component-scan base-package="org.sentilo.agent.common.listener" />		
+  	<context:component-scan base-package="org.sentilo.agent.common.service" />    
+  	<context:component-scan base-package="org.sentilo.agent.common.repository" />
+  	<context:component-scan base-package="org.sentilo.agent.common.scheduler" />
 	
 	<task:annotation-driven scheduler="platformScheduler" />
 	<task:scheduler id="platformScheduler" pool-size="5" />	

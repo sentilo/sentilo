@@ -14,6 +14,9 @@
 		p:host-name="${jedis.pool.host}" p:port="${jedis.pool.port}" p:password="${jedis.pool.password}" p:timeout="${jedis.pool.timeout}"
 		p:usePool="true" p:poolConfig-ref="jedisPoolConfigPubSub" />
 
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" 
+		p:connectionFactory-ref="jedisConnectionFactory" />
+	
 	<redis:listener-container connection-factory="jedisConnectionFactory" />
 
 

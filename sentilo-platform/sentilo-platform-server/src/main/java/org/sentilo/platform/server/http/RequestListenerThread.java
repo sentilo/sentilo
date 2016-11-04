@@ -189,9 +189,8 @@ public class RequestListenerThread extends Thread {
   }
 
   private void registerURLS() {
-    final HttpProcessor httpproc =
-        new ImmutableHttpProcessor(new HttpRequestInterceptor[] {new RequestExpectContinue()}, new HttpResponseInterceptor[] {new ResponseDate(),
-            new ResponseServer(), new ResponseContent(), new ResponseConnControl()});
+    final HttpProcessor httpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {new RequestExpectContinue()},
+        new HttpResponseInterceptor[] {new ResponseDate(), new ResponseServer(), new ResponseContent(), new ResponseConnControl()});
     final HttpRequestHandlerRegistry reqistry = new HttpRequestHandlerRegistry();
     reqistry.register(getRegisteredURLs(), new SentiloRequestHandler(handlerLocator, authenticationService));
 

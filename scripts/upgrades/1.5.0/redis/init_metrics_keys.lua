@@ -5,7 +5,7 @@
 local maxAvg = redis.call('GET', 'stats:avg:max');
 local totalOrders = redis.call('GET', 'global:soid');
 local totalObs = redis.call('GET', 'global:sdid');
-local totalAlarms = redis.call('GET', 'global:said');
+local totalAlarms = redis.call('GET', 'global:amid');
 
 local nTotalOrders = tonumber(totalOrders) or 0;
 local nTotalObs = tonumber(totalObs) or 0;

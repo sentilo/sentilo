@@ -5,7 +5,9 @@ CREATE TABLE sentilo_observations (
 	sensor VARCHAR(128),
 	value VARCHAR(512) NOT NULL,
 	timestamp varchar(20) NOT NULL,
+	event_timestamp timestamp NOT NULL,
 	published_at timestamp NOT NULL,
+	publisher VARCHAR(128),
 	location varchar(50),
 	PRIMARY KEY(id));
 
@@ -15,7 +17,9 @@ CREATE TABLE sentilo_orders (
 	sensor VARCHAR(128),
 	message VARCHAR(512) NOT NULL,
 	timestamp varchar(20) NOT NULL,
+	event_timestamp timestamp NOT NULL,
 	published_at timestamp NOT NULL,
+	publisher VARCHAR(128),
 	PRIMARY KEY(id));
 
 CREATE TABLE sentilo_alarms (
@@ -23,5 +27,7 @@ CREATE TABLE sentilo_alarms (
 	alarm VARCHAR(128) NOT NULL,
 	message VARCHAR(512) NOT NULL,
 	timestamp varchar(20) NOT NULL,
+	event_timestamp timestamp NOT NULL,
 	published_at timestamp NOT NULL,
+	publisher VARCHAR(128),
 	PRIMARY KEY(id));

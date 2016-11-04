@@ -32,16 +32,27 @@
  */
 package org.sentilo.agent.relational.domain;
 
+import org.sentilo.common.domain.EventMessage;
+
 public abstract class Data {
 
   /** Ds to use to persist the data. */
   private String targetDs;
 
-  /** Timestamp format as String following the Sentilo pattern */
+  /** Event time stamp formatted as String, following the Sentilo pattern */
   private String timestamp;
 
-  /** Timestamp format as long time. */
-  private long time;
+  /** Same value as timestamp field but as long time */
+  private long eventTimestamp;
+
+  /** Time stamp when data was published on Sentilo as long time. */
+  private long publishedAt;
+
+  /** Who has published data on Sentilo */
+  private String publisher;
+
+  /** Source event received by the agent */
+  private EventMessage sourceEvent;
 
   public void setTargetDs(final String targetDs) {
     this.targetDs = targetDs;
@@ -59,12 +70,36 @@ public abstract class Data {
     this.timestamp = timestamp;
   }
 
-  public long getTime() {
-    return time;
+  public long getPublishedAt() {
+    return publishedAt;
   }
 
-  public void setTime(final long time) {
-    this.time = time;
+  public void setPublishedAt(final long publishedAt) {
+    this.publishedAt = publishedAt;
+  }
+
+  public EventMessage getSourceEvent() {
+    return sourceEvent;
+  }
+
+  public void setSourceEvent(final EventMessage sourceEvent) {
+    this.sourceEvent = sourceEvent;
+  }
+
+  public String getPublisher() {
+    return publisher;
+  }
+
+  public void setPublisher(final String publisher) {
+    this.publisher = publisher;
+  }
+
+  public long getEventTimestamp() {
+    return eventTimestamp;
+  }
+
+  public void setEventTimestamp(final long eventTimestamp) {
+    this.eventTimestamp = eventTimestamp;
   }
 
 }

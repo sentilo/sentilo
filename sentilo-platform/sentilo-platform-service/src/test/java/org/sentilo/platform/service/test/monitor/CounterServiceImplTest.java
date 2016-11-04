@@ -59,6 +59,7 @@ import org.sentilo.platform.service.monitor.CounterServiceImpl;
 import org.sentilo.platform.service.monitor.MonitorConstants;
 import org.sentilo.platform.service.monitor.RequestType;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 public class CounterServiceImplTest {
@@ -71,6 +72,8 @@ public class CounterServiceImplTest {
   @Mock
   private HashOperations<String, Object, Object> hOperations;
   @Mock
+  private SetOperations<String, String> sOperations;
+  @Mock
   private CounterContext context;
 
   @InjectMocks
@@ -80,6 +83,7 @@ public class CounterServiceImplTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     when(redisTemplate.opsForHash()).thenReturn(hOperations);
+    when(redisTemplate.opsForSet()).thenReturn(sOperations);
   }
 
   @Test
@@ -96,12 +100,12 @@ public class CounterServiceImplTest {
     verify(hOperations).increment("counters:master", "data_get", 10);
     verify(hOperations).increment("counters:master", "requests", 1);
     verify(hOperations).increment("counters:master", "requests_get", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "data_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "data_get", 10);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests_get", 1);
 
-    verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
-    verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
+    verify(sOperations, times(0)).add(eq(MonitorConstants.TENANTS_KEY), any(String.class));
+    verify(hOperations, times(0)).increment(eq("counters:entity:" + entityId), eq("data_push"), anyInt());
 
   }
 
@@ -119,13 +123,12 @@ public class CounterServiceImplTest {
     verify(hOperations).increment("counters:master", "order_get", 10);
     verify(hOperations).increment("counters:master", "requests", 1);
     verify(hOperations).increment("counters:master", "requests_get", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "order_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "order_get", 10);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests_get", 1);
 
-    verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
-    verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
-
+    verify(sOperations, times(0)).add(eq(MonitorConstants.TENANTS_KEY), any(String.class));
+    verify(hOperations, times(0)).increment(eq("counters:entity:" + entityId), eq("data_push"), anyInt());
   }
 
   @Test
@@ -142,12 +145,12 @@ public class CounterServiceImplTest {
     verify(hOperations).increment("counters:master", "alarm_get", 10);
     verify(hOperations).increment("counters:master", "requests", 1);
     verify(hOperations).increment("counters:master", "requests_get", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "alarm_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "alarm_get", 10);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests_get", 1);
 
-    verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
-    verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
+    verify(sOperations, times(0)).add(eq(MonitorConstants.TENANTS_KEY), any(String.class));
+    verify(hOperations, times(0)).increment(eq("counters:entity:" + entityId), eq("data_push"), anyInt());
 
   }
 
@@ -163,11 +166,13 @@ public class CounterServiceImplTest {
 
     verify(redisTemplate, times(2)).opsForHash();
     verify(hOperations).increment("counters:master", "data_push", 10);
-    verify(hOperations, times(0)).increment("counters:master", "requests", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "data_push", 10);
-    verify(hOperations, times(0)).increment("counters:entity:mockentity", "requests", 10);
+    verify(hOperations, times(0)).increment(eq("counters:master"), eq("requests"), anyInt());
+    verify(hOperations, times(0)).increment(eq("counters:master"), eq("requests_push"), anyInt());
+    verify(hOperations).increment("counters:entity:" + entityId, "data_push", 10);
+    verify(hOperations, times(0)).increment(eq("counters:entity" + entityId), eq("requests"), anyInt());
+    verify(hOperations, times(0)).increment(eq("counters:entity" + entityId), eq("requests_push"), anyInt());
 
-    verify(hOperations, times(0)).increment(eq("counters:tenant:mocktenant"), any(String.class), anyInt());
+    verify(sOperations, times(0)).add(eq(MonitorConstants.TENANTS_KEY), any(String.class));
 
   }
 
@@ -185,20 +190,22 @@ public class CounterServiceImplTest {
     verify(hOperations).increment("counters:master", "data_get", 10);
     verify(hOperations).increment("counters:master", "requests", 1);
     verify(hOperations).increment("counters:master", "requests_get", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "data_get", 10);
-    verify(hOperations).increment("counters:entity:mockentity", "requests", 1);
-    verify(hOperations).increment("counters:entity:mockentity", "requests_get", 1);
-    verify(hOperations).increment("counters:tenant:mocktenant", "data_get", 10);
-    verify(hOperations).increment("counters:tenant:mocktenant", "requests", 1);
-    verify(hOperations).increment("counters:tenant:mocktenant", "requests_get", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "data_get", 10);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests", 1);
+    verify(hOperations).increment("counters:entity:" + entityId, "requests_get", 1);
+    verify(hOperations).increment("counters:tenant:" + tenantId, "data_get", 10);
+    verify(hOperations).increment("counters:tenant:" + tenantId, "requests", 1);
+    verify(hOperations).increment("counters:tenant:" + tenantId, "requests_get", 1);
+    verify(sOperations).add(MonitorConstants.TENANTS_KEY, tenantId);
 
-    verify(hOperations, times(0)).increment(eq("counters:entity:mockentity"), eq("data_push"), anyInt());
+    verify(hOperations, times(0)).increment(eq("counters:entity:" + entityId), eq("data_push"), anyInt());
 
   }
 
   @Test
   public void getInitMasterCounters() {
-    when(redisTemplate.keys(MonitorConstants.TENANT_COUNTERS_KEYS_PATTERN)).thenReturn(new HashSet<String>());
+    when(redisTemplate.opsForSet()).thenReturn(sOperations);
+    when(sOperations.members(MonitorConstants.TENANTS_KEY)).thenReturn(new HashSet<String>());
     when(hOperations.entries(MonitorConstants.MASTER_COUNTERS_KEY)).thenReturn(Collections.emptyMap());
 
     final List<PlatformActivity> globalActivity = service.getTenantCounters();
@@ -221,23 +228,24 @@ public class CounterServiceImplTest {
     masterHash.put("data_put", "1800");
     masterHash.put("alarm_put", "200");
 
-    final Set<String> countersKeys = new HashSet<String>();
-    countersKeys.add("counters:tenant:mockTenant");
+    final Set<String> tenants = new HashSet<String>();
+    tenants.add(tenantId);
 
-    when(redisTemplate.keys(MonitorConstants.TENANT_COUNTERS_KEYS_PATTERN)).thenReturn(countersKeys);
+    when(redisTemplate.opsForSet()).thenReturn(sOperations);
+    when(sOperations.members(MonitorConstants.TENANTS_KEY)).thenReturn(new HashSet<String>());
     when(hOperations.entries(MonitorConstants.MASTER_COUNTERS_KEY)).thenReturn(masterHash);
 
     final List<PlatformActivity> globalActivity = service.getTenantCounters();
 
-    verify(hOperations, times(2)).entries(any(String.class));
-    Assert.assertTrue(globalActivity.size() == 2);
+    verify(hOperations, times(1)).entries(any(String.class));
+    Assert.assertTrue(globalActivity.size() == 1);
 
     for (final PlatformActivity activity : globalActivity) {
-      Assert.assertEquals((activity.isMaster() ? null : "mockTenant"), activity.getTenant());
-      Assert.assertEquals((activity.isMaster() ? 3000l : 0l), activity.getTotalRequests());
+      Assert.assertEquals(activity.isMaster() ? null : tenantId, activity.getTenant());
+      Assert.assertEquals(activity.isMaster() ? 3000l : 0l, activity.getTotalRequests());
       Assert.assertEquals(0l, activity.getTotalOrders());
-      Assert.assertEquals((activity.isMaster() ? 2800l : 0l), activity.getTotalObs());
-      Assert.assertEquals((activity.isMaster() ? 200l : 0l), activity.getTotalAlarms());
+      Assert.assertEquals(activity.isMaster() ? 2800l : 0l, activity.getTotalObs());
+      Assert.assertEquals(activity.isMaster() ? 200l : 0l, activity.getTotalAlarms());
     }
   }
 

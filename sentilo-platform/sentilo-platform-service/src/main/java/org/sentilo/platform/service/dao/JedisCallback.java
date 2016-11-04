@@ -39,12 +39,12 @@ import redis.clients.jedis.Jedis;
 
 /**
  * Based on RedisCallback from spring-data-redis.
- * 
+ *
  * As not spring-data-redis implements all redis available commands (e.g. zremrangebyrank ) and
  * RedisMessageListenerContainer no lets unsubscribe for a subscription (see
  * http://forum.springsource.org/showthread.php?133937-Spring-Data-Redis-pub-sub-unsubscribe), all
  * the functionality needed is replicated in this project.
- * 
+ *
  * @see RedisMessageListenerContainer
  * @see DefaultZSetOperations
  */
@@ -52,7 +52,7 @@ public interface JedisCallback<T> {
 
   /**
    * Based on RedisCallback#doInRedis method.
-   * 
+   *
    * @param connection active
    * @return a result object or {@code null} if none
    * @throws SentiloDataAccessException

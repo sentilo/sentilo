@@ -47,8 +47,9 @@ public interface AdminService {
 
   void delete(AdminInputMessage message);
 
+  void save(AdminInputMessage message);
+
   PlatformMetricsMessage getPerformance();
 
   PlatformMetricsMessage getActivity();
-
 }

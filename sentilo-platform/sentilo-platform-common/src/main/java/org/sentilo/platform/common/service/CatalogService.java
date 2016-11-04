@@ -36,14 +36,14 @@ import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
 import org.sentilo.common.domain.CatalogInputMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
-import org.sentilo.platform.common.domain.CredentialsMessage;
+import org.sentilo.platform.common.domain.EntitiesMetadataMessage;
 import org.sentilo.platform.common.domain.PermissionsMessage;
 
 public interface CatalogService {
 
   PermissionsMessage getPermissions();
 
-  CredentialsMessage getCredentials();
+  EntitiesMetadataMessage getEntitiesMetadata();
 
   CatalogResponseMessage insertSensors(CatalogInputMessage message);
 

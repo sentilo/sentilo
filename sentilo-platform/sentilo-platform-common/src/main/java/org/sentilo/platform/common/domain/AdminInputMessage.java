@@ -35,6 +35,7 @@ package org.sentilo.platform.common.domain;
 import java.util.List;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogProvider;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformInputMessage;
@@ -42,7 +43,7 @@ import org.sentilo.common.domain.PlatformInputMessage;
 public class AdminInputMessage implements PlatformInputMessage {
 
   public static enum AdminType {
-    stats, subscriptions, delete, activity, performance
+    stats, subscriptions, delete, save, activity, performance
   };
 
   private String entity;
@@ -53,6 +54,9 @@ public class AdminInputMessage implements PlatformInputMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private List<CatalogProvider> providers;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private List<CatalogAlert> alerts;
 
   public AdminInputMessage() {
     super();
@@ -95,4 +99,11 @@ public class AdminInputMessage implements PlatformInputMessage {
     this.providers = providers;
   }
 
+  public List<CatalogAlert> getAlerts() {
+    return alerts;
+  }
+
+  public void setAlerts(final List<CatalogAlert> alerts) {
+    this.alerts = alerts;
+  }
 }

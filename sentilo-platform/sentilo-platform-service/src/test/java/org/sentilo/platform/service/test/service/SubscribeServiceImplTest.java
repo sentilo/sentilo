@@ -32,8 +32,9 @@
  */
 package org.sentilo.platform.service.test.service;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,12 +50,18 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.SubscribeType;
-import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.AlarmSubscription;
 import org.sentilo.platform.common.domain.DataSubscription;
+import org.sentilo.platform.common.domain.NotificationParams;
 import org.sentilo.platform.common.domain.OrderSubscription;
 import org.sentilo.platform.common.domain.Subscription;
+import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.exception.ResourceOfflineException;
+import org.sentilo.platform.common.service.AlarmService;
+import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.dao.JedisTemplate;
 import org.sentilo.platform.service.impl.SubscribeServiceImpl;
 import org.sentilo.platform.service.listener.MessageListenerFactory;
@@ -78,6 +85,10 @@ public class SubscribeServiceImplTest {
   private OrderSubscription orderSubscription;
   @Mock
   private MessageListenerFactory listenerFactory;
+  @Mock
+  private ResourceService resourceService;
+  @Mock
+  private AlarmService alarmService;
 
   @InjectMocks
   private SubscribeServiceImpl service;
@@ -90,17 +101,73 @@ public class SubscribeServiceImplTest {
 
   @Test
   public void dataSubscribe() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
     when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
-    when(dataSubscription.getSensorId()).thenReturn("sensor1");
-    when(dataSubscription.getProviderId()).thenReturn("prov1");
+    when(dataSubscription.getSensorId()).thenReturn(sensor);
+    when(dataSubscription.getProviderId()).thenReturn(provider);
+    when(resourceService.existsSensor(eq(provider), eq(sensor))).thenReturn(true);
+    when(resourceService.isSensorDisabled(eq(provider), eq(sensor))).thenReturn(false);
+
+    verifySubscribe(dataSubscription);
+  }
+
+  @Test(expected = ResourceNotFoundException.class)
+  public void subscribeToUnknowSensor() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
+    when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
+    when(dataSubscription.getSensorId()).thenReturn(sensor);
+    when(dataSubscription.getProviderId()).thenReturn(provider);
+    when(resourceService.existsSensor(eq(provider), eq(sensor))).thenReturn(false);
+
+    verifySubscribe(dataSubscription);
+  }
+
+  @Test(expected = ResourceOfflineException.class)
+  public void subscribeToDisabledSensor() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
+    when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
+    when(dataSubscription.getSensorId()).thenReturn(sensor);
+    when(dataSubscription.getProviderId()).thenReturn(provider);
+    when(resourceService.existsSensor(eq(provider), eq(sensor))).thenReturn(true);
+    when(resourceService.isSensorDisabled(eq(provider), eq(sensor))).thenReturn(true);
 
     verifySubscribe(dataSubscription);
   }
 
   @Test
   public void alarmSubscribe() {
+    final String alertId = "alert1";
     when(alarmSubscription.getType()).thenReturn(SubscribeType.ALARM);
-    when(alarmSubscription.getAlertId()).thenReturn("alarm1");
+    when(alarmSubscription.getAlertId()).thenReturn(alertId);
+    when(alarmService.getAlertOwner(eq(alertId))).thenReturn("mockOwner");
+    when(resourceService.existsAlert(alertId)).thenReturn(true);
+    when(resourceService.isAlertDisabled(alertId)).thenReturn(false);
+
+    verifySubscribe(alarmSubscription);
+  }
+
+  @Test(expected = ResourceNotFoundException.class)
+  public void subscribeToUnknowAlert() {
+    final String alertId = "alert1";
+    when(alarmSubscription.getType()).thenReturn(SubscribeType.ALARM);
+    when(alarmSubscription.getAlertId()).thenReturn(alertId);
+    when(alarmService.getAlertOwner(eq(alertId))).thenReturn("mockOwner");
+    when(resourceService.existsAlert(alertId)).thenReturn(false);
+
+    verifySubscribe(alarmSubscription);
+  }
+
+  @Test(expected = ResourceOfflineException.class)
+  public void subscribeToDisabledAlert() {
+    final String alertId = "alert1";
+    when(alarmSubscription.getType()).thenReturn(SubscribeType.ALARM);
+    when(alarmSubscription.getAlertId()).thenReturn(alertId);
+    when(alarmService.getAlertOwner(eq(alertId))).thenReturn("mockOwner");
+    when(resourceService.existsAlert(alertId)).thenReturn(true);
+    when(resourceService.isAlertDisabled(alertId)).thenReturn(true);
 
     verifySubscribe(alarmSubscription);
   }
@@ -110,6 +177,43 @@ public class SubscribeServiceImplTest {
     when(orderSubscription.getType()).thenReturn(SubscribeType.ORDER);
 
     verifySubscribe(orderSubscription);
+  }
+
+  @Test
+  public void sensorOrderSubscribe() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
+
+    when(orderSubscription.getType()).thenReturn(SubscribeType.ORDER);
+    when(orderSubscription.getSensorId()).thenReturn(sensor);
+    when(orderSubscription.getOwnerEntityId()).thenReturn(provider);
+    when(resourceService.existsSensor(eq(provider), eq(sensor))).thenReturn(true);
+    when(resourceService.isSensorDisabled(eq(provider), eq(sensor))).thenReturn(false);
+
+    verifySubscribe(orderSubscription);
+  }
+
+  @Test(expected = ResourceNotFoundException.class)
+  public void rejectOrderSubscription() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
+
+    when(orderSubscription.getType()).thenReturn(SubscribeType.ORDER);
+    when(orderSubscription.getSensorId()).thenReturn(sensor);
+    when(orderSubscription.getOwnerEntityId()).thenReturn(provider);
+    when(resourceService.isSensorDisabled(eq(provider), eq(sensor))).thenReturn(false);
+
+    verifySubscribe(orderSubscription);
+  }
+
+  @Test(expected = ResourceNotFoundException.class)
+  public void rejectAlarmSubscription() {
+    final String alertId = "alert1";
+    when(alarmSubscription.getType()).thenReturn(SubscribeType.ALARM);
+    when(alarmSubscription.getAlertId()).thenReturn(alertId);
+    when(alarmService.getAlertOwner(eq(alertId))).thenReturn(null);
+
+    verifySubscribe(alarmSubscription);
   }
 
   @Test
@@ -182,17 +286,17 @@ public class SubscribeServiceImplTest {
   @Test
   public void getSubscriptions() {
     initSubscription(dataSubscription);
-    when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
-
     final String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());
+    when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
     when(jedisTemplate.hGetAll(key)).thenReturn(buildSubscriptions());
 
+    // Retrieve all subscriptions that belongs to entity dataSubscription's source and type DATA
     final List<Subscription> subscriptions = service.get(dataSubscription);
 
     verify(jedisTemplate).hGetAll(key);
     assertTrue(subscriptions.size() == buildSubscriptions().size());
     for (final Subscription subscription : subscriptions) {
-      assertNull(subscription.getSecretCallbackKey());
+      assertEquals("http://127.0.0.1/endpoint", subscription.getNotificationParams().getEndpoint());
     }
 
   }
@@ -211,20 +315,21 @@ public class SubscribeServiceImplTest {
   }
 
   private void initSubscription(final Subscription subscription) {
+    final NotificationParams notificationParams = new NotificationParams("http://127.0.0.1/endpoint", "ABCDEFGH", 3, 5);
     when(subscription.getSourceEntityId()).thenReturn("prov1");
-    when(subscription.getEndpoint()).thenReturn("http://127.0.0.1/endpoint");
-    when(subscription.getSecretCallbackKey()).thenReturn("ABCDEFGH");
+    when(subscription.getNotificationParams()).thenReturn(notificationParams);
+
   }
 
   private void verifySubscribe(final Subscription subscription) {
+    final StringMessageConverter converter = new DefaultStringMessageConverter();
     initSubscription(subscription);
     final Topic topic = ChannelUtils.getChannel(subscription);
     final String key = service.getKeysBuilder().getSubscriptionKey(subscription.getSourceEntityId());
 
     service.subscribe(subscription);
 
-    verify(jedisTemplate).hSet(key, topic.getTopic(),
-        subscription.getEndpoint() + SentiloConstants.SENTILO_INTERNAL_TOKEN + subscription.getSecretCallbackKey());
+    verify(jedisTemplate).hSet(key, topic.getTopic(), converter.marshal(subscription.getNotificationParams()));
   }
 
   private Set<String> getTopics() {
@@ -240,8 +345,8 @@ public class SubscribeServiceImplTest {
 
   private Map<String, String> buildSubscriptions() {
     final Map<String, String> subscriptions = new HashMap<String, String>();
-    subscriptions.put("/data/provider1/sensor1", "endpoint1#@#ABCDEFGH");
-    subscriptions.put("/data/provider2*", "endpoint2");
+    subscriptions.put("/data/provider1/sensor1", "{\"endpoint\":\"http://127.0.0.1/endpoint\", \"secretCallbackKey\":\"ABCDEFGH\"}");
+    subscriptions.put("/data/provider2*", "{\"endpoint\":\"http://127.0.0.1/endpoint\"}");
     return subscriptions;
   }
 }

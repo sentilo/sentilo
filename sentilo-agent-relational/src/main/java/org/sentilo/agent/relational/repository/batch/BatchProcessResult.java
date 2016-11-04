@@ -32,25 +32,33 @@
  */
 package org.sentilo.agent.relational.repository.batch;
 
+import java.util.List;
+
+import org.sentilo.agent.relational.domain.Data;
+
 public class BatchProcessResult {
 
-  /** Number of elements to be persisted in a batch update task */
-  private int numElementsToPersist;
+  /** Elements to be persisted in a batch update task */
+  private List<Data> elementsToPersist;
   /** Real number of elements persisted (will be 0 or numElementsToPersist) */
   private int numElementsPersisted;
 
-  public BatchProcessResult(final int numElementsToPersist, final int numElementsPersisted) {
+  public BatchProcessResult(final List<Data> elementsToPersist, final int numElementsPersisted) {
     super();
-    this.numElementsToPersist = numElementsToPersist;
+    this.elementsToPersist = elementsToPersist;
     this.numElementsPersisted = numElementsPersisted;
   }
 
   public int getNumElementsToPersist() {
-    return numElementsToPersist;
+    return elementsToPersist.size();
   }
 
   public int getNumElementsPersisted() {
     return numElementsPersisted;
+  }
+
+  public List<Data> getElementsToPersist() {
+    return elementsToPersist;
   }
 
 }

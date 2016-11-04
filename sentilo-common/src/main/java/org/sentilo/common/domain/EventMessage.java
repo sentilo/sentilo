@@ -54,8 +54,6 @@ public class EventMessage {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   protected String location;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-  protected String sender;
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   protected String alert;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   protected String alertType;
@@ -63,6 +61,20 @@ public class EventMessage {
   protected Long time;
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String sensorType;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String publisher;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private Long publishedAt;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String publisherTenant;
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String tenant;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @Deprecated
+  /** This field is deprecated. Rather than this field, the new field publisher should be used */
+  private String sender;
 
   public EventMessage() {
 
@@ -81,6 +93,10 @@ public class EventMessage {
     sb.append("\n\t location:" + location);
     sb.append("\n\t alert:" + alert);
     sb.append("\n\t alertType:" + alertType);
+    sb.append("\n\t publisher:" + publisher);
+    sb.append("\n\t publishedTime:" + (publishedAt != null ? publishedAt.longValue() : null));
+    sb.append("\n\t publisherTenant:" + publisherTenant);
+    sb.append("\n\t tenant:" + tenant);
     sb.append("\n");
     return sb.toString();
   }
@@ -141,14 +157,6 @@ public class EventMessage {
     this.location = location;
   }
 
-  public String getSender() {
-    return sender;
-  }
-
-  public void setSender(final String sender) {
-    this.sender = sender;
-  }
-
   public void setAlert(final String alert) {
     this.alert = alert;
   }
@@ -187,6 +195,46 @@ public class EventMessage {
 
   public void setComponent(final String component) {
     this.component = component;
+  }
+
+  public String getPublisher() {
+    return publisher;
+  }
+
+  public void setPublisher(final String publisher) {
+    this.publisher = publisher;
+  }
+
+  public Long getPublishedAt() {
+    return publishedAt;
+  }
+
+  public void setPublishedAt(final Long publishedAt) {
+    this.publishedAt = publishedAt;
+  }
+
+  public String getPublisherTenant() {
+    return publisherTenant;
+  }
+
+  public void setPublisherTenant(final String publisherTenant) {
+    this.publisherTenant = publisherTenant;
+  }
+
+  public String getTenant() {
+    return tenant;
+  }
+
+  public void setTenant(final String tenant) {
+    this.tenant = tenant;
+  }
+
+  public String getSender() {
+    return getPublisher();
+  }
+
+  public void setSender(final String sender) {
+    setPublisher(sender);
   }
 
 }

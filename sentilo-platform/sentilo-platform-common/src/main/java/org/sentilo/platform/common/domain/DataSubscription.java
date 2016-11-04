@@ -40,19 +40,20 @@ public class DataSubscription extends Subscription {
   private final String providerId;
   private String sensorId;
 
-  public DataSubscription(final String entityId, final String endpoint, final String providerId) {
-    super(entityId, providerId, endpoint, SubscribeType.DATA);
+  public DataSubscription(final String entityId, final String providerId, final NotificationParams notificationParams) {
+    super(entityId, providerId, SubscribeType.DATA);
     this.providerId = providerId;
+    setNotificationParams(notificationParams);
   }
 
-  public DataSubscription(final String entityId, final String endpoint, final String providerId, final String sensorId) {
-    this(entityId, endpoint, providerId);
+  public DataSubscription(final String entityId, final String providerId, final String sensorId, final NotificationParams notificationParams) {
+    this(entityId, providerId, notificationParams);
     this.sensorId = sensorId;
   }
 
   @Override
   public boolean hasResourceIdentified() {
-    return (StringUtils.hasText(providerId) || StringUtils.hasText(sensorId));
+    return StringUtils.hasText(providerId) || StringUtils.hasText(sensorId);
   }
 
   public String getProviderId() {

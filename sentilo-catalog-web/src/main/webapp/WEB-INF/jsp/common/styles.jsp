@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:url value="${currentSchema}://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,700" var="googleFonts" />
 <spring:url value="/static/css/bootstrap.min.css" var="bootstrapCSS" />
 <spring:url value="/static/css/bootstrap-responsive.min.css" var="bootstrapResponsiveCSS" />
 <spring:url value="/static/css/styles.css" var="catalogCSS" />
@@ -14,6 +15,7 @@
 <spring:url value="/static/css/jquery.tagsinput.css" var="jqueryTagsInputCSS" />
 <spring:url value="/static/css/bootstrap-colorpicker.min.css" var="bootstrapColorPickerCSS" />
 
+<link href="${googleFonts}" rel="stylesheet" media="all">
 <link href="${bootstrapCSS}" rel="stylesheet" media="all">
 <link href="${bootstrapResponsiveCSS}" rel="stylesheet" media="all">
 <link href="${datePickerCSS}" rel="stylesheet" media="all">

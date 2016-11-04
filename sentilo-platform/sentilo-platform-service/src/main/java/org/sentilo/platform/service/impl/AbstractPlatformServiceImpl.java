@@ -50,6 +50,12 @@ public abstract class AbstractPlatformServiceImpl {
   protected static final String PROVIDER = "provider";
   protected static final String SENSOR = "sensor";
   protected static final String ALERT_TYPE = "alertType";
+  protected static final String STATE = "state";
+  protected static final String ENABLE_STATE = "online";
+  protected static final String AID = "aid";
+  protected static final String ALERT = "alert";
+  protected static final String ENTITY = "entity";
+  protected static final String ACTIVE = "active";
 
   protected JedisKeysBuilder keysBuilder = new JedisKeysBuilder();
 

@@ -33,8 +33,7 @@
 package org.sentilo.common.domain;
 
 /**
- * Interface con la que identificar los objetos que referencian a mensajes de entrada a la
- * plataforma.
+ * Interface that allows to mark classes which encapsulate input messages to the platform
  */
 public interface PlatformInputMessage {
 

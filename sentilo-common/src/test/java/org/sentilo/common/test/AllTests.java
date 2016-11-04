@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.model.InitializationError;
 
 @RunWith(AllTests.class)
-public class AllTests extends SentiloSuiteTest {
+public class AllTests extends SentiloTestSuite {
 
   public AllTests(final Class<?> clazz) throws InitializationError {
     super(clazz, "org.sentilo.common.test");

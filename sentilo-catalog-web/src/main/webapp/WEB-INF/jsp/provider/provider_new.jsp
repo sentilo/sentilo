@@ -75,6 +75,15 @@
 								<form:errors path="description" cssClass="text-error" htmlEscape="false" />
 							</div>
 						</div>
+						<div class="control-group">
+							<form:label path="restHttps" class="control-label">
+								<spring:message code="provider.restHttps" />
+							</form:label>
+							<div class="controls">
+								<form:checkbox path="restHttps" />
+								<form:errors path="restHttps" cssClass="text-error" htmlEscape="false" />
+							</div>
+						</div>
 					</fieldset>
 					<fieldset>
 						<legend>

@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 public class ComponentLocationUpdater implements AsyncCatalogResourceUpdater, BatchProcess {
@@ -97,13 +98,13 @@ public class ComponentLocationUpdater implements AsyncCatalogResourceUpdater, Ba
   public void process() {
     final List<SensorLocationElement> sortedListToUpdate = cloneAndSortLocations();
 
-    LOGGER.info("Start process to update {} locations.", sortedListToUpdate.size());
+    LOGGER.debug("Start process to update {} locations.", sortedListToUpdate.size());
 
-    if (sortedListToUpdate.size() != 0) {
+    if (!CollectionUtils.isEmpty(sortedListToUpdate)) {
       sendBatchUpdate(sortedListToUpdate);
     }
 
-    LOGGER.info("Process finished. Locations that has not been updated: {}", oldUpdatesAwaiting.size());
+    LOGGER.debug("Process finished. Locations that has not been updated: {}", oldUpdatesAwaiting.size());
   }
 
   private List<SensorLocationElement> cloneAndSortLocations() {

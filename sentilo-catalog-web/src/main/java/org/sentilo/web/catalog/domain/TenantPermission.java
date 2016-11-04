@@ -93,21 +93,14 @@ public class TenantPermission implements CatalogDocument {
     this.id = id;
   }
 
-  public TenantPermission(final String tenantId, final String source, final String target, final Type type, final EntityType entityType,
-      final String createdBy, final Date createdAt) {
-    this(tenantId, source, target, type, entityType, createdBy, Boolean.TRUE, createdAt);
-  }
-
   public TenantPermission(final String source, final String entity, final String target, final Type type, final EntityType entityType,
-      final String createdBy, final boolean visible, final Date createdAt) {
+      final boolean visible) {
     this.source = source;
     this.entity = entity;
     this.target = target;
     this.type = type;
     this.entityType = entityType;
-    this.createdBy = createdBy;
     this.visible = visible;
-    this.createdAt = createdAt;
     buildId();
   }
 
@@ -203,9 +196,9 @@ public class TenantPermission implements CatalogDocument {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((entity == null) ? 0 : entity.hashCode());
-    result = prime * result + ((source == null) ? 0 : source.hashCode());
-    result = prime * result + ((target == null) ? 0 : target.hashCode());
+    result = prime * result + (entity == null ? 0 : entity.hashCode());
+    result = prime * result + (source == null ? 0 : source.hashCode());
+    result = prime * result + (target == null ? 0 : target.hashCode());
     return result;
   }
 

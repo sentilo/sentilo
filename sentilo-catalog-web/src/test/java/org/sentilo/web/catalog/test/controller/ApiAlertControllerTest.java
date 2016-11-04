@@ -58,6 +58,7 @@ import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.web.catalog.controller.api.ApiAlertController;
 import org.sentilo.web.catalog.domain.Alert;
@@ -68,7 +69,6 @@ import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.AlertService;
 import org.sentilo.web.catalog.service.PermissionService;
 import org.sentilo.web.catalog.service.ProviderService;
-import org.sentilo.web.catalog.test.AbstractBaseTest;
 import org.sentilo.web.catalog.validator.ApiAlertValidator;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
 import org.springframework.dao.DataAccessException;
@@ -110,34 +110,6 @@ public class ApiAlertControllerTest extends AbstractBaseTest {
     // initialize a CatalogUserDetails mock object
     when(catalogUser.getUsername()).thenReturn("testUser");
     when(userDetailsService.getCatalogUserDetails()).thenReturn(catalogUser);
-  }
-
-  @Test
-  public void getOwners() throws Exception {
-    final List<Alert> alerts = generateRandomList(Alert.class);
-
-    doAnswer(new Answer<List<Alert>>() {
-
-      public List<Alert> answer(final InvocationOnMock invocation) throws Throwable {
-        for (final Alert alert : alerts) {
-          if (Math.random() > 0.5) {
-            alert.setType(Type.INTERNAL);
-            alert.setProviderId(MOCK_ENTITY);
-          } else {
-            alert.setType(Type.EXTERNAL);
-            alert.setApplicationId(MOCK_ENTITY);
-          }
-        }
-        return alerts;
-      }
-    }).when(alertService).findAll();
-
-    final CatalogAlertResponseMessage response = controller.getOwners();
-
-    verify(alertService).findAll();
-    Assert.assertEquals(CatalogResponseMessage.OK, response.getCode());
-    Assert.assertTrue(!CollectionUtils.isEmpty(response.getOwners()));
-    Assert.assertTrue(response.getOwners().size() == alerts.size());
   }
 
   @Test

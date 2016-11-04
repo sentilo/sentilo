@@ -39,14 +39,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.SubscribeType;
-import org.sentilo.common.utils.SentiloConstants;
+import org.sentilo.platform.common.domain.AlarmSubscription;
+import org.sentilo.platform.common.domain.DataSubscription;
+import org.sentilo.platform.common.domain.NotificationParams;
+import org.sentilo.platform.common.domain.OrderSubscription;
 import org.sentilo.platform.common.domain.Subscription;
+import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.exception.ResourceOfflineException;
+import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.listener.MessageListenerFactory;
 import org.sentilo.platform.service.listener.MessageListenerImpl;
 import org.sentilo.platform.service.listener.MockMessageListenerImpl;
-import org.sentilo.platform.service.listener.NotificationParams;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.PubSubConstants;
 import org.slf4j.Logger;
@@ -56,6 +63,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -68,27 +76,19 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   private RedisMessageListenerContainer listenerContainer;
   @Autowired
   private MessageListenerFactory listenerFactory;
+  @Autowired
+  private ResourceService resourceService;
+
+  private StringMessageConverter converter = new DefaultStringMessageConverter();
 
   private final Map<String, MessageListenerImpl> listeners = new HashMap<String, MessageListenerImpl>();
 
   private boolean storedSubscriptionsActivated = false;
   private static final String DUMMY_TOPIC = "/trash/dummy";
 
-  @Scheduled(initialDelay = 30000, fixedDelay = 300000)
+  @Scheduled(initialDelay = 10000, fixedDelay = 300000)
   public void loadSubscriptions() {
-
-    // Al iniciar la plataforma, en caso de existir subscripciones registradas en Redis,
-    // inicializamos los MessageListeners correspondientes y los
-    // registramos en el container:
-    // 1. Recuperamos todas las claves del tipo REDIS_SUBS_PATTERN_KEY
-    // 2. Para cada clave, recuperamos la información relativa al cjto de subscripciones asociadas
-    // 3. Para cada subscripcion inicializamos el messagelistener correspondiente
-    //
-    // IMPORTANTE: en caso de no existir ninguna subscripción registrada, igualmente inicializamos
-    // un MessageListener que se ponga a escuchar por un canal dummy
-    // ya que sino el container acaba lanzando una excepción del tipo" ERR wrong number of arguments
-    // for 'psubscribe' command;" la cual está asociada a que la conexión de subscripción no es
-    // válida
+    // When platform starts, all persisted subscriptions in Redis are loaded and activated
     final boolean listenerContainerRunning = listenerContainer != null && listenerContainer.isRunning();
     LOGGER.debug("Listener container isRunning? {}", listenerContainerRunning);
 
@@ -104,40 +104,12 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     }
   }
 
-  private void activateStoredSubscriptions(final Set<String> storedSubscriptions) {
-    if (CollectionUtils.isEmpty(storedSubscriptions)) {
-      doRegisterMockSubscription();
-      return;
-    }
-
-    LOGGER.debug("Found {} subscriptions stored in Redis", storedSubscriptions.size());
-
-    for (final String subscriptionKey : storedSubscriptions) {
-      // Cada subscriptionKey corresponde a una entidad subscrita a N canales de la plataforma
-      // Toda la información de cada una de estas subscripciones está almacenada en una hash,
-      // donde cada entrada corresponde a la info <canal,endpoint>
-      final Map<String, String> storedSubscription = jedisTemplate.hGetAll(subscriptionKey);
-      if (CollectionUtils.isEmpty(storedSubscription)) {
-        return;
-      }
-
-      final Set<String> channels = storedSubscription.keySet();
-      final String listenerName = listenerNameFromSubscriptionKey(subscriptionKey);
-
-      for (final String channel : channels) {
-        activateSubscription(listenerName, ChannelUtils.buildTopic(channel), storedSubscription.get(channel));
-      }
-    }
-  }
-
-  private String listenerNameFromSubscriptionKey(final String subscriptionKey) {
-    // subscriptionKey follows the expression subs:<listenerName>
-    final int pos = subscriptionKey.lastIndexOf(PubSubConstants.REDIS_KEY_TOKEN);
-    return subscriptionKey.substring(pos + 1);
-  }
-
   @Override
   public void subscribe(final Subscription subscription) {
+    // The first step is to validate that the resource to which the subscription refers exists in
+    // Sentilo. Otherwise an error is thrown
+    checkTargetResourceState(subscription);
+
     // Al subscribirse, no sólo se debe habilitar el listener correspondiente, sino que tb se debe
     // persistir en Redis la subscripcion para la entidad de turno. De esta manera se podrán
     // iniciar los listeners asociados a las subscripciones ya existentes cuando se arranque
@@ -150,63 +122,19 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     // campo identificará el canal al cual se está subscrito <event_type>/element_id, donde
     // element_id es el identificador del recurso al cual se esta subscrito.
     // - value: el value del campo contiene la informacion necesaria para realizar la notificacion
-    // via HTTP Callback (estos datos son el endpoint, la secretKey a utilizar, ...)
+    // via HTTP Callback (estos datos son el endpoint, la secretKey a utilizar, politica de
+    // reintentos, ...)
 
     final Topic topic = ChannelUtils.getChannel(subscription);
 
-    final String notificationParamsChain = buildNotificationParams(subscription);
-
     // Habilitamos listener
-    activateSubscription(subscription.getSourceEntityId(), topic, notificationParamsChain);
+    activateSubscription(subscription.getSourceEntityId(), topic, subscription.getNotificationParams());
 
     // Persistimos en Redis la subscripcion
-    jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(), notificationParamsChain);
+    jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(),
+        converter.marshal(subscription.getNotificationParams()));
 
     LOGGER.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
-  }
-
-  private String buildNotificationParams(final Subscription subscription) {
-    // Como el valor en las hash es un String, definimos un formato con el cual almacenar un String
-    // que contenga todos los parametros necesarios para realizar la notificacion (via callback):
-    // value = param1#@#param2#@#...#@#paramN
-    final StringBuilder sb = new StringBuilder(subscription.getEndpoint());
-    if (StringUtils.hasText(subscription.getSecretCallbackKey())) {
-      sb.append(SentiloConstants.SENTILO_INTERNAL_TOKEN).append(subscription.getSecretCallbackKey());
-    }
-
-    return sb.toString();
-  }
-
-  private void activateSubscription(final String listenerName, final Topic topic, final String notificationParamsChain) {
-    MessageListenerImpl listener = listeners.get(listenerName);
-    if (listener == null) {
-      listener = addNewListener(listenerName);
-    }
-
-    LOGGER.debug("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
-
-    listenerContainer.addMessageListener(listener, topic);
-    listener.addSubscription(topic, new NotificationParams(notificationParamsChain));
-  }
-
-  private MessageListenerImpl addNewListener(final String listenerName) {
-    MessageListenerImpl listener = null;
-    try {
-      listenerFactory.setListenerName(listenerName);
-      listener = listenerFactory.getObject();
-      listeners.put(listener.getName(), listener);
-    } catch (final Exception e) {
-      LOGGER.warn("Has been unable to build MessageListener {}. ", listenerName, e);
-    }
-    return listener;
-
-  }
-
-  private void doRegisterMockSubscription() {
-    LOGGER.debug("Not found stored subscriptions in Redis.");
-    LOGGER.debug("Registering a mock subscription to channel {}", DUMMY_TOPIC);
-    final MessageListenerImpl listener = new MockMessageListenerImpl(DUMMY_TOPIC);
-    listenerContainer.addMessageListener(listener, ChannelUtils.buildTopic(DUMMY_TOPIC));
   }
 
   @Override
@@ -230,6 +158,124 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     }
   }
 
+  @Override
+  public List<Subscription> get(final Subscription subscription) {
+    // Las subscripciones de una entidad estan registradas bajo la clave subs:idEntity en Redis
+    // El valor asociado a la clave es una hash de pares <channel, notificationParam>
+    // donde cada channel representa una subscripción activa de esa entidad.
+
+    LOGGER.debug("Retrieving active subscriptions for entity {}", subscription.getSourceEntityId());
+
+    final String key = keysBuilder.getSubscriptionKey(subscription.getSourceEntityId());
+    final Map<String, String> subscriptions = jedisTemplate.hGetAll(key);
+    final List<Subscription> subscriptionList = buildEntitySubscriptions(subscription, subscriptions);
+
+    LOGGER.debug("Entity {} has {} subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
+
+    return subscriptionList;
+  }
+
+  private void checkTargetResourceState(final Subscription subscription) {
+    Assert.notNull(subscription);
+    switch (subscription.getType()) {
+      case DATA:
+        checkSensorState(((DataSubscription) subscription).getProviderId(), ((DataSubscription) subscription).getSensorId());
+        break;
+      case ORDER:
+        checkSensorState(((OrderSubscription) subscription).getOwnerEntityId(), ((OrderSubscription) subscription).getSensorId());
+        break;
+      case ALARM:
+        checkAlertState(((AlarmSubscription) subscription).getAlertId());
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown subscription type:" + subscription.getType());
+    }
+  }
+
+  private void checkSensorState(final String providerId, final String sensorId) {
+    if (StringUtils.hasText(sensorId) && !resourceService.existsSensor(providerId, sensorId)) {
+      throw new ResourceNotFoundException(sensorId, "Sensor");
+    } else if (StringUtils.hasText(sensorId) && resourceService.isSensorDisabled(providerId, sensorId)) {
+      throw new ResourceOfflineException(sensorId, "Sensor");
+    }
+  }
+
+  private void checkAlertState(final String alertId) {
+    if (StringUtils.hasText(alertId) && !resourceService.existsAlert(alertId)) {
+      throw new ResourceNotFoundException(alertId, "Alert");
+    } else if (StringUtils.hasText(alertId) && resourceService.isAlertDisabled(alertId)) {
+      throw new ResourceOfflineException(alertId, "Alert");
+    }
+  }
+
+  private void activateStoredSubscriptions(final Set<String> storedSubscriptions) {
+    // Patch!!: if there are not stored subscriptions in Redis, a default listener is initialized,
+    // subscribed to a mock channel.
+    // This approach allows to evict the error " ERR wrong number of arguments for 'psubscribe'
+    // command;" thrown by the listener container when no exist subscriptions
+    if (CollectionUtils.isEmpty(storedSubscriptions)) {
+      doRegisterMockSubscription();
+      return;
+    }
+
+    LOGGER.debug("Found {} subscriptions stored in Redis", storedSubscriptions.size());
+
+    for (final String subscriptionKey : storedSubscriptions) {
+      // Each subscriptionKey represents an entity subscribed to N channels (in Redis is stored as a
+      // hash).
+      // For each hash entry, the key is the channel and the value stores the notification params.
+      final Map<String, String> storedSubscription = jedisTemplate.hGetAll(subscriptionKey);
+      if (CollectionUtils.isEmpty(storedSubscription)) {
+        return;
+      }
+
+      final Set<String> channels = storedSubscription.keySet();
+      final String listenerName = listenerNameFromSubscriptionKey(subscriptionKey);
+
+      for (final String channel : channels) {
+        final NotificationParams notifParams = (NotificationParams) converter.unmarshal(storedSubscription.get(channel), NotificationParams.class);
+        activateSubscription(listenerName, ChannelUtils.buildTopic(channel), notifParams);
+      }
+    }
+  }
+
+  private String listenerNameFromSubscriptionKey(final String subscriptionKey) {
+    // subscriptionKey follows the expression subs:<listenerName>
+    final int pos = subscriptionKey.lastIndexOf(PubSubConstants.REDIS_KEY_TOKEN);
+    return subscriptionKey.substring(pos + 1);
+  }
+
+  private void activateSubscription(final String listenerName, final Topic topic, final NotificationParams notificationParams) {
+    MessageListenerImpl listener = listeners.get(listenerName);
+    if (listener == null) {
+      listener = addNewListener(listenerName);
+    }
+
+    LOGGER.debug("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
+
+    listenerContainer.addMessageListener(listener, topic);
+    listener.addSubscription(topic, notificationParams);
+  }
+
+  private MessageListenerImpl addNewListener(final String listenerName) {
+    MessageListenerImpl listener = null;
+    try {
+      listenerFactory.setListenerName(listenerName);
+      listener = listenerFactory.getObject();
+      listeners.put(listener.getName(), listener);
+    } catch (final Exception e) {
+      LOGGER.warn("Has been unable to build MessageListener {}. ", listenerName, e);
+    }
+    return listener;
+
+  }
+
+  private void doRegisterMockSubscription() {
+    LOGGER.debug("Not found stored subscriptions in Redis. Registering a mock subscription to channel {}", DUMMY_TOPIC);
+    final MessageListenerImpl listener = new MockMessageListenerImpl(DUMMY_TOPIC);
+    listenerContainer.addMessageListener(listener, ChannelUtils.buildTopic(DUMMY_TOPIC));
+  }
+
   private void removeSubscription(final Subscription subscription) {
     final Topic topic = ChannelUtils.getChannel(subscription);
 
@@ -241,27 +287,23 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
       listener.removeSubscription(topic);
     }
 
-    // Eliminamos en Redis la subscripcion del listener al topic
+    // Finally, the subscription to the topic is removed from Redis
     jedisTemplate.hDel(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic());
 
-    LOGGER.debug("Subscription from listener {} subscribe to channel {} removed", subscription.getSourceEntityId(), topic.getTopic());
+    LOGGER.debug("Removed subscription from listener {} to channel {}", subscription.getSourceEntityId(), topic.getTopic());
   }
 
   private void removeAllSubscriptions(final Subscription subscription) {
     LOGGER.debug("Removing all subscriptions for listener {}", subscription.getSourceEntityId());
 
     final MessageListenerImpl listener = listeners.get(subscription.getSourceEntityId());
-
     if (listener != null) {
-      // Utilizamos el nuevo método expuesto por el Container para eliminar
-      // a un listener de todas las subscripciones.
       listenerContainer.removeMessageListener(listener);
-
-      // Eliminamos el listener de la lista de listeners activos
+      // listener is removed from the active listeners list
       listeners.remove(subscription.getSourceEntityId());
     }
 
-    // Por ultimo, eliminamos en Redis la hash de subscripciones de este listener:
+    // Finally, the subscription is removed from Redis
     jedisTemplate.del(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()));
 
     LOGGER.debug("Subscriptions removed for listener {} ", subscription.getSourceEntityId());
@@ -300,23 +342,6 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     }
 
     LOGGER.debug("Subscriptions of type {} removed for listener {} ", subscription.getType(), subscription.getSourceEntityId());
-  }
-
-  @Override
-  public List<Subscription> get(final Subscription subscription) {
-    // Las subscripciones de una entidad estan registradas bajo la clave subs:idEntity en Redis
-    // El valor asociado a la clave es una hash de pares <channel, notificationParamsChain
-    // --> endpoint#@#secret> donde cada channel representa una subscripción activa de esa entidad.
-
-    LOGGER.debug("Retrieving active subscriptions for entity {}", subscription.getSourceEntityId());
-
-    final String key = keysBuilder.getSubscriptionKey(subscription.getSourceEntityId());
-    final Map<String, String> subscriptions = jedisTemplate.hGetAll(key);
-    final List<Subscription> subscriptionList = buildEntitySubscriptions(subscription, subscriptions);
-
-    LOGGER.debug("Entity {} has {} subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
-
-    return subscriptionList;
   }
 
   private List<Subscription> buildEntitySubscriptions(final Subscription subscription, final Map<String, String> subscriptions) {

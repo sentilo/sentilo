@@ -61,7 +61,7 @@ public class DefaultEntityKeyValidatorImpl implements EntityKeyValidator {
   @Override
   public void checkIntegrityKey(final String idToCheck) throws DuplicateKeyException {
     if (repository.findOne(idToCheck) != null) {
-      duplicateKeyExceptionBuilder.buildDuplicateKeyException(idToCheck);
+      duplicateKeyExceptionBuilder.buildAndThrowDuplicateKeyException(idToCheck);
     }
 
   }

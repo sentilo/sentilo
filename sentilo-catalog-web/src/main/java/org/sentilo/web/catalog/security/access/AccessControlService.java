@@ -32,9 +32,7 @@
  */
 package org.sentilo.web.catalog.security.access;
 
-import org.sentilo.web.catalog.exception.NotAllowedActionException;
-
 public interface AccessControlService {
 
-  void checkAccess(final AccessControlContext acc) throws NotAllowedActionException;
+  void checkAccess(final AccessControlContext acc);
 }

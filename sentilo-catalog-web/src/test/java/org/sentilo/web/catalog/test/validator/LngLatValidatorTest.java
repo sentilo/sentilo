@@ -43,8 +43,8 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.web.catalog.domain.LngLat;
-import org.sentilo.web.catalog.test.AbstractBaseTest;
 import org.sentilo.web.catalog.validator.LngLatValidator;
 import org.springframework.validation.Errors;
 

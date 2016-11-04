@@ -57,7 +57,7 @@ public abstract class Utils {
   }
 
   public static boolean isTopicOfType(final String topicName, final SubscribeType type) {
-    return (type != null && topicName.startsWith(type.toString().toLowerCase()));
+    return type != null && topicName.startsWith(type.toString().toLowerCase());
   }
 
   /**
@@ -68,7 +68,7 @@ public abstract class Utils {
    * <li>resourceid1 i resourceid2 són opcionals i permeten afitar més a quin recurs és vol fer la
    * subscripció</li>
    * </ul>
-   * 
+   *
    * @param subscription
    * @return
    */
@@ -87,5 +87,10 @@ public abstract class Utils {
     }
 
     return valid;
+  }
+
+  public static String getPendingEventQueueName() {
+    final String agentName = System.getProperty("sentilo.agent.name");
+    return agentName.toLowerCase() + Constants.PENDING_QUEUE_SUFFIX;
   }
 }

@@ -33,29 +33,46 @@
 package org.sentilo.agent.relational.test.listener;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.sentilo.agent.common.utils.Constants;
 import org.sentilo.agent.relational.domain.Alarm;
 import org.sentilo.agent.relational.domain.Observation;
 import org.sentilo.agent.relational.domain.Order;
 import org.sentilo.agent.relational.listener.MessageListenerImpl;
 import org.sentilo.agent.relational.service.DataTrackService;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
-import org.sentilo.common.parser.EventMessageConverter;
+import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.common.utils.DateUtils;
-import org.sentilo.common.utils.EventType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.test.util.ReflectionTestUtils;
 
-public class MessageListenerImplTest {
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({MessageListenerImpl.class, LoggerFactory.class, ReflectionTestUtils.class})
+public class MessageListenerImplTest extends AbstractBaseTest {
 
   final String dsName = "provider1Ds";
   @Mock
@@ -69,13 +86,23 @@ public class MessageListenerImplTest {
 
   private MessageListenerImpl listener;
   private RedisSerializer<String> serializer;
-  private EventMessageConverter eventConverter;
+  private StringMessageConverter eventConverter;
+
+  private static Logger logger;
+
+  @BeforeClass
+  public static void setUpStatic() throws Exception {
+    PowerMockito.mockStatic(LoggerFactory.class);
+    logger = PowerMockito.mock(Logger.class);
+    when(LoggerFactory.getLogger(anyString())).thenReturn(logger);
+    when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
+  }
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     serializer = new StringRedisSerializer();
-    eventConverter = new EventMessageConverter();
+    eventConverter = new DefaultStringMessageConverter();
     order = ArgumentCaptor.forClass(Order.class);
     observation = ArgumentCaptor.forClass(Observation.class);
     alarm = ArgumentCaptor.forClass(Alarm.class);
@@ -86,7 +113,7 @@ public class MessageListenerImplTest {
     listener = new MessageListenerImpl(dsName, dataTrackService);
 
     final String channel = "/data/provider1/sensor1";
-    final String value = eventConverter.marshall(buildDataEventMessage());
+    final String value = eventConverter.marshal(buildDataEventMessage());
     final String pattern = Constants.DATA;
 
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -107,7 +134,7 @@ public class MessageListenerImplTest {
     listener = new MessageListenerImpl(dsName, dataTrackService);
 
     final String channel = "/order/provider1/sensor1";
-    final String value = eventConverter.marshall(buildOrderEventMessage());
+    final String value = eventConverter.marshal(buildOrderEventMessage());
     final String pattern = Constants.ORDER;
 
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -127,7 +154,7 @@ public class MessageListenerImplTest {
     listener = new MessageListenerImpl(dsName, dataTrackService);
 
     final String channel = "/alarm/alarm1";
-    final String value = eventConverter.marshall(buildAlarmEventMessage());
+    final String value = eventConverter.marshal(buildAlarmEventMessage());
     final String pattern = Constants.ALARM;
 
     when(message.getChannel()).thenReturn(serializer.serialize(channel));
@@ -139,7 +166,48 @@ public class MessageListenerImplTest {
 
     assertEquals("alarm1", alarm.getValue().getAlarm());
     assertEquals("test alarm message", alarm.getValue().getMessage());
+  }
 
+  @Test
+  public void validateEventMessage() {
+    listener = new MessageListenerImpl(dsName, dataTrackService);
+
+    final String channel = "/alarm/alarm1";
+    final String value = eventConverter.marshal(buildFakeAlarmEventMessage());
+    final String pattern = Constants.ALARM;
+
+    when(message.getChannel()).thenReturn(serializer.serialize(channel));
+    when(message.getBody()).thenReturn(serializer.serialize(value));
+
+    listener.onMessage(message, serializer.serialize(pattern));
+
+    verify(dataTrackService, times(0)).save(alarm.capture());
+    verify(logger).warn(anyString(), anyString(), anyString());
+  }
+
+  @SuppressWarnings("serial")
+  @Test
+  public void dataAccessException() {
+    listener = new MessageListenerImpl(dsName, dataTrackService);
+
+    final String channel = "/alarm/alarm1";
+    final String value = eventConverter.marshal(buildAlarmEventMessage());
+    final String pattern = Constants.ALARM;
+
+    when(message.getChannel()).thenReturn(serializer.serialize(channel));
+    when(message.getBody()).thenReturn(serializer.serialize(value));
+    doThrow(new DataAccessException("mockMsg") {
+
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
+    }).when(dataTrackService).save(alarm.capture());
+
+    listener.onMessage(message, serializer.serialize(pattern));
+
+    verify(dataTrackService).save(alarm.capture());
+    verify(logger).error(anyString(), any(Exception.class));
   }
 
   private EventMessage buildDataEventMessage() {
@@ -148,9 +216,10 @@ public class MessageListenerImplTest {
     event.setSensor("sensor1");
     event.setMessage("43");
     event.setTimestamp("09/09/2013T15:55:17");
-    event.setType(EventType.DATA.name());
+    event.setType(SubscribeType.DATA.name());
     event.setTopic("/data/provider1/sensor1");
     event.setTime(DateUtils.parseTimestamp(event.getTimestamp()));
+    event.setPublishedAt(System.currentTimeMillis());
 
     return event;
   }
@@ -161,10 +230,11 @@ public class MessageListenerImplTest {
     event.setSensor("sensor1");
     event.setMessage("test order message");
     event.setTimestamp("09/09/2013T15:55:17");
-    event.setSender("provider1");
-    event.setType(EventType.ORDER.name());
+    event.setPublisher("provider1");
+    event.setType(SubscribeType.ORDER.name());
     event.setTopic("/order/provider1/sensor1");
     event.setTime(DateUtils.parseTimestamp(event.getTimestamp()));
+    event.setPublishedAt(System.currentTimeMillis());
 
     return event;
   }
@@ -174,12 +244,25 @@ public class MessageListenerImplTest {
     event.setAlert("alarm1");
     event.setMessage("test alarm message");
     event.setTimestamp("09/09/2013T15:55:17");
-    event.setSender("app demo");
-    event.setType(EventType.ALARM.name());
+    event.setPublisher("app demo");
+    event.setType(SubscribeType.ALARM.name());
     event.setTopic("/alarm/alarm1");
     event.setTime(DateUtils.parseTimestamp(event.getTimestamp()));
+    event.setPublishedAt(System.currentTimeMillis());
 
     return event;
   }
 
+  private EventMessage buildFakeAlarmEventMessage() {
+    final EventMessage event = new EventMessage();
+    event.setAlert("alarm1");
+    event.setTimestamp("09/09/2013T15:55:17");
+    event.setPublisher("app demo");
+    event.setType(SubscribeType.ALARM.name());
+    event.setTopic("/alarm/alarm1");
+    event.setTime(DateUtils.parseTimestamp(event.getTimestamp()));
+    event.setPublishedAt(System.currentTimeMillis());
+
+    return event;
+  }
 }

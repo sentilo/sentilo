@@ -36,9 +36,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.sentilo.platform.common.security.AnonymousIdentityContext;
-import org.sentilo.platform.common.security.IdentityContext;
-import org.sentilo.platform.common.security.IdentityContextHolder;
-import org.sentilo.platform.common.security.repository.EntityCredentialsRepository;
+import org.sentilo.platform.common.security.RequesterContext;
+import org.sentilo.platform.common.security.RequesterContextHolder;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.exception.UnauthorizedException;
 import org.slf4j.Logger;
@@ -53,13 +53,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServiceImpl.class);
 
-  @Value("${enableAnonymousAccess}")
+  @Value("${enableAnonymousAccess:false}")
   private boolean enableAnonymousAccess;
   @Value("${anonymousAppClientId}")
   private String anonymousAppClientId;
 
   @Autowired
-  private EntityCredentialsRepository credentialsRepository;
+  private EntityMetadataRepository entityMetadataRepository;
 
   private final Lock lock = new ReentrantLock();
 
@@ -69,7 +69,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.server.auth.AuthenticationService#getIdentity(java.lang.String)
    */
   public void checkCredential(final String credential) throws UnauthorizedException {
@@ -77,13 +77,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     LOGGER.debug("Init checkCredential process {}", Thread.currentThread().getName());
     try {
       if (!StringUtils.hasText(credential) && enableAnonymousAccess && StringUtils.hasText(anonymousAppClientId)) {
-        IdentityContextHolder.setContext(new AnonymousIdentityContext(anonymousAppClientId));
+        RequesterContextHolder.setContext(new AnonymousIdentityContext(anonymousAppClientId));
         return;
       }
 
       validateCredential(credential);
 
-      IdentityContextHolder.setContext(new IdentityContext(credentialsRepository.getCredentials(credential)));
+      RequesterContextHolder.setContext(new RequesterContext(entityMetadataRepository.getEntityMetadataFromToken(credential)));
 
     } finally {
       LOGGER.debug("Finished checkCredential process {}", Thread.currentThread().getName());
@@ -92,7 +92,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   }
 
   private void validateCredential(final String credential) throws UnauthorizedException {
-    if (!credentialsRepository.containsCredential(credential)) {
+    if (!entityMetadataRepository.containsEntityCredential(credential)) {
       throw new UnauthorizedException("Invalid credential " + credential);
     }
   }

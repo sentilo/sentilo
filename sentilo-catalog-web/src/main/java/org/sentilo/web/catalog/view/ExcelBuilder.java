@@ -72,7 +72,7 @@ public class ExcelBuilder extends AbstractExcelView {
     final List<List<String>> resourceList = (List<List<String>>) model.get(Constants.RESULT_LIST);
     final List<String> columnsKeys = buildColumnKeys(model);
 
-    final boolean ignoreFirstValue = (!CollectionUtils.isEmpty(resourceList) && columnsKeys.size() != resourceList.get(0).size());
+    final boolean ignoreFirstValue = !CollectionUtils.isEmpty(resourceList) && columnsKeys.size() != resourceList.get(0).size();
 
     final HSSFSheet sheet = workbook.createSheet("list");
 
@@ -87,7 +87,7 @@ public class ExcelBuilder extends AbstractExcelView {
     for (final List<String> rowValues : resourceList) {
       final HSSFRow row = sheet.createRow(++i);
       // put the content in the rows
-      toExcelRow(rowValues, row, sheet, ignoreFirstValue);
+      toExcelRow(rowValues, row, ignoreFirstValue);
     }
 
     for (int j = 0; j <= columnsKeys.size(); j++) {
@@ -95,9 +95,9 @@ public class ExcelBuilder extends AbstractExcelView {
     }
   }
 
-  private void toExcelRow(final List<String> rowValues, final HSSFRow row, final HSSFSheet sheet, final boolean ignoreFirstValue) {
+  private void toExcelRow(final List<String> rowValues, final HSSFRow row, final boolean ignoreFirstValue) {
     int column = 0;
-    for (int i = (ignoreFirstValue ? 1 : 0); i < rowValues.size(); i++) {
+    for (int i = ignoreFirstValue ? 1 : 0; i < rowValues.size(); i++) {
       final String value = rowValues.get(i);
       HSSFCellUtil.createCell(row, column++, cleanLabelwrapper(value));
     }
@@ -121,7 +121,7 @@ public class ExcelBuilder extends AbstractExcelView {
   private List<String> buildColumnKeys(final Map<String, Object> model) {
     final List<String> columnKeys = new ArrayList<String>();
     final List<String> columKeySuffixes = (List<String>) model.get(Constants.LIST_COLUMN_NAMES);
-    final String keysPreffix = (String) model.get(Constants.MESSAGE_KEYS_PREFFIX);
+    final String keysPreffix = (String) model.get(Constants.MESSAGE_KEYS_PREFIX);
 
     Assert.hasLength(keysPreffix, "Message keys preffix must not be empty");
 

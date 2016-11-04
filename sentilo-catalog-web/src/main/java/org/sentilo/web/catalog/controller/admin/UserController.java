@@ -101,7 +101,7 @@ public class UserController extends CrudController<User> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.SearchController#doBeforeExcelBuilder(org.springframework
    * .ui.Model)
@@ -110,12 +110,12 @@ public class UserController extends CrudController<User> {
   protected void doBeforeExcelBuilder(final Model model) {
     final String[] listColumnNames = {Constants.USER_NAME_PROP, Constants.NAME_PROP, Constants.EMAIL_PROP, Constants.CREATED_AT_PROP};
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "user");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "user");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
    * HttpServletRequest, org.springframework.ui.Model)
    */
@@ -128,7 +128,7 @@ public class UserController extends CrudController<User> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(org.springframework.
    * ui.Model)

@@ -42,41 +42,30 @@ public class Subscription {
   /** Identificador del propietario del recurso al cual se realiza la subscripcion. */
   private String ownerEntityId;
 
-  /**
-   * Este dato debera persistirse en el catalogo o bien en Redis, para saber a donde enviar la
-   * informacion recibida
-   */
-  private String endpoint;
-
-  /**
-   * Secret used to build the HMAC-SHA signature header for every callback related to this
-   * subscription.
-   */
-  private String secretCallbackKey;
-
   /** Tipo de subscripcion. */
   private SubscribeType type;
+
+  /** Params to configure notifications related to this subscription */
+  private NotificationParams notificationParams;
 
   public Subscription(final String sourceEntityId) {
     this.sourceEntityId = sourceEntityId;
   }
 
-  public Subscription(final String sourceEntityId, final String targetEntityId, final String endpoint) {
-    this(sourceEntityId, targetEntityId, endpoint, null);
+  public Subscription(final String sourceEntityId, final String targetEntityId) {
+    this(sourceEntityId);
+    ownerEntityId = targetEntityId;
   }
 
-  public Subscription(final String sourceEntityId, final String targetEntityId, final String endpoint, final SubscribeType type) {
-    super();
-    this.sourceEntityId = sourceEntityId;
-    ownerEntityId = targetEntityId;
-    this.endpoint = endpoint;
+  public Subscription(final String sourceEntityId, final String targetEntityId, final SubscribeType type) {
+    this(sourceEntityId, targetEntityId);
     this.type = type;
   }
 
   /**
    * Metodo a sobrescribir por las clases hijas. Indica si la subscripcion identifica el recurso
    * sobre la que aplica.
-   * 
+   *
    * @return
    */
   public boolean hasResourceIdentified() {
@@ -95,19 +84,16 @@ public class Subscription {
     this.ownerEntityId = ownerEntityId;
   }
 
-  public String getEndpoint() {
-    return endpoint;
-  }
-
   public SubscribeType getType() {
     return type;
   }
 
-  public String getSecretCallbackKey() {
-    return secretCallbackKey;
+  public NotificationParams getNotificationParams() {
+    return notificationParams;
   }
 
-  public void setSecretCallbackKey(final String secretCallbackKey) {
-    this.secretCallbackKey = secretCallbackKey;
+  public void setNotificationParams(final NotificationParams notificationParams) {
+    this.notificationParams = notificationParams;
   }
+
 }

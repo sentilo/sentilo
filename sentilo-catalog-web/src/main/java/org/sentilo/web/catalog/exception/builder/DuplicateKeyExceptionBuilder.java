@@ -36,5 +36,5 @@ import org.sentilo.web.catalog.exception.DuplicateKeyException;
 
 public interface DuplicateKeyExceptionBuilder {
 
-  DuplicateKeyException buildDuplicateKeyException(String invalidKey);
+  void buildAndThrowDuplicateKeyException(String invalidKey) throws DuplicateKeyException;
 }

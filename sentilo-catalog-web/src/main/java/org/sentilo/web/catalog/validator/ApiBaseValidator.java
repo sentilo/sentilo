@@ -61,7 +61,7 @@ public abstract class ApiBaseValidator<T extends CatalogDocument> {
       int i = 0;
       for (final FieldError rejectedField : result.getFieldErrors()) {
         final String domainFieldName = rejectedField.getField();
-        rejectedFields[i++] = (dictionary.containsKey(domainFieldName) ? dictionary.get(domainFieldName) : domainFieldName);
+        rejectedFields[i++] = dictionary.containsKey(domainFieldName) ? dictionary.get(domainFieldName) : domainFieldName;
       }
 
       final String errorMessage = String.format(errorMessageTemplate, objName, objId, StringUtils.arrayToCommaDelimitedString(rejectedFields));

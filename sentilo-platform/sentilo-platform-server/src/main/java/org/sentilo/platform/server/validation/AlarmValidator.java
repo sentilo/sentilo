@@ -42,8 +42,8 @@ public class AlarmValidator extends AbstractRequestMessageValidator<AlarmInputMe
   @Override
   public void validateRequestMessageOnPut(final AlarmInputMessage requestMessage) throws MessageValidationException {
     Assert.notNull(requestMessage);
-    if (!StringUtils.hasText((requestMessage).getMessage())) {
-      throw new MessageValidationException("To publish an alarm is mandatory to fill in the message");
+    if (!StringUtils.hasText(requestMessage.getMessage())) {
+      throw new MessageValidationException("To publish an alarm is mandatory to fill in the message field");
     }
     super.validateRequestMessageOnPut(requestMessage);
   }

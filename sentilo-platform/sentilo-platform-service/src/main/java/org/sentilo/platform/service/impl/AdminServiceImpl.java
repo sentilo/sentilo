@@ -34,6 +34,7 @@ package org.sentilo.platform.service.impl;
 
 import java.util.List;
 
+import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogProvider;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformMetricsMessage;
@@ -94,22 +95,35 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
 
   @Override
   public void delete(final AdminInputMessage message) {
-    // This method must remove everything stored in Redis related to sensors or providers.
+    // This method must remove everything stored in Redis related to sensors, providers or alerts.
     // The data, such as observations, orders and alarms, does not need be removed because them have
     // a ttl associated with and Redis automatically deleted them.
 
     // Furthermore, these data will be orphaned so them cannot be retrieved with the API REST.
-    LOGGER.debug("Delete service request");
     if (!CollectionUtils.isEmpty(message.getProviders())) {
       deleteProviders(message.getProviders());
     } else if (!CollectionUtils.isEmpty(message.getSensors())) {
       deleteSensors(message.getSensors());
+    } else if (!CollectionUtils.isEmpty(message.getAlerts())) {
+      deleteAlerts(message.getAlerts());
+    }
+  }
+
+  @Override
+  public void save(final AdminInputMessage message) {
+    // This method gets either a sensors or alerts list and should created/update each one in Redis
+    if (!CollectionUtils.isEmpty(message.getSensors())) {
+      saveSensors(message);
+    }
+
+    if (!CollectionUtils.isEmpty(message.getAlerts())) {
+      saveAlerts(message);
     }
   }
 
   private void deleteProviders(final List<CatalogProvider> providers) {
     for (final CatalogProvider provider : providers) {
-      LOGGER.debug("Deleting provider {}", provider.getProvider());
+      LOGGER.debug("Deleting provider [{}]", provider.getProvider());
       resourceService.removeProvider(provider.getProvider());
       subscribeService.remove(new Subscription(provider.getProvider()));
     }
@@ -117,9 +131,39 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
 
   private void deleteSensors(final List<CatalogSensor> sensors) {
     for (final CatalogSensor sensor : sensors) {
-      LOGGER.debug("Deleting sensor {} from provider {}", sensor.getSensor(), sensor.getProvider());
+      LOGGER.debug("Deleting sensor [{}] belonging to provider [{}]", sensor.getSensor(), sensor.getProvider());
       resourceService.removeSensor(sensor.getSensor(), sensor.getProvider());
     }
+  }
+
+  private void deleteAlerts(final List<CatalogAlert> alerts) {
+    for (final CatalogAlert alert : alerts) {
+      LOGGER.debug("Deleting alert [{}] belonging to entity [{}]", alert.getId(), alert.getEntity());
+      resourceService.removeAlert(alert);
+    }
+  }
+
+  private void saveSensors(final AdminInputMessage message) {
+    for (final CatalogSensor sensor : message.getSensors()) {
+      LOGGER.debug("Saving sensor [{}] belonging to provider [{}]", sensor.getSensor(), sensor.getProvider());
+      registerProviderAndSensorIfNeedBe(sensor);
+    }
+  }
+
+  private void saveAlerts(final AdminInputMessage message) {
+    // For each alert, if it already exist then it should be updated. Otherwise, it should be
+    // created
+    for (final CatalogAlert alert : message.getAlerts()) {
+      LOGGER.debug("Saving alert [{}] belonging to entity [{}]", alert.getId(), alert.getEntity());
+      resourceService.registerAlertIfNeedBe(alert, true);
+    }
+  }
+
+  private void registerProviderAndSensorIfNeedBe(final CatalogSensor sensor) {
+    // Provider should be created if it doesn't exist in Redis yet. But if sensor exists, it should
+    // be updated
+    resourceService.registerProviderIfNeedBe(sensor.getProvider());
+    resourceService.registerSensorIfNeedBe(sensor.getProvider(), sensor.getSensor(), sensor.getState(), true);
   }
 
 }

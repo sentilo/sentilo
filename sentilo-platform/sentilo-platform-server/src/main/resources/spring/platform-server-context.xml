@@ -23,7 +23,9 @@
 		p:maxCapacity="${thread.pool.capacity.max}" p:shutdownSecondsTimeout="${thread.pool.shutdown.timeout.seconds}"
 		p:queueSize="${thread.pool.queue.size}" p:groupId="${thread.pool.group.id}" p:groupName="${thread.pool.group.name}" />
 
-	<task:annotation-driven scheduler="platformScheduler" />
-	<task:scheduler id="platformScheduler" pool-size="10" />
+	<task:annotation-driven scheduler="platformScheduler" executor="platformExecutor"/>
+	<task:scheduler id="platformScheduler" pool-size="15" />		
+	<!--  Same pool config as threadPool: one asynchronous thread by request thread -->
+	<task:executor id="platformExecutor" pool-size="${thread.pool.capacity.initial}-${thread.pool.capacity.max}" queue-capacity="${thread.pool.queue.size}" keep-alive="120"/>
 
 </beans>

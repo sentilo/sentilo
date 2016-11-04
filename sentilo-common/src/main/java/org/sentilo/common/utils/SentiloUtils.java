@@ -47,15 +47,15 @@ public abstract class SentiloUtils {
   }
 
   public static boolean isArrayOrCollection(final Object value) {
-    return (value == null ? false : Collection.class.isAssignableFrom(value.getClass()) || value.getClass().isArray());
+    return value == null ? false : Collection.class.isAssignableFrom(value.getClass()) || value.getClass().isArray();
   }
 
   public static boolean arrayIsEmpty(final Object[] source) {
-    return (source == null) || (source.length == 0);
+    return source == null || source.length == 0;
   }
 
   public static boolean stringIsNotEmptyOrNull(final String value) {
-    return StringUtils.hasText(value) && !value.equalsIgnoreCase("null");
+    return StringUtils.hasText(value) && !"null".equalsIgnoreCase(value);
   }
 
   public static String buildNewInternalErrorCode(final String prefix) {
@@ -68,9 +68,19 @@ public abstract class SentiloUtils {
     return valuesList.contains(value);
   }
 
+  public static boolean areEquals(final String value1, final String value2) {
+    if (value1 == null && value2 == null) {
+      return true;
+    } else if (value1 == null && value2 != null) {
+      return false;
+    } else {
+      return value1.equals(value2);
+    }
+  }
+
   /**
    * Add the specified values to the beginning of the list.
-   * 
+   *
    * @param baseList
    * @param values
    */

@@ -63,9 +63,8 @@ public class ThreadPool {
 
     queue = new WrapperBlockingQueue(queueSize);
 
-    threadPool =
-        new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue, new NativeThreadFactory(
-            new ThreadGroup(groupName), groupId));
+    threadPool = new ThreadPoolExecutor(initialCapacity, maxCapacity, shutdownSecondsTimeout, TimeUnit.SECONDS, queue,
+        new NativeThreadFactory(new ThreadGroup(groupName), groupId));
     threadPool.prestartAllCoreThreads();
 
     threadPool.allowCoreThreadTimeOut(false);
@@ -170,7 +169,7 @@ public class ThreadPool {
     }
 
     public Thread newThread(final Runnable runnable) {
-      final StringBuffer buffer = new StringBuffer();
+      final StringBuilder buffer = new StringBuilder();
       buffer.append(namePrefix);
       buffer.append('-');
       buffer.append(count.getAndIncrement());

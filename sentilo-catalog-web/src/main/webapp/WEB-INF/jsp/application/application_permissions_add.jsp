@@ -4,6 +4,7 @@
 <%@include file="/WEB-INF/jsp/common/messages.jsp"%>
 
 <spring:url value="/admin/permissions/application/${permissions.parentEntityId}/add" var="addPermissionURL" />
+<spring:url value="/admin/application/${permissions.parentEntityId}/detail?openedTab=2" var="backURL" />
 
 <div class="container-fluid">
 	<div class="content">

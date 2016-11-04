@@ -80,7 +80,7 @@ public class ConnectionMonitorListener implements SmartLifecycle {
       monitorListener = new MonitorMessageListenerImpl(buildMonitorMessageListenerName(agentName));
       monitorTopic = new PatternTopic(buildMonitorChannelName(agentName));
       running = true;
-      LOGGER.debug("ConnectionMonitorListener started");
+      LOGGER.info("ConnectionMonitorListener started");
     }
   }
 
@@ -125,13 +125,13 @@ public class ConnectionMonitorListener implements SmartLifecycle {
   }
 
   private void restartListenerContainer() {
-    LOGGER.debug("Stopping listener container");
+    LOGGER.info("Stopping listener container");
     try {
       listenerContainer.stop();
     } catch (final Exception re) {
       LOGGER.warn("Found error {} stopping listener container. If it is not running, we proceed to start it", re.getMessage());
     }
-    LOGGER.debug("Starting listener container");
+    LOGGER.info("Starting listener container");
     if (!listenerContainer.isRunning()) {
       listenerContainer.start();
     }
@@ -159,7 +159,7 @@ public class ConnectionMonitorListener implements SmartLifecycle {
       running = false;
     }
 
-    LOGGER.debug("ListenerConnectionMonitor stopped");
+    LOGGER.info("ListenerConnectionMonitor stopped");
   }
 
   private String buildMonitorChannelName(final String agentName) {

@@ -47,7 +47,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Document
-public class Provider implements CatalogDocument, TenantResource {
+public class Provider implements TenantResource, SyncResource {
 
   private static final long serialVersionUID = 1L;
 
@@ -77,6 +77,9 @@ public class Provider implements CatalogDocument, TenantResource {
   @Valid
   private Contact contact;
 
+  /** Show if API's requests from this provider must be secured over HTTPs */
+  private boolean restHttps;
+
   private String tenantId;
 
   private Set<String> tenantsAuth;
@@ -104,7 +107,7 @@ public class Provider implements CatalogDocument, TenantResource {
     // Hashcode return must be consistent with the equals method
     final int prime = 43;
     int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + (id == null ? 0 : id.hashCode());
     return result;
   }
 
@@ -203,6 +206,14 @@ public class Provider implements CatalogDocument, TenantResource {
 
   public void setUpdatedBy(final String updatedBy) {
     this.updatedBy = updatedBy;
+  }
+
+  public boolean isRestHttps() {
+    return restHttps;
+  }
+
+  public void setRestHttps(final boolean restHttps) {
+    this.restHttps = restHttps;
   }
 
 }

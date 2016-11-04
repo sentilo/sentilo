@@ -9,6 +9,8 @@
 			ignore-unresolvable="true" />
 		<context:property-placeholder location="classpath*:properties/jedis-config.properties"
 			ignore-unresolvable="true" />
+		<context:property-placeholder location="classpath*:properties/config.properties"
+			ignore-unresolvable="true" />	
 	</beans>
 
 </beans>

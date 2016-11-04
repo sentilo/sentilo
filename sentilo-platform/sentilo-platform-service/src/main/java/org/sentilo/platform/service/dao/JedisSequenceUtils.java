@@ -134,17 +134,18 @@ public class JedisSequenceUtils {
     return aids.get(internalKey);
   }
 
-  public Long setAid(final String alarmId) {
-    final String internalKey = alarmId;
+  public Long setAid(final String alertId) {
+    final String internalKey = alertId;
     if (!aids.containsKey(internalKey)) {
-      aids.put(alarmId, getKeyNextValue(AID_KEY));
+      aids.put(alertId, getKeyNextValue(AID_KEY));
     }
 
     return aids.get(internalKey);
   }
 
-  public void removeAid(final String aid) {
-    aids.remove(aid);
+  public void removeAid(final String alertId) {
+    final String internalKey = alertId;
+    aids.remove(internalKey);
   }
 
   public Long getSdid() {
@@ -173,7 +174,7 @@ public class JedisSequenceUtils {
 
   private Long getReverseKeyValue(final String reverseKey) {
     final String value = jedisTemplate.get(reverseKey);
-    return (NIL.equals(value) || value == null ? null : Long.valueOf(value));
+    return NIL.equals(value) || value == null ? null : Long.valueOf(value);
   }
 
   private Long getKeyNextValue(final String key) {
@@ -182,6 +183,6 @@ public class JedisSequenceUtils {
 
   private Long getCurrentValue(final String key) {
     final String value = jedisTemplate.get(key);
-    return (NIL.equals(value) || value == null ? new Long(0) : Long.valueOf(value));
+    return NIL.equals(value) || value == null ? new Long(0) : Long.valueOf(value);
   }
 }

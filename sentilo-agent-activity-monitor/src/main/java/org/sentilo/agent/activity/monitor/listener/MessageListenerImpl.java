@@ -38,7 +38,6 @@ import org.sentilo.common.domain.EventMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.Message;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,25 +49,19 @@ public class MessageListenerImpl extends AbstractMessageListenerImpl {
   private ActivityMonitorService activityMonitorService;
 
   public MessageListenerImpl() {
-    this("Monitor listener");
+    this("Activity-Monitor listener");
   }
 
   public MessageListenerImpl(final String name) {
     super(name);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.agent.common.listener.AbstractMessageListenerImpl#doWithMessage(org.springframework
-   * .data.redis.connection.Message, org.sentilo.common.domain.EventMessage)
-   */
-  public void doWithMessage(final Message message, final EventMessage eventMessage) {
+  @Override
+  public void doWithMessage(final EventMessage eventMessage) {
     try {
       activityMonitorService.process(eventMessage);
     } catch (final Exception e) {
-      LOGGER.error("Error processing message {} ", eventMessage, e);
+      LOGGER.error("Error processing message: {} ", eventMessage, e);
     }
   }
 

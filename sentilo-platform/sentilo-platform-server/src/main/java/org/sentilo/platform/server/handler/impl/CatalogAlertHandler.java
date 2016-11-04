@@ -39,10 +39,10 @@ import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.CatalogService;
+import org.sentilo.platform.server.converter.CatalogAlertConverter;
 import org.sentilo.platform.server.exception.CatalogErrorException;
 import org.sentilo.platform.server.exception.ForbiddenAccessException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.CatalogAlertParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.CatalogAlertValidator;
@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Function;
@@ -65,7 +66,7 @@ public class CatalogAlertHandler extends AbstractHandler {
   @Autowired
   private CatalogService catalogService;
 
-  private CatalogAlertParser parser = new CatalogAlertParser();
+  private CatalogAlertConverter parser = new CatalogAlertConverter();
   private RequestMessageValidator<CatalogAlertInputMessage> validator = new CatalogAlertValidator();
 
   @Override
@@ -122,7 +123,7 @@ public class CatalogAlertHandler extends AbstractHandler {
     debug(request);
 
     final String method = request.getRequestParameter("method");
-    if (StringUtils.hasText(method) && method.equals("delete")) {
+    if (StringUtils.hasText(method) && "delete".equals(method)) {
       doRealOnDelete(request, true);
     } else {
       doRealOnPut(request);
@@ -167,7 +168,7 @@ public class CatalogAlertHandler extends AbstractHandler {
   protected void validateAuthorization(final CatalogAlertInputMessage inputMessage, final SentiloRequest request) throws ForbiddenAccessException {
     // Internal alerts only could be inserted/updated by catalog entity
     final Multimap<String, CatalogAlert> groups = groupAlertsByType(inputMessage.getAlerts());
-    if (groups.get("INTERNAL").size() > 0 && !getCatalogId().equals(request.getEntitySource())) {
+    if (!CollectionUtils.isEmpty(groups.get("INTERNAL")) && !getCatalogId().equals(request.getEntitySource())) {
       final String errorMessage = String.format("You are not authorized to insert/update internal alerts.");
       throw new ForbiddenAccessException(errorMessage);
     }
@@ -175,7 +176,7 @@ public class CatalogAlertHandler extends AbstractHandler {
 
   /**
    * Group alerts list by type (INTERNAL or EXTERNAL)
-   * 
+   *
    * @param alerts
    * @return
    */
@@ -185,7 +186,7 @@ public class CatalogAlertHandler extends AbstractHandler {
       @Override
       public String apply(final CatalogAlert alert) {
         // alert type could be null if it is wrong, so return empty string if it is null
-        return (alert.getType() != null ? alert.getType() : "");
+        return alert.getType() != null ? alert.getType() : "";
       }
     };
     return Multimaps.index(alerts, internalFunction);

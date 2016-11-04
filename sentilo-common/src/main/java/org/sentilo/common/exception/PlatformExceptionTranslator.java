@@ -34,7 +34,7 @@ package org.sentilo.common.exception;
 
 /**
  * Basada en org.springframework.dao.support.PersistenceExceptionTranslator.
- * 
+ *
  * @see org.springframework.dao.support.PersistenceExceptionTranslator
  */
 public interface PlatformExceptionTranslator {

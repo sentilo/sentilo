@@ -33,7 +33,6 @@
 package org.sentilo.web.catalog.service.impl;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.sentilo.web.catalog.domain.CatalogDocument;
@@ -41,23 +40,21 @@ import org.sentilo.web.catalog.domain.TenantPermission;
 import org.sentilo.web.catalog.exception.builder.CompoundDuplicateKeyExceptionBuilder;
 import org.sentilo.web.catalog.repository.TenantPermissionRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
-import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.TenantPermissionService;
+import org.sentilo.web.catalog.service.TenantResourceService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.validator.DefaultEntityKeyValidatorImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<TenantPermission> implements TenantPermissionService {
+public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<TenantPermission>implements TenantPermissionService {
 
   @Autowired
   private TenantPermissionRepository repository;
 
   @Autowired
-  private ComponentService componentService;
+  private TenantResourceService tenantResourceService;
 
   public TenantPermissionServiceImpl() {
     super(TenantPermission.class);
@@ -65,8 +62,8 @@ public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<Ten
 
   @Override
   protected void doAfterInit() {
-    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder(
-        "error.tenantPermission.duplicate.key", Constants.PERMISSION_TOKEN_SPLITTER)));
+    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(),
+        new CompoundDuplicateKeyExceptionBuilder("error.tenantPermission.duplicate.key", Constants.PERMISSION_TOKEN_SPLITTER)));
     super.doAfterInit();
   }
 
@@ -82,7 +79,7 @@ public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<Ten
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.TenantPermissionService#deleteRelated(org.sentilo.web
    * .catalog.domain .CatalogDocument)
    */
@@ -91,12 +88,13 @@ public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<Ten
     final SearchFilter filter = new SearchFilter();
     filter.addParam("source", tenantId);
     filter.addParam("target", tenantId);
-    getMongoOps().remove(buildQuery(filter), TenantPermission.class);
+
+    delete(filter);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.TenantPermissionService#deleteRelatedEntity(org.sentilo
    * .web.catalog.domain.CatalogDocument)
    */
@@ -106,12 +104,12 @@ public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<Ten
     filter.addAndParam("entity", entity.getId());
     filter.addAndParam("entityType", TenantPermission.EntityType.PROVIDER);
 
-    getMongoOps().remove(buildQuery(filter), TenantPermission.class);
+    delete(filter);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.TenantPermissionService#findByEntity(org.sentilo.web.
    * catalog.domain.CatalogDocument)
    */
@@ -127,7 +125,7 @@ public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<Ten
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.TenantPermissionService#changeMapVisibility(java.lang.String[],
    * boolean)
@@ -135,15 +133,44 @@ public class TenantPermissionServiceImpl extends AbstractBaseCrudServiceImpl<Ten
   @Override
   public void changeMapVisibility(final String[] permissionIds, final boolean isMapVisible) {
     final List<String> values = Arrays.asList(permissionIds);
-    final Query query = buildQueryForIdInCollection(values);
-    final Update update = Update.update("visible", isMapVisible).set("updatedAt", new Date());
-    getMongoOps().updateMulti(query, update, TenantPermission.class);
+    updateMulti(values, "visible", isMapVisible);
 
     // Update component map visible values
     for (final String permissionId : permissionIds) {
       final TenantPermission tenantPermission = findAndThrowErrorIfNotExist(new TenantPermission(permissionId));
-      componentService.updateTenantsMapVisibleFromProvider(tenantPermission.getEntity(), tenantPermission.getTarget(), isMapVisible);
+      if (isMapVisible) {
+        tenantResourceService.addTenantVisibilityToProviderResources(tenantPermission.getEntity(), tenantPermission.getTarget());
+      } else {
+        tenantResourceService.removeTenantVisibilityFromProviderResources(tenantPermission.getEntity(), tenantPermission.getTarget());
+      }
     }
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterCreate(org.sentilo.web.
+   * catalog.domain.CatalogDocument)
+   */
+  @Override
+  protected void doAfterCreate(final TenantPermission permission) {
+    // Once the permission is created, it must be propagated to entity resources to grant target
+    // access to them
+    tenantResourceService.addTenantGrantToProviderResources(permission);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.web.
+   * catalog.domain.CatalogDocument)
+   */
+  @Override
+  protected void doAfterDelete(final TenantPermission permission) {
+    // Undo target grant access to entity resources
+    tenantResourceService.removeTenantGrantFromProviderResources(permission.getEntity(), permission.getTarget());
   }
 
 }

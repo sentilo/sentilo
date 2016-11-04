@@ -41,10 +41,18 @@
 							<table class="table table-striped" id="${alertTable}">
 								<thead>
 									<tr>
-										<td>&nbsp;</td>
+										<td>
+										    <c:choose>
+										    	<c:when test="${showAdminControls}">
+										    		<input type="checkbox" name="selectAllRows"/>
+										    	</c:when>
+										    	<c:otherwise>&nbsp;</c:otherwise>
+										    </c:choose>								
+										</td>										
 										<td><strong><spring:message code="alert.id" /> </strong></td>
-										<td><strong><spring:message code="alert.name" /> </strong></td>
 										<td><strong><spring:message code="alert.type" /> </strong></td>
+										<td><strong><spring:message code="alert.trigger" /> </strong></td>
+										<td><strong><spring:message code="alert.active" /> </strong></td>
 										<td><strong><spring:message code="alert.createdAt" /> </strong></td>
 									</tr>
 								</thead>
@@ -56,7 +64,9 @@
 									<spring:message code="button.excel" /> 
 								</a>
 							</div>	
-							<c:if test="${showAdminControls}">						
+						</form:form>
+						
+						<c:if test="${showAdminControls}">						
 							<div class="control-group pull-right">
 								<a href="#" onclick="deleteSelected('alerts');" class="btn btn-danger">
 									<spring:message code="alert.delete.title" /> 
@@ -65,8 +75,8 @@
 									<spring:message code="alert.new.title" /> 
 								</a>
 							</div>
-							</c:if>
-						</form:form>
+						</c:if>
+						
 					</div>
 				</div>
 			</div>

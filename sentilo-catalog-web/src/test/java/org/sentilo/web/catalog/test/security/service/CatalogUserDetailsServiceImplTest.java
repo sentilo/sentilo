@@ -176,14 +176,13 @@ public class CatalogUserDetailsServiceImplTest {
     Assert.assertEquals(mockUserDetails, userDetails);
   }
 
-  @SuppressWarnings("serial")
   @Test
   public void getNullCatalogUserDetails() {
     SecurityContextHolder.getContext().setAuthentication(authentication);
     when(authentication.getPrincipal()).thenReturn(new UserDetails() {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 

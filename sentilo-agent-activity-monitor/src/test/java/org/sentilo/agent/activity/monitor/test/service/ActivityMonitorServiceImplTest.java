@@ -32,7 +32,8 @@
  */
 package org.sentilo.agent.activity.monitor.test.service;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +47,7 @@ import org.sentilo.agent.activity.monitor.service.CatalogService;
 import org.sentilo.agent.activity.monitor.service.impl.ActivityMonitorServiceImpl;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.utils.EventType;
+import org.sentilo.common.utils.SentiloConstants;
 
 public class ActivityMonitorServiceImplTest {
 
@@ -69,7 +71,7 @@ public class ActivityMonitorServiceImplTest {
 
     service.process(eventMessage);
 
-    verify(repository).publishMessageToElasticSearch(any(EventMessage.class));
+    verify(repository).publishMessageToElasticSearch(eventMessage);
   }
 
   @Test
@@ -78,7 +80,7 @@ public class ActivityMonitorServiceImplTest {
 
     service.process(eventMessage);
 
-    verify(repository).publishMessageToElasticSearch(any(EventMessage.class));
+    verify(repository).publishMessageToElasticSearch(eventMessage);
   }
 
   @Test
@@ -95,6 +97,37 @@ public class ActivityMonitorServiceImplTest {
 
     verify(catalogService).getAdditionalFields(alertId);
     verify(catalogService).getSensorType(provider, sensor);
-    verify(repository).publishMessageToElasticSearch(any(EventMessage.class));
+    verify(repository).publishMessageToElasticSearch(eventMessage);
+  }
+
+  @Test
+  public void processExternalAlarmEvent() {
+    final String alertId = "1";
+
+    when(eventMessage.getType()).thenReturn(EventType.ALARM.name());
+    when(eventMessage.getAlert()).thenReturn(alertId);
+
+    service.process(eventMessage);
+
+    verify(catalogService, times(0)).getAdditionalFields(alertId);
+    verify(catalogService, times(0)).getSensorType(anyString(), anyString());
+    verify(repository).publishMessageToElasticSearch(eventMessage);
+  }
+
+  @Test
+  public void processGhostSensorAlarmEvent() {
+    final String alertId = SentiloConstants.GHOST_SENSOR_ALERT;
+    final String sensor = "mockSensor";
+    final String provider = "mockProvider";
+    when(eventMessage.getType()).thenReturn(EventType.ALARM.name());
+    when(eventMessage.getAlert()).thenReturn(alertId);
+    when(eventMessage.getSensor()).thenReturn(sensor);
+    when(eventMessage.getProvider()).thenReturn(provider);
+
+    service.process(eventMessage);
+
+    verify(catalogService, times(0)).getAdditionalFields(alertId);
+    verify(catalogService, times(0)).getSensorType(provider, sensor);
+    verify(repository).publishMessageToElasticSearch(eventMessage);
   }
 }

@@ -58,6 +58,8 @@ import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/admin/componenttypes")
@@ -115,12 +117,12 @@ public class ComponentTypesController extends CrudController<ComponentType> {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.CREATED_AT_PROP};
 
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "componenttype");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "componenttype");
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
    * HttpServletRequest, org.springframework.ui.Model)
    */
@@ -133,7 +135,7 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
    * org.springframework.ui.Model)
    */
@@ -146,7 +148,7 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.CrudController#doBeforeDeleteResources(java.util.Collection,
    * javax.servlet.http.HttpServletRequest, org.springframework.ui.Model)
@@ -162,10 +164,9 @@ public class ComponentTypesController extends CrudController<ComponentType> {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.catalog
-   * .domain.CatalogDocument, org.springframework.ui.Model)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
+   * catalog .domain.CatalogDocument, org.springframework.ui.Model)
    */
   @Override
   protected void doBeforeCreateResource(final ComponentType componentType, final Model model) {
@@ -203,4 +204,11 @@ public class ComponentTypesController extends CrudController<ComponentType> {
       throw new BusinessValidationException("componenttype.error.cannot.delete", new Object[] {componentType});
     }
   }
+
+  @ResponseBody
+  @RequestMapping("/search/json")
+  public List<ComponentType> search(final HttpServletRequest request, @RequestParam(required = true) final String providerId, final Model model) {
+    return componentTypesService.findComponentTypesByProvider(providerId);
+  }
+
 }

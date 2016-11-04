@@ -34,13 +34,12 @@ package org.sentilo.agent.activity.monitor.event;
 
 import java.util.Properties;
 
+import org.sentilo.agent.common.listener.AbstractSubscriptionsInitListener;
 import org.sentilo.agent.common.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -50,7 +49,7 @@ import org.springframework.util.StringUtils;
  * subscription.properties and for each topic register a new subscription on Redis
  */
 @Component
-public class SubscriptionsInitListener implements org.springframework.context.ApplicationListener<org.springframework.context.event.ContextRefreshedEvent> {
+public class SubscriptionsInitListener extends AbstractSubscriptionsInitListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsInitListener.class);
 
@@ -58,39 +57,23 @@ public class SubscriptionsInitListener implements org.springframework.context.Ap
   private Properties subscriptionsDef;
 
   @Autowired
-  private RedisMessageListenerContainer listenerContainer;
-
-  @Autowired
   private MessageListener messageListener;
 
-  @Override
-  public void onApplicationEvent(final ContextRefreshedEvent event) {
-    LOGGER.info("Executing call to register subscriptions process");
-    subscribe();
-    LOGGER.info("End of process");
-  }
-
-  void subscribe() {
+  public void subscribe() {
     // Read the subscriptions registered on the file subscription.properties and for each topic
     // register a new subscription on Redis
-    LOGGER.info("Initializing monitor agent subscriptions");
+    LOGGER.info("Initializing activity-monitor agent subscriptions");
     if (!CollectionUtils.isEmpty(subscriptionsDef) && StringUtils.hasText(subscriptionsDef.getProperty("topics-to-index"))) {
       final String topicsToIndex = subscriptionsDef.getProperty("topics-to-index");
 
       LOGGER.debug("Found {} subscriptions to register", topicsToIndex.split(",").length);
 
       for (final String topic : topicsToIndex.split(",")) {
-        registerSubscriptionIntoContainer(messageListener, topic);
+        registerSubscription(messageListener, Utils.buildTopic(topic));
       }
 
     } else {
       LOGGER.info("No found subscriptions to register");
     }
   }
-
-  private void registerSubscriptionIntoContainer(final MessageListener messageListener, final String topic) {
-    listenerContainer.addMessageListener(messageListener, Utils.buildTopic(topic));
-    LOGGER.debug("Subscription to topic {} registered successfully", topic);
-  }
-
 }

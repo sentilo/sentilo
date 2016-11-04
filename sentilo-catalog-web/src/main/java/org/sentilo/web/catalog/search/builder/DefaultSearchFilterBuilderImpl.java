@@ -41,12 +41,15 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.context.TenantContextHolder;
+import org.sentilo.web.catalog.domain.Permission.Type;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.security.CatalogUserDetails;
 import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 
 public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
@@ -55,6 +58,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
   public static final String NAME_COLUMN = "name";
   public static final String DESC_COLUMN = "description";
   public static final String CREATED_COLUMN = "createdAt";
+  public static final String CREATED_BY_COLUMN = "createdBy";
   public static final String TYPE_COLUMN = "type";
   public static final String SENSORID_COLUMN = "sensorId";
   public static final String PROVIDERID_COLUMN = "providerId";
@@ -64,15 +68,24 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
   public static final String TARGET_COLUMN = "target";
   public static final String ENDPOINT_COLUMN = "endpoint";
   public static final String PROVIDER_COLUMN = "provider";
+  public static final String PROVIDER_ID_COLUMN = "providerId";
   public static final String SENSOR_COLUMN = "sensor";
   public static final String ALARM_COLUMN = "alarm";
   public static final String COMPONENT_TYPE_COLUMN = "componentType";
   public static final String ACCESS_COLUMN = "publicAccess";
+  public static final String STATE_COLUMN = "state";
+  public static final String SUBSTATE_COLUMN = "substate";
   public static final String ORGANIZATION_COLUMN = "organization";
   public static final String ENTITY_COLUMN = "entity";
   public static final String DATE_COLUMN = "date";
+  public static final String SENSOR_TYPE_COLUMN = "sensorType";
+  public static final String CONTENT_TYPE_COLUMN = "contentType";
+  public static final String ACTIVE_COLUMN = "active";
+  public static final String TRIGGER_COLUMN = "trigger";
 
   static final Map<String, Object> ACCESS_DICTIONARY = new HashMap<String, Object>();
+  static final Map<String, Object> ACTIVE_DICTIONARY = new HashMap<String, Object>();
+  static final Map<String, Object> PERMISSION_TYPE_DICTIONARY = new HashMap<String, Object>();
 
   static {
     ACCESS_DICTIONARY.put("true", true);
@@ -83,6 +96,18 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
     ACCESS_DICTIONARY.put("Private", false);
     ACCESS_DICTIONARY.put("Público", true);
     ACCESS_DICTIONARY.put("Privado", false);
+
+    ACTIVE_DICTIONARY.put("true", true);
+    ACTIVE_DICTIONARY.put("false", false);
+
+    PERMISSION_TYPE_DICTIONARY.put("Lectura", Type.READ);
+    PERMISSION_TYPE_DICTIONARY.put("Read", Type.READ);
+    PERMISSION_TYPE_DICTIONARY.put("Lectura-Escritura", Type.WRITE);
+    PERMISSION_TYPE_DICTIONARY.put("Lectura-Escriptura", Type.WRITE);
+    PERMISSION_TYPE_DICTIONARY.put("Read-Write", Type.WRITE);
+    PERMISSION_TYPE_DICTIONARY.put("Administració", Type.ADMIN);
+    PERMISSION_TYPE_DICTIONARY.put("Administración", Type.ADMIN);
+    PERMISSION_TYPE_DICTIONARY.put("Administration", Type.ADMIN);
   }
 
   public DefaultSearchFilterBuilderImpl() {
@@ -91,18 +116,29 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.search.builder.SearchFilterBuilder#buildMapSearchFilter()
    */
   public SearchFilter buildMapSearchFilter() {
     final SearchFilter filter = new SearchFilter();
 
     if (TenantContextHolder.hasContext()) {
-      // Show only granted components that had been marked as visible on map
-      filter.addAndParam("tenantsMapVisible", TenantUtils.getCurrentTenant());
+      // Views always shown components belonging to or authorized to request's tenant
+      // And if request's tenant != user's tenant then only publics components are returned
+      final boolean userIsLoggedIn = SecurityContextHolder.getContext().getAuthentication() != null;
+      final String requestTenant = TenantUtils.getRequestTenant();
+      final String userTenant = TenantUtils.getUserTenant();
+      if (StringUtils.hasText(requestTenant)) {
+        // Show only granted components that had been marked as visible on map
+        filter.addAndParam("tenantsMapVisible", requestTenant);
 
-      // Show only own and granted components
-      filter.addAndParam("tenantsAuth", TenantUtils.getCurrentTenant());
+        // Show only own and granted components
+        filter.addAndParam("tenantsAuth", requestTenant);
+      }
+
+      if (!userIsLoggedIn || !SentiloUtils.areEquals(requestTenant, userTenant)) {
+        filter.addAndParam("publicAccess", Boolean.TRUE);
+      }
     }
 
     return filter;
@@ -110,7 +146,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.search.builder.SearchFilterBuilder#buildSearchFilter(javax.servlet.
    * http.HttpServletRequest, org.springframework.data.domain.Pageable, java.lang.String,
@@ -123,12 +159,12 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
         TenantContextHolder.isEnabled() && dataMustBeFilteredByTenant(request, userDetailsService.getCatalogUserDetails());
 
     final Map<String, Object> params =
-        (StringUtils.hasText(wordToSearch) ? buildSearchParams(request, wordToSearch) : Collections.<String, Object>emptyMap());
+        StringUtils.hasText(wordToSearch) ? buildSearchParams(request, wordToSearch) : Collections.<String, Object>emptyMap();
 
     final SearchFilter searchFilter = new SearchFilter(params, pageable);
 
     if (mustBeFilteredByTenant) {
-      final String[] tenantFilter = {TenantUtils.getCurrentTenant()};
+      final String[] tenantFilter = {TenantUtils.getRequestTenant()};
       searchFilter.addAndParam("tenantsAuth", tenantFilter);
     }
 
@@ -158,7 +194,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
         {"permissionTable", "componentTypeTable", "sensorTypeTable", "tenantTable", "tenantFromPermissionsTable", "tenantToPermissionsTable"};
 
     final String tableName = request.getParameter("tableName");
-    if (Arrays.asList(noFilterDataTableNames).contains(tableName) || ("userTable".equals(tableName) && userDetails.isSuperAdminUser())) {
+    if (Arrays.asList(noFilterDataTableNames).contains(tableName) || "userTable".equals(tableName) && userDetails.isSuperAdminUser()) {
       return false;
     } else {
       return true;
@@ -168,6 +204,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
   private void registerDataTableColumns() {
     registerAlertDataTableColumns();
+    registerAlertRuleDataTableColumns();
     registerProviderDataTableColumns();
     registerApplicationDataTableColumns();
     registerSensorDataTableColumns();
@@ -179,6 +216,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
     registerSubscriptionsDataTableColumns();
     registerTenantDataTableColumns();
     registerTenantGrantsDataTableColumns();
+    registerProviderDocumentFilesDataTableColumns();
   }
 
   private void registerAlertDataTableColumns() {
@@ -188,11 +226,23 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
     final List<Column> columns = new ArrayList<Column>();
     columns.add(new Column(ID_COLUMN, true, true));
-    columns.add(new Column(NAME_COLUMN, true, true));
     columns.add(new Column(TYPE_COLUMN, true, true, dictionary));
+    columns.add(new Column(TRIGGER_COLUMN, true, true));
+    columns.add(new Column(ACTIVE_COLUMN, true, true, ACTIVE_DICTIONARY));
     columns.add(new Column(CREATED_COLUMN, true, true));
 
     SearchFilterUtils.addListColumns("alert", columns);
+  }
+
+  private void registerAlertRuleDataTableColumns() {
+    final List<Column> columns = new ArrayList<Column>();
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(PROVIDER_ID_COLUMN, true, true));
+    columns.add(new Column(COMPONENT_TYPE_COLUMN, true, true));
+    columns.add(new Column(SENSOR_TYPE_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true, true));
+
+    SearchFilterUtils.addListColumns("alertRule", columns);
   }
 
   private void registerProviderDataTableColumns() {
@@ -221,6 +271,8 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
     columns.add(new Column(PROVIDERID_COLUMN, true, true));
     columns.add(new Column(TYPE_COLUMN, true, true));
     columns.add(new Column(ACCESS_COLUMN, true, true, ACCESS_DICTIONARY));
+    columns.add(new Column(STATE_COLUMN, true, true));
+    columns.add(new Column(SUBSTATE_COLUMN, true, true));
     columns.add(new Column(CREATED_COLUMN, true, true));
 
     SearchFilterUtils.addListColumns("sensor", columns);
@@ -258,7 +310,7 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
   private void registerPermissionsDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
     columns.add(new Column(TARGET_COLUMN, true, true));
-    columns.add(new Column(CREATED_COLUMN, true, true));
+    columns.add(new Column(TYPE_COLUMN, true, true, PERMISSION_TYPE_DICTIONARY));
 
     SearchFilterUtils.addListColumns("permissions", columns);
   }
@@ -313,6 +365,17 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
     columns.add(new Column(USER_NAME_COLUMN));
 
     SearchFilterUtils.addListColumns("grants", columns);
+  }
+
+  private void registerProviderDocumentFilesDataTableColumns() {
+    final List<Column> columns = new ArrayList<Column>();
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(DESC_COLUMN, true, true));
+    columns.add(new Column(CONTENT_TYPE_COLUMN, true, true));
+    columns.add(new Column(CREATED_BY_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true, true));
+
+    SearchFilterUtils.addListColumns("documents", columns);
   }
 
 }

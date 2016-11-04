@@ -41,6 +41,7 @@ import org.sentilo.common.domain.PlatformActivity;
 import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.service.monitor.MonitorConstants.MetricKeyType;
 import org.sentilo.platform.service.utils.PubSubConstants;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -49,34 +50,34 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.service.monitor.CounterService#save(org.sentilo.platform.service.monitor
    * .CounterContext)
    */
+  @Async
   public void save(final CounterContext context) {
     // Write to Redis the metric counts: master, entity and, optionally, tenant counts
     // If request type is PUSH, i.e. is Sentilo who initiates the request, then requests counts
     // mustn't be incremented.
 
-    // TODO : either batch update to improve performance when load is higher
-    // or synchonize call to evict ghost reads
     incrementMasterCounts(context);
     incrementEntityCounts(context);
     if (StringUtils.hasText(context.getTenant())) {
       incrementTenantCounts(context);
     }
+
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.service.monitor.CounterService#getTenantCounters()
    */
   public List<PlatformActivity> getTenantCounters() {
     final List<PlatformActivity> globalPlatformActivity = new ArrayList<PlatformActivity>();
-    final Set<String> counters = redisTemplate.keys(MonitorConstants.TENANT_COUNTERS_KEYS_PATTERN);
-    counters.add(MonitorConstants.MASTER_COUNTERS_KEY);
+    final Set<String> counters = getCountersKeys();
+
     for (final String counterKey : counters) {
       globalPlatformActivity.add(getPlatformActivity(counterKey));
     }
@@ -87,25 +88,48 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
   private PlatformActivity getPlatformActivity(final String counterKey) {
     final Map<Object, Object> countersHash = getHashContent(counterKey);
 
-    final boolean isMaster = (MonitorConstants.MASTER_COUNTERS_KEY.equals(counterKey));
-    final String tenant = (isMaster ? null : counterKey.split(PubSubConstants.REDIS_KEY_TOKEN)[2]);
+    final boolean isMaster = MonitorConstants.MASTER_COUNTERS_KEY.equals(counterKey);
+    final String tenant = isMaster ? null : counterKey.split(PubSubConstants.REDIS_KEY_TOKEN)[2];
     final Long totalRequests = getHashValueAsLong(countersHash, MonitorConstants.TOTAL_REQUESTS_FIELD);
     final Long totalObs = addHashValues(countersHash, EventType.DATA);
     final Long totalOrders = addHashValues(countersHash, EventType.ORDER);
     final Long totalAlarms = addHashValues(countersHash, EventType.ALARM);
 
-    return new PlatformActivity(tenant, totalRequests, totalObs, totalOrders, totalAlarms, System.currentTimeMillis(), isMaster);
+    final Long totalGetRequests = getHashValueAsLong(countersHash, buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, RequestType.GET));
+    final Long totalPutRequests = getHashValueAsLong(countersHash, buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, RequestType.PUT));
+    final Long totalGetObs = getHashValueAsLong(countersHash, buildHashField(EventType.DATA, RequestType.GET));
+    final Long totalPutObs = getHashValueAsLong(countersHash, buildHashField(EventType.DATA, RequestType.PUT));
+    final Long totalGetOrders = getHashValueAsLong(countersHash, buildHashField(EventType.ORDER, RequestType.GET));
+    final Long totalPutOrders = getHashValueAsLong(countersHash, buildHashField(EventType.ORDER, RequestType.PUT));
+    final Long totalGetAlarms = getHashValueAsLong(countersHash, buildHashField(EventType.ALARM, RequestType.GET));
+    final Long totalPutAlarms = getHashValueAsLong(countersHash, buildHashField(EventType.ALARM, RequestType.PUT));
+
+    final PlatformActivity platformActivity = new PlatformActivity(tenant, System.currentTimeMillis(), isMaster);
+    platformActivity.setTotalAlarms(totalAlarms);
+    platformActivity.setTotalGetAlarms(totalGetAlarms);
+    platformActivity.setTotalPutAlarms(totalPutAlarms);
+    platformActivity.setTotalOrders(totalOrders);
+    platformActivity.setTotalGetOrders(totalGetOrders);
+    platformActivity.setTotalPutOrders(totalPutOrders);
+    platformActivity.setTotalObs(totalObs);
+    platformActivity.setTotalGetObs(totalGetObs);
+    platformActivity.setTotalPutObs(totalPutObs);
+    platformActivity.setTotalRequests(totalRequests);
+    platformActivity.setTotalGetRequests(totalGetRequests);
+    platformActivity.setTotalPutRequests(totalPutRequests);
+
+    return platformActivity;
   }
 
   private Long addHashValues(final Map<Object, Object> hash, final EventType eventType) {
-    final Long value1 = getHashValueAsLong(hash, buildHashField(RequestType.GET, eventType));
-    final Long value2 = getHashValueAsLong(hash, buildHashField(RequestType.PUT, eventType));
+    final Long value1 = getHashValueAsLong(hash, buildHashField(eventType, RequestType.GET));
+    final Long value2 = getHashValueAsLong(hash, buildHashField(eventType, RequestType.PUT));
 
     return value1 + value2;
   }
 
   protected void incrementMasterCounts(final CounterContext context) {
-    final String hashKey = buildHashKey(context, MetricKeyType.MASTER);
+    final String hashKey = buildHashKey(context, MetricKeyType.master);
     incrementCounter(hashKey, buildHashField(context), context.getTotal());
     if (context.getRequestType() != RequestType.PUSH) {
       incrementRequestsCount(context, hashKey);
@@ -113,7 +137,7 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
   }
 
   protected void incrementEntityCounts(final CounterContext context) {
-    final String hashKey = buildHashKey(context, MetricKeyType.ENTITY);
+    final String hashKey = buildHashKey(context, MetricKeyType.entity);
     incrementCounter(hashKey, buildHashField(context), context.getTotal());
     if (context.getRequestType() != RequestType.PUSH) {
       incrementRequestsCount(context, hashKey);
@@ -121,7 +145,10 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
   }
 
   protected void incrementTenantCounts(final CounterContext context) {
-    final String hashKey = buildHashKey(context, MetricKeyType.TENANT);
+    // Register tenant into the set of tenants with counters
+    redisTemplate.opsForSet().add(MonitorConstants.TENANTS_KEY, context.getTenant());
+
+    final String hashKey = buildHashKey(context, MetricKeyType.tenant);
     incrementCounter(hashKey, buildHashField(context), context.getTotal());
     if (context.getRequestType() != RequestType.PUSH) {
       incrementRequestsCount(context, hashKey);
@@ -129,7 +156,7 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
   }
 
   protected void incrementRequestsCount(final CounterContext context, final String hashKey) {
-    String hashFieldKey = buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, context.getRequestType().name().toLowerCase());
+    final String hashFieldKey = buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, context.getRequestType().name().toLowerCase());
     incrementCounter(hashKey, hashFieldKey, 1);
     incrementCounter(hashKey, MonitorConstants.TOTAL_REQUESTS_FIELD, 1);
   }
@@ -141,16 +168,16 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
   private String buildHashKey(final CounterContext context, final MetricKeyType countKeyType) {
     final StringBuilder sb = new StringBuilder(MonitorConstants.COUNTERS_PREFIX + PubSubConstants.REDIS_KEY_TOKEN);
     switch (countKeyType) {
-      case MASTER:
-        sb.append(MetricKeyType.MASTER.name());
+      case master:
+        sb.append(MetricKeyType.master.name());
         break;
-      case ENTITY:
-        sb.append(MetricKeyType.ENTITY.name());
+      case entity:
+        sb.append(MetricKeyType.entity.name());
         sb.append(PubSubConstants.REDIS_KEY_TOKEN);
         sb.append(context.getEntity());
         break;
-      case TENANT:
-        sb.append(MetricKeyType.TENANT.name());
+      case tenant:
+        sb.append(MetricKeyType.tenant.name());
         sb.append(PubSubConstants.REDIS_KEY_TOKEN);
         sb.append(context.getTenant());
         break;
@@ -158,18 +185,24 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
         break;
     }
 
-    return sb.toString().toLowerCase();
+    return sb.toString();
   }
 
   private String buildHashField(final CounterContext context) {
-    return buildHashField(context.getRequestType(), context.getDataType());
+    return buildHashField(context.getDataType(), context.getRequestType());
   }
 
-  private String buildHashField(final RequestType requestType, final EventType eventType) {
+  private String buildHashField(final EventType eventType, final RequestType requestType) {
     final String sRequestType = requestType.name().toLowerCase();
     final String sEventType = eventType.name().toLowerCase();
 
     return buildHashField(sEventType, sRequestType);
+  }
+
+  private String buildHashField(final String prefix, final RequestType requestType) {
+    final String sRequestType = requestType.name().toLowerCase();
+
+    return buildHashField(prefix, sRequestType);
   }
 
   private String buildHashField(final String prefix, final String sRequestType) {

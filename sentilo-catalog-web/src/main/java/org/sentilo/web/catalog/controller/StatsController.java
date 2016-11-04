@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sentilo.web.catalog.domain.Activity;
+import org.sentilo.web.catalog.domain.Performance;
 import org.sentilo.web.catalog.domain.Statistics;
 import org.sentilo.web.catalog.dto.StatsDTO;
 import org.sentilo.web.catalog.service.ActivityService;
@@ -78,19 +79,20 @@ public class StatsController extends CatalogBaseController {
   public StatsDTO getCurrentStats() {
     final StatsDTO result = new StatsDTO();
     final Statistics stats = statsService.getCurrentStats();
+    final Performance performance = stats.getPerformance() == null ? new Performance() : stats.getPerformance();
 
     result.setTotalDevices(formatter.format(stats.getDevices().getSensors()));
     result.setTotalRouterDevices(formatter.format(stats.getDevices().getRoutersAndGateways()));
     result.setTotalOtherDevices(formatter.format(stats.getDevices().getOthers()));
 
-    result.setTotalEvents(formatter.format(stats.getPerformance().getTotalRequests()));
-    result.setTotalObsEvents(formatter.format(stats.getPerformance().getTotalObs()));
-    result.setTotalOrderEvents(formatter.format(stats.getPerformance().getTotalOrders()));
-    result.setTotalAlarmEvents(formatter.format(stats.getPerformance().getTotalAlarms()));
+    result.setTotalEvents(formatter.format(performance.getTotalRequests()));
+    result.setTotalObsEvents(formatter.format(performance.getTotalObs()));
+    result.setTotalOrderEvents(formatter.format(performance.getTotalOrders()));
+    result.setTotalAlarmEvents(formatter.format(performance.getTotalAlarms()));
 
-    result.setEventsPerSecond(formatter.format(stats.getPerformance().getInstantAvg()));
-    result.setDailyAverageRate(formatter.format(stats.getPerformance().getMaxDailyAvg()));
-    result.setMaxRate(formatter.format(stats.getPerformance().getMaxAvg()));
+    result.setEventsPerSecond(formatter.format(performance.getInstantAvg()));
+    result.setDailyAverageRate(formatter.format(performance.getMaxDailyAvg()));
+    result.setMaxRate(formatter.format(performance.getMaxAvg()));
 
     result.setTotalActiveAccounts(formatter.format(stats.getAccounts().getUsers()));
     result.setTotalProviderAccounts(formatter.format(stats.getAccounts().getProviders()));

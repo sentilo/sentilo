@@ -48,7 +48,7 @@ public abstract class RequestUtils {
 
   public static String extractResource(final String path, final String handlerPath) {
     Assert.isTrue(path != null && path.startsWith(TOKEN_PATH_SEPARATOR), "Invalid path value. Must start with /");
-    return (handlerPath.length() == path.length()) ? EMPTY_STRING : path.substring(handlerPath.length() + 1);
+    return handlerPath.length() == path.length() ? EMPTY_STRING : path.substring(handlerPath.length() + 1);
   }
 
   public static String[] splitPath(final String path) {
@@ -58,7 +58,7 @@ public abstract class RequestUtils {
 
   public static String[] splitResource(final String resource) {
     // Assert.isTrue(resource != null, "Invalid resource value. Must not be null");
-    return (StringUtils.hasText(resource) ? resource.split(TOKEN_PATH_SEPARATOR) : EMPTY_ARRAY);
+    return StringUtils.hasText(resource) ? resource.split(TOKEN_PATH_SEPARATOR) : EMPTY_ARRAY;
   }
 
   public static String buildPath(final String... tokens) {

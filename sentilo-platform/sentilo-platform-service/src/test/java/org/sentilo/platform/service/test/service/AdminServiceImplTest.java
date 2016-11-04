@@ -32,7 +32,9 @@
  */
 package org.sentilo.platform.service.test.service;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,13 +42,13 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogProvider;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.platform.common.domain.AdminInputMessage;
@@ -58,6 +60,7 @@ public class AdminServiceImplTest {
 
   private static final String PROVIDER_ID = "provider1";
   private static final String SENSOR_ID = "sensor1";
+  private static final String ALERT_ID = "alert1";
 
   @Mock
   private ResourceService resourceService;
@@ -68,14 +71,26 @@ public class AdminServiceImplTest {
   @InjectMocks
   private AdminServiceImpl service;
 
+  @Mock
+  private CatalogProvider catalogProvider;
+  @Mock
+  private CatalogSensor catalogSensor;
+  @Mock
+  private CatalogAlert catalogAlert;
+
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    when(catalogProvider.getProvider()).thenReturn(PROVIDER_ID);
+    when(catalogSensor.getProvider()).thenReturn(PROVIDER_ID);
+    when(catalogSensor.getSensor()).thenReturn(SENSOR_ID);
+    when(catalogAlert.getId()).thenReturn(ALERT_ID);
+    when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
   }
 
   @Test
   public void deleteProviders() {
-    final List<CatalogProvider> providers = buildMockProviderList();
+    final List<CatalogProvider> providers = buildMockList(catalogProvider, 10);
     when(message.getProviders()).thenReturn(providers);
 
     service.delete(message);
@@ -87,7 +102,7 @@ public class AdminServiceImplTest {
 
   @Test
   public void deleteSensors() {
-    final List<CatalogSensor> sensors = buildMockSensorList();
+    final List<CatalogSensor> sensors = buildMockList(catalogSensor, 10);
     when(message.getProviders()).thenReturn(Collections.<CatalogProvider>emptyList());
     when(message.getSensors()).thenReturn(sensors);
 
@@ -98,38 +113,51 @@ public class AdminServiceImplTest {
     verify(resourceService, times(sensors.size())).removeSensor(anyString(), anyString());
   }
 
-  private List<CatalogProvider> buildMockProviderList() {
-    final List<CatalogProvider> mockList = new ArrayList<CatalogProvider>();
+  @Test
+  public void deleteAlerts() {
+    final List<CatalogAlert> alerts = buildMockList(catalogAlert, 10);
+    when(message.getProviders()).thenReturn(null);
+    when(message.getSensors()).thenReturn(null);
+    when(message.getAlerts()).thenReturn(alerts);
 
-    for (int i = 0; i < getRandomSize(); i++) {
-      final CatalogProvider provider = new CatalogProvider();
-      provider.setProvider(PROVIDER_ID);
-      mockList.add(provider);
+    service.delete(message);
+
+    verify(message, times(2)).getAlerts();
+    verify(message, times(1)).getSensors();
+    verify(message, times(1)).getProviders();
+    verify(resourceService, times(alerts.size())).removeAlert(catalogAlert);
+  }
+
+  @Test
+  public void saveSensors() {
+    final List<CatalogSensor> sensors = buildMockList(catalogSensor, 10);
+    when(message.getSensors()).thenReturn(sensors);
+
+    service.save(message);
+
+    verify(message, times(2)).getSensors();
+    verify(resourceService, times(sensors.size())).registerProviderIfNeedBe(anyString());
+    verify(resourceService, times(sensors.size())).registerSensorIfNeedBe(anyString(), anyString(), anyString(), eq(Boolean.TRUE));
+  }
+
+  @Test
+  public void saveAlerts() {
+    final List<CatalogAlert> alerts = buildMockList(catalogAlert, 10);
+    when(message.getAlerts()).thenReturn(alerts);
+
+    service.save(message);
+
+    verify(message, times(2)).getAlerts();
+    verify(resourceService, times(alerts.size())).registerAlertIfNeedBe(any(CatalogAlert.class), eq(Boolean.TRUE));
+  }
+
+  private <T> List<T> buildMockList(final T mockObject, final long total) {
+    final List<T> resources = new ArrayList<T>();
+    for (int i = 0; i < total; i++) {
+      resources.add(mockObject);
     }
 
-    return mockList;
+    return resources;
   }
 
-  private List<CatalogSensor> buildMockSensorList() {
-    final List<CatalogSensor> mockList = new ArrayList<CatalogSensor>();
-
-    for (int i = 0; i < getRandomSize(); i++) {
-      final CatalogSensor sensor = new CatalogSensor();
-      sensor.setProvider(PROVIDER_ID);
-      sensor.setSensor(SENSOR_ID);
-      mockList.add(sensor);
-    }
-
-    return mockList;
-  }
-
-  private int getRandomSize() {
-    final Random randomGenerator = new Random();
-    int size = 0;
-    do {
-      size = randomGenerator.nextInt(5);
-    } while (size == 0);
-
-    return size;
-  }
 }

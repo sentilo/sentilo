@@ -43,10 +43,14 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.sentilo.web.catalog.context.TenantContext;
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.context.TenantContextImpl;
+import org.sentilo.web.catalog.security.CatalogUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.util.StringUtils;
 
 /**
  * The goal of this filter is to detect and extract the tenant identifier if it is present at URL.
@@ -54,6 +58,7 @@ import org.slf4j.LoggerFactory;
 public class TenantInterceptorFilter implements Filter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TenantInterceptorFilter.class);
+  private static final String SPRING_SECURITY_CONTEXT = "SPRING_SECURITY_CONTEXT";
 
   private final String[] mappings = {"/", "/home", "/admin", "/auth", "/api", "/component", "/stats", "/static", "/WEB-INF",
       "/j_spring_security_check", "/j_spring_security_logout"};
@@ -61,38 +66,60 @@ public class TenantInterceptorFilter implements Filter {
   @Override
   public void destroy() {
     LOGGER.info("destroy called");
-
   }
 
   @Override
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
     final HttpServletRequest hsRequest = (HttpServletRequest) request;
-    final boolean isMultiTenantRequest = isMultiTenantRequest(hsRequest);
-    if (isMultiTenantRequest) {
-      final String tenantId = lookupTenant(hsRequest);
-      LOGGER.info("Found tenant {} at request: {}", tenantId, hsRequest.getRequestURI());
-      hsRequest.setAttribute("tenant-identifier", tenantId);
-      TenantContextHolder.setContext(new TenantContextImpl(tenantId));
+    isMultiTenantRequest(hsRequest);
+    final boolean isStaticRequest = isStaticRequest(hsRequest);
+    final boolean userIsLoggedIn = hsRequest.getSession().getAttribute(SPRING_SECURITY_CONTEXT) != null;
+
+    if (TenantContextHolder.isEnabled() && !isStaticRequest) {
+      final String requestTenant = lookupRequestTenant(hsRequest);
+      final String userTenant = lookupUserTenant(hsRequest);
+      final TenantContext tenantContext = new TenantContextImpl(requestTenant, userTenant);
+
+      LOGGER.debug("Request [{}] checked and lookup userTenant [{}] and requestTenant [{}]", hsRequest.getRequestURI(), userTenant, requestTenant);
+      TenantContextHolder.setContext(tenantContext);
+
+      hsRequest.setAttribute("tenant-identifier", formatTenantTokenContextPath(requestTenant));
+      hsRequest.setAttribute("user-tenant-identifier", formatTenantTokenContextPath(userTenant));
+      hsRequest.setAttribute("f-tenant-identifier", StringUtils.hasText(requestTenant) ? "1" : "0");
+      hsRequest.setAttribute("f-user-tenant-identifier", StringUtils.hasText(userTenant) || userIsLoggedIn ? "1" : "0");
+
     }
 
     chain.doFilter(request, response);
 
-    if (isMultiTenantRequest) {
-      TenantContextHolder.clearContext();
-    }
+    // if (isMultiTenantRequest) {
+    TenantContextHolder.clearContext();
+    // }
   }
 
   @Override
   public void init(final FilterConfig arg0) throws ServletException {
     LOGGER.info("Init filter");
+  }
 
+  private String formatTenantTokenContextPath(final String tenant) {
+    return StringUtils.hasText(tenant) ? tenant + "/" : "";
+  }
+
+  private TenantContext lookupTenant(final HttpServletRequest request) {
+    final String requestTenant = lookupRequestTenant(request);
+    final String userTenant = lookupUserTenant(request);
+
+    LOGGER.debug("Request [{}] checked and lookup userTenant [{}] and requestTenant [{}]", request.getRequestURI(), userTenant, requestTenant);
+
+    return new TenantContextImpl(requestTenant, userTenant);
   }
 
   private boolean isMultiTenantRequest(final HttpServletRequest request) {
     final String requestUri = request.getRequestURI();
     final String requestContextPath = request.getContextPath();
 
-    LOGGER.debug("Checking request {}", requestUri);
+    LOGGER.debug("Checking request [{}]", requestUri);
 
     final String mappingPath = requestUri.substring(requestContextPath.length());
     final String[] tokens = mappingPath.trim().split("/");
@@ -100,12 +127,34 @@ public class TenantInterceptorFilter implements Filter {
     return tokens.length > 0 && !Arrays.asList(mappings).contains("/" + tokens[1]);
   }
 
-  private String lookupTenant(final HttpServletRequest request) {
+  private boolean isStaticRequest(final HttpServletRequest request) {
+    final String requestUri = request.getRequestURI();
+    final String requestContextPath = request.getContextPath();
+
+    final String mappingPath = requestUri.substring(requestContextPath.length());
+    final String[] tokens = mappingPath.trim().split("/");
+
+    return tokens.length > 0 && "static".equals(tokens[1]);
+  }
+
+  private String lookupRequestTenant(final HttpServletRequest request) {
     final String requestUri = request.getRequestURI();
     final String requestContextPath = request.getContextPath();
     final String mappingPath = requestUri.substring(requestContextPath.length());
     final String[] tokens = mappingPath.trim().split("/");
 
-    return tokens[1];
+    // return tokens[1];
+    return tokens.length > 0 && !Arrays.asList(mappings).contains("/" + tokens[1]) ? tokens[1] : null;
+  }
+
+  private String lookupUserTenant(final HttpServletRequest request) {
+    String userTenant = null;
+    if (request.getSession().getAttribute(SPRING_SECURITY_CONTEXT) != null) {
+      final SecurityContext ctx = (SecurityContext) request.getSession().getAttribute(SPRING_SECURITY_CONTEXT);
+      final CatalogUserDetails userDetails = (CatalogUserDetails) ctx.getAuthentication().getPrincipal();
+      userTenant = userDetails.getTenantId();
+    }
+
+    return userTenant;
   }
 }

@@ -34,7 +34,7 @@
 						<strong><spring:message code="technicalDetail.macAddress" /> </strong>
 					</div>
 					<div class="span8">
-						<span class="label">${technicalDetails.macAddress}</span>
+						<span class="label label-info">${technicalDetails.macAddress}</span>
 					</div>
 				</div>
 			</c:if>
@@ -43,7 +43,7 @@
 					<strong><spring:message code="technicalDetail.energy" /> </strong>
 				</div>
 				<div class="span8">
-					<span class="label">${technicalDetails.energy}</span>
+					<span class="label label-info">${technicalDetails.energy}</span>
 				</div>
 			</div>
 			<c:if test="${resourceIsComponent}">
@@ -52,7 +52,7 @@
 						<strong><spring:message code="technicalDetail.connectivity" /> </strong>
 					</div>
 					<div class="span8">
-						<span class="label">${technicalDetails.connectivity}</span>
+						<span class="label label-info">${technicalDetails.connectivity}</span>
 					</div>
 				</div>					
 			</c:if>	

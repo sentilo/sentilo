@@ -20,26 +20,43 @@ function deleteSelected(formName, deleteConfirmMessage) {
 };
 
 function changeAccessType(formName, confirmMessage, newType, changeAccessTypeUrl){		
-	var accessTypeHiddenField = '<input type="hidden" name="newAccessType" value="'+newType+'" />';
-	confirmFormSubmission(formName, confirmMessage, accessTypeHiddenField, changeAccessTypeUrl);
+	var accessTypeHiddenField =  buildTextHiddenField("newAccessType",newType );
+	var hiddenFields = [accessTypeHiddenField];
+	confirmFormSubmission(formName, confirmMessage, changeAccessTypeUrl, hiddenFields);
 }
 
 function changeMapVisibility(formName, confirmMessage, newMapVisibility, changeMapVisibilityUrl){		
-	var changeMapVisibilityHiddenField = '<input type="hidden" name="newMapVisibility" value="'+newMapVisibility+'" />';
-	confirmFormSubmission(formName, confirmMessage, changeMapVisibilityHiddenField, changeMapVisibilityUrl);
+	var changeMapVisibilityHiddenField = buildTextHiddenField("newMapVisibility",newMapVisibility ); 
+	var hiddenFields = [changeMapVisibilityHiddenField];
+	confirmFormSubmission(formName, confirmMessage, changeMapVisibilityUrl, hiddenFields);
+}
+
+function changeSensorsState(formName, confirmMessage, changeStateUrl){		
+	var newSensorsState = $("#sensorState").val();
+	var newSensorsSubstate = $("#sensorSubstate").val();
+	var sensorsStateHiddenField =  buildTextHiddenField("newState",newSensorsState );
+	var sensorsSubstateHiddenField =  buildTextHiddenField("newSubstate",newSensorsSubstate ); 
+	
+	var hiddenFields = [sensorsStateHiddenField] ;	
+	hiddenFields.push(sensorsSubstateHiddenField);
+	
+	
+	confirmFormSubmission(formName, confirmMessage, changeStateUrl, hiddenFields);
 }
 
 function unassignSelected(formName) {
 	confirmFormSubmission(formName, '${unassignConfirmMessage}');	
 };
 
-function confirmFormSubmission(formName, message, childHiddenField, formActionUrl) {
+function confirmFormSubmission(formName, message, formActionUrl, childrenHiddenFields) {
 	var n = $('input:checked').length;
 	if (n > 0) {
 		bootbox.confirm(message, function(result) {
 			if(result == true) {
-				if(childHiddenField){
-					$('form#' + formName).append(childHiddenField);
+				if(childrenHiddenFields && childrenHiddenFields.length > 0){
+					for (i = 0; i < childrenHiddenFields.length; i++) {
+						$('form#' + formName).append(childrenHiddenFields[i]);
+					} 										
 				}
 				
 				if(formActionUrl){
@@ -83,6 +100,10 @@ function jsonGET(url, data, success) {
         'success' : success
     });
 };
+
+function buildTextHiddenField(fieldName, fieldValue){
+	return '<input type="hidden" name="'+fieldName+'" value="'+fieldValue+'" />';	
+}
 
 function formatGraphTimestamp(timestamp) {
 	return timestamp.replace('T', '<br/>');

@@ -60,8 +60,8 @@ public class UpdateApplicationNameIntegrationTest {
 
   /**
    * Este es el procedimiento para actualizar el nombre de la aplicación.
-   * 
-   * 
+   *
+   *
    */
   // @Test
   public void updateApplicationName() {

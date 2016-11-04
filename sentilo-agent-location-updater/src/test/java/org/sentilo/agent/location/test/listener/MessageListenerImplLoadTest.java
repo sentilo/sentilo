@@ -71,9 +71,9 @@ public class MessageListenerImplLoadTest {
   @InjectMocks
   private final MessageListenerImpl listener = new MessageListenerImpl("TEST");
 
-  String[] timestamps = {"06/10/2014T14:45:00CET", "06/10/2014T14:44:00CET", "06/10/2014T14:43:00CET", "06/10/2014T14:42:00CET",
-      "06/10/2014T14:41:00CET", "06/10/2014T14:40:00CET", "06/10/2014T14:39:00CET", "06/10/2014T14:38:00CET", "06/10/2014T14:37:00CET",
-      "06/10/2014T14:36:00CET"};
+  String[] timestamps =
+      {"06/10/2014T14:45:00CET", "06/10/2014T14:44:00CET", "06/10/2014T14:43:00CET", "06/10/2014T14:42:00CET", "06/10/2014T14:41:00CET",
+          "06/10/2014T14:40:00CET", "06/10/2014T14:39:00CET", "06/10/2014T14:38:00CET", "06/10/2014T14:37:00CET", "06/10/2014T14:36:00CET"};
 
   @Before
   public void setUp() {
@@ -86,7 +86,7 @@ public class MessageListenerImplLoadTest {
     final List<EventMessage> events = getEvents();
 
     for (final EventMessage event : events) {
-      listener.doWithMessage(message, event);
+      listener.doWithMessage(event);
     }
 
     verify(asyncResourceUpdater, times(NUMBER_EVENTS)).addResourceToUpdate(any(SensorLocationElement.class));
@@ -137,7 +137,7 @@ public class MessageListenerImplLoadTest {
       final List<EventMessage> events = getEvents();
       try {
         for (final EventMessage event : events) {
-          listener.doWithMessage(message, event);
+          listener.doWithMessage(event);
         }
       } finally {
         LOGGER.debug("Finished thread {} ", Thread.currentThread().getName());

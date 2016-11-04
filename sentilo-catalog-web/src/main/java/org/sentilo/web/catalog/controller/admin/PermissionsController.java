@@ -185,7 +185,7 @@ public class PermissionsController extends SearchController<Permission> {
   protected void doBeforeExcelBuilder(final Model model) {
     final String[] listColumnNames = {Constants.TARGET_PROP, Constants.TYPE_PROP};
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "permission");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "permission");
   }
 
   private void createPermissions(final String sourceId, final String[] selectedIds, final Permission.Type type) {

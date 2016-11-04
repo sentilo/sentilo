@@ -34,10 +34,10 @@ package org.sentilo.agent.common.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.model.InitializationError;
-import org.sentilo.common.test.SentiloSuiteTest;
+import org.sentilo.common.test.SentiloTestSuite;
 
 @RunWith(AllTests.class)
-public class AllTests extends SentiloSuiteTest {
+public class AllTests extends SentiloTestSuite {
 
   public AllTests(final Class<?> clazz) throws InitializationError {
     super(clazz, "org.sentilo.agent.common.test");

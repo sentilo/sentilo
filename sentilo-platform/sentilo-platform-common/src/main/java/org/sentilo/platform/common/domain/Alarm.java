@@ -34,7 +34,7 @@ package org.sentilo.platform.common.domain;
 
 public class Alarm {
 
-  private String alarma;
+  private String alertId;
   private String message;
   private String sender;
   private Long timestamp;
@@ -43,9 +43,9 @@ public class Alarm {
     super();
   }
 
-  public Alarm(final String alarma, final String message, final String sender, final Long timestamp) {
+  public Alarm(final String alertId, final String message, final String sender, final Long timestamp) {
     this();
-    this.alarma = alarma;
+    this.alertId = alertId;
     this.message = message;
     this.sender = sender;
     this.timestamp = timestamp;
@@ -75,11 +75,11 @@ public class Alarm {
     this.sender = sender;
   }
 
-  public String getAlarma() {
-    return alarma;
+  public String getAlertId() {
+    return alertId;
   }
 
-  public void setAlarma(final String alarma) {
-    this.alarma = alarma;
+  public void setAlertId(final String alertId) {
+    this.alertId = alertId;
   }
 }

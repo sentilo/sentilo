@@ -51,12 +51,12 @@ public class LastUpdateMessageBuilder {
     final int[] timeReferences = {dayMilliseconds, hourMilliseconds, minutMilliseconds, secondMilliseconds};
 
     // Message to return must be referenced to the current time
-    final long lastUpdatedTimeScaled = (lastUpdatedTime == 0 ? lastUpdatedTime : System.currentTimeMillis() - lastUpdatedTime);
+    final long lastUpdatedTimeScaled = lastUpdatedTime == 0 ? lastUpdatedTime : System.currentTimeMillis() - lastUpdatedTime;
 
     final int pos = getBaseTimeReference(lastUpdatedTimeScaled, timeReferences);
 
     final String messageKey = messageKeyBase.concat(messageKeySuffixes[pos + 1]);
-    final long timeUnits = (pos != -1 ? lastUpdatedTimeScaled / timeReferences[pos] : 0);
+    final long timeUnits = pos != -1 ? lastUpdatedTimeScaled / timeReferences[pos] : 0;
 
     return messageSource.getMessage(messageKey, new Object[] {timeUnits}, LocaleContextHolder.getLocale());
 
@@ -66,7 +66,7 @@ public class LastUpdateMessageBuilder {
    * Returns the time reference (seconds, minutes, hours or days) that represents the time defined
    * by <code>lastUpdatedTime</code> parameter . <code>timeReferences</code> defines the list of
    * time references sorted in descendent order (days, hours, ...)
-   * 
+   *
    * @param lastUpdatedTime
    * @param timeReferences
    * @return

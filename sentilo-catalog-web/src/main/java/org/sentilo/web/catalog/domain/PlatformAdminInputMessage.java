@@ -35,9 +35,13 @@ package org.sentilo.web.catalog.domain;
 import java.util.Collection;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogProvider;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformInputMessage;
+import org.sentilo.web.catalog.converter.PlatformConverter;
+import org.sentilo.web.catalog.utils.CatalogUtils;
+import org.springframework.util.CollectionUtils;
 
 public class PlatformAdminInputMessage implements PlatformInputMessage {
 
@@ -46,6 +50,27 @@ public class PlatformAdminInputMessage implements PlatformInputMessage {
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private Collection<CatalogProvider> providers;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  private Collection<CatalogAlert> alerts;
+
+  public PlatformAdminInputMessage() {
+    super();
+  }
+
+  public PlatformAdminInputMessage(final Collection<? extends CatalogDocument> resources) {
+    this();
+    if (!CollectionUtils.isEmpty(resources)) {
+      final Class<? extends CatalogDocument> resourceType = CatalogUtils.getCollectionType(resources);
+      if (Sensor.class.isAssignableFrom(resourceType)) {
+        setSensors(PlatformConverter.translateSensors(resources));
+      } else if (Alert.class.isAssignableFrom(resourceType)) {
+        setAlerts(PlatformConverter.translateAlerts(resources));
+      } else {
+        setProviders(PlatformConverter.translateProviders(resources));
+      }
+    }
+  }
 
   public Collection<CatalogSensor> getSensors() {
     return sensors;
@@ -61,6 +86,14 @@ public class PlatformAdminInputMessage implements PlatformInputMessage {
 
   public void setProviders(final Collection<CatalogProvider> providers) {
     this.providers = providers;
+  }
+
+  public Collection<CatalogAlert> getAlerts() {
+    return alerts;
+  }
+
+  public void setAlerts(final Collection<CatalogAlert> alerts) {
+    this.alerts = alerts;
   }
 
 }

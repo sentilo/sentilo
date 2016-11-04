@@ -42,6 +42,7 @@ import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public abstract class AbstractBaseServiceImpl {
@@ -82,6 +83,18 @@ public abstract class AbstractBaseServiceImpl {
     }
 
     final Query query = new Query(queryCriteria);
+
+    if (!filter.includeFiledsIsEmpty()) {
+      for (final String field : filter.getIncludeFields()) {
+        query.fields().include(field);
+      }
+    }
+
+    if (!filter.excludeFiledsIsEmpty()) {
+      for (final String field : filter.getExcludeFields()) {
+        query.fields().exclude(field);
+      }
+    }
 
     if (pageable) {
       query.with(filter.getPageable());
@@ -136,6 +149,16 @@ public abstract class AbstractBaseServiceImpl {
     return aCriteria;
   }
 
+  protected Query buildQuery(final String paramName, final Collection<String> values, final Map<String, Object> filterParams) {
+    Criteria queryCriteria = Criteria.where(paramName).in(values);
+    if (!CollectionUtils.isEmpty(filterParams)) {
+      final Criteria[] aCriteria = buildAndParamsCriteria(filterParams);
+      queryCriteria = queryCriteria.andOperator(aCriteria);
+    }
+
+    return new Query(queryCriteria);
+  }
+
   protected Query buildQueryForIdInCollection(final Collection<String> values) {
     return buildQueryForParamInCollection("id", values);
   }
@@ -154,17 +177,17 @@ public abstract class AbstractBaseServiceImpl {
   }
 
   /**
-   * Determines if <code>value</code> represents a collection value, either an array or a colelction
+   * Determines if <code>value</code> represents a collection value, either an array or a collection
    * class
-   * 
+   *
    * @param value
    * @return
    */
-  private boolean isCollectionValue(Object value) {
+  private boolean isCollectionValue(final Object value) {
     return value != null && (value.getClass().isArray() || Collection.class.isAssignableFrom(value.getClass()));
   }
 
-  private Collection<?> getCollectionValue(Object value) {
+  private Collection<?> getCollectionValue(final Object value) {
     if (value.getClass().isArray()) {
       return Arrays.asList((Object[]) value);
     } else {

@@ -150,7 +150,7 @@ public class UserServiceIntegrationTest {
 
   public void findAll() {
     final List<User> users = userService.findAll();
-    assertTrue("Found " + users.size() + " and must be " + (initialUsersSize + 9), users.size() == (initialUsersSize + 9));
+    assertTrue("Found " + users.size() + " and must be " + (initialUsersSize + 9), users.size() == initialUsersSize + 9);
   }
 
   public void searchWithFilters() {

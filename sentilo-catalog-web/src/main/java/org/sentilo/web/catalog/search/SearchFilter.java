@@ -32,7 +32,9 @@
  */
 package org.sentilo.web.catalog.search;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
@@ -44,9 +46,19 @@ public class SearchFilter {
   private Map<String, Object> params = new HashMap<String, Object>();
   private final Map<String, Object> andParams = new HashMap<String, Object>();
   private String[] mapBounds;
+  private List<String> includeFields;
+  private List<String> excludeFields;
+
+  private boolean countTotal;
 
   public SearchFilter() {
     super();
+    countTotal = true;
+  }
+
+  public SearchFilter(final boolean countTotal) {
+    this();
+    this.countTotal = countTotal;
   }
 
   public SearchFilter(final Pageable pageable) {
@@ -101,5 +113,51 @@ public class SearchFilter {
 
   public String[] getBounds() {
     return mapBounds;
+  }
+
+  public boolean isCountTotal() {
+    return countTotal;
+  }
+
+  public void setCountTotal(final boolean countTotal) {
+    this.countTotal = countTotal;
+  }
+
+  public List<String> getIncludeFields() {
+    return includeFields;
+  }
+
+  public void setIncludeFields(final List<String> includeFields) {
+    this.includeFields = includeFields;
+  }
+
+  public void includeField(final String field) {
+    if (includeFields == null) {
+      includeFields = new ArrayList<String>();
+    }
+    includeFields.add(field);
+  }
+
+  public boolean includeFiledsIsEmpty() {
+    return includeFields == null || includeFields.isEmpty();
+  }
+
+  public List<String> getExcludeFields() {
+    return excludeFields;
+  }
+
+  public void setExcludeFields(final List<String> excludeFields) {
+    this.excludeFields = excludeFields;
+  }
+
+  public void excludeField(final String field) {
+    if (excludeFields == null) {
+      excludeFields = new ArrayList<String>();
+    }
+    excludeFields.add(field);
+  }
+
+  public boolean excludeFiledsIsEmpty() {
+    return excludeFields == null || excludeFields.isEmpty();
   }
 }

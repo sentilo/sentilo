@@ -44,7 +44,7 @@ public class SentiloResourceTest {
   private String path;
 
   @Test
-  public void pathWith4TokensTest() {
+  public void pathWith4Tokens() {
     path = "event/provider/sensor/value";
     resource = new SentiloResource(path);
 
@@ -55,7 +55,7 @@ public class SentiloResourceTest {
   }
 
   @Test
-  public void pathWith3TokensTest() {
+  public void pathWith3Tokens() {
     path = "event/provider/sensor";
     resource = new SentiloResource(path);
 
@@ -66,7 +66,7 @@ public class SentiloResourceTest {
   }
 
   @Test
-  public void pathWith2TokensTest() {
+  public void pathWith2Tokens() {
     path = "event/provider";
     resource = new SentiloResource(path);
 
@@ -77,12 +77,21 @@ public class SentiloResourceTest {
   }
 
   @Test
-  public void pathWith1TokenTest() {
+  public void pathWith1Token() {
     path = "event";
     resource = new SentiloResource(path);
     assertEquals("event", resource.getResourcePart(0));
     assertNull(resource.getResourcePart(1));
     assertNull(resource.getResourcePart(2));
     assertNull(resource.getResourcePart(3));
+
+    assertEquals("path: event", resource.toString());
+  }
+
+  @Test
+  public void emptyPath() {
+    path = "";
+    resource = new SentiloResource(path);
+    assertNull(resource.getResourcePart(0));
   }
 }

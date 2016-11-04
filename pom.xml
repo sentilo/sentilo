@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sentilo</groupId>
   <artifactId>sentilo-parent-pom</artifactId>
-  <version>1.5.1</version>
+  <version>1.6.0</version>
   <packaging>pom</packaging>
   <name>sentilo-parent-pom</name>
   <description>Parent pom for the Sentilo's modules</description>
@@ -20,7 +20,8 @@
 		<jackson.version>1.9.11</jackson.version>
 		<junit.version>4.11</junit.version>
 		<mockito.version>1.9.5</mockito.version>
-		<platform.version>1.5.1</platform.version>							
+		<powermock.version>1.5.6</powermock.version>
+		<platform.version>1.6.0</platform.version>							
   </properties>
   
   <prerequisites>
@@ -38,6 +39,7 @@
 	<module>./sentilo-catalog-web</module>		
 	<module>./sentilo-agent-location-updater</module>	
 	<module>./sentilo-agent-activity-monitor</module>
+	<module>./sentilo-agent-historian</module>
   </modules>
 	
   <profiles>
@@ -68,6 +70,8 @@
 		  </activation>     
 	      <properties>
 	        <spring.profiles.active>dev</spring.profiles.active>
+	        <maven.compiler.source>1.6</maven.compiler.source>
+		    <maven.compiler.target>1.6</maven.compiler.target>
 	      </properties>
 	    </profile>	
 	    <profile>
@@ -79,28 +83,7 @@
 	        </property>
 	      </activation>
 	      <build>
-	        <plugins>
-	          <plugin>
-		        <groupId>org.codehaus.mojo</groupId>
-		        <artifactId>cobertura-maven-plugin</artifactId>
-		        <version>2.6</version>
-		        <configuration>
-		          <formats>
-			          <format>xml</format>
-			          <format>html</format>
-		          </formats>
-		          <maxmem>256m</maxmem>
-		          <aggregate>true</aggregate>
-		        <instrumentation>
-			        <ignoreTrivial>true</ignoreTrivial>
-			        <excludes>
-			          <exclude>org/sentilo/common/test/*.class</exclude>		          
-			          <exclude>org/sentilo/**/utils/*Constants.class</exclude>
-			          <exclude>org/sentilo/**/domain/*.class</exclude>
-			        </excludes>
-			        </instrumentation>
-		        </configuration>
-		      </plugin>
+	        <plugins>	          
 	          <plugin>
 	            <groupId>org.eluder.coveralls</groupId>
 	            <artifactId>coveralls-maven-plugin</artifactId>
@@ -157,6 +140,27 @@
 	          </execution>
 	        </executions>	        
 	     </plugin>
+	     <plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>cobertura-maven-plugin</artifactId>
+		        <version>2.7</version>
+		        <configuration>
+		          <formats>
+			          <format>xml</format>
+			          <format>html</format>
+		          </formats>
+		          <maxmem>256m</maxmem>
+		          <aggregate>true</aggregate>
+		        <instrumentation>
+			        <ignoreTrivial>true</ignoreTrivial>
+			        <excludes>
+			          <exclude>org/sentilo/common/test/*.class</exclude>		          
+			          <exclude>org/sentilo/**/utils/*Constants.class</exclude>
+			          <exclude>org/sentilo/**/domain/*.class</exclude>
+			        </excludes>
+			        </instrumentation>
+		        </configuration>
+		      </plugin>
 	</plugins>
 	</build>
    
@@ -198,6 +202,19 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Add to do Junit mocks for all static Class or methods -->
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
 			<scope>test</scope>
 		</dependency>
    </dependencies>	
@@ -256,5 +273,13 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	
+	<distributionManagement>
+	   <repository>
+	      <id>sentilo-releases</id>
+	      <!-- Property to be defined in settings.xml -->
+	      <url>${sentiloReleasesMavenRepoUrl}</url>
+	   </repository>
+	</distributionManagement>
 		
 </project>

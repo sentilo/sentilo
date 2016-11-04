@@ -32,7 +32,6 @@
  */
 package org.sentilo.web.catalog.service;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.sentilo.web.catalog.domain.Component;
@@ -41,18 +40,15 @@ import org.sentilo.web.catalog.search.SearchFilterResult;
 
 public interface ComponentService extends CrudService<Component> {
 
-  void updateMulti(Collection<String> componentsIds, String param, Object value);
-
-  void deleteComponents(String[] componentsIds);
+  void deleteComponents(String providerId, String[] componentsIds);
 
   Component findByName(String providerId, String component);
 
   SearchFilterResult<Component> geoSpatialSearch(SearchFilter filter);
 
-  void changeAccessType(String[] componentsIds, boolean isPublicAccess);
+  void changeAccessType(String[] componentsIds, Boolean isPublicAccess);
+
+  List<Component> findByType(String providerId, String componentType);
 
   List<Component> findByProvider(String providerId);
-
-  void updateTenantsMapVisibleFromProvider(String providerId, String tenantId, boolean visible);
-
 }

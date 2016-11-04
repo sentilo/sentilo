@@ -55,6 +55,9 @@ public class CatalogAlert implements CatalogElement {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String sensor;
 
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private String active;
+
   public CatalogAlert() {
     super();
   }
@@ -134,6 +137,14 @@ public class CatalogAlert implements CatalogElement {
 
   public String getEntity() {
     return entity;
+  }
+
+  public String getActive() {
+    return active;
+  }
+
+  public void setActive(final String active) {
+    this.active = active;
   }
 
 }

@@ -38,12 +38,13 @@ import org.sentilo.common.utils.DateUtils;
  * This class represents one point from a route. As a route only have sense in mobile components
  * with simple coordinates (i.e. only have one LatLng in every instant), the location is represented
  * by an instance of the class LatLng
- * 
+ *
  * <p>
  * Note: this class has a natural ordering that is inconsistent with equals. Natural ordering is
  * provided by the timestamp fromTimeTs
- * 
- * @see #compareTo(RoutePoint) </p>
+ *
+ * @see #compareTo(RoutePoint)
+ *      </p>
  */
 public class RoutePoint implements Comparable<RoutePoint> {
 

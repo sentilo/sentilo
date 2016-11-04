@@ -50,12 +50,12 @@ public class AppsAndProvidersKeyValidatorImpl implements EntityKeyValidator, Dup
   @Override
   public void checkIntegrityKey(final String idToCheck) {
     if (appRepository.findOne(idToCheck) != null || providerRepository.findOne(idToCheck) != null) {
-      buildDuplicateKeyException(idToCheck);
+      buildAndThrowDuplicateKeyException(idToCheck);
     }
   }
 
   @Override
-  public DuplicateKeyException buildDuplicateKeyException(final String invalidKey) {
+  public void buildAndThrowDuplicateKeyException(final String invalidKey) throws DuplicateKeyException {
     throw new DuplicateKeyException("error.app.or.provider.duplicate.key", new Object[] {invalidKey});
   }
 

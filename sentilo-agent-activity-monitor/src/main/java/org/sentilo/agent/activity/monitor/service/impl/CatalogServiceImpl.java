@@ -53,7 +53,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.activity.monitor.service.CatalogService#getSensorType(java.lang.String,
    * java.lang.String)
    */
@@ -74,7 +74,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.agent.activity.monitor.service.CatalogService#getAlarmLocation(java.lang.String)
    */

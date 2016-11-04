@@ -48,13 +48,15 @@ import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.server.auth.AuthorizationService;
+import org.sentilo.platform.server.converter.CatalogAlertConverter;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.handler.impl.CatalogAlertHandler;
 import org.sentilo.platform.server.http.HttpMethod;
-import org.sentilo.platform.server.parser.CatalogAlertParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
@@ -75,7 +77,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
   @Mock
   private SentiloResponse response;
   @Mock
-  private CatalogAlertParser parser;
+  private CatalogAlertConverter parser;
   @Mock
   private CatalogAlertInputMessage message;
   @Mock
@@ -83,6 +85,10 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
 
   @Mock
   private AuthorizationService authorizationService;
+  @Mock
+  private EntityMetadataRepository entityMetadataRepository;
+  @Mock
+  private EntityMetadataMessage entityMetadataMessage;
 
   @Before
   public void setUp() throws Exception {
@@ -93,6 +99,7 @@ public class CatalogAlertHandlerTest extends AbstractBaseHandlerTest {
     when(authorizationService.hasAccessToRead(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToWrite(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToAdmin(anyString(), anyString())).thenReturn(true);
+    when(entityMetadataRepository.getEntityMetadataFromId(anyString())).thenReturn(entityMetadataMessage);
   }
 
   @Test

@@ -36,16 +36,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.sentilo.common.utils.EventType;
-import org.sentilo.platform.service.monitor.CounterContext;
-import org.sentilo.platform.service.monitor.CounterEvent;
-import org.sentilo.platform.service.monitor.RequestType;
+import org.sentilo.platform.common.domain.NotificationParams;
+import org.sentilo.platform.service.notification.NotificationDeliveryContext;
+import org.sentilo.platform.service.notification.NotificationDeliveryService;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.sentilo.platform.service.utils.PubSubConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.Topic;
@@ -53,15 +51,15 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
-public class MessageListenerImpl implements MessageListener, ApplicationContextAware {
+public class MessageListenerImpl implements MessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageListenerImpl.class);
 
   private final String name;
   private final RedisSerializer<String> serializer = new StringRedisSerializer();
+  /** Map with all of subscriptions that this listener is subscribed. */
   private final Map<String, NotificationParams> subscriptions = new HashMap<String, NotificationParams>();
-  private final NotificationSender notificator = new NotificationSender();
-  private ApplicationContext context;
+  private NotificationDeliveryService notificationDeliveryService;
   private String tenant;
 
   public MessageListenerImpl(final String name) {
@@ -74,22 +72,16 @@ public class MessageListenerImpl implements MessageListener, ApplicationContextA
     final String info = getInfo(message);
     final String channel = getChannel(message);
 
-    LOGGER.debug("{} -->  Recibido mensaje en el canal {}", name, channel);
-    LOGGER.debug("{} -->  Contenido del mensaje {}", name, info);
+    LOGGER.debug("{} -->  Get message on channel {}", name, channel);
+    LOGGER.debug("{} -->  Message body {}", name, info);
 
-    final NotificationParams params = getEndpoint(channel);
-    notificator.sendNotification(params, info);
-
-    publishPushCounterEvent(getEventType(channel));
-  }
-
-  @Override
-  public void setApplicationContext(final ApplicationContext applicationContext) {
-    context = applicationContext;
+    final NotificationParams params = getNotificationParams(channel);
+    final EventType eventType = getEventType(channel);
+    notificationDeliveryService.pushNotification(info, new NotificationDeliveryContext(params, name, tenant, eventType));
   }
 
   public void addSubscription(final Topic topic, final NotificationParams params) {
-    // Si el listener ya estaba subscrito a un canal, sobreescribimos la información de notificacion
+    // If listener is already subscribe to topic, override its notification params
     subscriptions.put(topic.getTopic(), params);
   }
 
@@ -115,11 +107,6 @@ public class MessageListenerImpl implements MessageListener, ApplicationContextA
     return serializer.deserialize(message.getChannel());
   }
 
-  protected void publishPushCounterEvent(final EventType dataType) {
-    final CounterContext counterContext = new CounterContext(name, tenant, RequestType.PUSH, dataType, 1);
-    context.publishEvent(new CounterEvent(counterContext));
-  }
-
   private EventType getEventType(final String channel) {
     final String[] tokens = channel.split(PubSubConstants.REDIS_CHANNEL_TOKEN);
     final PubSubChannelPrefix type = PubSubChannelPrefix.valueOf(tokens[1]);
@@ -135,7 +122,7 @@ public class MessageListenerImpl implements MessageListener, ApplicationContextA
     }
   }
 
-  private NotificationParams getEndpoint(final String channel) {
+  private NotificationParams getNotificationParams(final String channel) {
     // Para saber que parametros utilizar para enviar la notificacion simplemente se debe recuperar
     // el valor asociado a
     // channel en el map de subscriptions, ya que este valor contiene los parámetros.
@@ -165,12 +152,10 @@ public class MessageListenerImpl implements MessageListener, ApplicationContextA
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-
-    // Consideramos que dos objetos de tipo MessageListenerImpl son iguales
-    // si tienen el mismo nombre.
+    // Name is what identifies a message listener
     final MessageListenerImpl other = (MessageListenerImpl) obj;
     if (name == null) {
-      return (other.name == null);
+      return other.name == null;
     } else {
       return name.equals(other.name);
     }
@@ -180,8 +165,12 @@ public class MessageListenerImpl implements MessageListener, ApplicationContextA
   public int hashCode() {
     final int prime = 37;
     int result = 1;
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    result = prime * result + (name == null ? 0 : name.hashCode());
     return result * super.hashCode();
+  }
+
+  public void setNotificationDeliveryService(final NotificationDeliveryService notificationDeliveryService) {
+    this.notificationDeliveryService = notificationDeliveryService;
   }
 
 }

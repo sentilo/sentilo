@@ -121,7 +121,7 @@ public class AlertServiceImplTest {
 
     alertService.loadAndMonitorInternalAlerts();
 
-    Object currentListeners = ReflectionTestUtils.getField(alertService, "currentListeners");
+    final Object currentListeners = ReflectionTestUtils.getField(alertService, "currentListeners");
 
     verify(mongoOps).find(any(Query.class), eq(InternalAlert.class), any(String.class));
     verify(listenerContainer, times(2)).addMessageListener(isA(MessageListener.class), any(ChannelTopic.class));

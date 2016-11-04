@@ -45,9 +45,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 @Service
-public class ComponentTypesServiceImpl extends AbstractBaseCrudServiceImpl<ComponentType> implements ComponentTypesService {
+public class ComponentTypesServiceImpl extends AbstractBaseCrudServiceImpl<ComponentType>implements ComponentTypesService {
 
   @Autowired
   private ComponentTypesRepository repository;
@@ -94,7 +95,34 @@ public class ComponentTypesServiceImpl extends AbstractBaseCrudServiceImpl<Compo
       componentTypesIds = getMongoOps().getCollection(componentCollectionName).distinct("componentType");
     }
 
-    return (CollectionUtils.isEmpty(componentTypesIds) ? Collections.<ComponentType>emptyList() : getMongoOps().find(
-        buildQueryForIdInCollection(componentTypesIds), ComponentType.class));
+    return CollectionUtils.isEmpty(componentTypesIds) ? Collections.<ComponentType>emptyList()
+        : getMongoOps().find(buildQueryForIdInCollection(componentTypesIds), ComponentType.class);
   }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<ComponentType> findComponentTypesByProvider(final String providerId) {
+    if (StringUtils.hasText(providerId)) {
+      final String componentCollectionName = getMongoOps().getCollectionName(Component.class);
+
+      // Get unique provider's components types id list
+      final Query query = getDistinctComponentByProviderTypeQuery(providerId);
+      final List<String> providerComponentTypes =
+          getMongoOps().getCollection(componentCollectionName).distinct("componentType", query.getQueryObject());
+
+      return CollectionUtils.isEmpty(providerComponentTypes) ? Collections.<ComponentType>emptyList()
+          : getMongoOps().find(buildQueryForIdInCollection(providerComponentTypes), ComponentType.class);
+    } else {
+      // If the provider is null, return all component types
+      return findAll();
+    }
+  }
+
+  public Query getDistinctComponentByProviderTypeQuery(final String providerId) {
+    final Query query = Query.query(Criteria.where("providerId").is(providerId));
+    query.fields().include("componentType");
+    query.fields().exclude("_id");
+    return query;
+  }
+
 }

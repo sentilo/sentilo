@@ -80,7 +80,7 @@
 															<strong><spring:message code="component.type" /> </strong>
 														</div>
 														<div class="span8">
-															<span class="label">${component.componentType}</span>
+															<span class="label label-info">${component.componentType}</span>
 														</div>
 													</div>
 													<div class="row-fluid">
@@ -133,7 +133,7 @@
 															<strong><spring:message code="component.location" /> </strong>
 														</div>
 														<div class="span8">
-															<span class="label"> 
+															<span class="label label-info"> 
 																<c:choose>	
 																	<c:when test="${component.mobileComponent}">
 																		<spring:message code="mobile" />
@@ -210,7 +210,7 @@
 									</div>
 								</div>
 								<div class="${tab4PaneClass}" id="tab4">
-									<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
+									<%@include file="/WEB-INF/jsp/common/include_component_list.jsp"%>
 									<div class="control-group pull-right">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 										<c:if test="${showAdminControls}">
@@ -225,7 +225,7 @@
 									</div>
 								</div>
 								<div class="${tab5PaneClass}" id="tab5">
-									<%@include file="/WEB-INF/jsp/common/include_list_sensor.jsp"%>									
+									<%@include file="/WEB-INF/jsp/common/include_sensor_list.jsp"%>									
 									<div class="control-group pull-right">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 									</div>									

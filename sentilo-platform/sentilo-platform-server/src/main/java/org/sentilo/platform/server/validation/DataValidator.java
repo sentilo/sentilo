@@ -33,6 +33,7 @@
 package org.sentilo.platform.server.validation;
 
 import org.sentilo.platform.common.domain.DataInputMessage;
+import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.server.exception.MessageValidationException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -43,8 +44,15 @@ public class DataValidator extends AbstractRequestMessageValidator<DataInputMess
   public void validateRequestMessageOnPut(final DataInputMessage requestMessage) throws MessageValidationException {
     Assert.notNull(requestMessage);
     if (CollectionUtils.isEmpty(requestMessage.getObservations())) {
-      throw new MessageValidationException("To send data is mandatory to inform the observations");
+      throw new MessageValidationException("To publish data is mandatory to fill in the observations field");
     }
+
+    for (final Observation observation : requestMessage.getObservations()) {
+      if (observation.getValue() == null) {
+        throw new MessageValidationException("To publish data is mandatory to fill in the value field");
+      }
+    }
+
     super.validateRequestMessageOnPut(requestMessage);
   }
 

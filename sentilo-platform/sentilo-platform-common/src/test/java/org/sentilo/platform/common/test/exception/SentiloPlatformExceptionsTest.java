@@ -35,11 +35,18 @@ package org.sentilo.platform.common.test.exception;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.exception.CatalogAccessException;
+import org.sentilo.platform.common.exception.EventRejectedException;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.exception.RejectedResourcesContext;
+import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.exception.ResourceOfflineException;
 import org.sentilo.platform.common.exception.SentiloDataAccessException;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.util.CollectionUtils;
@@ -49,7 +56,6 @@ public class SentiloPlatformExceptionsTest {
   final String message = "mock exception message";
   final String causeMsg = "mock cause message";
   final Throwable cause = new Exception(causeMsg);
-  final int httpStatus = 400;
   final List<String> errorDetails = Collections.<String>emptyList();
 
   @Test
@@ -69,15 +75,12 @@ public class SentiloPlatformExceptionsTest {
 
   @Test
   public void platformException() {
-    final Exception ex = new PlatformException(httpStatus);
-    Assert.assertEquals(httpStatus, ((PlatformException) ex).getHttpStatus());
-
-    final Exception ex1 = new PlatformException(httpStatus, message);
-    Assert.assertEquals(httpStatus, ((PlatformException) ex1).getHttpStatus());
+    final Exception ex1 = new PlatformException(HttpStatus.SC_BAD_REQUEST, message);
+    Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, ((PlatformException) ex1).getHttpStatus());
     Assert.assertEquals(message, ex1.getMessage());
 
-    final Exception ex2 = new PlatformException(httpStatus, message, errorDetails);
-    Assert.assertEquals(httpStatus, ((PlatformException) ex2).getHttpStatus());
+    final Exception ex2 = new PlatformException(HttpStatus.SC_BAD_REQUEST, message, errorDetails);
+    Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, ((PlatformException) ex2).getHttpStatus());
     Assert.assertEquals(message, ex2.getMessage());
     Assert.assertTrue(CollectionUtils.isEmpty(((PlatformException) ex2).getErrorDetails()));
 
@@ -85,17 +88,12 @@ public class SentiloPlatformExceptionsTest {
     Assert.assertEquals(0, ((PlatformException) ex3).getHttpStatus());
     Assert.assertEquals(cause, ex3.getCause());
 
-    final Exception ex4 = new PlatformException(httpStatus, cause);
-    Assert.assertEquals(httpStatus, ((PlatformException) ex4).getHttpStatus());
+    final Exception ex4 = new PlatformException(HttpStatus.SC_BAD_REQUEST, cause);
+    Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, ((PlatformException) ex4).getHttpStatus());
 
-    final Exception ex5 = new PlatformException();
-    ((PlatformException) ex5).setHttpStatus(httpStatus);
-    Assert.assertEquals(httpStatus, ((PlatformException) ex5).getHttpStatus());
-    Assert.assertNull(ex5.getCause());
-
-    final Exception ex6 = new PlatformException(cause);
-    Assert.assertEquals(0, ((PlatformException) ex6).getHttpStatus());
-    Assert.assertEquals(cause, ex6.getCause());
+    final Exception ex5 = new PlatformException(cause);
+    Assert.assertEquals(0, ((PlatformException) ex5).getHttpStatus());
+    Assert.assertEquals(cause, ex5.getCause());
   }
 
   @Test
@@ -104,13 +102,38 @@ public class SentiloPlatformExceptionsTest {
     Assert.assertEquals(message, ex.getMessage());
 
     final Exception ex1 = new JsonConverterException(message, cause);
-    Assert.assertEquals(httpStatus, ((JsonConverterException) ex1).getHttpStatus());
+    Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, ((JsonConverterException) ex1).getHttpStatus());
     Assert.assertFalse(CollectionUtils.isEmpty(((PlatformException) ex1).getErrorDetails()));
 
     final Exception ex2 = new JsonConverterException(message, errorDetails);
-    Assert.assertEquals(httpStatus, ((PlatformException) ex2).getHttpStatus());
+    Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, ((PlatformException) ex2).getHttpStatus());
     Assert.assertEquals(message, ex2.getMessage());
     Assert.assertTrue(CollectionUtils.isEmpty(((PlatformException) ex2).getErrorDetails()));
+  }
+
+  @Test
+  public void eventRejectedException() {
+    final RejectedResourcesContext mockContext = Mockito.mock(RejectedResourcesContext.class);
+    final Exception ex = new EventRejectedException(EventType.DATA, mockContext);
+    Assert.assertEquals(HttpStatus.SC_NOT_FOUND, ((PlatformException) ex).getHttpStatus());
+  }
+
+  @Test
+  public void resourceNotFoundException() {
+    final String resourceId = "mockResource";
+    final String resourceType = "mockType";
+    final Exception ex = new ResourceNotFoundException(resourceId, resourceType);
+    Assert.assertEquals(HttpStatus.SC_NOT_FOUND, ((PlatformException) ex).getHttpStatus());
+    Assert.assertEquals("mockType [mockResource] not found on Sentilo (404.1).", ex.getMessage());
+  }
+
+  @Test
+  public void resourceOffException() {
+    final String resourceId = "mockResource";
+    final String resourceType = "mockType";
+    final Exception ex = new ResourceOfflineException(resourceId, resourceType);
+    Assert.assertEquals(HttpStatus.SC_NOT_FOUND, ((PlatformException) ex).getHttpStatus());
+    Assert.assertEquals("mockType [mockResource] is not online (404.2).", ex.getMessage());
   }
 
   private String getMessage(final String exceptionMessage, final Throwable exceptionCause) {

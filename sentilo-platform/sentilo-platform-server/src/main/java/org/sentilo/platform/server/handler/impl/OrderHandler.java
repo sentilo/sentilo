@@ -34,13 +34,14 @@ package org.sentilo.platform.server.handler.impl;
 
 import java.util.List;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.Order;
 import org.sentilo.platform.common.domain.OrderInputMessage;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.OrderService;
+import org.sentilo.platform.server.converter.OrderConverter;
+import org.sentilo.platform.server.exception.MethodNotAllowedException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.OrderParser;
+import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.OrderValidator;
@@ -57,12 +58,12 @@ public class OrderHandler extends AbstractHandler {
   @Autowired
   private OrderService orderService;
 
-  private OrderParser parser = new OrderParser();
+  private OrderConverter parser = new OrderConverter();
   private final RequestMessageValidator<OrderInputMessage> validator = new OrderValidator();
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP DELETE method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.DELETE);
   }
 
   @Override
@@ -87,7 +88,7 @@ public class OrderHandler extends AbstractHandler {
 
   @Override
   public void onPost(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP POST method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.POST);
   }
 
   @Override

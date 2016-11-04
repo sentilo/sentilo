@@ -50,16 +50,16 @@ public class ActivityAgentLifecycleHook extends AgentLifecycleHook {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.common.hook.AgentLifecycleHook#doStop()
    */
   protected void doGracefulShutdown() {
-    LOGGER.debug("Calling activity agent doGracefulShutdown method.");
+    LOGGER.info("Calling activity agent doGracefulShutdown method.");
 
     // ... and flush pending data
     ((ActivityMonitorRepositoryImpl) repository).flush();
 
-    LOGGER.debug("Custom process stopped gracefully.");
+    LOGGER.info("Custom shutdown process finished gracefully.");
   }
 
 }

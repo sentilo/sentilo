@@ -55,7 +55,7 @@ public class PlatformExceptionTranslationInterceptor {
     // Do nothing. Pointcut definition
   }
 
-  @AfterThrowing(pointcut = "anyTemplateMethodPointcut())", throwing = "ex")
+  @AfterThrowing(pointcut = "anyTemplateMethodPointcut()", throwing = "ex")
   public void doTranslationAction(final RuntimeException ex) {
     platformExceptionTranslator.translateExceptionIfPossible(ex);
   }

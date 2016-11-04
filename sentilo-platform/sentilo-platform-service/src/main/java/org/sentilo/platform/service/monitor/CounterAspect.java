@@ -35,15 +35,17 @@ package org.sentilo.platform.service.monitor;
 import java.util.Collection;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.sentilo.common.domain.PlatformInputMessage;
 import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.domain.DataInputMessage;
-import org.sentilo.platform.common.security.IdentityContext;
-import org.sentilo.platform.common.security.IdentityContextHolder;
+import org.sentilo.platform.common.exception.EventRejectedException;
+import org.sentilo.platform.common.security.RequesterContext;
+import org.sentilo.platform.common.security.RequesterContextHolder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
@@ -66,7 +68,7 @@ public class CounterAspect implements Ordered, ApplicationContextAware {
     // Do nothing. Pointcut definition
   }
 
-  @Before("setInputMessage(inputMessage, metric)")
+  // @Before("setInputMessage(inputMessage, metric)")
   public void setAdvice(final JoinPoint jp, final PlatformInputMessage inputMessage, final Metric metric) {
     switch (metric.eventType()) {
       case DATA:
@@ -80,6 +82,19 @@ public class CounterAspect implements Ordered, ApplicationContextAware {
     return;
   }
 
+  @Around("setInputMessage(inputMessage, metric)")
+  public void setAroundAdvice(final ProceedingJoinPoint jp, final PlatformInputMessage inputMessage, final Metric metric) throws Throwable {
+    int totalResourcesRejected = 0;
+    try {
+      jp.proceed();
+    } catch (final EventRejectedException ere) {
+      totalResourcesRejected = ere.getRejectedEventsCount();
+      throw ere;
+    } finally {
+      publishCounterEvent(inputMessage, metric, totalResourcesRejected);
+    }
+  }
+
   @AfterReturning(pointcut = "getLastMessage(inputMessage, metric)", returning = "lastEvents")
   public void getLastAdvice(final JoinPoint jp, final PlatformInputMessage inputMessage, final Metric metric, final Object lastEvents) {
     if (lastEvents instanceof Collection<?>) {
@@ -89,15 +104,29 @@ public class CounterAspect implements Ordered, ApplicationContextAware {
     return;
   }
 
+  protected void publishCounterEvent(final PlatformInputMessage inputMessage, final Metric metric, final int totalResourcesRejected) {
+    switch (metric.eventType()) {
+      case DATA:
+        final int totalDataResources = ((DataInputMessage) inputMessage).getObservations().size() - totalResourcesRejected;
+        publishCounterEvent(metric.requestType(), metric.eventType(), totalDataResources);
+        break;
+      default:
+        final int totalResources = 1 - totalResourcesRejected;
+        publishCounterEvent(metric.requestType(), metric.eventType(), totalResources);
+        break;
+    }
+  }
+
   protected void publishCounterEvent(final RequestType requestType, final EventType dataType, final int total) {
-    final IdentityContext idContext = IdentityContextHolder.getContext();
-    final CounterContext counterContext = new CounterContext(idContext.getEntityId(), idContext.getTenantId(), requestType, dataType, total);
+    final RequesterContext requesterContext = RequesterContextHolder.getContext();
+    final CounterContext counterContext =
+        new CounterContext(requesterContext.getEntityId(), requesterContext.getTenantId(), requestType, dataType, total);
     context.publishEvent(new CounterEvent(counterContext));
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework
    * .context.ApplicationContext)

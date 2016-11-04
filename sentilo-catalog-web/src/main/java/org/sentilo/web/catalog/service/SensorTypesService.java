@@ -32,8 +32,17 @@
  */
 package org.sentilo.web.catalog.service;
 
+import java.util.List;
+
 import org.sentilo.web.catalog.domain.SensorType;
 
 public interface SensorTypesService extends CrudService<SensorType> {
 
+  /**
+   * Return a list of types of sensor according to provider sensors
+   *
+   * @param providerId The provider id. If null, then return all component types
+   * @return List<ComponentType>
+   */
+  List<SensorType> findSensorTypesByProvider(String providerId);
 }

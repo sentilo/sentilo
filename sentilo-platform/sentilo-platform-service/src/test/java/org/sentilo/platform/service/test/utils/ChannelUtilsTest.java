@@ -85,28 +85,28 @@ public class ChannelUtilsTest {
     final String dataChannel = "/data/provider1/sensor23";
     final String orderChannel = "/order/provider1";
     final String alarmChannel = "/alarm/alert1";
-    final String notificationParamsChain = "http://127.0.0.1/endpoint#@#secret";
+    final String notificationParamsStr = "{\"endpoint\":\"http://127.0.0.1/endpoint\", \"secretCallbackKey\":\"secret\"}";
 
-    final Subscription dataSubscription = ChannelUtils.getSubscription(entityId, dataChannel, notificationParamsChain);
+    final Subscription dataSubscription = ChannelUtils.getSubscription(entityId, dataChannel, notificationParamsStr);
     Assert.assertNotNull(dataSubscription);
-    Assert.assertEquals("http://127.0.0.1/endpoint", dataSubscription.getEndpoint());
-    Assert.assertNull(dataSubscription.getSecretCallbackKey());
+    Assert.assertEquals("http://127.0.0.1/endpoint", dataSubscription.getNotificationParams().getEndpoint());
+    Assert.assertEquals("secret", dataSubscription.getNotificationParams().getSecretCallbackKey());
     Assert.assertEquals(SubscribeType.DATA, dataSubscription.getType());
     Assert.assertEquals("provider2", dataSubscription.getSourceEntityId());
     Assert.assertEquals("provider1", dataSubscription.getOwnerEntityId());
 
-    final Subscription orderSubscription = ChannelUtils.getSubscription(entityId, orderChannel, notificationParamsChain);
+    final Subscription orderSubscription = ChannelUtils.getSubscription(entityId, orderChannel, notificationParamsStr);
     Assert.assertNotNull(orderSubscription);
-    Assert.assertEquals("http://127.0.0.1/endpoint", orderSubscription.getEndpoint());
-    Assert.assertNull(orderSubscription.getSecretCallbackKey());
+    Assert.assertEquals("http://127.0.0.1/endpoint", orderSubscription.getNotificationParams().getEndpoint());
+    Assert.assertEquals("secret", orderSubscription.getNotificationParams().getSecretCallbackKey());
     Assert.assertEquals(SubscribeType.ORDER, orderSubscription.getType());
     Assert.assertEquals("provider2", orderSubscription.getSourceEntityId());
     Assert.assertEquals("provider1", orderSubscription.getOwnerEntityId());
 
-    final Subscription alarmSubscription = ChannelUtils.getSubscription(entityId, alarmChannel, notificationParamsChain);
+    final Subscription alarmSubscription = ChannelUtils.getSubscription(entityId, alarmChannel, notificationParamsStr);
     Assert.assertNotNull(alarmSubscription);
-    Assert.assertEquals("http://127.0.0.1/endpoint", alarmSubscription.getEndpoint());
-    Assert.assertNull(alarmSubscription.getSecretCallbackKey());
+    Assert.assertEquals("http://127.0.0.1/endpoint", alarmSubscription.getNotificationParams().getEndpoint());
+    Assert.assertEquals("secret", alarmSubscription.getNotificationParams().getSecretCallbackKey());
     Assert.assertEquals(SubscribeType.ALARM, alarmSubscription.getType());
     Assert.assertEquals("provider2", alarmSubscription.getSourceEntityId());
     Assert.assertNull(alarmSubscription.getOwnerEntityId());

@@ -33,6 +33,7 @@
 package org.sentilo.platform.client.test.service;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
@@ -40,9 +41,10 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
-import org.sentilo.platform.client.core.parser.SubscribeMessageConverter;
+import org.sentilo.platform.client.core.domain.SubscriptionsOutputMessage;
 import org.sentilo.platform.client.core.service.impl.DefaultSubscribeServiceOperationsImpl;
 
 public class DefaultSubscribeServiceOperationsImplTest {
@@ -57,7 +59,7 @@ public class DefaultSubscribeServiceOperationsImplTest {
   private SubscribeInputMessage message;
 
   @Mock
-  private SubscribeMessageConverter converter;
+  private StringMessageConverter converter;
 
   @Before
   public void setUp() {
@@ -76,7 +78,7 @@ public class DefaultSubscribeServiceOperationsImplTest {
     service.get(message);
 
     verify(restClient).get(any(String.class), any(String.class));
-    verify(converter).unmarshall(any(String.class));
+    verify(converter).unmarshal(any(String.class), eq(SubscriptionsOutputMessage.class));
   }
 
   @Test

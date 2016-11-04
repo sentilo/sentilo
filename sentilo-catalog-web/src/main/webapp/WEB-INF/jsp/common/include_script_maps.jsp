@@ -1,7 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.16&libraries=places&language=en"></script>
+<spring:eval expression="@catalogProperties.getProperty('google.api.key')" var="apiKey"/>
+<c:choose>
+	<c:when test="${not empty apiKey}">
+		<c:set var="mapsAPIUrl" value="${currentSchema}://maps.google.com/maps/api/js?v=3.16&libraries=places&language=en&key=${apiKey}"/>
+	</c:when>
+	<c:otherwise>
+		<c:set var="mapsAPIUrl" value="${currentSchema}://maps.google.com/maps/api/js?v=3.16&libraries=places&language=en"/>
+	</c:otherwise>
+</c:choose>
+
+
+<script type="text/javascript" src="${mapsAPIUrl}"></script>
 <spring:url value="/static/js/gmap3.min.js" var="gmap3JS" />
 <script type="text/javascript" src="${gmap3JS}"></script>
 <spring:url value="/static/js/infobox.js" var="infoboxJS" />
@@ -108,25 +119,25 @@
         url: clusterImgsPath+'poi-group2.png',
         width: 56,
         height: 56,
-		anchorText: [-12, -12],
+		anchorText: [-11, -11],
         textColor: '#ffffff'        
       }, {
         url: clusterImgsPath+'poi-group3.png',
         width: 66,
         height: 66,
-		anchorText: [-12, -12],
+		anchorText: [-14, -14],
         textColor: '#ffffff'        
       }, {
         url: clusterImgsPath+'poi-group4.png',
         width: 78,
         height: 78,
-        anchorText: [-12, -12],        
+        anchorText: [-18, -18],        
         textColor: '#ffffff'        
       }, {
         url: clusterImgsPath+'poi-group5.png',
         width: 90,
         height: 90,
-        anchorText: [-12, -12],        
+        anchorText: [-18, -18],        
         textColor: '#ffffff'        
       }]];
 	
@@ -153,12 +164,12 @@
 	};
 	
 	function initializeMapControls() {
-	
 	    var map_pos = $('#map_canvas_1').offset();
+	    var map_control_pos = $('#map_canvas_1').width() - $('#map_controls').width();
 	    $('#map_controls').css({
 	    	position:'absolute',
 	    	top: map_pos.top + 10,
-	    	left: map_pos.left + 50
+	    	left: map_pos.left + map_control_pos - 10
 	    });
 	};
 	
@@ -369,8 +380,15 @@
 				if (observation.found) {						
 					if (observation.dataType === 'BOOLEAN') {
 						observation.value = eval(observation.value) ? '' : 'No';
-					}						
-					bodyContent += '<p>' + observation.value + ' ' + observation.unit + '</p><span class="label label-info">' + observation.sensorType + '</span>';
+					}
+					var offlineClass = (observation.sensorState === 'offline') ? 'class="offline"' : '' ;
+					var tooltipText = '';
+					if (observation.sensorSubState != null) {
+						tooltipText += observation.sensorSubstateDesc;
+						
+					} 
+										
+					bodyContent += '<p '+offlineClass+'data-toggle="tooltip" title="'+tooltipText+'">' + observation.value + ' ' + observation.unit + '</p><span class="label label-info">' + observation.sensorType + '</span>';
 				} else {
 					bodyContent += '<p><spring:message code="component.sensor.observation.not.found"/></p><span class="label label-info">' + observation.sensorType + '</span>';
 				}
@@ -741,7 +759,8 @@
 	    };
 	
 	    function updateMarkers(center, load) {           						
-			geocodeCenterAndUpdatePOI(center, load);				        
+	    	closeInfoWindow();
+	    	geocodeCenterAndUpdatePOI(center, load);				        
 	    };
 		    	
 	    google.maps.event.addListener(map, 'zoom_changed', function () {	    	

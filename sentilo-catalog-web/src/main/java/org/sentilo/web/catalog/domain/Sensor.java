@@ -44,17 +44,19 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.hibernate.validator.constraints.NotBlank;
 import org.sentilo.common.domain.TechnicalDetails;
+import org.sentilo.web.catalog.enums.SensorState;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.validator.ValidTimeZone;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
 @Document
-public class Sensor implements CatalogDocument, TenantResource, EntityResource {
+public class Sensor implements TenantResource, EntityResource, SyncResource {
 
   private static final long serialVersionUID = 1L;
 
@@ -111,6 +113,13 @@ public class Sensor implements CatalogDocument, TenantResource, EntityResource {
 
   private Set<String> tenantsAuth;
 
+  private SensorState state;
+
+  private String substate;
+
+  @Transient
+  private String substateDesc;
+
   // Additional info
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private Map<String, String> additionalInfo;
@@ -125,6 +134,9 @@ public class Sensor implements CatalogDocument, TenantResource, EntityResource {
   public Sensor(final String id) {
     this();
     this.id = id;
+    if (StringUtils.hasText(id)) {
+      splitId();
+    }
   }
 
   public Sensor(final String providerId, final String componentId, final String sensorId) {
@@ -144,7 +156,7 @@ public class Sensor implements CatalogDocument, TenantResource, EntityResource {
     // Hashcode return must be consistent with the equals method
     final int prime = 61;
     int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + (id == null ? 0 : id.hashCode());
     return result;
   }
 
@@ -176,6 +188,16 @@ public class Sensor implements CatalogDocument, TenantResource, EntityResource {
     }
 
     return id;
+  }
+
+  protected void splitId() {
+    // If Id is a compound key, split it to get its parts
+    final String[] tokens = CompoundKeyBuilder.splitCompoundKey(id);
+    if (tokens.length == 3) {
+      providerId = tokens[0];
+      componentId = tokens[1];
+      sensorId = tokens[2];
+    }
   }
 
   public String getEntityOwner() {
@@ -348,6 +370,30 @@ public class Sensor implements CatalogDocument, TenantResource, EntityResource {
 
   public void setUpdatedBy(final String updatedBy) {
     this.updatedBy = updatedBy;
+  }
+
+  public SensorState getState() {
+    return state;
+  }
+
+  public void setState(final SensorState state) {
+    this.state = state;
+  }
+
+  public String getSubstate() {
+    return substate;
+  }
+
+  public void setSubstate(final String substate) {
+    this.substate = substate;
+  }
+
+  public String getSubstateDesc() {
+    return substateDesc;
+  }
+
+  public void setSubstateDesc(final String substateDesc) {
+    this.substateDesc = substateDesc;
   }
 
 }

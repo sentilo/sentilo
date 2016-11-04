@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+
+<included>
+  <contextName>catalog</contextName>
+  <property name="sentilo.log.file.name" value="sentilo-catalog"/>  
+  <property name="sentilo.log.dir" value="${sentilo.log.dir:-/var/log/sentilo}"/>
+  
+  <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-audit-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%n</pattern>
+		</encoder>
+	</appender>
+  
+    <logger name="org.sentilo.web.catalog.logging.exceptions" level="warn" />
+
+	<logger name="org.springframework.data.mongodb.core.mapping.event.LoggingEventListener" level="warn" />	
+
+	<logger name="AUDIT" level="DEBUG" additivity="false">
+		<appender-ref ref="AUDIT_FILE" />
+	</logger>
+  
+</included>

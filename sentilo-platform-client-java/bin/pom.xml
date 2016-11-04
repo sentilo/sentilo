@@ -1,0 +1,63 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.sentilo.platform</groupId>
+	<artifactId>sentilo-platform-client-java</artifactId>	
+	<packaging>jar</packaging>
+	<name>sentilo-platform-client-java</name>
+		
+	<parent>
+		<artifactId>sentilo-parent-pom</artifactId>
+		<groupId>org.sentilo</groupId>
+		<version>1.6.0-RC1</version>		
+	</parent>
+		
+	<properties>								
+		<commons.io.version>2.4</commons.io.version>
+		<org.aspectj.aspectjweaver-version>1.7.1</org.aspectj.aspectjweaver-version>	    
+	    <sonar.java.source>1.5</sonar.java.source>
+  		<sonar.java.target>1.5</sonar.java.target>
+	</properties>
+
+	<build>
+		<plugins>	      
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-jar-plugin</artifactId>
+	        <version>2.4</version>
+	        <executions>
+	          <execution>
+	            <goals>
+	              <goal>test-jar</goal>
+	            </goals>
+	          </execution>
+	        </executions>
+	      </plugin>	      	      
+	    </plugins>
+	</build>
+
+
+	<dependencies>				
+		<!-- Project dependencies -->	
+		<dependency>
+			<groupId>org.sentilo</groupId>
+			<artifactId>sentilo-common</artifactId>
+			<version>${platform.version}</version>
+		</dependency>	
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>                       
+        </dependency>
+        <dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>${org.aspectj.aspectjweaver-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons.io.version}</version>
+		</dependency>        		
+	</dependencies>
+	
+</project>

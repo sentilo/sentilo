@@ -40,7 +40,7 @@ public class FormatUtilsTest {
 
   @Test
   public void label() {
-    final String expected = "<span class=\"label\">mockMessage</span>";
+    final String expected = "<span class=\"label label-info\">mockMessage</span>";
     final String actual = FormatUtils.label("mockMessage");
 
     Assert.assertEquals(expected, actual);

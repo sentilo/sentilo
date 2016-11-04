@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.sentilo.common.domain.AlertOwner;
 import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.utils.AlertTriggerType;
 import org.sentilo.common.utils.SentiloUtils;
@@ -84,17 +83,6 @@ public abstract class ApiAlertConverter {
     return catalogAlerts;
   }
 
-  public static List<AlertOwner> convertToAlertOwnersList(final List<Alert> alerts) {
-    final List<AlertOwner> owners = new ArrayList<AlertOwner>();
-
-    for (final Alert alert : alerts) {
-      final String entityId = StringUtils.hasText(alert.getApplicationId()) ? alert.getApplicationId() : alert.getProviderId();
-      owners.add(new AlertOwner(alert.getId(), entityId));
-    }
-
-    return owners;
-  }
-
   public static List<Alert> buildAlertsFromCatalogAlerts(final ApiAlertConverterContext context, final String catalogUser) {
     final List<Alert> alerts = new ArrayList<Alert>();
     final List<CatalogAlert> catalogAlerts = context.getMessage().getAlerts();
@@ -116,31 +104,16 @@ public abstract class ApiAlertConverter {
   private static Alert buildNewAlert(final CatalogAlert catalogAlert, final ApiAlertConverterContext context, final String catalogUser) {
     final Alert alert = new Alert();
     final String entityId = StringUtils.hasText(catalogAlert.getEntity()) ? catalogAlert.getEntity() : context.getMessage().getEntityId();
-    final boolean isEntityProvider = context.getProviderService().exist(entityId);
 
-    alert.setId(catalogAlert.getId());
-    alert.setName(catalogAlert.getName());
-    alert.setDescription(catalogAlert.getDescription());
-    alert.setCreatedAt(new Date());
-    alert.setCreatedBy(catalogUser);
+    setCommonAttributes(alert, catalogAlert, catalogUser);
 
     if (catalogAlert.getType() != null) {
       switch (Type.valueOf(catalogAlert.getType())) {
         case EXTERNAL:
-          alert.setType(Type.EXTERNAL);
-          if (isEntityProvider) {
-            alert.setProviderId(entityId);
-          } else {
-            alert.setApplicationId(entityId);
-          }
+          setExternalAttributes(alert, entityId, context);
           break;
         case INTERNAL:
-          alert.setType(Type.INTERNAL);
-          alert.setProviderId(entityId);
-          alert.setComponentId(CompoundKeyBuilder.buildCompoundKey(entityId, catalogAlert.getComponent()));
-          alert.setSensorId(catalogAlert.getSensor());
-          alert.setTrigger(AlertTriggerType.valueOf(catalogAlert.getTrigger()));
-          alert.setExpression(catalogAlert.getExpression());
+          setInternalAttributes(alert, entityId, catalogAlert);
           break;
         default:
           break;
@@ -150,9 +123,37 @@ public abstract class ApiAlertConverter {
     return alert;
   }
 
+  private static void setCommonAttributes(final Alert alert, final CatalogAlert catalogAlert, final String catalogUser) {
+    alert.setId(catalogAlert.getId());
+    alert.setName(catalogAlert.getName());
+    alert.setDescription(catalogAlert.getDescription());
+    alert.setCreatedAt(new Date());
+    alert.setCreatedBy(catalogUser);
+    alert.setActive(true);
+  }
+
+  private static void setExternalAttributes(final Alert alert, final String entityId, final ApiAlertConverterContext context) {
+    final boolean isEntityProvider = context.getProviderService().exist(entityId);
+    alert.setType(Type.EXTERNAL);
+    if (isEntityProvider) {
+      alert.setProviderId(entityId);
+    } else {
+      alert.setApplicationId(entityId);
+    }
+  }
+
+  private static void setInternalAttributes(final Alert alert, final String entityId, final CatalogAlert catalogAlert) {
+    alert.setType(Type.INTERNAL);
+    alert.setProviderId(entityId);
+    alert.setComponentId(CompoundKeyBuilder.buildCompoundKey(entityId, catalogAlert.getComponent()));
+    alert.setSensorId(catalogAlert.getSensor());
+    alert.setTrigger(AlertTriggerType.valueOf(catalogAlert.getTrigger()));
+    alert.setExpression(catalogAlert.getExpression());
+  }
+
   private static Alert buildAlertToUpdate(final CatalogAlert catalogAlert, final ApiAlertConverterContext context, final String catalogUser) {
     final Alert alert = context.getAlertService().find(new Alert(catalogAlert.getId()));
-    final String entityId = (StringUtils.hasText(catalogAlert.getEntity()) ? catalogAlert.getEntity() : context.getMessage().getEntityId());
+    final String entityId = StringUtils.hasText(catalogAlert.getEntity()) ? catalogAlert.getEntity() : context.getMessage().getEntityId();
 
     // To confirm that an alert exists not only alert must be not null but also type and owner must
     // be equals

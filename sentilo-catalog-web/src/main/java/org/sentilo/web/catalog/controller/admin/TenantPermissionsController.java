@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,14 +53,13 @@ import org.sentilo.web.catalog.dto.TenantPermissionsDTO;
 import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.builder.SearchFilterUtils;
-import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.TenantPermissionService;
-import org.sentilo.web.catalog.service.TenantResourceService;
 import org.sentilo.web.catalog.service.TenantService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ModelUtils;
+import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -77,7 +75,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/grants")
@@ -93,13 +90,7 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   private TenantPermissionService tenantPermissionService;
 
   @Autowired
-  private TenantResourceService tenantResourceService;
-
-  @Autowired
   private ProviderService providerService;
-
-  @Autowired
-  private ComponentService componentService;
 
   @Autowired
   private TenantService tenantService;
@@ -109,8 +100,6 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
 
   @Autowired
   private MessageSource messageSource;
-
-  private boolean isFromPermission;
 
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
@@ -138,10 +127,8 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
     if (StringUtils.hasText(id) && StringUtils.hasText(type)) {
       if (PERMISSION_TO.equalsIgnoreCase(type)) {
         filter.addAndParam("source", id);
-        isFromPermission = false;
       } else if (PERMISSION_FROM.equalsIgnoreCase(type)) {
         filter.addAndParam("target", id);
-        isFromPermission = true;
       }
     }
   }
@@ -164,9 +151,8 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
       return Constants.VIEW_ADD_TENANT_PERMISSIONS;
     }
 
-    final Date createdAt = new Date();
     createPermissions(id, form.getSelectedProvidersIds(), form.getSelectedEntitiesIds(), form.getPermissionType(),
-        TenantPermission.EntityType.PROVIDER, userDetailsService.getCatalogUserDetails().getUsername(), form.getVisible(), createdAt);
+        TenantPermission.EntityType.PROVIDER, form.getVisible());
 
     return viewTenantDetailPermissionsTab(id, model, "tenant.permissions.added", false, Constants.TAB_3);
   }
@@ -188,24 +174,21 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   @RequestMapping(value = "/{id}/edit", method = RequestMethod.POST)
   public String editTenantPermissions(@Valid final TenantPermission tenantPermission, final BindingResult result, @PathVariable final String id,
       final Model model) {
-    tenantPermission.setUpdatedAt(new Date());
-    tenantPermission.setUpdatedBy(userDetailsService.getCatalogUserDetails().getUsername());
     tenantPermissionService.update(tenantPermission);
     return viewTenantDetailPermissionsTab(id, model, "tenant.permissions.saved", false, Constants.TAB_4);
   }
 
   @RequestMapping(value = "/{id}/remove", method = RequestMethod.POST)
-  public String removeApplicationPermissions(@Valid final TenantPermissionsDTO permissions, final BindingResult result,
-      @PathVariable final String id, final Model model) {
-    removeGrantedTenants(permissions.getSelectedPermissions());
-    tenantPermissionService.delete(permissions.getSelectedPermissions());
+  public String removeTenantPermissions(@Valid final TenantPermissionsDTO permissions, final BindingResult result, @PathVariable final String id,
+      final Model model) {
+    deletePermissions(permissions.getSelectedPermissions());
     return viewTenantDetailPermissionsTab(id, model, "tenant.permissions.deleted", false, Constants.TAB_3);
   }
 
   @RequestMapping(value = "/{id}/changeMapVisibility", method = RequestMethod.POST)
   public String changeMapVisibility(@PathVariable final String id, @RequestParam final String newMapVisibility,
-      @RequestParam final String[] selectedIds, final HttpServletRequest request, final RedirectAttributes redirectAttributes, final Model model) {
-    final boolean isMapVisible = (StringUtils.hasText(newMapVisibility) && "public".equals(newMapVisibility) ? true : false);
+      @RequestParam final String[] selectedIds, final Model model) {
+    final boolean isMapVisible = StringUtils.hasText(newMapVisibility) && "public".equals(newMapVisibility) ? true : false;
     tenantPermissionService.changeMapVisibility(selectedIds, isMapVisible);
     return viewTenantDetailPermissionsTab(id, model, "mapVisibility.changed", false, Constants.TAB_4);
   }
@@ -231,19 +214,23 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
     final List<String> row = new ArrayList<String>();
     row.add(permission.getId());
 
-    if (isFromPermission) {
-      row.add(permission.getSource());
-    } else {
+    // Assume that TenantContext exists
+    final boolean isToPermission = permission.getSource().equals(TenantUtils.getCurrentTenant());
+
+    if (isToPermission) {
       row.add(permission.getTarget());
+    } else {
+      row.add(permission.getSource());
     }
 
     row.add(permission.getEntity());
     row.add(messageSource.getMessage(PERMISSION + permission.getType(), null, LocaleContextHolder.getLocale()));
     row.add(localDateFormat.printAsLocalTime(permission.getCreatedAt(), Constants.DATETIME_FORMAT));
-    if (isFromPermission) {
-      row.add(messageSource.getMessage(String.valueOf(permission.getVisible()), null, LocaleContextHolder.getLocale()));
-    } else {
+
+    if (isToPermission) {
       row.add(permission.getCreatedBy());
+    } else {
+      row.add(messageSource.getMessage(String.valueOf(permission.getVisible()), null, LocaleContextHolder.getLocale()));
     }
 
     return row;
@@ -253,7 +240,7 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   protected void doBeforeExcelBuilder(final Model model) {
     final String[] listColumnNames = {Constants.TARGET_PROP, Constants.TYPE_PROP};
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "grant");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "grant");
   }
 
   @Override
@@ -261,23 +248,22 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
     // Do nothing.
   }
 
-  protected void removeGrantedTenants(final List<TenantPermission> tenantPermissions) {
-    for (final TenantPermission tenantPermissionId : tenantPermissions) {
-      final TenantPermission tenantPermission = tenantPermissionService.find(tenantPermissionId);
-      tenantResourceService.updateResourceTenantsAuthByProvider(tenantPermission.getEntity(), tenantPermission.getTarget(), false);
+  protected void deletePermissions(final List<TenantPermission> tenantPermissions) {
+    for (final TenantPermission tenantPermissionAux : tenantPermissions) {
+      final TenantPermission tenantPermission = tenantPermissionService.find(tenantPermissionAux);
+      if (tenantPermission != null) {
+        tenantPermissionService.delete(tenantPermission);
+      }
     }
   }
 
-  private void createPermissions(final String tenantId, final String[] selectedIds, final String[] selectedTenantsIds,
-      final TenantPermission.Type type, final TenantPermission.EntityType entityType, final String createdBy, final boolean visible,
-      final Date createdAt) {
-    for (final String sourceId : selectedIds) {
-      for (final String targetId : selectedTenantsIds) {
+  private void createPermissions(final String tenantSource, final String[] tenantSourceEntitiesIds, final String[] tenantTargetsIds,
+      final TenantPermission.Type type, final TenantPermission.EntityType entityType, final boolean visible) {
+
+    for (final String entityId : tenantSourceEntitiesIds) {
+      for (final String targetId : tenantTargetsIds) {
         // Create the permission
-        final TenantPermission permission = new TenantPermission(tenantId, sourceId, targetId, type, entityType, createdBy, visible, createdAt);
-        tenantPermissionService.create(permission);
-        tenantResourceService.updateResourceTenantsAuthByProvider(permission.getEntity(), permission.getTarget(), true);
-        componentService.updateTenantsMapVisibleFromProvider(permission.getEntity(), targetId, visible);
+        tenantPermissionService.create(new TenantPermission(tenantSource, entityId, targetId, type, entityType, visible));
       }
     }
   }

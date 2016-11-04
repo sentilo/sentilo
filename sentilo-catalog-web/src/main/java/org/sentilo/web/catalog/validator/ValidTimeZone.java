@@ -54,7 +54,7 @@ public @interface ValidTimeZone {
 
   String message() default "{ValidTimeZone}";
 
-  Class<?>[] groups() default {};
+  Class<?>[]groups() default {};
 
-  Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[]payload() default {};
 }

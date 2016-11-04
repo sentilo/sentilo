@@ -74,7 +74,7 @@ public class LngLat implements Serializable {
       return false;
     }
     final LngLat other = (LngLat) obj;
-    return (latitude.equals(other.getLatitude()) && longitude.equals(other.getLongitude()));
+    return latitude.equals(other.getLatitude()) && longitude.equals(other.getLongitude());
   }
 
   public Double[] toArray() {

@@ -101,4 +101,16 @@ public class SentiloUtilsTest {
     assertFalse(SentiloUtils.isArrayOrCollection(var5));
 
   }
+
+  @Test
+  public void areEquals() {
+    assertTrue(SentiloUtils.areEquals(null, null));
+    assertTrue(SentiloUtils.areEquals("", ""));
+    assertFalse(SentiloUtils.areEquals(null, ""));
+    assertFalse(SentiloUtils.areEquals("", null));
+    assertFalse(SentiloUtils.areEquals("a", "b"));
+    assertTrue(SentiloUtils.areEquals("a", "a"));
+    assertFalse(SentiloUtils.areEquals("a", "a "));
+
+  }
 }

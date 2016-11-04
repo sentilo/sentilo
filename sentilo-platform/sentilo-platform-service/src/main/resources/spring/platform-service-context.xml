@@ -17,6 +17,7 @@
 	<context:component-scan base-package="org.sentilo.platform.service.dao" />
 	<context:component-scan base-package="org.sentilo.platform.service.listener" />
 	<context:component-scan base-package="org.sentilo.platform.service.monitor" />
+	<context:component-scan base-package="org.sentilo.platform.service.notification" />
 	<context:component-scan base-package="org.sentilo.platform.common.security" />
 
 

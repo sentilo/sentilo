@@ -34,13 +34,14 @@ package org.sentilo.platform.server.handler.impl;
 
 import java.util.List;
 
-import org.apache.http.HttpStatus;
 import org.sentilo.platform.common.domain.Alarm;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.AlarmService;
+import org.sentilo.platform.server.converter.AlarmConverter;
+import org.sentilo.platform.server.exception.MethodNotAllowedException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.AlarmParser;
+import org.sentilo.platform.server.http.HttpMethod;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.AlarmValidator;
@@ -58,12 +59,12 @@ public class AlarmHandler extends AbstractHandler {
   @Autowired
   private AlarmService alarmService;
 
-  private AlarmParser parser = new AlarmParser();
+  private AlarmConverter parser = new AlarmConverter();
   private final RequestMessageValidator<AlarmInputMessage> validator = new AlarmValidator();
 
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP DELETE method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.DELETE);
   }
 
   @Override
@@ -91,7 +92,7 @@ public class AlarmHandler extends AbstractHandler {
 
   @Override
   public void onPost(final SentiloRequest request, final SentiloResponse response) throws PlatformException {
-    throw new PlatformException(HttpStatus.SC_METHOD_NOT_ALLOWED, "HTTP POST method not allowed for the requested resource");
+    throw new MethodNotAllowedException(HttpMethod.POST);
   }
 
   @Override
@@ -105,9 +106,10 @@ public class AlarmHandler extends AbstractHandler {
 
     validateResourceNumberParts(request, 1, 1);
     final AlarmInputMessage inputMessage = parser.parseRequest(request);
+    inputMessage.setEntityOwner(alarmService.getAlertOwner(inputMessage.getAlertId()));
+
     validator.validateRequestMessageOnPut(inputMessage);
-    final String alertOwner = alarmService.getAlertOwner(inputMessage.getAlertId());
-    validateWriteAccess(request.getEntitySource(), alertOwner);
+    validateWriteAccess(request.getEntitySource(), inputMessage.getEntityOwner());
 
     alarmService.setAlarm(inputMessage);
   }

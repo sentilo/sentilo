@@ -86,10 +86,19 @@ public class AlertController extends CrudController<Alert> {
     final List<String> row = new ArrayList<String>();
     row.add(alert.getId()); // checkbox
     row.add(alert.getId());
-    row.add(alert.getName());
     row.add(FormatUtils.label(messageSource.getMessage("alert.type." + alert.getType().toString(), null, LocaleContextHolder.getLocale())));
+    row.add(formatTriggerColumn(alert));
+    row.add(String.valueOf(alert.isActive()));
     row.add(getLocalDateFormat().printAsLocalTime(alert.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
+  }
+
+  private String formatTriggerColumn(final Alert alert) {
+    String value = "";
+    if (Type.INTERNAL.equals(alert.getType())) {
+      value = alert.getTrigger().name() + "(" + alert.getExpression() + ")";
+    }
+    return StringUtils.hasText(value) ? FormatUtils.label(value) : value;
   }
 
   private void addAlertMasterDataTo(final Model model) {
@@ -132,7 +141,7 @@ public class AlertController extends CrudController<Alert> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
    * HttpServletRequest, org.springframework.ui.Model)
    */
@@ -144,7 +153,7 @@ public class AlertController extends CrudController<Alert> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
    * org.springframework.ui.Model)
    */
@@ -156,10 +165,9 @@ public class AlertController extends CrudController<Alert> {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.catalog
-   * .domain.CatalogDocument, org.springframework.ui.Model)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
+   * catalog .domain.CatalogDocument, org.springframework.ui.Model)
    */
   @Override
   protected void doBeforeCreateResource(final Alert alert, final Model model) {
@@ -168,11 +176,11 @@ public class AlertController extends CrudController<Alert> {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.controller.CrudController#doBeforeUpdateResource(org.sentilo.web.catalog
-   * .domain.CatalogDocument, org.springframework.ui.Model)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeUpdateResource(org.sentilo.web.
+   * catalog .domain.CatalogDocument, org.springframework.ui.Model)
    */
+  @Override
   protected void doBeforeUpdateResource(final Alert alert, final Model model) {
     setToNullAlertFields(alert);
   }
@@ -198,7 +206,7 @@ public class AlertController extends CrudController<Alert> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.controller.SearchController#doBeforeExcelBuilder(org.springframework
    * .ui.Model)
@@ -207,7 +215,7 @@ public class AlertController extends CrudController<Alert> {
     final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.TYPE_PROP, Constants.CREATED_AT_PROP};
 
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "alert");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "alert");
   }
 
 }

@@ -33,6 +33,8 @@
 package org.sentilo.platform.server.test.request;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,19 +46,21 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
+import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.RequesterContext;
+import org.sentilo.platform.common.security.RequesterContextHolder;
 import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
 import org.sentilo.platform.server.http.HttpHeader;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloRequestHandler;
-import org.slf4j.Logger;
 
 public class SentiloRequestHandlerTest {
-
-  private SentiloRequestHandler requestHandler;
 
   @Mock
   private HandlerLocator handlerLocator;
@@ -72,14 +76,18 @@ public class SentiloRequestHandlerTest {
   private RequestLine requestLine;
   @Mock
   private AbstractHandler handler;
+
   @Mock
-  private Logger logger;
+  private EntityMetadataMessage entityMetadata;
+
+  @InjectMocks
+  private SentiloRequestHandler requestHandler;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    requestHandler = new SentiloRequestHandler(handlerLocator, authenticationService);
-
+    RequesterContextHolder.clearContext();
+    RequesterContextHolder.setContext(new RequesterContext(entityMetadata));
   }
 
   @Test
@@ -94,7 +102,31 @@ public class SentiloRequestHandlerTest {
     // verify(handler).manageRequest(any(SentiloRequest.class), any(SentiloResponse.class));
     verify(httpResponse).setStatusCode(HttpStatus.SC_OK);
     verify(httpResponse).setHeader(HttpHeader.CONTENT_TYPE.toString(), ContentType.APPLICATION_JSON.toString());
+  }
 
+  @Test
+  public void platformAccessException() {
+    when(httpRequest.getRequestLine()).thenReturn(requestLine);
+    when(requestLine.getMethod()).thenReturn("GET");
+    when(requestLine.getUri()).thenReturn("http://lab.sentilo.io/data/mock");
+    doThrow(MockPlatformException.class).when(authenticationService).checkCredential(anyString());
+
+    requestHandler.handle(httpRequest, httpResponse, httpContext);
+
+    verify(httpResponse).setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    verify(httpResponse).setHeader(HttpHeader.CONTENT_TYPE.toString(), ContentType.APPLICATION_JSON.toString());
+  }
+
+  @Test
+  public void exception() {
+    when(httpRequest.getRequestLine()).thenReturn(requestLine);
+    when(requestLine.getMethod()).thenReturn("GET");
+    doThrow(NullPointerException.class).when(requestLine).getUri();
+
+    requestHandler.handle(httpRequest, httpResponse, httpContext);
+
+    verify(httpResponse).setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    verify(httpResponse).setHeader(HttpHeader.CONTENT_TYPE.toString(), ContentType.APPLICATION_JSON.toString());
   }
 
   @Test
@@ -102,10 +134,32 @@ public class SentiloRequestHandlerTest {
     when(httpRequest.getRequestLine()).thenReturn(requestLine);
     when(requestLine.getMethod()).thenReturn("GET");
     when(requestLine.getUri()).thenReturn("http://lab.sentilo.io/data/mock");
+
     requestHandler.handle(httpRequest, httpResponse, httpContext);
 
     verify(httpResponse).setStatusCode(HttpStatus.SC_NOT_FOUND);
     verify(httpResponse).setHeader(HttpHeader.CONTENT_TYPE.toString(), ContentType.APPLICATION_JSON.toString());
+  }
 
+  @Test
+  public void sslRequired() {
+    when(entityMetadata.isRestHttps()).thenReturn(true);
+    when(httpRequest.getRequestLine()).thenReturn(requestLine);
+    when(requestLine.getMethod()).thenReturn("GET");
+    when(requestLine.getUri()).thenReturn("http://lab.sentilo.io/data/mock");
+
+    requestHandler.handle(httpRequest, httpResponse, httpContext);
+
+    verify(httpResponse).setStatusCode(HttpStatus.SC_FORBIDDEN);
+    verify(httpResponse).setHeader(HttpHeader.CONTENT_TYPE.toString(), ContentType.APPLICATION_JSON.toString());
+  }
+
+  public class MockPlatformException extends PlatformException {
+
+    private static final long serialVersionUID = 1L;
+
+    public MockPlatformException() {
+      super(HttpStatus.SC_UNAUTHORIZED, "mock error message");
+    }
   }
 }

@@ -45,7 +45,6 @@ import org.sentilo.agent.relational.domain.Order;
 import org.sentilo.agent.relational.utils.ThreadLocalProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.TransactionStatus;
@@ -56,6 +55,7 @@ import org.springframework.util.CollectionUtils;
 public class BatchProcessWorker implements Callable<BatchProcessResult> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessWorker.class);
+  private final String insertCommandPrefix = "insert into ";
 
   private String observationPs;
   private String orderPs;
@@ -81,9 +81,12 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
   }
 
   private void buildQueries(final String tablesPrefix) {
-    observationPs = "insert into " + tablesPrefix + "_observations (provider, sensor, value, timestamp, published_at, location) values (?,?,?,?,?,?)";
-    orderPs = "insert into " + tablesPrefix + "_orders (provider, sensor, message, timestamp, published_at) values (?,?,?,?,?)";
-    alarmPs = "insert into " + tablesPrefix + "_alarms (alarm, message, timestamp, published_at) values (?,?,?,?)";
+    observationPs = insertCommandPrefix + tablesPrefix
+        + "_observations (provider, sensor, value, timestamp, event_timestamp, published_at, publisher, location) values (?,?,?,?,?, ?,?,?)";
+    orderPs = insertCommandPrefix + tablesPrefix
+        + "_orders (provider, sensor, message, timestamp, event_timestamp, published_at, publisher ) values (?,?,?,?,?,?,?)";
+    alarmPs =
+        insertCommandPrefix + tablesPrefix + "_alarms (alarm, message, timestamp, event_timestamp, published_at, publisher) values (?,?,?,?,?,?)";
   }
 
   public BatchProcessResult call() {
@@ -100,7 +103,7 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     final int numElementsPersisted = doBatchUpdate(orders, alarms, observations);
     LOGGER.info("Number of elements persisted: {}", numElementsPersisted);
 
-    final BatchProcessResult result = new BatchProcessResult(dataToPersist.size(), numElementsPersisted);
+    final BatchProcessResult result = new BatchProcessResult(dataToPersist, numElementsPersisted);
 
     callback.notifyBatchUpdateIsDone(result);
     return result;
@@ -115,14 +118,14 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
 
     try {
       numElementsPersisted = doBatchUpdateInTransacion(orders, alarms, observations);
-    } catch (final DataAccessException dae) {
+    } catch (final Exception dae) {
       LOGGER.warn("Error executing batch update:", dae);
       if (numRetries < numMaxRetries) {
         numRetries++;
         doBatchUpdate(orders, alarms, observations);
       } else {
-        LOGGER.error("Number of retries {} is greater or equals than the maximum number of retries configured {}. Data to persist is rejected.",
-            numRetries, numMaxRetries);
+        LOGGER.error("Number of retries {} is greater or equals than the maximum number of retries configured {}. "
+            + "Events to persist will be stored in the pending queue for further processing.", numRetries, numMaxRetries);
       }
     }
 
@@ -134,9 +137,9 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     return transactionTemplate.execute(new TransactionCallback<Integer>() {
 
       public Integer doInTransaction(final TransactionStatus status) {
-        final int ordersPersisted = (CollectionUtils.isEmpty(orders) ? 0 : persistOrders(orders));
-        final int alarmsPersisted = (CollectionUtils.isEmpty(alarms) ? 0 : persistAlarms(alarms));
-        final int observationsPersisted = (CollectionUtils.isEmpty(observations) ? 0 : persistObservations(observations));
+        final int ordersPersisted = CollectionUtils.isEmpty(orders) ? 0 : persistOrders(orders);
+        final int alarmsPersisted = CollectionUtils.isEmpty(alarms) ? 0 : persistAlarms(alarms);
+        final int observationsPersisted = CollectionUtils.isEmpty(observations) ? 0 : persistObservations(observations);
 
         LOGGER.debug("Orders inserted: {}", ordersPersisted);
         LOGGER.debug("Alarms inserted: {}", alarmsPersisted);
@@ -154,11 +157,14 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
       @Override
       public void setValues(final PreparedStatement ps, final int i) throws SQLException {
         final Order order = (Order) orders.get(i);
-        ps.setString(1, order.getProvider());
-        ps.setString(2, order.getSensor());
-        ps.setString(3, order.getMessage());
-        ps.setString(4, order.getTimestamp());
-        ps.setTimestamp(5, new java.sql.Timestamp(order.getTime()));
+        int j = 1;
+        ps.setString(j++, order.getProvider());
+        ps.setString(j++, order.getSensor());
+        ps.setString(j++, order.getMessage());
+        ps.setString(j++, order.getTimestamp());
+        ps.setTimestamp(j++, new java.sql.Timestamp(order.getEventTimestamp()));
+        ps.setTimestamp(j++, new java.sql.Timestamp(order.getPublishedAt()));
+        ps.setString(j++, order.getPublisher());
       }
 
       @Override
@@ -178,10 +184,13 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
       @Override
       public void setValues(final PreparedStatement ps, final int i) throws SQLException {
         final Alarm alarm = (Alarm) alarms.get(i);
-        ps.setString(1, alarm.getAlarm());
-        ps.setString(2, alarm.getMessage());
-        ps.setString(3, alarm.getTimestamp());
-        ps.setTimestamp(4, new java.sql.Timestamp(alarm.getTime()));
+        int j = 1;
+        ps.setString(j++, alarm.getAlarm());
+        ps.setString(j++, alarm.getMessage());
+        ps.setString(j++, alarm.getTimestamp());
+        ps.setTimestamp(j++, new java.sql.Timestamp(alarm.getEventTimestamp()));
+        ps.setTimestamp(j++, new java.sql.Timestamp(alarm.getPublishedAt()));
+        ps.setString(j++, alarm.getPublisher());
       }
 
       @Override
@@ -201,12 +210,15 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
       @Override
       public void setValues(final PreparedStatement ps, final int i) throws SQLException {
         final Observation observation = (Observation) observations.get(i);
-        ps.setString(1, observation.getProvider());
-        ps.setString(2, observation.getSensor());
-        ps.setString(3, observation.getValue());
-        ps.setString(4, observation.getTimestamp());
-        ps.setTimestamp(5, new java.sql.Timestamp(observation.getTime()));
-        ps.setString(6, observation.getLocation());
+        int j = 1;
+        ps.setString(j++, observation.getProvider());
+        ps.setString(j++, observation.getSensor());
+        ps.setString(j++, observation.getValue());
+        ps.setString(j++, observation.getTimestamp());
+        ps.setTimestamp(j++, new java.sql.Timestamp(observation.getEventTimestamp()));
+        ps.setTimestamp(j++, new java.sql.Timestamp(observation.getPublishedAt()));
+        ps.setString(j++, observation.getPublisher());
+        ps.setString(j++, observation.getLocation());
       }
 
       @Override

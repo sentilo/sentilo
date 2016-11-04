@@ -32,34 +32,64 @@
  */
 package org.sentilo.agent.activity.monitor.test.repository;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessMonitor;
 import org.sentilo.agent.activity.monitor.repository.impl.ActivityMonitorRepositoryImpl;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.rest.RESTClient;
+import org.sentilo.common.test.AbstractBaseTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class ActivityMonitorRepositoryImplTest {
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ActivityMonitorRepositoryImpl.class, LoggerFactory.class, ReflectionTestUtils.class})
+public class ActivityMonitorRepositoryImplTest extends AbstractBaseTest {
 
   @InjectMocks
   private ActivityMonitorRepositoryImpl repository;
 
   @Mock
   private RESTClient restClient;
+
   @Mock
   private EventMessage event;
+
   @Mock
   private BatchProcessMonitor batchProcessMonitor;
+
   @Mock
   private ExecutorService workersManager;
+
+  private static Logger logger;
+
+  @BeforeClass
+  public static void setUpStatic() throws Exception {
+    PowerMockito.mockStatic(LoggerFactory.class);
+    logger = PowerMockito.mock(Logger.class);
+    when(LoggerFactory.getLogger(anyString())).thenReturn(logger);
+    when(LoggerFactory.getLogger(any(Class.class))).thenReturn(logger);
+  }
 
   @Before
   public void setUp() {
@@ -70,14 +100,28 @@ public class ActivityMonitorRepositoryImplTest {
 
   @Test
   public void init() throws Exception {
-    Object value = ReflectionTestUtils.getField(repository, "workersManager");
-    Assert.assertNotNull(value);
+
+    Assert.assertTrue(10 == (Integer) ReflectionTestUtils.getField(repository, "batchSize"));
+    Assert.assertTrue(5 == (Integer) ReflectionTestUtils.getField(repository, "numMaxWorkers"));
+    Assert.assertTrue(1 == (Integer) ReflectionTestUtils.getField(repository, "numMaxRetries"));
+    Assert.assertNotNull(ReflectionTestUtils.getField(repository, "workersManager"));
+
+    // New ActivityMonitorRepositoryImpl
+    final ActivityMonitorRepositoryImpl newRepository = new ActivityMonitorRepositoryImpl();
+    ReflectionTestUtils.setField(newRepository, "batchSize", Integer.valueOf(3));
+    ReflectionTestUtils.setField(newRepository, "numMaxWorkers", Integer.valueOf(5));
+    ReflectionTestUtils.setField(newRepository, "numMaxRetries", Integer.valueOf(1));
+    newRepository.init();
+
+    Assert.assertTrue(3 == (Integer) ReflectionTestUtils.getField(newRepository, "batchSize"));
+    Assert.assertTrue(5 == (Integer) ReflectionTestUtils.getField(newRepository, "numMaxWorkers"));
+    Assert.assertTrue(1 == (Integer) ReflectionTestUtils.getField(newRepository, "numMaxRetries"));
   }
 
   @SuppressWarnings("unchecked")
   @Test
   public void publishMessageToElasticSearch() throws Exception {
-    Object value = ReflectionTestUtils.getField(repository, "batchQueue");
+    final Object value = ReflectionTestUtils.getField(repository, "batchQueue");
 
     repository.publishMessageToElasticSearch(event);
 
@@ -91,9 +135,20 @@ public class ActivityMonitorRepositoryImplTest {
       repository.publishMessageToElasticSearch(event);
     }
 
-    Object value = ReflectionTestUtils.getField(repository, "batchQueue");
+    final Object value = ReflectionTestUtils.getField(repository, "batchQueue");
 
     Assert.assertTrue(((List<EventMessage>) value).size() == 2);
+  }
+
+  @Test
+  public void flush() throws Exception {
+
+    repository.flush();
+    ReflectionTestUtils.setField(repository, "batchQueue", generateRandomList(EventMessage.class));
+    repository.flush();
+
+    verify(logger, times(2 * 2)).info(anyString());
+    verify(logger).info(anyString(), anyVararg());
   }
 
 }

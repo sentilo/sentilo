@@ -66,7 +66,7 @@ public class Location implements Serializable {
   }
 
   public int getNumberOfCoordinates() {
-    return (coordinates != null ? coordinates.length : 0);
+    return coordinates != null ? coordinates.length : 0;
   }
 
   public boolean equals(final Object obj) {

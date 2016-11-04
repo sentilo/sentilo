@@ -80,12 +80,12 @@ public class SecurityUtils {
   }
 
   private static boolean allowSuperAdminUserAdminResource(final CatalogDocument resource) {
-    return TenantContextHolder.isEnabled() && (!(resource instanceof TenantResource) || (resource instanceof User));
+    return TenantContextHolder.isEnabled() && (!(resource instanceof TenantResource) || resource instanceof User);
   }
 
   private static boolean allowAdminUserAdminResource(final ActionType action, final CatalogUserDetails catalogUser, final CatalogDocument resource) {
-    final boolean isTenantResource = (resource instanceof TenantResource);
-    final boolean isTenant = (resource instanceof Tenant);
+    final boolean isTenantResource = resource instanceof TenantResource;
+    final boolean isTenant = resource instanceof Tenant;
 
     boolean allowAdmin = false;
 

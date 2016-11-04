@@ -33,26 +33,31 @@
 package org.sentilo.platform.server.test.handler.impl;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.platform.common.domain.DataInputMessage;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
 import org.sentilo.platform.common.domain.Observation;
+import org.sentilo.platform.common.exception.EventRejectedException;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.common.service.DataService;
 import org.sentilo.platform.server.auth.AuthorizationService;
+import org.sentilo.platform.server.converter.DataConverter;
 import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.handler.impl.DataHandler;
 import org.sentilo.platform.server.http.HttpMethod;
-import org.sentilo.platform.server.parser.DataParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloResource;
 import org.sentilo.platform.server.response.SentiloResponse;
@@ -71,9 +76,13 @@ public class DataHandlerTest extends AbstractBaseHandlerTest {
   @Mock
   private SentiloResponse response;
   @Mock
-  private DataParser parser;
+  private DataConverter parser;
   @Mock
   private AuthorizationService authorizationService;
+  @Mock
+  private EntityMetadataRepository entityMetadataRepository;
+  @Mock
+  private EntityMetadataMessage entityMetadataMessage;
 
   @Before
   public void setUp() {
@@ -82,6 +91,7 @@ public class DataHandlerTest extends AbstractBaseHandlerTest {
     when(request.getResource()).thenReturn(resource);
     when(authorizationService.hasAccessToRead(anyString(), anyString())).thenReturn(true);
     when(authorizationService.hasAccessToWrite(anyString(), anyString())).thenReturn(true);
+    when(entityMetadataRepository.getEntityMetadataFromId(anyString())).thenReturn(entityMetadataMessage);
   }
 
   @Test
@@ -97,6 +107,7 @@ public class DataHandlerTest extends AbstractBaseHandlerTest {
 
   @Test
   public void invalidPutRequest() throws Exception {
+    boolean errorThrown = false;
     final DataInputMessage message = new DataInputMessage("provider1", "sensor1");
     when(parser.parsePutRequest(request)).thenReturn(message);
     simulateRequest(HttpMethod.PUT, PROVIDER1, "/data/provider1/sensor1");
@@ -104,7 +115,23 @@ public class DataHandlerTest extends AbstractBaseHandlerTest {
       handler.manageRequest(request, response);
     } catch (final PlatformException e) {
       assertBadRequest(e);
+      errorThrown = true;
+    } finally {
+      Assert.assertTrue(errorThrown);
     }
+  }
+
+  @Test(expected = EventRejectedException.class)
+  public void unknownSensor() throws Exception {
+    final DataInputMessage message = new DataInputMessage("provider1", "sensor1", getObservations());
+    when(parser.parsePutRequest(request)).thenReturn(message);
+    doThrow(EventRejectedException.class).when(service).setObservations(message);
+
+    simulateRequest(HttpMethod.PUT, PROVIDER1, "/data/provider1/sensor1");
+    handler.manageRequest(request, response);
+
+    verify(parser).parsePutRequest(request);
+    verify(service).setObservations(message);
   }
 
   @Test

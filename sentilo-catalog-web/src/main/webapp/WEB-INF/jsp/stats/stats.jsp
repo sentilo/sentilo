@@ -138,15 +138,15 @@ function refreshActivityGraph(lastActivityLogs){
     xAxisLabels = [];
 	
 	$.each(lastActivityLogs, function(index, lastActivityLog) {
-        var alarms = lastActivityLog['alarms'];
-        var observations = lastActivityLog['observations']; 
-        var orders = lastActivityLog['orders'];	
+        var putAlarms = lastActivityLog['putAlarms'];
+        var putObservations = lastActivityLog['putObservations']; 
+        var putOrders = lastActivityLog['putOrders'];	
         var timestamp = formatGraphTimestamp(lastActivityLog['timestampToString']);
         
         
-        datasets['data'].data.push([index, observations]);
-        datasets['orders'].data.push([index, orders]);
-        datasets['alarms'].data.push([index, alarms]);
+        datasets['data'].data.push([index, putObservations]);
+        datasets['orders'].data.push([index, putOrders]);
+        datasets['alarms'].data.push([index, putAlarms]);
         
         xAxisLabels.push(timestamp);
     });   

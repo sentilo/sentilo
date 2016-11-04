@@ -48,7 +48,7 @@ public class DataTrackServiceImpl implements DataTrackService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.relational.service.DataTrackService#save(org.sentilo.agent.relational
    * .common.domain.Order)
    */
@@ -58,7 +58,7 @@ public class DataTrackServiceImpl implements DataTrackService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.relational.service.DataTrackService#save(org.sentilo.agent.relational
    * .common.domain.Alarm)
    */
@@ -68,7 +68,7 @@ public class DataTrackServiceImpl implements DataTrackService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.relational.service.DataTrackService#save(org.sentilo.agent.relational
    * .common.domain.Observation)
    */

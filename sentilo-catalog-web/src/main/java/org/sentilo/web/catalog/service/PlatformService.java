@@ -33,6 +33,7 @@
 package org.sentilo.web.catalog.service;
 
 import org.sentilo.common.domain.PlatformMetricsMessage;
+import org.sentilo.web.catalog.domain.PlatformAdminInputMessage;
 import org.sentilo.web.catalog.domain.PlatformStatsMessage;
 
 public interface PlatformService {
@@ -42,4 +43,9 @@ public interface PlatformService {
   PlatformMetricsMessage getPlatformActivity();
 
   PlatformMetricsMessage getPlatformPerformance();
+
+  void saveResources(final PlatformAdminInputMessage message);
+
+  void deleteResources(final PlatformAdminInputMessage message);
+
 }

@@ -47,7 +47,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TenantServiceImpl extends AbstractBaseCrudServiceImpl<Tenant> implements TenantService {
+public class TenantServiceImpl extends AbstractBaseCrudServiceImpl<Tenant>implements TenantService {
 
   @Autowired
   private TenantRepository repository;
@@ -92,7 +92,7 @@ public class TenantServiceImpl extends AbstractBaseCrudServiceImpl<Tenant> imple
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.
    * web.catalog.domain.CatalogDocument)
@@ -103,10 +103,9 @@ public class TenantServiceImpl extends AbstractBaseCrudServiceImpl<Tenant> imple
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.Collection
-   * )
+   *
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.
+   * Collection )
    */
   protected void doAfterDelete(final Collection<Tenant> tenants) {
     for (final Tenant tenant : tenants) {

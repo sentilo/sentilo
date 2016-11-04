@@ -52,6 +52,7 @@ import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.platform.common.exception.CatalogAccessException;
 import org.sentilo.platform.service.impl.CatalogServiceImpl;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class CatalogServiceImplTest {
 
@@ -73,7 +74,8 @@ public class CatalogServiceImplTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     service = new CatalogServiceImpl();
-    service.setRestClient(restClient);
+
+    ReflectionTestUtils.setField(service, "restClient", restClient);
 
     when(alertMessage.getEntityId()).thenReturn(MOCK_ENTITY);
     when(alertMessage.getBody()).thenReturn(MOCK_BODY);
@@ -112,15 +114,15 @@ public class CatalogServiceImplTest {
 
   @Test
   public void getCredentials() {
-    final String path = "api/credentials";
-    service.getCredentials();
+    final String path = "api/entities/metadata";
+    service.getEntitiesMetadata();
 
     verify(restClient).get(path);
   }
 
   @Test
   public void getPermissions() {
-    final String path = "api/permissions";
+    final String path = "api/entities/permissions";
     service.getPermissions();
 
     verify(restClient).get(path);

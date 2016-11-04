@@ -32,6 +32,7 @@
  */
 package org.sentilo.web.catalog.security.access.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +56,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Component("accessControlHandler")
 public class AccessControlHandlerImpl implements AccessControlHandler {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(AccessControlHandlerImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AccessControlHandlerImpl.class);
 
   @Autowired
   private AccessControlService accessControlService;
@@ -82,6 +83,7 @@ public class AccessControlHandlerImpl implements AccessControlHandler {
           }
         }
       } catch (final NotAllowedActionException e) {
+        LOGGER.warn("Access to controller denied: {}", e.getMessage());
         return false;
       } catch (final Exception ex) {
         LOGGER.warn("An error has happened while checking access control.", ex);
@@ -114,22 +116,26 @@ public class AccessControlHandlerImpl implements AccessControlHandler {
   }
 
   @SuppressWarnings("unchecked")
-  private CrudService<CatalogDocument> getService(final CrudController<CatalogDocument> controller) throws Exception {
+  private CrudService<CatalogDocument> getService(final CrudController<CatalogDocument> controller)
+      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     return (CrudService<CatalogDocument>) invokeMethod(controller, "getService", null, new Class<?>[] {});
   }
 
-  private CatalogDocument buildNewEntity(final CrudController<CatalogDocument> controller, final String id) throws Exception {
+  private CatalogDocument buildNewEntity(final CrudController<CatalogDocument> controller, final String id)
+      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     return (CatalogDocument) invokeMethod(controller, "buildNewEntity", id, new Class<?>[] {String.class});
   }
 
   @SuppressWarnings("unchecked")
-  private List<CatalogDocument> buildNewEntities(final CrudController<CatalogDocument> controller, final String[] ids) throws Exception {
+  private List<CatalogDocument> buildNewEntities(final CrudController<CatalogDocument> controller, final String[] ids)
+      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     return (List<CatalogDocument>) invokeMethod(controller, "buildResourceListFromIds", ids, new Class<?>[] {String[].class});
   }
 
-  private Object invokeMethod(final Object obj, final String methodName, final Object args, final Class<?>... paramTypes) throws Exception {
+  private Object invokeMethod(final Object obj, final String methodName, final Object args, final Class<?>... paramTypes)
+      throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     final Method m = ReflectionUtils.findMethod(obj.getClass(), methodName, paramTypes);
     ReflectionUtils.makeAccessible(m);
-    return (args == null ? m.invoke(obj, new Object[] {}) : m.invoke(obj, new Object[] {args}));
+    return args == null ? m.invoke(obj, new Object[] {}) : m.invoke(obj, new Object[] {args});
   }
 }

@@ -111,7 +111,7 @@ public class User implements CatalogDocument, TenantResource {
     // Hashcode return must be consistent with the equals method
     final int prime = 71;
     int result = 1;
-    result = prime * result + ((userName == null) ? 0 : userName.hashCode());
+    result = prime * result + (userName == null ? 0 : userName.hashCode());
     return result;
   }
 

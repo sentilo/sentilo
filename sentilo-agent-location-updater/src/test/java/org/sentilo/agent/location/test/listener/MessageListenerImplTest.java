@@ -48,7 +48,6 @@ import org.sentilo.common.cache.LRUCache;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.domain.SensorLocationElement;
 import org.sentilo.common.utils.SentiloConstants;
-import org.springframework.data.redis.connection.Message;
 
 public class MessageListenerImplTest {
 
@@ -63,8 +62,6 @@ public class MessageListenerImplTest {
   @Mock
   private AsyncCatalogResourceUpdater asyncResourceUpdater;
 
-  @Mock
-  private Message message;
   @Mock
   private EventMessage eventMessage;
   @InjectMocks
@@ -84,7 +81,7 @@ public class MessageListenerImplTest {
     when(eventMessage.getTime()).thenReturn(time);
     when(sensorLocationsCache.get(any(String.class))).thenReturn(null);
 
-    listener.doWithMessage(message, eventMessage);
+    listener.doWithMessage(eventMessage);
 
     verify(asyncResourceUpdater).addResourceToUpdate(any(SensorLocationElement.class));
   }
@@ -97,7 +94,7 @@ public class MessageListenerImplTest {
     when(eventMessage.getTime()).thenReturn(time);
     when(eventMessage.getLocation()).thenReturn(null);
 
-    listener.doWithMessage(message, eventMessage);
+    listener.doWithMessage(eventMessage);
 
     verify(asyncResourceUpdater, times(0)).addResourceToUpdate(any(SensorLocationElement.class));
   }
@@ -112,7 +109,7 @@ public class MessageListenerImplTest {
     when(sensorLocationsCache.get(provider + SentiloConstants.SENTILO_INTERNAL_TOKEN + sensor + SentiloConstants.SENTILO_INTERNAL_TOKEN + time))
         .thenReturn(location);
 
-    listener.doWithMessage(message, eventMessage);
+    listener.doWithMessage(eventMessage);
 
     verify(asyncResourceUpdater, times(0)).addResourceToUpdate(any(SensorLocationElement.class));
   }

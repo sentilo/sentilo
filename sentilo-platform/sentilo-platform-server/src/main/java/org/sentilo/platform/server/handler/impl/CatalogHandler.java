@@ -37,9 +37,9 @@ import org.sentilo.common.domain.CatalogInputMessage;
 import org.sentilo.common.domain.CatalogResponseMessage;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.service.CatalogService;
+import org.sentilo.platform.server.converter.CatalogConverter;
 import org.sentilo.platform.server.exception.CatalogErrorException;
 import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.parser.CatalogParser;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.sentilo.platform.server.validation.CatalogValidator;
@@ -58,7 +58,7 @@ public class CatalogHandler extends AbstractHandler {
   @Autowired
   private CatalogService catalogService;
 
-  private CatalogParser parser = new CatalogParser();
+  private CatalogConverter parser = new CatalogConverter();
   private final RequestMessageValidator<CatalogInputMessage> validator = new CatalogValidator();
 
   @Override
@@ -119,7 +119,7 @@ public class CatalogHandler extends AbstractHandler {
     LOGGER.debug("Executing catalog PUT request");
     debug(request);
     final String method = request.getRequestParameter("method");
-    if (StringUtils.hasText(method) && method.equals("delete")) {
+    if (StringUtils.hasText(method) && "delete".equals(method)) {
       doRealOnDelete(request, true);
     } else {
       doRealOnPut(request);

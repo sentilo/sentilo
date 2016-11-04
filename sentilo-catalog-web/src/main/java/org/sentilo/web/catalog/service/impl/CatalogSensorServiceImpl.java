@@ -40,6 +40,7 @@ import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.web.catalog.converter.ApiConverter;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.enums.SensorState;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.CatalogSensorService;
 import org.sentilo.web.catalog.service.ComponentService;
@@ -64,7 +65,7 @@ public class CatalogSensorServiceImpl implements CatalogSensorService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.CatalogSensorService#getSensorsByProvider(java.lang.String,
    * java.util.Map)
@@ -88,6 +89,9 @@ public class CatalogSensorServiceImpl implements CatalogSensorService {
     if (StringUtils.hasText(filterParams.get("type"))) {
       filter.addAndParam("type", filterParams.get("type"));
     }
+
+    // Finally, only active sensors should be returned
+    filter.addAndParam("state", SensorState.online);
 
     return filter;
   }

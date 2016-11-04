@@ -37,7 +37,7 @@ import org.sentilo.platform.service.utils.PubSubConstants;
 public final class MonitorConstants extends PubSubConstants {
 
   public enum MetricKeyType {
-    MASTER, ENTITY, TENANT
+    master, entity, tenant
   }
 
   public enum MetricType {
@@ -52,7 +52,8 @@ public final class MonitorConstants extends PubSubConstants {
   public static final String INSTANT_AVG_FIELD = "instantAvg";
   public static final String TIMESTAMP_FIELD = "ts";
   public static final String TIMESTAMP_MAX_AVG_FIELD = "tsMaxAvg";
-  public static final String TENANT_COUNTERS_KEYS_PATTERN = "counters:tenant:*";
+  public static final String TENANTS_KEY = "tenants";
+  public static final String TENANT_COUNTERS_KEY_PREFIX = "counters:tenant:";
   public static final String MASTER_COUNTERS_KEY = "counters:master";
   public static final String AVGS_PATTERN = "avgs:*";
 

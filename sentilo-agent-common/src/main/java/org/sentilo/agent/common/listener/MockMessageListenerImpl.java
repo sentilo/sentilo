@@ -33,7 +33,6 @@
 package org.sentilo.agent.common.listener;
 
 import org.sentilo.common.domain.EventMessage;
-import org.springframework.data.redis.connection.Message;
 
 public class MockMessageListenerImpl extends AbstractMessageListenerImpl {
 
@@ -42,7 +41,7 @@ public class MockMessageListenerImpl extends AbstractMessageListenerImpl {
   }
 
   @Override
-  public void doWithMessage(final Message message, final EventMessage eventMessage) {
+  public void doWithMessage(final EventMessage eventMessage) {
     // Ignore message
   }
 

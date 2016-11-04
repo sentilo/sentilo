@@ -35,7 +35,6 @@ package org.sentilo.agent.common.listener;
 import org.sentilo.common.domain.EventMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.connection.Message;
 
 public class MonitorMessageListenerImpl extends AbstractMessageListenerImpl {
 
@@ -47,7 +46,7 @@ public class MonitorMessageListenerImpl extends AbstractMessageListenerImpl {
   }
 
   @Override
-  public void doWithMessage(final Message message, final EventMessage eventMessage) {
+  public void doWithMessage(final EventMessage eventMessage) {
     // Nothing to do .... only display a trace
     LOGGER.info("Connection monitor process ... ");
   }

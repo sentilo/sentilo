@@ -39,12 +39,12 @@ import org.sentilo.web.catalog.domain.Provider;
 
 public interface ProviderService extends CrudService<Provider> {
 
-  void deleteChilds(Provider provider);
+  void deleteChildren(Provider provider);
 
   /**
    * Return a list with either all the providers or the ones authorized to the current tenant if
    * multitenant feature is enabled.
-   * 
+   *
    * @return
    */
   List<Provider> findAllowed();

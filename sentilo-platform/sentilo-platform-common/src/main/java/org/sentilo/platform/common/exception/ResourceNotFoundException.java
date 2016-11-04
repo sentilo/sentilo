@@ -33,17 +33,33 @@
 package org.sentilo.platform.common.exception;
 
 import org.apache.http.HttpStatus;
+import org.sentilo.common.utils.SentiloConstants;
 
+/**
+ * Exception thrown when a request is rejected because applies over a resource that does not exist
+ * in Redis.
+ */
 public class ResourceNotFoundException extends PlatformException {
 
   private static final long serialVersionUID = 1L;
 
-  public ResourceNotFoundException(final String message) {
-    super(HttpStatus.SC_NOT_FOUND, message);
-  }
+  private static final String MSG_TEMPLATE = "%s [%s] not found on Sentilo (%s).";
+
+  private final String resourceId;
+  private final String resourceType;
 
   public ResourceNotFoundException(final String resourceId, final String resourceType) {
-    this(String.format("%s with name %s does not exists into Sentilo.", resourceType, resourceId));
+    super(HttpStatus.SC_NOT_FOUND, String.format(MSG_TEMPLATE, resourceType, resourceId, SentiloConstants.PUBSUB_RESOURCE_NOT_FOUND));
+    setInternalErrorCode(SentiloConstants.PUBSUB_RESOURCE_NOT_FOUND);
+    this.resourceId = resourceId;
+    this.resourceType = resourceType;
   }
 
+  public String getResourceId() {
+    return resourceId;
+  }
+
+  public String getResourceType() {
+    return resourceType;
+  }
 }

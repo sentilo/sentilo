@@ -68,12 +68,23 @@
 															<spring:eval expression="alert.updatedAt" />
 														</div>
 													</div>
+													
+													<div class="row-fluid">
+														<div class="span4">
+															<strong><spring:message code="alert.active" /> </strong>
+														</div>
+														<div class="span8">
+															<c:set var="alertActive" value="${fn:contains(alert.active, 'true') ? 'checked' : ''}"/>														
+															<div class="span8"><input type="checkbox" ${alertActive} disabled="disabled" onclick="javascript:return false;"/></div>															
+														</div>
+													</div>
+													
 													<div class="row-fluid">
 														<div class="span4">
 															<strong><spring:message code="alert.type" /> </strong>
 														</div>
 														<div class="span8">
-															<span class="label"><spring:message code="alert.type.${alert.type}" /> </span>
+															<span class="label label-info"><spring:message code="alert.type.${alert.type}" /> </span>
 														</div>
 													</div>
 													<div class="row-fluid">

@@ -57,7 +57,7 @@ public class TenantCustomParamsDTO {
     tenantId = tenant.getId();
     tenantName = tenant.getName();
     this.styleClass = styleClass;
-    this.mapParams = (mapParams == null ? new MapParams() : mapParams);
+    this.mapParams = mapParams == null ? new MapParams() : mapParams;
   }
 
   public String getTenantId() {

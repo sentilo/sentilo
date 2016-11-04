@@ -43,7 +43,6 @@ import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.exception.BusinessValidationException;
 import org.sentilo.web.catalog.exception.CatalogException;
-import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.sentilo.web.catalog.utils.TenantUtils;
@@ -52,6 +51,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,12 +82,9 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   @Autowired
   protected MessageSource messageSource;
 
-  @Autowired
-  private LocalDateFormatter localDateFormat;
-
   @ExceptionHandler(CatalogException.class)
   public ModelAndView handleCustomException(final CatalogException ex) {
-    final String viewName = (ex instanceof BusinessValidationException ? "validationFailure" : "catalogFailure");
+    final String viewName = ex instanceof BusinessValidationException ? "validationFailure" : "catalogFailure";
     final ModelAndView model = new ModelAndView(viewName);
     model.addObject("exception", ex);
     model.addObject("tenantCustomParams", getTenantCustomParams());
@@ -161,7 +158,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
       final HttpServletRequest request) {
 
     if (result.hasErrors()) {
-      doBeforeEditResource(null, model);
+      doBeforeNewResource(request, model);
       ModelUtils.setCreateMode(model);
       return getNameOfViewToReturn(NEW_ACTION);
     }
@@ -169,7 +166,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     doBeforeCreateResource(resource, model);
     getService().create(resource);
     addConfirmationMessageToModel(RESOURCE_CREATED, redirectAttributes);
-    doAfterCreateResource(resource, model);
+    doAfterCreateResource(resource, redirectAttributes, model);
 
     return redirectToList(model, request, redirectAttributes);
   }
@@ -188,13 +185,9 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     doBeforeUpdateResource(resource, model);
     getService().update(resource);
     addConfirmationMessageToModel(RESOURCE_EDITED, redirectAttributes);
-    doAfterUpdateResource(resource, model);
+    doAfterUpdateResource(resource, redirectAttributes, model);
 
     return redirectToList(model, request, redirectAttributes);
-  }
-
-  public LocalDateFormatter getLocalDateFormat() {
-    return localDateFormat;
   }
 
   protected Class<? extends CatalogDocument> getRowClass() {
@@ -246,11 +239,11 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     // To override by subclasses.
   }
 
-  protected void doAfterCreateResource(final T resource, final Model model) {
+  protected void doAfterCreateResource(final T resource, final RedirectAttributes redirectAttributes, final Model model) {
     // To override by subclasses.
   }
 
-  protected void doAfterUpdateResource(final T resource, final Model model) {
+  protected void doAfterUpdateResource(final T resource, final RedirectAttributes redirectAttributes, final Model model) {
     // To override by subclasses.
   }
 
@@ -265,13 +258,15 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     final String[] tokens = postPath.split("/");
 
     final StringBuilder sb = new StringBuilder("/");
-    if (TenantContextHolder.hasContext()) {
+    if (TenantContextHolder.hasContext() && StringUtils.hasText(TenantUtils.getCurrentTenant())) {
       sb.append(TenantUtils.getCurrentTenant());
       sb.append("/");
     }
 
     sb.append(tokens[1] + "/" + tokens[2] + "/list?nameTableRecover=" + nameTableRecover + "&fromBack=" + fromBack);
 
-    return "redirect:" + sb.toString();
+    final String redirectUrl = redirectStrategy.buildRedirectUrl(request, sb.toString());
+
+    return "redirect:" + redirectUrl;
   }
 }

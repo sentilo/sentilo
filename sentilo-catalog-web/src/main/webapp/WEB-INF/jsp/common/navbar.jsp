@@ -20,7 +20,6 @@
 				<%@include file="/WEB-INF/jsp/common/menu_explore.jsp"%>
 				<div class="pull-right">
 					<security:authorize access="isAuthenticated()">
-						<%@include file="/WEB-INF/jsp/common/menu_search.jsp"%>
 						<%@include file="/WEB-INF/jsp/common/menu_profile.jsp"%>
 					</security:authorize>
 					<security:authorize access="isAnonymous()">

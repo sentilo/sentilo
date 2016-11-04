@@ -22,6 +22,7 @@
 </c:if>
 
 <c:set var="editMode" value="${mode == 'edit' }" />
+<spring:message code="select.empty" var="emptySelectMessage" javaScriptEscape="false" htmlEscape="false"/>
 
 <%@include file="/WEB-INF/jsp/common/include_script_datepickers.jsp"%>
 <script type="text/javascript">
@@ -30,7 +31,7 @@ $(document).ready(function() {
 	makeDatePicker('#installationDateDatePicker');
 	<c:if test="${not empty providerId && not editMode}">
 		populateComponents();
-	</c:if>
+	</c:if>	
 	
 });
 
@@ -60,6 +61,11 @@ function emptyComponentSelect() {
 	    .val('');
 };
 
+
+function controlDisplaySubstateFields(){	
+	$('#sensorSubstate').prop('selectedIndex', 0);
+	
+}
 </script>
 
 <div class="container-fluid">
@@ -209,27 +215,37 @@ function emptyComponentSelect() {
 													<form:errors path="timeZone" cssClass="text-error" htmlEscape="false" />
 												</div>
 											</div>
+											
+											
 											<div class="control-group">
-												<form:label path="validTime" class="control-label">
-													<spring:message code="sensor.validTime" />
+												<form:label path="state" class="control-label">
+													<spring:message code="sensor.state" />
 												</form:label>
 												<div class="controls">
-													<div class="input-append">
-														<form:input type="text" path="validTime" id="validTime" />
-														<span class="add-on"><i class="icon-calendar"></i> </span>
-													</div>
-													<form:errors path="validTime" cssClass="text-error" htmlEscape="false" />
+													<form:select path="state" id="sensorState" onchange="controlDisplaySubstateFields();">
+														<c:forEach items="${sensorStates}" var="sensorState">
+															<form:option value="${sensorState}">
+																<spring:message code="sensor.state.${sensorState}" />
+															</form:option>
+														</c:forEach>
+													</form:select>
+													<form:errors path="state" cssClass="text-error" htmlEscape="false" />
 												</div>
 											</div>
-											<div class="control-group">
-												<form:label path="metaData" class="control-label">
-													<spring:message code="sensor.metaData" />
+											
+											<div class="control-group" id="substateFields">
+												<form:label path="substate" class="control-label">
+													<spring:message code="sensor.substate" />
 												</form:label>
 												<div class="controls">
-													<form:input path="metaData" />
-													<form:errors path="metaData" cssClass="text-error" htmlEscape="false" />
+													<form:select path="substate" id="sensorSubstate">														
+														<form:option value="">${emptySelectMessage}</form:option>
+														<form:options items="${sensorSubstates}" itemValue="code" itemLabel="description" />														
+													</form:select>
+													<form:errors path="substate" cssClass="text-error" htmlEscape="false" />
 												</div>
-											</div>
+											</div>																						
+											
 											<%@include file="/WEB-INF/jsp/common/include_input_tags.jsp"%>
 										</div>
 										<div class="tab-pane" id="tab2">											

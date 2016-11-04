@@ -43,7 +43,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.agent.common.repository.impl.PendingEventRepositoryImpl;
+import org.sentilo.agent.common.repository.impl.PendingEventsRepositoryImpl;
 import org.sentilo.common.domain.EventMessage;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -53,13 +53,14 @@ public class PendingEventRepositoryImplTest {
   private static final String AGENT_NAME = "mockAgent";
 
   @InjectMocks
-  private PendingEventRepositoryImpl repository;
+  private PendingEventsRepositoryImpl repository;
 
   @Mock
   private StringRedisTemplate redisTemplate;
 
   @Mock
   private List<EventMessage> pendingEvents;
+
   @Mock
   private SetOperations<String, String> sOps;
 

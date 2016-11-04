@@ -38,6 +38,7 @@ import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
+import org.sentilo.web.catalog.enums.SensorState;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorTypesService;
@@ -99,13 +100,15 @@ public class PublicComponentController extends BaseComponentController {
 
   /**
    * Add to view's model all sensors related to component with id componentId
-   * 
+   *
    * @param model
    * @param componentId Component identifier.
    */
   private void addComponentSensorsRelatedTo(final Model model, final String componentId) {
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("componentId", componentId);
+    // Only active sensors are displayed on the map
+    filter.addAndParam("state", SensorState.online);
     final List<Sensor> sensors = getSensorService().search(filter).getContent();
 
     for (final Sensor sensor : sensors) {
@@ -117,7 +120,7 @@ public class PublicComponentController extends BaseComponentController {
   /**
    * Replace the sensorType id value of a sensor for the sensorType name, because it is a more
    * friendly name.
-   * 
+   *
    * @param sensor
    */
   private void translateAndEscapeSensorType(final Sensor sensor) {

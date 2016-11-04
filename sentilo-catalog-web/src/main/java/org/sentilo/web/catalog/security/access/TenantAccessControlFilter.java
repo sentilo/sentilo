@@ -45,8 +45,6 @@ import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.security.CatalogUserDetails;
 import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.utils.TenantUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.AccessDeniedException;
@@ -60,18 +58,20 @@ import org.springframework.web.filter.GenericFilterBean;
 /**
  * The goal of this filter is to ensure that users only access to restricted pages related to its
  * own tenant site.
+ *
+ * A secondary goal is to ensure that a logged in user automatically access to his tenant site if
+ * the tenant is not filled in at the request
  */
 public class TenantAccessControlFilter extends GenericFilterBean {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(TenantAccessControlFilter.class);
 
   @Autowired
   private CatalogUserDetailsService userDetailsService;
 
   private WebInvocationPrivilegeEvaluator requestEvaluator;
 
-  private final Authentication anonymousAuth = new AnonymousAuthenticationToken("_KEY", "anonymousUser",
-      AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+  private final Authentication anonymousAuth =
+      new AnonymousAuthenticationToken("_KEY", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
   @Override
   public void doFilter(final ServletRequest req, final ServletResponse res, final FilterChain chain) throws IOException, ServletException {
@@ -87,7 +87,7 @@ public class TenantAccessControlFilter extends GenericFilterBean {
     boolean allowAccess = true;
 
     if (filterByTenantEnabled() && userIsLoggedIn() && !isAnonymousRequest(request)) {
-      allowAccess = userBelongsToTenant();
+      allowAccess = userBelongsToRequestTenant(request);
     }
 
     return allowAccess;
@@ -106,15 +106,15 @@ public class TenantAccessControlFilter extends GenericFilterBean {
     return userDetailsService.getCatalogUserDetails() != null;
   }
 
-  private boolean userBelongsToTenant() {
+  private boolean userBelongsToRequestTenant(final HttpServletRequest request) {
     boolean userBelongsToTenant = false;
     final CatalogUserDetails userDetails = userDetailsService.getCatalogUserDetails();
 
     if (userDetails != null) {
-      final String tenantId = TenantUtils.getCurrentTenant();
+      final String requestTenant = TenantUtils.getRequestTenant();
 
-      userBelongsToTenant =
-          (userDetails.isSuperAdminUser() && tenantId == null) || (!userDetails.isSuperAdminUser() && userDetails.getTenantId().equals(tenantId));
+      userBelongsToTenant = userDetails.isSuperAdminUser() && requestTenant == null
+          || !userDetails.isSuperAdminUser() && userDetails.getTenantId().equals(requestTenant);
     }
 
     return userBelongsToTenant;

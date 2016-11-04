@@ -35,6 +35,7 @@ package org.sentilo.web.catalog.service;
 import java.util.Collection;
 import java.util.List;
 
+import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.SearchFilterResult;
 
@@ -52,6 +53,10 @@ public interface CrudService<T> {
 
   void delete(Collection<T> entities);
 
+  void delete(SearchFilter filter);
+
+  <V extends CatalogDocument> void delete(SearchFilter filter, Class<V> resourceType);
+
   T find(T entity);
 
   List<T> findAll();
@@ -63,4 +68,8 @@ public interface CrudService<T> {
   T findAndThrowErrorIfNotExist(T entity);
 
   boolean exist(String entityId);
+
+  void updateMulti(final Collection<String> objectIds, final String param, final Object value);
+
+  <V> void updateMulti(final Collection<String> objectIds, final List<String> params, final List<V> values);
 }

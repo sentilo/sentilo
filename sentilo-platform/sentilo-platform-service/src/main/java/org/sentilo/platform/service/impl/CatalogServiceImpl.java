@@ -32,6 +32,8 @@
  */
 package org.sentilo.platform.service.impl;
 
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
 import org.sentilo.common.domain.CatalogInputMessage;
@@ -40,14 +42,14 @@ import org.sentilo.common.exception.RESTClientException;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.common.utils.SentiloConstants;
-import org.sentilo.platform.common.domain.CredentialsMessage;
+import org.sentilo.platform.common.domain.EntitiesMetadataMessage;
 import org.sentilo.platform.common.domain.PermissionsMessage;
 import org.sentilo.platform.common.exception.CatalogAccessException;
 import org.sentilo.platform.common.service.CatalogService;
-import org.sentilo.platform.service.parser.CatalogServiceParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -58,19 +60,20 @@ public class CatalogServiceImpl implements CatalogService {
   private static final Logger LOGGER = LoggerFactory.getLogger(CatalogServiceImpl.class);
 
   @Autowired
+  @Qualifier("restClientImpl")
   private RESTClient restClient;
 
-  private final CatalogServiceParser parser = new CatalogServiceParser();
+  private final StringMessageConverter converter = new DefaultStringMessageConverter();
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.common.service.CatalogService#getPermissions()
    */
   public PermissionsMessage getPermissions() {
     try {
       final String response = restClient.get(buildApiPath(SentiloConstants.PERMISSIONS_TOKEN));
-      return parser.parsePermissions(response);
+      return (PermissionsMessage) converter.unmarshal(response, PermissionsMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -78,13 +81,13 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see org.sentilo.platform.common.service.CatalogService#getCredentials()
+   *
+   * @see org.sentilo.platform.common.service.CatalogService#getEntitiesMetadata()
    */
-  public CredentialsMessage getCredentials() {
+  public EntitiesMetadataMessage getEntitiesMetadata() {
     try {
-      final String response = restClient.get(buildApiPath(SentiloConstants.CREDENTIALS_TOKEN));
-      return parser.parseCredentials(response);
+      final String response = restClient.get(buildApiPath(SentiloConstants.METADATA_TOKEN));
+      return (EntitiesMetadataMessage) converter.unmarshal(response, EntitiesMetadataMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -93,7 +96,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.CatalogService#insertSensors(org.sentilo.common.domain.
    * CatalogInputMessage)
@@ -102,7 +105,7 @@ public class CatalogServiceImpl implements CatalogService {
     try {
       final String path = buildApiPath(SentiloConstants.PROVIDER_TOKEN, message.getProviderId());
       final String response = restClient.post(path, message.getBody());
-      return parser.parseCatalogResponse(response);
+      return (CatalogResponseMessage) converter.unmarshal(response, CatalogResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -110,7 +113,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.CatalogService#updateSensorsOrComponents(org.sentilo.common
    * .domain.CatalogInputMessage)
@@ -119,7 +122,7 @@ public class CatalogServiceImpl implements CatalogService {
     try {
       final String path = buildApiPath(SentiloConstants.PROVIDER_TOKEN, message.getProviderId());
       final String response = restClient.put(path, message.getBody());
-      return parser.parseCatalogResponse(response);
+      return (CatalogResponseMessage) converter.unmarshal(response, CatalogResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -127,7 +130,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.CatalogService#getAuthorizedProviders(org.sentilo.common
    * .domain.CatalogInputMessage)
@@ -142,7 +145,7 @@ public class CatalogServiceImpl implements CatalogService {
       }
 
       final String response = restClient.get(path, parameters);
-      return parser.parseCatalogResponse(response);
+      return (CatalogResponseMessage) converter.unmarshal(response, CatalogResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -150,7 +153,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.CatalogService#deleteProvider(org.sentilo.common.domain
    * .CatalogInputMessage)
@@ -159,7 +162,7 @@ public class CatalogServiceImpl implements CatalogService {
     try {
       final String path = buildApiPath(SentiloConstants.DELETE_TOKEN, SentiloConstants.PROVIDER_TOKEN, message.getProviderId());
       final String response = restClient.put(path, message.getBody());
-      return parser.parseCatalogResponse(response);
+      return (CatalogResponseMessage) converter.unmarshal(response, CatalogResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -167,13 +170,13 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.common.service.CatalogService#getAlertsOwners()
    */
   public CatalogAlertResponseMessage getAlertsOwners() {
     try {
       final String response = restClient.get(buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.OWNERS_TOKEN));
-      return parser.parseCatalogAlertResponse(response);
+      return (CatalogAlertResponseMessage) converter.unmarshal(response, CatalogAlertResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -181,10 +184,9 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.platform.common.service.CatalogService#getAuthorizedAlerts(org.sentilo.common.domain
-   * .CatalogAlertInputMessage)
+   *
+   * @see org.sentilo.platform.common.service.CatalogService#getAuthorizedAlerts(org.sentilo.common.
+   * domain .CatalogAlertInputMessage)
    */
   public CatalogAlertResponseMessage getAuthorizedAlerts(final CatalogAlertInputMessage message) {
     try {
@@ -196,7 +198,7 @@ public class CatalogServiceImpl implements CatalogService {
       }
 
       final String response = restClient.get(path, parameters);
-      return parser.parseCatalogAlertResponse(response);
+      return (CatalogAlertResponseMessage) converter.unmarshal(response, CatalogAlertResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -204,7 +206,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.common.service.CatalogService#insertAlerts(org.sentilo.common.domain.
    * CatalogAlertInputMessage)
    */
@@ -212,7 +214,7 @@ public class CatalogServiceImpl implements CatalogService {
     try {
       final String path = buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId());
       final String response = restClient.post(path, message.getBody());
-      return parser.parseCatalogAlertResponse(response);
+      return (CatalogAlertResponseMessage) converter.unmarshal(response, CatalogAlertResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -220,7 +222,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.common.service.CatalogService#updateAlerts(org.sentilo.common.domain.
    * CatalogAlertInputMessage)
    */
@@ -228,7 +230,7 @@ public class CatalogServiceImpl implements CatalogService {
     try {
       final String path = buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId());
       final String response = restClient.put(path, message.getBody());
-      return parser.parseCatalogAlertResponse(response);
+      return (CatalogAlertResponseMessage) converter.unmarshal(response, CatalogAlertResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -236,7 +238,7 @@ public class CatalogServiceImpl implements CatalogService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.common.service.CatalogService#deleteAlerts(org.sentilo.common.domain.
    * CatalogAlertInputMessage)
    */
@@ -245,7 +247,7 @@ public class CatalogServiceImpl implements CatalogService {
       final String path =
           buildApiPath(SentiloConstants.ALERT_TOKEN, SentiloConstants.ENTITY_TOKEN, message.getEntityId(), SentiloConstants.DELETE_TOKEN);
       final String response = restClient.put(path, message.getBody());
-      return parser.parseCatalogAlertResponse(response);
+      return (CatalogAlertResponseMessage) converter.unmarshal(response, CatalogAlertResponseMessage.class);
     } catch (final NestedRuntimeException rce) {
       throw translateException(rce);
     }
@@ -266,12 +268,8 @@ public class CatalogServiceImpl implements CatalogService {
     final String credentialsErrorMessage =
         "Bad credentials invoking Catalog: review the catalog.rest.credentials value at your integration.properties config file";
     final String errorMessage =
-        (nre instanceof RESTClientException && ((RESTClientException) nre).getStatus() == 401 ? credentialsErrorMessage : nre.getMessage());
+        nre instanceof RESTClientException && ((RESTClientException) nre).getStatus() == 401 ? credentialsErrorMessage : nre.getMessage();
     return new CatalogAccessException(errorMessage, nre);
-  }
-
-  public void setRestClient(final RESTClient restClient) {
-    this.restClient = restClient;
   }
 
 }

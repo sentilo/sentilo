@@ -48,7 +48,7 @@ public class AlertAgentLifecycleHook extends AgentLifecycleHook {
 
     // ... and flush pending data
 
-    LOGGER.debug("Custom process gracefully succesfully.");
+    LOGGER.debug("Custom shutdown process finished gracefully.");
   }
 
 }

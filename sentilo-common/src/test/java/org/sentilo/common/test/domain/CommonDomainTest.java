@@ -137,9 +137,8 @@ public class CommonDomainTest {
 
   @Test
   public void catalogInputMessage() throws Exception {
-    final Object[] values =
-        {"mock provider", "mock entity", "mock body", Collections.<String, String>emptyMap(), Collections.<CatalogSensor>emptyList(),
-            Collections.<CatalogComponent>emptyList()};
+    final Object[] values = {"mock provider", "mock entity", "mock body", Collections.<String, String>emptyMap(),
+        Collections.<CatalogSensor>emptyList(), Collections.<CatalogComponent>emptyList()};
     final String[] attributes = {"providerId", "entityId", "body", "parameters", "sensors", "components"};
     final Object[] constructorValues = {"mock entity", Collections.<String, String>emptyMap()};
 
@@ -173,21 +172,20 @@ public class CommonDomainTest {
 
   @Test
   public void catalogSensor() throws Exception {
-    final Object[] values =
-        {"mock sensor", "mock provider", "mock desc", "mock data type", "mock location", "mock type", "mock unit", "mock tz", true, "mock comp",
-            "mock comp type", "mock comp desc", false, Collections.<String, String>emptyMap()};
-    final String[] attributes =
-        {"sensor", "provider", "description", "dataType", "location", "type", "unit", "timeZone", "publicAccess", "component", "componentType",
-            "componentDesc", "componentPublicAccess", "additionalInfo"};
+    final Object[] values = {"mock sensor", "mock provider", "mock desc", "mock data type", "mock location", "mock type", "mock unit", "mock tz",
+        true, "mock comp", "mock comp type", "mock comp desc", false, Collections.<String, String>emptyMap()};
+    final String[] attributes = {"sensor", "provider", "description", "dataType", "location", "type", "unit", "timeZone", "publicAccess", "component",
+        "componentType", "componentDesc", "componentPublicAccess", "additionalInfo"};
 
     bindAndValidateMutableObject(CatalogSensor.class, attributes, values);
   }
 
   @Test
   public void eventMessage() throws Exception {
-    final Object[] values =
-        {"mock msg", "mock ts", "mock topic", "mock type", "mock sensor", "mock provider", "mock location", "mock senser", "mock alert"};
-    final String[] attributes = {"message", "timestamp", "topic", "type", "sensor", "provider", "location", "sender", "alert"};
+    final Object[] values = {"mock msg", "mock ts", "mock topic", "mock type", "mock sensor", "mock provider", "mock location", "mock senser",
+        "mock alert", System.currentTimeMillis(), "mockTenant", "mockTenant", System.currentTimeMillis()};
+    final String[] attributes = {"message", "timestamp", "topic", "type", "sensor", "provider", "location", "publisher", "alert", "publishedAt",
+        "publisherTenant", "tenant", "time"};
 
     bindAndValidateMutableObject(EventMessage.class, attributes, values);
   }

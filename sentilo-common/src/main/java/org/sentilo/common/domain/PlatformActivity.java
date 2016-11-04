@@ -40,9 +40,18 @@ public class PlatformActivity {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private String tenant;
   private long totalRequests;
+  private long totalPutRequests;
+  private long totalGetRequests;
+  private long totalPushRequests;
   private long totalObs;
+  private long totalPutObs;
+  private long totalGetObs;
   private long totalOrders;
+  private long totalPutOrders;
+  private long totalGetOrders;
   private long totalAlarms;
+  private long totalPutAlarms;
+  private long totalGetAlarms;
   private long timestamp;
   private boolean isMaster;
 
@@ -50,14 +59,9 @@ public class PlatformActivity {
     super();
   }
 
-  public PlatformActivity(final String tenant, final long totalRequests, final long totalObs, final long totalOrders, final long totalAlarms,
-      final long timestamp, final boolean isMaster) {
+  public PlatformActivity(final String tenant, final long timestamp, final boolean isMaster) {
     this();
     this.tenant = tenant;
-    this.totalRequests = totalRequests;
-    this.totalObs = totalObs;
-    this.totalOrders = totalOrders;
-    this.totalAlarms = totalAlarms;
     this.timestamp = timestamp;
     this.isMaster = isMaster;
   }
@@ -118,6 +122,78 @@ public class PlatformActivity {
   @JsonProperty("isMaster")
   public void setMaster(final boolean isMaster) {
     this.isMaster = isMaster;
+  }
+
+  public long getTotalPutRequests() {
+    return totalPutRequests;
+  }
+
+  public void setTotalPutRequests(final long totalPutRequests) {
+    this.totalPutRequests = totalPutRequests;
+  }
+
+  public long getTotalGetRequests() {
+    return totalGetRequests;
+  }
+
+  public void setTotalGetRequests(final long totalGetRequests) {
+    this.totalGetRequests = totalGetRequests;
+  }
+
+  public long getTotalPushRequests() {
+    return totalPushRequests;
+  }
+
+  public void setTotalPushRequests(final long totalPushRequests) {
+    this.totalPushRequests = totalPushRequests;
+  }
+
+  public long getTotalPutObs() {
+    return totalPutObs;
+  }
+
+  public void setTotalPutObs(final long totalPutObs) {
+    this.totalPutObs = totalPutObs;
+  }
+
+  public long getTotalGetObs() {
+    return totalGetObs;
+  }
+
+  public void setTotalGetObs(final long totalGetObs) {
+    this.totalGetObs = totalGetObs;
+  }
+
+  public long getTotalPutOrders() {
+    return totalPutOrders;
+  }
+
+  public void setTotalPutOrders(final long totalPutOrders) {
+    this.totalPutOrders = totalPutOrders;
+  }
+
+  public long getTotalGetOrders() {
+    return totalGetOrders;
+  }
+
+  public void setTotalGetOrders(final long totalGetOrders) {
+    this.totalGetOrders = totalGetOrders;
+  }
+
+  public long getTotalPutAlarms() {
+    return totalPutAlarms;
+  }
+
+  public void setTotalPutAlarms(final long totalPutAlarms) {
+    this.totalPutAlarms = totalPutAlarms;
+  }
+
+  public long getTotalGetAlarms() {
+    return totalGetAlarms;
+  }
+
+  public void setTotalGetAlarms(final long totalGetAlarms) {
+    this.totalGetAlarms = totalGetAlarms;
   }
 
 }

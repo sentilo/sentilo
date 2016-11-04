@@ -89,11 +89,11 @@ public class SensorLocationElement implements CatalogElement, Comparable<SensorL
   }
 
   private boolean areEquals(final Object expected, final Object actual) {
-    return (expected == null) ? (actual == null) : expected.equals(actual);
+    return expected == null ? actual == null : expected.equals(actual);
   }
 
   private int valueHashCode(final Object value) {
-    return (value == null) ? 0 : value.hashCode();
+    return value == null ? 0 : value.hashCode();
   }
 
   public String getSensor() {

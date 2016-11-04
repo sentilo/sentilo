@@ -84,7 +84,7 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.alert.service.AlertService#loadAndMonitorInternalAlerts()
    */
   public void loadAndMonitorInternalAlerts() {
@@ -121,7 +121,7 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
       // If no subscriptions are done, the agent will be stopped. Therefore, if we want to ensure
       // that the agent will be always running we should have at least one subscription: a
       // subscription to a mock channel.
-      LOGGER.info("No found internal alerts to process. Register dummy listener to keep alive the agent.");
+      LOGGER.info("No found internal alerts to process. A dummy listener will be registered to keep alive the agent.");
       if (!mockListenerActive) {
         registerSubscriptionIntoContainer(new MockMessageListenerImpl(DUMMY_TOPIC), DUMMY_TOPIC);
         mockListenerActive = true;
@@ -143,7 +143,7 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.springframework.context.ApplicationListener#onApplicationEvent(org.springframework.context
    * .ApplicationEvent)
@@ -200,9 +200,12 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
   }
 
   private List<InternalAlert> getInternalAlerts() {
-    LOGGER.debug("Searching internal alerts ....");
-    final Criteria queryCriteria = Criteria.where("type").is(AlertType.INTERNAL.name());
-    final List<InternalAlert> content = mongoOps.find(new Query(queryCriteria), InternalAlert.class, "alert");
+    LOGGER.debug("Searching active internal alerts ....");
+    final Criteria typeCriteria = Criteria.where("type").is(AlertType.INTERNAL.name());
+    final Criteria activeCriteria = Criteria.where("active").is(Boolean.TRUE);
+    final Query query = new Query(typeCriteria.andOperator(activeCriteria));
+
+    final List<InternalAlert> content = mongoOps.find(query, InternalAlert.class, "alert");
     LOGGER.debug("... and found {} alerts to monitor.", content.size());
     return content;
   }

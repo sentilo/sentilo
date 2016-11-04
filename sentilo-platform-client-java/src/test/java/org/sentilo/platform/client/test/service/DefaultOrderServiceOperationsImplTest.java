@@ -33,6 +33,7 @@
 package org.sentilo.platform.client.test.service;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
@@ -40,10 +41,11 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.platform.client.core.domain.OrderInputMessage;
-import org.sentilo.platform.client.core.parser.OrderMessageConverter;
+import org.sentilo.platform.client.core.domain.OrdersOutputMessage;
 import org.sentilo.platform.client.core.service.impl.DefaultOrderServiceOperationsImpl;
 
 public class DefaultOrderServiceOperationsImplTest {
@@ -58,7 +60,7 @@ public class DefaultOrderServiceOperationsImplTest {
   private OrderInputMessage message;
 
   @Mock
-  private OrderMessageConverter converter;
+  private StringMessageConverter converter;
 
   @Before
   public void setUp() {
@@ -77,6 +79,6 @@ public class DefaultOrderServiceOperationsImplTest {
     service.getLastOrders(message);
 
     verify(restClient).get(any(String.class), any(RequestParameters.class), any(String.class));
-    verify(converter).unmarshall(any(String.class));
+    verify(converter).unmarshal(any(String.class), eq(OrdersOutputMessage.class));
   }
 }

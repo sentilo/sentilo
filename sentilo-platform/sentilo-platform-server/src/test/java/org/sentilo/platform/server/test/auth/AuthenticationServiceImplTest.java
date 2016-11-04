@@ -46,13 +46,13 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.platform.common.domain.CredentialMessage;
+import org.sentilo.common.test.AbstractBaseTest;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
 import org.sentilo.platform.common.security.AnonymousIdentityContext;
-import org.sentilo.platform.common.security.IdentityContextHolder;
-import org.sentilo.platform.common.security.repository.EntityCredentialsRepository;
+import org.sentilo.platform.common.security.RequesterContextHolder;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepository;
 import org.sentilo.platform.server.auth.impl.AuthenticationServiceImpl;
 import org.sentilo.platform.server.exception.UnauthorizedException;
-import org.sentilo.platform.server.test.AbstractBaseTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -67,19 +67,19 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
   @InjectMocks
   private AuthenticationServiceImpl authenticationService;
   @Mock
-  private EntityCredentialsRepository credentialsRepository;
+  private EntityMetadataRepository credentialsRepository;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     runnable = new AuthenticationRunnable(authenticationService);
 
-    final CredentialMessage credential = new CredentialMessage();
-    credential.setToken(token);
-    credential.setEntity(mockEntity);
+    final EntityMetadataMessage entityMetadata = new EntityMetadataMessage();
+    entityMetadata.setToken(token);
+    entityMetadata.setEntity(mockEntity);
 
-    when(credentialsRepository.containsCredential(token)).thenReturn(Boolean.TRUE);
-    when(credentialsRepository.getCredentials(token)).thenReturn(credential);
+    when(credentialsRepository.containsEntityCredential(token)).thenReturn(Boolean.TRUE);
+    when(credentialsRepository.getEntityMetadataFromToken(token)).thenReturn(entityMetadata);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -112,7 +112,7 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
   @Test
   public void testCheckCredential() throws Exception {
     authenticationService.checkCredential(token);
-    Assert.assertEquals(token, IdentityContextHolder.getContext().getToken());
+    Assert.assertEquals(token, RequesterContextHolder.getContext().getToken());
   }
 
   @Test
@@ -121,7 +121,7 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
     ReflectionTestUtils.setField(authenticationService, "anonymousAppClientId", "ANONYMOUS");
 
     authenticationService.checkCredential(null);
-    Assert.assertTrue(IdentityContextHolder.getContext() instanceof AnonymousIdentityContext);
+    Assert.assertTrue(RequesterContextHolder.getContext() instanceof AnonymousIdentityContext);
   }
 
   public class AuthenticationRunnable implements Runnable {
@@ -137,7 +137,7 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
       LOGGER.debug("Running thread {}", Thread.currentThread().getName());
       try {
         authenticationService.checkCredential(token);
-        Assert.assertEquals(token, IdentityContextHolder.getContext().getToken());
+        Assert.assertEquals(token, RequesterContextHolder.getContext().getToken());
 
       } catch (final UnauthorizedException e) {
         LOGGER.debug("Error validating credential in thread: {}", Thread.currentThread().getName());

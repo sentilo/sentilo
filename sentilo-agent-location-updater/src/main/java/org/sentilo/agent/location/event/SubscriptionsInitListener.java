@@ -32,13 +32,12 @@
  */
 package org.sentilo.agent.location.event;
 
+import org.sentilo.agent.common.listener.AbstractSubscriptionsInitListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.PatternTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,30 +45,19 @@ import org.springframework.stereotype.Component;
  * topic /data/* .
  */
 @Component
-public class SubscriptionsInitListener implements org.springframework.context.ApplicationListener<org.springframework.context.event.ContextRefreshedEvent> {
+public class SubscriptionsInitListener extends AbstractSubscriptionsInitListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsInitListener.class);
 
-  private final String data_channel_pattern = "/data/*";
+  private static final String DATA_CHANNEL_PATTERN = "/data/*";
 
-  @Autowired
-  private RedisMessageListenerContainer listenerContainer;
   @Autowired
   private MessageListener messageListener;
 
-  @Override
-  public void onApplicationEvent(final ContextRefreshedEvent event) {
-    LOGGER.info("Executing call to register subscriptions process");
-    subscribe();
-    LOGGER.info("End of process");
-  }
-
-  void subscribe() {
-    // Este proceso subscribe el agente a todos los eventos de tipo /data que se publiquen en la
-    // plataforma.
+  public void subscribe() {
     LOGGER.info("Initializing location agent subscription");
-    listenerContainer.addMessageListener(messageListener, new PatternTopic(data_channel_pattern));
-    LOGGER.debug("Location agent has been subscribe to topic {} succesfully", data_channel_pattern);
+    registerSubscription(messageListener, new PatternTopic(DATA_CHANNEL_PATTERN));
+    LOGGER.debug("Location agent has been subscribe to topic {} succesfully", DATA_CHANNEL_PATTERN);
   }
 
 }

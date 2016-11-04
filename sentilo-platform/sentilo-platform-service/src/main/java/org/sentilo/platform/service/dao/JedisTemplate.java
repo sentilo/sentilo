@@ -45,15 +45,15 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * Based on RedisTemplate from spring-data-redis.
- * 
+ *
  * As not spring-data-redis 1.0.3 implements all redis available commands (e.g. zremrangebyrank )
  * and RedisMessageListenerContainer no lets unsubscribe for a subscription (see
  * http://forum.springsource.org/showthread.php?133937-Spring-Data-Redis-pub-sub-unsubscribe), all
  * the functionality needed is replicated in this project.
- * 
+ *
  * Upgrade: new versions of spring-data-redis already implements the unsubscribe functionality (see
  * https://jira.springsource.org/browse/DATAREDIS-107)
- * 
+ *
  * @see RedisMessageListenerContainer
  * @see DefaultZSetOperations
  */
@@ -72,7 +72,7 @@ public class JedisTemplate<K, V> {
    * Executes the given action object within a connection that can be exposed or not. Additionally,
    * the connection can be pipelined. Note the results of the pipeline are discarded (making it
    * suitable for write-only scenarios).
-   * 
+   *
    * @param <T> return type
    * @param action callback object to execute
    * @return object returned by the action

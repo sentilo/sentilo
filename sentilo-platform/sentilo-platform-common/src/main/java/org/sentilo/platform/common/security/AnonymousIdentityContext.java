@@ -35,7 +35,7 @@ package org.sentilo.platform.common.security;
 /**
  * Represents an anonymous identity access.
  */
-public class AnonymousIdentityContext extends IdentityContext {
+public class AnonymousIdentityContext extends RequesterContext {
 
   public AnonymousIdentityContext(final String entityId) {
     super(entityId);

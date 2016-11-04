@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permission> implements PermissionService {
+public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permission>implements PermissionService {
 
   @Autowired
   private PermissionRepository repository;
@@ -62,8 +62,8 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
 
   @Override
   protected void doAfterInit() {
-    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(), new CompoundDuplicateKeyExceptionBuilder(
-        "error.permission.duplicate.key", Constants.PERMISSION_TOKEN_SPLITTER)));
+    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(),
+        new CompoundDuplicateKeyExceptionBuilder("error.permission.duplicate.key", Constants.PERMISSION_TOKEN_SPLITTER)));
     super.doAfterInit();
   }
 
@@ -79,7 +79,7 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.PermissionService#retrievePermissions()
    */
   @Override
@@ -89,7 +89,7 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.PermissionService#deleteRelated(org.sentilo.web.catalog.domain
    * .CatalogDocument)
@@ -97,18 +97,17 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
   @Override
   public void deleteRelated(final CatalogDocument entity) {
     // Tenemos que eliminar todos aquellos permisos en donde el target o el source del permiso sea
-    // la entidad informada
-    // por parametro.
+    // la entidad informada por parametro.
     final SearchFilter filter = new SearchFilter();
     filter.addParam("source", entity.getId());
     filter.addParam("target", entity.getId());
 
-    getMongoOps().remove(buildQuery(filter), Permission.class);
+    delete(filter);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.PermissionService#createRelated(org.sentilo.web.catalog.domain
    * .CatalogDocument)
@@ -121,7 +120,7 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.PermissionService#getActivePermissions(java.lang.String)
    */
   @Override

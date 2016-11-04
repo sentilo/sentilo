@@ -36,5 +36,7 @@ public interface TenantContext {
 
   String getCurrentTenant();
 
-  void setCurrentTenant(final String tenant);
+  String getRequestTenant();
+
+  String getUserTenant();
 }

@@ -30,9 +30,11 @@
 	<context:component-scan base-package="org.sentilo.web.catalog.validator" />
 	<context:component-scan base-package="org.sentilo.web.catalog.service.impl" />
 	<context:component-scan base-package="org.sentilo.web.catalog.security" />
-	<context:component-scan base-package="org.sentilo.web.catalog.aop.aspect" />
+	<context:component-scan base-package="org.sentilo.web.catalog.aop.aspect" />	
 	<context:component-scan base-package="org.sentilo.web.catalog.listener" />	
+	<context:component-scan base-package="org.sentilo.web.catalog.admin" />
 
-	<task:annotation-driven scheduler="platformScheduler" />
-	<task:scheduler id="platformScheduler" pool-size="5" />
+	<task:annotation-driven scheduler="catalogScheduler" executor="catalogExecutor"/>
+	<task:scheduler id="catalogScheduler" pool-size="5" />
+	<task:executor id="catalogExecutor" pool-size="3-10" queue-capacity="100" keep-alive="120"/>
 </beans>

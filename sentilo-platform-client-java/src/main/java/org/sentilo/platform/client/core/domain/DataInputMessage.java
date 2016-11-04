@@ -88,7 +88,7 @@ public class DataInputMessage implements PlatformClientInputMessage, PlatformSea
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#getQueryFilters()
    */
   @Override
@@ -98,7 +98,7 @@ public class DataInputMessage implements PlatformClientInputMessage, PlatformSea
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#hasQueryFilters()
    */
   @Override
@@ -108,7 +108,7 @@ public class DataInputMessage implements PlatformClientInputMessage, PlatformSea
 
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("--- Message ---");
     sb.append("\n\t provider:").append(providerId);
     sb.append("\n\t sensor:").append(sensorId);

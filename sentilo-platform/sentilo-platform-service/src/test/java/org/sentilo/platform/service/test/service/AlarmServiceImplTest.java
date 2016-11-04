@@ -41,7 +41,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,10 +51,15 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.common.domain.AlertOwner;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
+import org.sentilo.platform.common.domain.Alert;
+import org.sentilo.platform.common.exception.EventRejectedException;
 import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.security.RequesterContext;
+import org.sentilo.platform.common.security.RequesterContextHolder;
+import org.sentilo.platform.common.security.ResourceOwnerContext;
+import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
 import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
@@ -80,23 +84,53 @@ public class AlarmServiceImplTest {
   private CatalogService catalogService;
   @Mock
   private CatalogAlertResponseMessage catalogResponseMessage;
+  @Mock
+  private Alert alert;
+  @Mock
+  private RequesterContext requesterContext;
+  @Mock
+  private ResourceOwnerContext resourceOwnerContext;
+
   @InjectMocks
   private AlarmServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    RequesterContextHolder.setContext(requesterContext);
+    ResourceOwnerContextHolder.setContext(resourceOwnerContext);
   }
 
   @Test
   public void setAlarm() {
     when(message.getMessage()).thenReturn("Alarm event");
-    when(message.getAlertId()).thenReturn("alert1");
-
+    when(message.getAlertId()).thenReturn(ALERT_ID);
+    when(resourceService.existsAlert(ALERT_ID)).thenReturn(Boolean.TRUE);
+    when(resourceService.isAlertDisabled(ALERT_ID)).thenReturn(Boolean.FALSE);
     final String channel = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, message.getAlertId()).getTopic();
+
     service.setAlarm(message);
 
     verify(jedisTemplate).publish(eq(channel), anyString());
+  }
+
+  @Test(expected = EventRejectedException.class)
+  public void setAlarmFromDisabledAlert() {
+    when(message.getMessage()).thenReturn("Alarm event");
+    when(message.getAlertId()).thenReturn(ALERT_ID);
+    when(resourceService.existsAlert(ALERT_ID)).thenReturn(Boolean.TRUE);
+    when(resourceService.isAlertDisabled(ALERT_ID)).thenReturn(Boolean.TRUE);
+
+    service.setAlarm(message);
+  }
+
+  @Test(expected = EventRejectedException.class)
+  public void setAlarmFromUnknowAlert() {
+    when(message.getMessage()).thenReturn("Alarm event");
+    when(message.getAlertId()).thenReturn(ALERT_ID);
+    when(resourceService.existsAlert(ALERT_ID)).thenReturn(Boolean.FALSE);
+
+    service.setAlarm(message);
   }
 
   @Test
@@ -128,20 +162,22 @@ public class AlarmServiceImplTest {
   }
 
   @Test(expected = ResourceNotFoundException.class)
-  public void getUnknownAlertOwner() throws ResourceNotFoundException {
+  public void getUnknownAlertOwner() {
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(1L);
+    when(resourceService.getAlert(1L)).thenReturn(null);
+
     service.getAlertOwner(ALERT_ID);
   }
 
   @Test
-  public void getAlertOwner() throws ResourceNotFoundException {
+  public void getAlertOwner() {
     final String owner = "mockOwner";
-    final AlertOwner[] alertOwners = {new AlertOwner(ALERT_ID, owner)};
-    when(catalogService.getAlertsOwners()).thenReturn(catalogResponseMessage);
-    when(catalogResponseMessage.getOwners()).thenReturn(Arrays.asList(alertOwners));
-    service.loadAlertsOwners();
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(1L);
+    when(resourceService.getAlert(1L)).thenReturn(alert);
+    when(alert.getEntity()).thenReturn(owner);
+
     final String actualOwner = service.getAlertOwner(ALERT_ID);
 
-    verify(catalogService).getAlertsOwners();
     Assert.assertEquals(owner, actualOwner);
   }
 

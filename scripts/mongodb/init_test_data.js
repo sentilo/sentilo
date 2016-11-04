@@ -11,7 +11,7 @@ db.provider.insert({ "_id" : "testApp_provider", "_class" : "org.sentilo.web.cat
 
 // Insert alerts
 print("Load alerts");
-db.alert.insert({ "_id" : "testAlert", "_class" : "org.sentilo.web.catalog.domain.Alert", "name" : "testAlert", "description" : "Alert to do integration tests. Do not remove.", "createdAt" : ISODate("2015-05-18T10:49:23.438Z"), "type" : "EXTERNAL", "providerId" : "testApp_provider" })
+db.alert.insert({ "_id" : "testAlert", "_class" : "org.sentilo.web.catalog.domain.Alert", "name" : "testAlert", "description" : "Alert to do integration tests. Do not remove.", "createdAt" : ISODate("2015-05-18T10:49:23.438Z"), "type" : "EXTERNAL", "providerId" : "testApp_provider", "active" : true })
 
 // Insert permissions
 print("Load permissions");

@@ -47,6 +47,6 @@ public class NotBlankTenantValidator implements ConstraintValidator<NotBlankTena
 
   @Override
   public boolean isValid(final String tenantId, final ConstraintValidatorContext context) {
-    return (TenantContextHolder.isEnabled() && !StringUtils.hasText(tenantId) ? false : true);
+    return TenantContextHolder.isEnabled() && !StringUtils.hasText(tenantId) ? false : true;
   }
 }

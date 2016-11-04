@@ -36,16 +36,12 @@ import java.util.List;
 
 import org.sentilo.platform.common.domain.Alarm;
 import org.sentilo.platform.common.domain.AlarmInputMessage;
-import org.sentilo.platform.common.exception.ResourceNotFoundException;
 
 public interface AlarmService {
 
   void setAlarm(AlarmInputMessage message);
 
-  String getAlertOwner(String alertId) throws ResourceNotFoundException;
+  String getAlertOwner(String alertId);
 
   List<Alarm> getLastAlarms(AlarmInputMessage inputMessage);
-
-  void loadAlertsOwners();
-
 }

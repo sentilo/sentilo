@@ -48,8 +48,9 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 import org.sentilo.common.utils.SentiloUtils;
-import org.sentilo.platform.common.security.IdentityContextHolder;
+import org.sentilo.platform.common.security.RequesterContextHolder;
 import org.sentilo.platform.server.auth.AuthenticationService;
+import org.sentilo.platform.server.exception.SSLRequiredException;
 import org.sentilo.platform.server.exception.UnauthorizedException;
 import org.sentilo.platform.server.http.HttpHeader;
 import org.sentilo.platform.server.http.HttpMethod;
@@ -84,6 +85,15 @@ public class SentiloRequest {
   public void checkCredentialIntegrity(final AuthenticationService authenticationService) throws UnauthorizedException {
     final String credential = extractHeader(HttpHeader.IDENTITY_KEY);
     authenticationService.checkCredential(credential);
+  }
+
+  public void checkSSLAAccess() throws SSLRequiredException {
+    final String schemeAccess = extractHeader(HttpHeader.X_FORWARDED_PROTO);
+    final boolean sslNeeded = RequesterContextHolder.getContext().getMetadata().isRestHttps();
+
+    if (sslNeeded && !"https".equals(schemeAccess)) {
+      throw new SSLRequiredException();
+    }
   }
 
   public String getResourcePart(final int pos) {
@@ -124,7 +134,7 @@ public class SentiloRequest {
   private void parseContentType() {
     final String contentTypeValue = extractHeader(HttpHeader.CONTENT_TYPE);
     try {
-      contentType = (StringUtils.hasText(contentTypeValue) ? ContentType.parse(extractHeader(HttpHeader.CONTENT_TYPE)) : getDefaultContentType());
+      contentType = StringUtils.hasText(contentTypeValue) ? ContentType.parse(extractHeader(HttpHeader.CONTENT_TYPE)) : getDefaultContentType();
     } catch (final ParseException pe) {
       contentType = getDefaultContentType();
     }
@@ -150,7 +160,7 @@ public class SentiloRequest {
     LOGGER.debug("extractHeader: {}", header.toString());
 
     final Header[] requestHeaders = httpRequest.getHeaders(header.toString());
-    return (SentiloUtils.arrayIsEmpty(requestHeaders) ? null : requestHeaders[0].getValue());
+    return SentiloUtils.arrayIsEmpty(requestHeaders) ? null : requestHeaders[0].getValue();
   }
 
   public String getHandlerPath() {
@@ -177,11 +187,11 @@ public class SentiloRequest {
 
   /**
    * Returns the entity's identity that has done the request
-   * 
+   *
    * @return
    */
   public String getEntitySource() {
-    return IdentityContextHolder.getContext().getEntityId();
+    return RequesterContextHolder.getContext().getEntityId();
   }
 
   private ContentType getDefaultContentType() {

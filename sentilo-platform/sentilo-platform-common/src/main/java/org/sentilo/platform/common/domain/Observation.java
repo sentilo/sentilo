@@ -32,6 +32,8 @@
  */
 package org.sentilo.platform.common.domain;
 
+import org.sentilo.platform.common.security.RequesterContextHolder;
+
 public class Observation {
 
   private String provider;
@@ -45,19 +47,19 @@ public class Observation {
   }
 
   public Observation(final String provider, final String sensor, final String value) {
-    this(provider, sensor, value, System.currentTimeMillis());
-  }
-
-  public Observation(final String provider, final String sensor, final String value, final Long timestamp) {
-    this(provider, sensor, value, timestamp, null);
-  }
-
-  public Observation(final String provider, final String sensor, final String value, final Long timestamp, final String location) {
     this();
     this.provider = provider;
     this.sensor = sensor;
     this.value = value;
+  }
+
+  public Observation(final String provider, final String sensor, final String value, final Long timestamp) {
+    this(provider, sensor, value);
     this.timestamp = timestamp;
+  }
+
+  public Observation(final String provider, final String sensor, final String value, final Long timestamp, final String location) {
+    this(provider, sensor, value, timestamp);
     this.location = location;
   }
 
@@ -70,10 +72,7 @@ public class Observation {
   }
 
   public Long getTimestamp() {
-    if (timestamp == null) {
-      timestamp = System.currentTimeMillis();
-    }
-    return timestamp;
+    return timestamp == null && RequesterContextHolder.getContext() != null ? RequesterContextHolder.getContext().getRequestTimestamp() : timestamp;
   }
 
   public void setTimestamp(final Long timestamp) {
@@ -103,4 +102,5 @@ public class Observation {
   public String getLocation() {
     return location;
   }
+
 }

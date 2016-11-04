@@ -42,9 +42,9 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.platform.common.domain.CredentialMessage;
-import org.sentilo.platform.common.domain.CredentialsMessage;
-import org.sentilo.platform.common.security.repository.EntityCredentialsRepositoryImpl;
+import org.sentilo.platform.common.domain.EntitiesMetadataMessage;
+import org.sentilo.platform.common.domain.EntityMetadataMessage;
+import org.sentilo.platform.common.security.repository.EntityMetadataRepositoryImpl;
 import org.sentilo.platform.common.service.CatalogService;
 
 public class EntityCredentialsRepositoryImplTest {
@@ -57,7 +57,7 @@ public class EntityCredentialsRepositoryImplTest {
   private final String mockTenant = "mockTenantId";
 
   @InjectMocks
-  private EntityCredentialsRepositoryImpl repository;
+  private EntityMetadataRepositoryImpl repository;
 
   @Mock
   private CatalogService catalogService;
@@ -66,46 +66,46 @@ public class EntityCredentialsRepositoryImplTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
 
-    final CredentialMessage credential = new CredentialMessage();
-    credential.setToken(token);
-    credential.setEntity(mockEntity);
-    credential.setTenantId(mockTenant);
+    final EntityMetadataMessage entityMetadata = new EntityMetadataMessage();
+    entityMetadata.setToken(token);
+    entityMetadata.setEntity(mockEntity);
+    entityMetadata.setTenantId(mockTenant);
 
-    final CredentialMessage credential2 = new CredentialMessage();
-    credential2.setToken(token2);
-    credential2.setEntity(mockEntity2);
+    final EntityMetadataMessage entityMetadata2 = new EntityMetadataMessage();
+    entityMetadata2.setToken(token2);
+    entityMetadata2.setEntity(mockEntity2);
 
-    final CredentialsMessage message = new CredentialsMessage();
-    message.setCredentials(Arrays.asList(new CredentialMessage[] {credential, credential2}));
+    final EntitiesMetadataMessage message = new EntitiesMetadataMessage();
+    message.setEntitiesMetadata(Arrays.asList(new EntityMetadataMessage[] {entityMetadata, entityMetadata2}));
 
-    when(catalogService.getCredentials()).thenReturn(message);
+    when(catalogService.getEntitiesMetadata()).thenReturn(message);
 
-    repository.loadActiveCredentials();
+    repository.loadActiveEntitiesMetadata();
   }
 
   @Test
   public void validCredential() {
-    final boolean validCredential = repository.containsCredential(token);
-    final CredentialMessage credential = repository.getCredentials(token);
+    final boolean validCredential = repository.containsEntityCredential(token);
+    final EntityMetadataMessage entityMetadata = repository.getEntityMetadataFromToken(token);
 
     Assert.assertTrue(validCredential);
-    Assert.assertNotNull(credential);
-    Assert.assertEquals(mockEntity, credential.getEntity());
+    Assert.assertNotNull(entityMetadata);
+    Assert.assertEquals(mockEntity, entityMetadata.getEntity());
   }
 
   @Test
   public void noValidCredential() {
-    final boolean validCredential = repository.containsCredential(token3);
-    final CredentialMessage credential = repository.getCredentials(token3);
+    final boolean validCredential = repository.containsEntityCredential(token3);
+    final EntityMetadataMessage entityMetadata = repository.getEntityMetadataFromToken(token3);
 
     Assert.assertFalse(validCredential);
-    Assert.assertNull(credential);
+    Assert.assertNull(entityMetadata);
   }
 
   @Test
   public void getTenant() {
-    final String tenant = repository.getTenant(mockEntity);
-    final String nullTenant = repository.getTenant(mockEntity2);
+    final String tenant = repository.getTenantOwner(mockEntity);
+    final String nullTenant = repository.getTenantOwner(mockEntity2);
 
     Assert.assertNotNull(tenant);
     Assert.assertNull(nullTenant);

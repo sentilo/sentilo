@@ -53,6 +53,7 @@ import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Location;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.Sensor.DataType;
+import org.sentilo.web.catalog.enums.SensorState;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
 import org.springframework.beans.BeanUtils;
@@ -145,7 +146,7 @@ public abstract class ApiConverter {
    * Translate SensorLocationElement list into a Component list where each component will have a
    * list of location route point candidates. Every SensorLocationElement is parsed into a new
    * location candidate
-   * 
+   *
    * @param context
    * @return
    */
@@ -232,6 +233,9 @@ public abstract class ApiConverter {
     if (catalogSensor.getTechnicalDetails() != null) {
       sensor.setTechnicalDetails(catalogSensor.getTechnicalDetails());
     }
+
+    // By default, a new sensor is always online
+    sensor.setState(SensorState.online);
 
     sensor.setCreatedAt(new Date());
     sensor.setUpdatedAt(new Date());
@@ -334,6 +338,7 @@ public abstract class ApiConverter {
 
   private static Component buildNewComponent(final CatalogElement resource, final ApiConverterContext context) {
     final CatalogSensor catalogSensor = (CatalogSensor) resource;
+    Component component = null;
 
     // Convenciones para el registro de los componentes:
     // 1. En caso de que el nombre del componente no venga informado, por defecto se considera que
@@ -354,7 +359,7 @@ public abstract class ApiConverter {
     final String name = catalogSensor.getComponent();
 
     if (context.getComponentService().findByName(providerId, name) == null) {
-      final Component component = new Component();
+      component = new Component();
       component.setProviderId(context.getProviderId());
       component.setName(catalogSensor.getComponent());
       component.setComponentType(catalogSensor.getComponentType());
@@ -385,11 +390,9 @@ public abstract class ApiConverter {
       component.setId(Component.buildId(context.getProviderId(), component.getName()));
       component.setCreatedAt(new Date());
       component.setUpdatedAt(new Date());
-
-      return component;
-    } else {
-      return null;
     }
+
+    return component;
   }
 
   private static Component buildComponentToUpdate(final CatalogElement resource, final ApiConverterContext context) {

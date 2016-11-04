@@ -32,9 +32,7 @@
  */
 package org.sentilo.web.catalog.exception.builder;
 
-import org.sentilo.web.catalog.exception.ResourceNotFoundException;
-
 public interface ResourceNotFoundExceptionBuilder {
 
-  ResourceNotFoundException buildResourceNotFoundException(String invalidKey);
+  void buildAndThrowResourceNotFoundException(String invalidKey);
 }

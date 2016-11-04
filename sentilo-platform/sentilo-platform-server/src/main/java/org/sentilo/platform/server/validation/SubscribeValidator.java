@@ -47,11 +47,11 @@ public class SubscribeValidator extends AbstractRequestMessageValidator<Subscrib
     Assert.notNull(requestMessage.getSubscription());
     final Subscription subscription = requestMessage.getSubscription();
     if (subscription.getType() == null) {
-      throw new MessageValidationException("To do a subscription is mandatory to inform the type of the subscription");
+      throw new MessageValidationException("To register a subscription is mandatory to fill in the type of the subscription");
     }
 
-    if (!StringUtils.hasText(subscription.getEndpoint())) {
-      throw new MessageValidationException("To do a subscription is mandatory to inform the endpoint of the subscription");
+    if (subscription.getNotificationParams() == null || !StringUtils.hasText(subscription.getNotificationParams().getEndpoint())) {
+      throw new MessageValidationException("To register a subscription is mandatory to fill in the endpoint of the subscription");
     }
 
     super.validateRequestMessageOnPut(requestMessage);

@@ -41,10 +41,12 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.dto.DataTablesDTO;
 import org.sentilo.web.catalog.dto.LastSearchParamsDTO;
+import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.SearchFilterResolver;
 import org.sentilo.web.catalog.search.SearchFilterResult;
@@ -52,6 +54,7 @@ import org.sentilo.web.catalog.search.builder.Column;
 import org.sentilo.web.catalog.search.builder.DefaultSearchFilterBuilderImpl;
 import org.sentilo.web.catalog.search.builder.SearchFilterBuilder;
 import org.sentilo.web.catalog.search.builder.SearchFilterUtils;
+import org.sentilo.web.catalog.security.SentiloRedirectStrategy;
 import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.CatalogUtils;
@@ -90,9 +93,13 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
   private static final String LAST_SEARCH_PARAMS_MAP = "lastSearchParamsMap";
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(SearchController.class);
+  protected SentiloRedirectStrategy redirectStrategy = new SentiloRedirectStrategy();
 
   @Autowired
   protected CatalogUserDetailsService userDetailsService;
+
+  @Autowired
+  private LocalDateFormatter localDateFormat;
 
   private final SearchFilterBuilder searchFilterBuilder = new DefaultSearchFilterBuilderImpl();
   private final Map<String, String> viewNames = new HashMap<String, String>();
@@ -172,6 +179,10 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
     return new ModelAndView(EXCEL_VIEW, tableName, model);
   }
 
+  public LocalDateFormatter getLocalDateFormat() {
+    return localDateFormat;
+  }
+
   protected DataTablesDTO toDataTables(final Integer sEcho, final List<T> resources, final Long count) {
 
     final DataTablesDTO dataTables = new DataTablesDTO();
@@ -181,36 +192,51 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
     dataTables.setTotalCount(count);
 
     for (final T resource : resources) {
+      final Map<String, String> rowMetadata = new HashMap<String, String>();
       final List<String> row = toRow(resource);
-      addRowMetadata(resource, row);
+      addRowMetadata(resource, rowMetadata);
+
+      if (!rowMetadata.isEmpty()) {
+        writeRowMetadata(rowMetadata, row);
+      }
+
       dataTables.add(row);
     }
     return dataTables;
   }
 
+  private void writeRowMetadata(final Map<String, String> rowMetadata, final List<String> row) {
+    try {
+      row.add(new ObjectMapper().writeValueAsString(rowMetadata));
+    } catch (final Exception e) {
+      LOGGER.warn("Error writing rowMetadata to row . This rowMetadata is rejected", e);
+    }
+  }
+
   /**
-   * Row metadata allows to add additional info needed to render the row
-   * 
+   * rowMetadata allows to add additional info needed to render the row
+   *
    * @param resource
-   * @param row
+   * @param rowMetadata
    */
-  protected void addRowMetadata(final T resource, final List<String> row) {
-    if (TenantContextHolder.hasContext()) {
-      checkResourceOwner(resource, row);
+  protected void addRowMetadata(final T resource, final Map<String, String> rowMetadata) {
+    final boolean isSuperAdminUser =
+        userDetailsService.getCatalogUserDetails() != null && userDetailsService.getCatalogUserDetails().isSuperAdminUser();
+    if (TenantContextHolder.hasContext() && !isSuperAdminUser) {
+      checkResourceOwner(resource, rowMetadata);
     }
   }
 
   /**
    * If multitenant feature is enabled, only resources which are owned by the user's tenant must
    * render the first column as a checkbox.
-   * 
+   *
    * @param resource
-   * @param row
+   * @param rowMetadata
    */
-  private void checkResourceOwner(final T resource, final List<String> row) {
+  private void checkResourceOwner(final T resource, final Map<String, String> rowMetadata) {
     if (!TenantUtils.isCurrentTenantResource(resource)) {
-      final String rowMetadata = "{hideCheckbox:true}";
-      row.add(rowMetadata);
+      rowMetadata.put("hideCheckbox", Boolean.TRUE.toString());
     }
   }
 
@@ -249,7 +275,7 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
       }
     }
 
-    final String sortDirection = (isAsc ? Constants.ASC : Constants.DESC);
+    final String sortDirection = isAsc ? Constants.ASC : Constants.DESC;
 
     final LastSearchParamsDTO backSearch =
         new LastSearchParamsDTO(pageable.getPageNumber(), pageable.getPageSize(), search, listName, sortColumnPosition, sortDirection);

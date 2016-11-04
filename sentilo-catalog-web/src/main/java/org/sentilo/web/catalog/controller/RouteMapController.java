@@ -62,7 +62,7 @@ public class RouteMapController extends AbstractMapController {
     model.addAttribute(Constants.MODEL_DATE_UPDATED, getLocalDateFormat().printCurrentAsLocalTime());
     // Component types's list is needed to render the page, because a select is displayed
     // to filter components to visualize.
-    final boolean onlyPublics = (principal == null ? true : false);
+    final boolean onlyPublics = principal == null ? true : false;
     model.addAttribute(Constants.MODEL_COMPONENT_TYPES, getComponentTypesService().getActiveComponentTypes(onlyPublics));
 
     model.addAttribute(Constants.MODEL_MAP_TYPE, "route");
@@ -74,7 +74,7 @@ public class RouteMapController extends AbstractMapController {
   public MapModelDTO getJSONComponentMap(@RequestParam(required = false) final String componentType,
       @RequestParam(required = false) final String[] bounds, final Principal principal, final Model model) {
 
-    final String[] componentTypes = (StringUtils.hasText(componentType) ? new String[] {componentType} : null);
+    final String[] componentTypes = StringUtils.hasText(componentType) ? new String[] {componentType} : null;
     final SearchFilter filter = buildSearchFilter(componentTypes, bounds, principal, true);
 
     final Map<String, String> icons = getIconMap();

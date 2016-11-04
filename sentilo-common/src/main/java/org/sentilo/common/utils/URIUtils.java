@@ -50,7 +50,6 @@ public abstract class URIUtils {
   }
 
   public static String getURI(final String host, final String path, final RequestParameters parameters) {
-
     try {
       final URI baseURI = getBaseURI(host, path);
       final URIBuilder builder = new URIBuilder(baseURI);

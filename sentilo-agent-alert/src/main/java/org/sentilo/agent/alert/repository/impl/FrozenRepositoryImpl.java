@@ -66,7 +66,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.alert.repository.FrozenRepository#checkFrozenAlerts()
    */
   public List<InternalAlert> checkFrozenAlerts() {
@@ -88,7 +88,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.agent.alert.repository.FrozenRepository#updateFrozenTimeouts(java.util.Collection)
    */
@@ -104,7 +104,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
       final String value = AlertUtils.buildFrozenAlertMember(frozenAlert);
       LOGGER.debug("Updating frozen timeout for member {}", value);
       final double maxFrozenMinutes = AlertUtils.transformNumber(frozenAlert.getExpression()).doubleValue();
-      final double score = currentTimestamp + (maxFrozenMinutes * 60 * 1000);
+      final double score = currentTimestamp + maxFrozenMinutes * 60 * 1000;
       redisTemplate.opsForZSet().add(SORTED_SET_KEY, value, score);
       LOGGER.debug("Frozen timeout for member {} updated to {}", value, score);
     } catch (final ParseException e) {
@@ -114,7 +114,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.agent.alert.repository.FrozenRepository#synchronizeAlerts(java.util.Collection)
    */
@@ -156,7 +156,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
       }
     }
 
-    LOGGER.debug("Found {} members on Redis that need to be remove because them no longer exist on Catalog", membersToRemove.size());
+    LOGGER.debug("Found {} members on Redis that need to be removed because them no longer exist on Catalog", membersToRemove.size());
     if (!CollectionUtils.isEmpty(membersToRemove)) {
       // Remove in blocks of 20 members maximum to not penalize Redis
       final int blockSize = 20;
@@ -167,7 +167,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
         redisTemplate.opsForZSet().remove(SORTED_SET_KEY, subListToRemove.toArray(new Object[subListToRemove.size()]));
 
         fromIndex = toIndex;
-        toIndex = ((toIndex + blockSize) < membersToRemove.size() ? toIndex + blockSize : membersToRemove.size());
+        toIndex = toIndex + blockSize < membersToRemove.size() ? toIndex + blockSize : membersToRemove.size();
       } while (fromIndex < membersToRemove.size());
 
     }

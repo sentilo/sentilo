@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<context:annotation-config />
+
+	<import resource="classpath:spring/historian-properties-context.xml" />	
+	<import resource="classpath:spring/historian-pubsub-context.xml" />
+	<import resource="classpath:spring/historian-persistence-context.xml" />
+	
+	<context:component-scan base-package="org.sentilo.agent.historian" />
+	<context:component-scan base-package="org.sentilo.agent.common.listener" />	
+	<context:component-scan base-package="org.sentilo.agent.common.service" />    
+  	<context:component-scan base-package="org.sentilo.agent.common.repository" />
+  	<context:component-scan base-package="org.sentilo.agent.common.scheduler" />
+		
+	<bean id="restClient" class="org.sentilo.common.rest.impl.RESTClientImpl" p:host="${opentsdb.url}"/>
+	
+	<bean class="org.sentilo.agent.historian.utils.OpenTSDBValueConverter" p:metricsFromSensorType="${metrics.fromSensorType}"/>
+
+	<bean class="org.sentilo.agent.historian.utils.OpenTSDBDataPointMarshaller" p:usePublishedAtTimestamp="${metrics.usePublishedAtTimestamp}"/>
+	
+	<task:annotation-driven scheduler="platformScheduler" />
+	<task:scheduler id="platformScheduler" pool-size="5" />	
+</beans>

@@ -50,7 +50,8 @@ import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Permissions;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
-import org.sentilo.web.catalog.dto.CredentialsDTO;
+import org.sentilo.web.catalog.dto.EntitiesMetadataDTO;
+import org.sentilo.web.catalog.exception.NotAllowedActionException;
 import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.CatalogSensorService;
 import org.sentilo.web.catalog.service.ComponentService;
@@ -72,10 +73,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * El acceso a los metodos de esta API esta securizado mediante user/password. Solo la plataforma
- * podra invocar a esta API.
+ * API Access to these methods are only granted to users with role ROLE_PLATFORM (@see
+ * catalog-security-context.xml).
  */
-
 @Controller
 @RequestMapping("/api")
 public class ApiController {
@@ -103,21 +103,21 @@ public class ApiController {
   @Autowired
   private ApiValidator validator;
 
-  @RequestMapping(value = "/permissions", method = RequestMethod.GET)
+  @RequestMapping(value = "/entities/permissions", method = RequestMethod.GET)
   @ResponseBody
   public Permissions getPermissions() {
     return permissionService.retrievePermissions();
   }
 
-  @RequestMapping(value = "/credentials", method = RequestMethod.GET)
+  @RequestMapping(value = "/entities/metadata", method = RequestMethod.GET)
   @ResponseBody
-  public CredentialsDTO getAuthorizations() {
-    LOGGER.debug("Catalog API: get credentials");
-    final CredentialsDTO credentials = new CredentialsDTO();
-    credentials.addAllApplications(applicationService.findAll());
-    credentials.addAllProviders(providerService.findAll());
-    LOGGER.debug("Catalog API: found {} credentials", credentials.getCredentials().size());
-    return credentials;
+  public EntitiesMetadataDTO getEntitiesMetadata() {
+    LOGGER.debug("Catalog API: get entities metadata");
+    final EntitiesMetadataDTO entitiesMetadata = new EntitiesMetadataDTO();
+    entitiesMetadata.addAllApplications(applicationService.findAll());
+    entitiesMetadata.addAllProviders(providerService.findAll());
+    LOGGER.debug("Catalog API: found {} entities metadata", entitiesMetadata.getEntitiesMetadata().size());
+    return entitiesMetadata;
   }
 
   @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.POST)
@@ -125,15 +125,29 @@ public class ApiController {
   public CatalogResponseMessage registerSensors(@RequestBody final CatalogInputMessage message, @PathVariable final String providerId) {
     LOGGER.debug("Catalog API: register sensors");
     try {
+
+      final List<Component> components = new ArrayList<Component>();
+      final List<Sensor> sensors = new ArrayList<Sensor>();
+
+      // The first step must be to validate the <providerId> parameter to verify that actually it
+      // represents a provider and not an application.
+      checkProviderAccess(providerId);
+
       final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId);
 
-      // The sensors's register must follows the steps below:
-      // 1. To insert components, related to the sensors, that doesn't exists yet.
-      // 2. To insert sensors and associated everyone with the pertinent component.
-      final List<Component> components = ApiConverter.buildComponentsFromCatalogComponents(context);
-      final List<Sensor> sensors = ApiConverter.buildSensorsFromCatalogSensors(context);
+      // 0. Once the providerId has been validated, the next step would consist of validating the
+      // right format of each field value
+      ApiValidationResults validationResults = validator.validateFieldFormatValues(context);
 
-      final ApiValidationResults validationResults = validator.validateSensorsAndComponents(sensors, components, false);
+      // If not exist format errors, the binding process starts
+      if (!validationResults.hasErrors()) {
+        // 1. Build the list of components or sensors to insert
+        components.addAll(ApiConverter.buildComponentsFromCatalogComponents(context));
+        sensors.addAll(ApiConverter.buildSensorsFromCatalogSensors(context));
+
+        // 2. Validate that the data to save is valid (from a business point view)
+        validationResults = validator.validateSensorsAndComponents(sensors, components, false);
+      }
 
       if (validationResults.hasErrors()) {
         final String errorMessage = "Bad request data. Sensors have not been inserted. Please review the following errors";
@@ -145,6 +159,9 @@ public class ApiController {
         sensorService.insertAll(sensors);
         LOGGER.debug("Catalog API: inserted {} components and {} sensors", components.size(), sensors.size());
       }
+    } catch (final NotAllowedActionException naae) {
+      LOGGER.warn("Rejected operation to register sensors because {} doesn't represents a provider.", providerId);
+      return new CatalogResponseMessage(CatalogResponseMessage.FORBIDDEN, SentiloConstants.RESTRICTED_TO_PROVIDERS_ERROR);
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       LOGGER.error("{} - Error inserting data into database.", internalErrorCode, ex);
@@ -160,13 +177,28 @@ public class ApiController {
   public CatalogResponseMessage updateComponentOrSensors(@RequestBody final CatalogInputMessage message, @PathVariable final String providerId) {
     LOGGER.debug("Catalog API: update sensors or components");
     try {
-      final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId, true);
-      // 1. Build the list of components or sensors to update
-      final List<Component> components = ApiConverter.buildComponentsFromCatalogComponents(context);
-      final List<Sensor> sensors = ApiConverter.buildSensorsFromCatalogSensors(context);
+      final List<Component> components = new ArrayList<Component>();
+      final List<Sensor> sensors = new ArrayList<Sensor>();
 
-      // 2. Validate that the data to save is valid
-      final ApiValidationResults validationResults = validator.validateSensorsAndComponents(sensors, components, true);
+      // The first step must be to validate the <providerId> parameter to verify that actually it
+      // represents a provider and not an application.
+      checkProviderAccess(providerId);
+
+      final ApiConverterContext context = new ApiConverterContext(message, sensorService, componentService, providerId, true);
+
+      // 0. Once the providerId has been validated, the next step would consist of validating the
+      // right format of each field value
+      ApiValidationResults validationResults = validator.validateFieldFormatValues(context);
+
+      // If not exist format errors, the binding process starts
+      if (!validationResults.hasErrors()) {
+        // 1. Build the list of components or sensors to update
+        components.addAll(ApiConverter.buildComponentsFromCatalogComponents(context));
+        sensors.addAll(ApiConverter.buildSensorsFromCatalogSensors(context));
+
+        // 2. Validate that the data to save is valid (from a business point view)
+        validationResults = validator.validateSensorsAndComponents(sensors, components, true);
+      }
 
       // 3. If there are validation errors, reject the changes and notify the error. Otherwise, we
       // do the update
@@ -181,6 +213,9 @@ public class ApiController {
         LOGGER.debug("Catalog API: updated {} components and {} sensors", components.size(), sensors.size());
       }
 
+    } catch (final NotAllowedActionException naae) {
+      LOGGER.warn("Rejected operation to register update sensors/components because {} doesn't represents a provider.", providerId);
+      return new CatalogResponseMessage(CatalogResponseMessage.FORBIDDEN, SentiloConstants.RESTRICTED_TO_PROVIDERS_ERROR);
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       LOGGER.error("{} - Error updating data into database. ", internalErrorCode, ex);
@@ -223,17 +258,25 @@ public class ApiController {
   public CatalogResponseMessage deleteProviderChilds(@RequestBody(required = false) final CatalogDeleteInputMessage message,
       @PathVariable final String providerId) {
     LOGGER.debug("Catalog API: deleting {} resources ", providerId);
+
     try {
-      if (message == null || (SentiloUtils.arrayIsEmpty(message.getSensorsIds()) && SentiloUtils.arrayIsEmpty(message.getComponentsIds()))) {
-        providerService.deleteChilds(new Provider(providerId));
+      // The first step must be to validate the <providerId> parameter to verify that actually it
+      // represents a provider and not an application.
+      checkProviderAccess(providerId);
+
+      if (message == null || SentiloUtils.arrayIsEmpty(message.getSensorsIds()) && SentiloUtils.arrayIsEmpty(message.getComponentsIds())) {
+        providerService.deleteChildren(new Provider(providerId));
         LOGGER.debug("Catalog API: deleted all resources");
       } else if (!SentiloUtils.arrayIsEmpty(message.getSensorsIds())) {
-        sensorService.deleteSensors(message.getSensorsIds());
+        sensorService.deleteSensors(providerId, message.getSensorsIds());
         LOGGER.debug("Catalog API: deleted {} sensors", message.getSensorsIds().length);
       } else if (!SentiloUtils.arrayIsEmpty(message.getComponentsIds())) {
-        componentService.deleteComponents(message.getComponentsIds());
+        componentService.deleteComponents(providerId, message.getComponentsIds());
         LOGGER.debug("Catalog API: deleted {} components", message.getComponentsIds().length);
       }
+    } catch (final NotAllowedActionException naae) {
+      LOGGER.warn("Rejected operation to delete provider's resources because {} doesn't represents a provider.", providerId);
+      return new CatalogResponseMessage(CatalogResponseMessage.FORBIDDEN, SentiloConstants.RESTRICTED_TO_PROVIDERS_ERROR);
     } catch (final Exception ex) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_API_ERROR);
       LOGGER.error("{} - Error deleting childs from provider {} . ", internalErrorCode, providerId, ex);
@@ -269,4 +312,16 @@ public class ApiController {
 
   }
 
+  /**
+   * Checks that the parameter <code>providerId</code> represents a provider. Only providers could
+   * execute POST/PUT/DELETE requests to catalog.
+   *
+   * @param providerId
+   * @return
+   */
+  private void checkProviderAccess(final String providerId) throws NotAllowedActionException {
+    if (providerService.find(new Provider(providerId)) == null) {
+      throw new NotAllowedActionException();
+    }
+  }
 }

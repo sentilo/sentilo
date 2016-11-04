@@ -41,7 +41,7 @@ public class SentiloDataAccessException extends PlatformAccessException {
 
   /**
    * Constructor for SentiloDataAccessException.
-   * 
+   *
    * @param msg the detail message
    */
   public SentiloDataAccessException(final String msg) {
@@ -50,7 +50,7 @@ public class SentiloDataAccessException extends PlatformAccessException {
 
   /**
    * Constructor for SentiloDataAccessException.
-   * 
+   *
    * @param msg the detail message
    * @param cause the root cause (usually from using a underlying data access API such as JDBC)
    */

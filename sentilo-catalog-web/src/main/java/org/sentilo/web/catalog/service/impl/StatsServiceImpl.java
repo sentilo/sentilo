@@ -96,7 +96,9 @@ public class StatsServiceImpl extends AbstractBaseServiceImpl implements StatsSe
   private SearchFilter buildFilter() {
     final SearchFilter filter = new SearchFilter();
     if (TenantContextHolder.hasContext()) {
-      filter.addAndParam("tenantId", TenantUtils.getCurrentTenant());
+      // Stats view always show data about the request tenant (that could be different from the user
+      // tenant).
+      filter.addAndParam("tenantId", TenantUtils.getRequestTenant());
     }
 
     return filter;

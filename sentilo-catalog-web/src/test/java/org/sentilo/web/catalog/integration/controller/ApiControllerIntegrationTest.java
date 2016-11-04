@@ -51,7 +51,7 @@ import org.sentilo.web.catalog.controller.api.ApiController;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Permissions;
 import org.sentilo.web.catalog.domain.Sensor;
-import org.sentilo.web.catalog.dto.CredentialsDTO;
+import org.sentilo.web.catalog.dto.EntitiesMetadataDTO;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.SensorService;
@@ -96,8 +96,8 @@ public class ApiControllerIntegrationTest {
 
   @Test
   public void getAuthorizations() {
-    final CredentialsDTO credentials = controller.getAuthorizations();
-    assertTrue("Found " + credentials.getCredentials().size() + " and must be greater than 0", credentials.getCredentials().size() >= 1);
+    final EntitiesMetadataDTO credentials = controller.getEntitiesMetadata();
+    assertTrue("Found " + credentials.getEntitiesMetadata().size() + " and must be greater than 0", credentials.getEntitiesMetadata().size() >= 1);
   }
 
   @Test

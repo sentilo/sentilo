@@ -144,7 +144,7 @@ public abstract class BaseComponentController extends CrudController<Component> 
 
   /**
    * Adds the component icon to the model.
-   * 
+   *
    * @param model
    * @param componentId
    */
@@ -160,12 +160,11 @@ public abstract class BaseComponentController extends CrudController<Component> 
 
   @Override
   protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames =
-        {Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.PROVIDER_ID_PROP, Constants.LOCATION_PROP, Constants.TYPE_PROP,
-            Constants.PUBLIC_ACCESS_PROP, Constants.CREATED_AT_PROP};
+    final String[] listColumnNames = {Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.PROVIDER_ID_PROP, Constants.LOCATION_PROP,
+        Constants.TYPE_PROP, Constants.PUBLIC_ACCESS_PROP, Constants.CREATED_AT_PROP};
 
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "component");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "component");
   }
 
   protected ComponentService getComponentService() {

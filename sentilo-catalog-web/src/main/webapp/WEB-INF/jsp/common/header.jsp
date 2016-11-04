@@ -5,6 +5,7 @@
 <c:set var="testPage" value="${param.testPage}" />
 <c:set var="contextPath" value="${pageContext.request.contextPath}" />
 <c:set var="requestUriTokens" value="${fn:split(requestScope['javax.servlet.forward.servlet_path'], '/')}" />
+<c:set var="currentSchema" value="${fn:contains(header['X-Forwarded-Proto'], 'https') ? 'https' : 'http'}"/>
 
 
 <!DOCTYPE html>
@@ -56,7 +57,7 @@
 
 <c:choose>
 	<c:when test="${not empty tenantCustomParams and not empty tenantCustomParams.tenantId}">
-		<spring:url value="/static/img/tenant/${tenantCustomParams.tenantId}/favicon.ico" var="faviconUrl" />
+		<spring:url value="/static/tenant/${tenantCustomParams.tenantId}/img/favicon.ico" var="faviconUrl" />
 	</c:when>
 	<c:otherwise>
 		<spring:url value="/static/images/favicon.ico" var="faviconUrl" />

@@ -38,9 +38,11 @@ import java.util.Map;
 
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.Alert;
+import org.sentilo.web.catalog.domain.AlertRule;
 import org.sentilo.web.catalog.domain.Application;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
+import org.sentilo.web.catalog.domain.DocumentFile;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
@@ -65,12 +67,12 @@ public class AccessControlRepositoryImpl implements AccessControlRepository {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.security.access.AccessControlRepository#getGrants(java.lang.Class,
    * java.lang.String)
    */
   public ActionGrant[] getGrants(final Class<?> resourceClass, final String userRole) {
-    final String resourceName = (Arrays.asList(simpleTenantResources).contains(resourceClass) ? "TenantResource" : resourceClass.getSimpleName());
+    final String resourceName = Arrays.asList(simpleTenantResources).contains(resourceClass) ? "TenantResource" : resourceClass.getSimpleName();
     final String accessRuleKey = buildAccessRuleKey(resourceName, userRole);
     return acls.get(accessRuleKey);
   }
@@ -92,6 +94,10 @@ public class AccessControlRepositoryImpl implements AccessControlRepository {
     addRoleActionGrants(TenantResource.class.getSimpleName(), "U", "L2,R1");
     addRoleActionGrants(Alert.class.getSimpleName(), "A", "L2,C2,R0,A0,D0");
     addRoleActionGrants(Alert.class.getSimpleName(), "U", "L2,R0");
+    addRoleActionGrants(DocumentFile.class.getSimpleName(), "A", "L2,C2,R0,A0,D0");
+    addRoleActionGrants(DocumentFile.class.getSimpleName(), "U", "L2,R0");
+    addRoleActionGrants(AlertRule.class.getSimpleName(), "A", "L2,C2,R0,A0,D0");
+    addRoleActionGrants(AlertRule.class.getSimpleName(), "U", "L2,R0");
     addRoleActionGrants(SensorType.class.getSimpleName(), "SA", "L2,C2,R2,A2,D2");
     addRoleActionGrants(SensorType.class.getSimpleName(), "A", "L2,R2");
     addRoleActionGrants(SensorType.class.getSimpleName(), "U", "L2,R2");
@@ -107,6 +113,10 @@ public class AccessControlRepositoryImpl implements AccessControlRepository {
     addRoleActionGrants(TenantResource.class.getSimpleName(), "U", "L2,R2");
     addRoleActionGrants(Alert.class.getSimpleName(), "A", "L2,C2,R2,A2,D2");
     addRoleActionGrants(Alert.class.getSimpleName(), "U", "L2,R2");
+    addRoleActionGrants(DocumentFile.class.getSimpleName(), "A", "L2,C2,R2,A2,D2");
+    addRoleActionGrants(DocumentFile.class.getSimpleName(), "U", "L2,R2");
+    addRoleActionGrants(AlertRule.class.getSimpleName(), "A", "L2,C2,R2,A2,D2");
+    addRoleActionGrants(AlertRule.class.getSimpleName(), "U", "L2,R2");
     addRoleActionGrants(SensorType.class.getSimpleName(), "A", "L2,C2,R2,A2,D2");
     addRoleActionGrants(SensorType.class.getSimpleName(), "U", "L2,R2");
     addRoleActionGrants(ComponentType.class.getSimpleName(), "A", "L2,C2,R2,A2,D2");

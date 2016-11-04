@@ -33,6 +33,7 @@
 package org.sentilo.platform.client.test.service;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,14 +42,15 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.platform.client.core.domain.CatalogAlertInputMessage;
+import org.sentilo.platform.client.core.domain.CatalogAlertOutputMessage;
 import org.sentilo.platform.client.core.domain.CatalogDeleteInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogInputMessage;
+import org.sentilo.platform.client.core.domain.CatalogOutputMessage;
 import org.sentilo.platform.client.core.domain.PlatformClientInputMessage;
-import org.sentilo.platform.client.core.parser.CatalogAlertMessageConverter;
-import org.sentilo.platform.client.core.parser.CatalogMessageConverter;
 import org.sentilo.platform.client.core.service.impl.DefaultCatalogServiceOperationsImpl;
 
 public class DefaultCatalogServiceOperationsImplTest {
@@ -69,10 +71,7 @@ public class DefaultCatalogServiceOperationsImplTest {
   private CatalogAlertInputMessage alertsMessage;
 
   @Mock
-  private CatalogMessageConverter converter;
-
-  @Mock
-  private CatalogAlertMessageConverter alertConverter;
+  private StringMessageConverter converter;
 
   @Before
   public void setUp() {
@@ -84,12 +83,12 @@ public class DefaultCatalogServiceOperationsImplTest {
     service.getSensors(message);
 
     verify(restClient).get(any(String.class), any(RequestParameters.class), any(String.class));
-    verify(converter).unmarshall(any(String.class));
+    verify(converter).unmarshal(any(String.class), eq(CatalogOutputMessage.class));
   }
 
   @Test
   public void registerSensors() {
-    when(converter.marshall(any(PlatformClientInputMessage.class))).thenReturn("{}");
+    when(converter.marshal(any(PlatformClientInputMessage.class))).thenReturn("{}");
 
     service.registerSensors(message);
 
@@ -122,12 +121,12 @@ public class DefaultCatalogServiceOperationsImplTest {
     service.getAuthorizedAlerts(alertsMessage);
 
     verify(restClient).get(any(String.class), any(RequestParameters.class), any(String.class));
-    verify(alertConverter).unmarshall(any(String.class));
+    verify(converter).unmarshal(any(String.class), eq(CatalogAlertOutputMessage.class));
   }
 
   @Test
   public void registerAlerts() {
-    when(converter.marshall(any(PlatformClientInputMessage.class))).thenReturn("{}");
+    when(converter.marshal(any(PlatformClientInputMessage.class))).thenReturn("{}");
 
     service.registerAlerts(alertsMessage);
 
@@ -136,7 +135,7 @@ public class DefaultCatalogServiceOperationsImplTest {
 
   @Test
   public void updateAlerts() {
-    when(converter.marshall(any(PlatformClientInputMessage.class))).thenReturn("{}");
+    when(converter.marshal(any(PlatformClientInputMessage.class))).thenReturn("{}");
 
     service.updateAlerts(alertsMessage);
 

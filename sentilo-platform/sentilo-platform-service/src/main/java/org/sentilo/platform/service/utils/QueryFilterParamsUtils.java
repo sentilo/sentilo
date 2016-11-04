@@ -69,11 +69,11 @@ public abstract class QueryFilterParamsUtils {
     if (!message.hasQueryFilters() || message.getQueryFilters().getLimit() == null) {
       return SentiloConstants.DEFAULT_NUM_ELEMENTS;
     } else if (StringUtils.hasText(message.getSensorId())) {
-      return (message.getQueryFilters().getLimit() > SentiloConstants.NUM_MAXIM_ELEMENTS_BY_SENSOR ? SentiloConstants.NUM_MAXIM_ELEMENTS_BY_SENSOR
-          : message.getQueryFilters().getLimit());
+      return message.getQueryFilters().getLimit() > SentiloConstants.NUM_MAXIM_ELEMENTS_BY_SENSOR ? SentiloConstants.NUM_MAXIM_ELEMENTS_BY_SENSOR
+          : message.getQueryFilters().getLimit();
     } else {
-      return (message.getQueryFilters().getLimit() > SentiloConstants.NUM_MAXIM_ELEMENTS_BY_PROVIDER
-          ? SentiloConstants.NUM_MAXIM_ELEMENTS_BY_PROVIDER : message.getQueryFilters().getLimit());
+      return message.getQueryFilters().getLimit() > SentiloConstants.NUM_MAXIM_ELEMENTS_BY_PROVIDER ? SentiloConstants.NUM_MAXIM_ELEMENTS_BY_PROVIDER
+          : message.getQueryFilters().getLimit();
     }
   }
 }

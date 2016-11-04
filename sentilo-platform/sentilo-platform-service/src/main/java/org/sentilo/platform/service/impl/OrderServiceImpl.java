@@ -43,6 +43,10 @@ import org.sentilo.common.utils.EventType;
 import org.sentilo.platform.common.domain.Order;
 import org.sentilo.platform.common.domain.OrderInputMessage;
 import org.sentilo.platform.common.domain.Sensor;
+import org.sentilo.platform.common.exception.EventRejectedException;
+import org.sentilo.platform.common.exception.RejectedResourcesContext;
+import org.sentilo.platform.common.exception.ResourceNotFoundException;
+import org.sentilo.platform.common.exception.ResourceOfflineException;
 import org.sentilo.platform.common.service.OrderService;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.monitor.Metric;
@@ -69,25 +73,41 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
-   * org.sentilo.platform.common.service.OrderService#setOrder(org.sentilo.platform.common.domain
-   * .OrderInputMessage)
+   * org.sentilo.platform.common.service.OrderService#setOrder(org.sentilo.platform.common.domain.
+   * OrderInputMessage)
    */
   @Metric(requestType = RequestType.PUT, eventType = EventType.ORDER)
   public void setOrder(final OrderInputMessage message) {
-    LOGGER.debug("set order {} for provider {} and sensor {} ", message.getOrder(), message.getProviderId(), message.getSensorId());
-    // Si el proveedor y/o el sensor no existen, los registramos en Redis
-    registerProviderAndSensorIfNeedBe(message);
-    // Registramos en Redis la orden
-    registerOrder(message);
-    // Y por ultimo, publicamos la orden
-    publish(message);
+    final RejectedResourcesContext rejectedContext = new RejectedResourcesContext();
+    try {
+      checkTargetResourceState(message);
+
+      LOGGER.debug("Set order [{}] related to provider [{}] and sensor [{}] ", message.getOrder(), message.getProviderId(), message.getSensorId());
+      // Save order in Redis
+      registerOrder(message);
+      // And finally, publish it
+      publish(message);
+    } catch (final ResourceNotFoundException rnfe) {
+      rejectedContext.rejectEvent(message.getSensorId(), rnfe.getMessage());
+      LOGGER.warn("Order [{}] has been rejected because sensor [{}] from provider [{}] doesn't exists on Sentilo.", message.getOrder(),
+          message.getSensorId(), message.getProviderId());
+    } catch (final ResourceOfflineException roe) {
+      rejectedContext.rejectEvent(message.getSensorId(), roe.getMessage());
+      LOGGER.warn("Order [{}] has been rejected because sensor [{}] from provider [{}] is not online on Sentilo.", message.getOrder(),
+          message.getSensorId(), message.getProviderId());
+    }
+
+    if (!rejectedContext.isEmpty()) {
+      throw new EventRejectedException(EventType.ORDER, rejectedContext);
+    }
+
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.platform.common.service.OrderService#getLastOrders(org.sentilo.platform.common.
    * domain.OrderInputMessage)
@@ -96,17 +116,16 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
   public List<Order> getLastOrders(final OrderInputMessage message) {
     // Para recuperar las ordenes del sensor / sensores de un proveedor, debemos hacer lo siguiente:
     // 1. Recuperar los identificadores internos de los sensores de los cuales queremos recuperar
-    // las
-    // ordenes.
+    // las ordenes.
     // 2. Para cada sensor, recuperar las ordenes que cumplen el criterio de busqueda
     final List<Order> globalOrders = new ArrayList<Order>();
     final Set<String> sids = resourceService.getSensorsToInspect(message.getProviderId(), message.getSensorId());
     if (CollectionUtils.isEmpty(sids)) {
-      LOGGER.debug("Provider {} has not sensors registered", message.getProviderId());
+      LOGGER.debug("Provider [{}] has not sensors registered", message.getProviderId());
       return globalOrders;
     }
 
-    LOGGER.debug("Retrieving last orders for {} sensors of provider {}", sids.size(), message.getProviderId());
+    LOGGER.debug("Retrieving last orders for {} sensors belonging to provider [{}]", sids.size(), message.getProviderId());
 
     final Iterator<String> it = sids.iterator();
     while (it.hasNext()) {
@@ -172,17 +191,9 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     return order;
   }
 
-  private void registerProviderAndSensorIfNeedBe(final OrderInputMessage message) {
-    // Si el proveedor y/o el sensor aun no estan registrados en Redis, los registramos.
-    resourceService.registerProviderIfNeedBe(message.getProviderId());
-    if (StringUtils.hasText(message.getSensorId())) {
-      resourceService.registerSensorIfNeedBe(message.getSensorId(), message.getProviderId());
-    }
-  }
-
   private void registerOrder(final OrderInputMessage message) {
-    // En funcion del destinatario de la orden, debemos persistirla para 1 o N sensores
-    LOGGER.debug("registering in Redis order {} ", message.getOrder());
+    // Depending on the target, the order should be persisted in Redis for 1..N sensors
+    LOGGER.debug("Registering in Redis order [{}] ", message.getOrder());
     if (StringUtils.hasText(message.getSensorId())) {
       registerSensorOrder(message);
     } else {
@@ -195,17 +206,31 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     final Set<String> sids = resourceService.getSensorsFromProvider(message.getProviderId());
 
     if (CollectionUtils.isEmpty(sids)) {
-      LOGGER.debug("Provider {} has not sensors registered", message.getProviderId());
+      LOGGER.debug("Provider [{}] has not sensors registered", message.getProviderId());
       return;
     }
 
-    LOGGER.debug("Found {} sensors registered for provider {}", sids.size(), message.getProviderId());
+    LOGGER.debug("Found {} sensors belonging to provider [{}]", sids.size(), message.getProviderId());
 
     final Long soid = persistOrder(message);
     final Iterator<String> it = sids.iterator();
     while (it.hasNext()) {
       final String sid = it.next();
       registerSensorOrder(new Long(sid), soid, message);
+    }
+  }
+
+  /**
+   * If order has filled in the sensor, checks if it exists and is enabled in Redis. Otherwise
+   * throws an exception.
+   */
+  private void checkTargetResourceState(final OrderInputMessage message) {
+    if (StringUtils.hasText(message.getSensorId())) {
+      if (!resourceService.existsSensor(message.getProviderId(), message.getSensorId())) {
+        throw new ResourceNotFoundException(message.getSensorId(), "Sensor");
+      } else if (resourceService.isSensorDisabled(message.getProviderId(), message.getSensorId())) {
+        throw new ResourceOfflineException(message.getSensorId(), "Sensor");
+      }
     }
   }
 
@@ -223,7 +248,7 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     // a cada elemento del Set es el timestamp de la orden.
     jedisTemplate.zAdd(keysBuilder.getSensorOrdersKey(sid), timestamp, soid.toString());
 
-    LOGGER.debug("Registered in Redis order {} for sensor {} from provider {}", soid, message.getSensorId(), message.getProviderId());
+    LOGGER.debug("Registered in Redis order [{}] related to provider [{}] and sensor [{}]", soid, message.getProviderId(), message.getSensorId());
   }
 
   private Long persistOrder(final OrderInputMessage message) {
@@ -249,8 +274,8 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
   }
 
   private void publish(final OrderInputMessage message) {
-    // Y luego la publicamos.
-    LOGGER.debug("Publish order event {} related to provider {} and sensor {}", message.getOrder(), message.getProviderId(), message.getSensorId());
+    LOGGER.debug("Publish order event [{}] related to provider [{}] and sensor [{}]", message.getOrder(), message.getProviderId(),
+        message.getSensorId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.order, message.getProviderId(), message.getSensorId());
     jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
     LOGGER.debug("Order published");

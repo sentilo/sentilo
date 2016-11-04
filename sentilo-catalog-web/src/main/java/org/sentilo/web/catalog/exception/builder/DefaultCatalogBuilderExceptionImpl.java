@@ -45,7 +45,7 @@ public class DefaultCatalogBuilderExceptionImpl implements DuplicateKeyException
 
   /**
    * Constructor
-   * 
+   *
    * @param type The type of the entity for which the error is build
    */
   public DefaultCatalogBuilderExceptionImpl(final Class<? extends CatalogDocument> type) {
@@ -53,13 +53,13 @@ public class DefaultCatalogBuilderExceptionImpl implements DuplicateKeyException
   }
 
   @Override
-  public DuplicateKeyException buildDuplicateKeyException(final String invalidKey) {
+  public void buildAndThrowDuplicateKeyException(final String invalidKey) throws DuplicateKeyException {
     final Object[] args = {getTypeName(), invalidKey};
     throw new DuplicateKeyException(args);
   }
 
   @Override
-  public ResourceNotFoundException buildResourceNotFoundException(final String invalidKey) {
+  public void buildAndThrowResourceNotFoundException(final String invalidKey) {
     final Object[] args = {getTypeName(), invalidKey};
     throw new ResourceNotFoundException(args);
   }

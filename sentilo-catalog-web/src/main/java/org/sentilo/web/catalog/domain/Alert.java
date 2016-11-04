@@ -47,7 +47,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
 @Document
-public class Alert implements CatalogDocument, TenantResource, EntityResource {
+public class Alert implements TenantResource, EntityResource, SyncResource {
 
   private static final long serialVersionUID = 1L;
 
@@ -78,6 +78,8 @@ public class Alert implements CatalogDocument, TenantResource, EntityResource {
   private AlertTriggerType trigger;
 
   private String expression;
+
+  private boolean active;
 
   /**
    * Identificador del proveedor al cual esta asociada la alerta en el caso de que sea
@@ -133,12 +135,12 @@ public class Alert implements CatalogDocument, TenantResource, EntityResource {
     // Hashcode return must be consistent with the equals method
     final int prime = 17;
     int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + (id == null ? 0 : id.hashCode());
     return result;
   }
 
   public String getEntityOwner() {
-    return (StringUtils.hasText(providerId) ? providerId : applicationId);
+    return StringUtils.hasText(providerId) ? providerId : applicationId;
   }
 
   @Override
@@ -272,6 +274,14 @@ public class Alert implements CatalogDocument, TenantResource, EntityResource {
 
   public void setUpdatedBy(final String updatedBy) {
     this.updatedBy = updatedBy;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(final boolean active) {
+    this.active = active;
   }
 
 }

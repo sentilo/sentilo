@@ -38,7 +38,7 @@ import org.sentilo.agent.relational.jdbc.SentiloRoutingDataSource;
  * Thread local que nos proporciona un backend en el cual mantener el nombre del ds a utilizar en
  * cada uno de los datos a persistir. Este backend es utilizado en la clase
  * {@link SentiloRoutingDataSource} para poder hacer el lookup del ds correspondiente.
- * 
+ *
  * @see SentiloRoutingDataSource
  */
 public abstract class ThreadLocalProperties {

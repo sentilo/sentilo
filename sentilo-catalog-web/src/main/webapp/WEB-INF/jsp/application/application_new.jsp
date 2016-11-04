@@ -75,6 +75,15 @@
 							</div>
 						</div>
 						<div class="control-group">
+							<form:label path="restHttps" class="control-label">
+								<spring:message code="application.restHttps" />
+							</form:label>
+							<div class="controls">
+								<form:checkbox path="restHttps" />
+								<form:errors path="restHttps" cssClass="text-error" htmlEscape="false" />
+							</div>
+						</div>
+						<div class="control-group">
 							<form:label path="email" class="control-label">
 								<spring:message code="application.email" />
 							</form:label>

@@ -52,7 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
-public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Application> implements ApplicationService {
+public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Application>implements ApplicationService {
 
   @Autowired
   private ApplicationRepository repository;
@@ -89,7 +89,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ApplicationService#findAllowed()
    */
   @Override
@@ -104,7 +104,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ApplicationService#deleteFromTenant(java.lang.String)
    */
   @Override
@@ -118,7 +118,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ApplicationService#isApplicationFromTenant(java.lang.
    * String, java.lang.String)
    */
@@ -130,7 +130,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
    * .web.catalog.domain.CatalogDocument)
@@ -154,7 +154,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.
    * web.catalog.domain.CatalogDocument)
@@ -166,10 +166,9 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.Collection
-   * )
+   *
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.
+   * Collection )
    */
   protected void doAfterDelete(final Collection<Application> applications) {
     for (final Application application : applications) {

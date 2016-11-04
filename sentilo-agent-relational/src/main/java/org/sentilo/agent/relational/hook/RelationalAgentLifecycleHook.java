@@ -50,7 +50,7 @@ public class RelationalAgentLifecycleHook extends AgentLifecycleHook {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.common.hook.AgentLifecycleHook#doStop()
    */
   protected void doGracefulShutdown() {

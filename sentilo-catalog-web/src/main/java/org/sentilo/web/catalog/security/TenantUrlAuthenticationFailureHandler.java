@@ -49,6 +49,7 @@ public class TenantUrlAuthenticationFailureHandler extends SimpleUrlAuthenticati
 
   public TenantUrlAuthenticationFailureHandler() {
     super(DEFAULT_FAILURE_URL);
+    setRedirectStrategy(new SentiloRedirectStrategy());
   }
 
   @Override

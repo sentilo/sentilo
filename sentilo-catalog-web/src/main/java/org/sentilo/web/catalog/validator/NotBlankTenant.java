@@ -52,7 +52,7 @@ public @interface NotBlankTenant {
 
   String message() default "{NotBlankTenant}";
 
-  Class<?>[] groups() default {};
+  Class<?>[]groups() default {};
 
-  Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[]payload() default {};
 }

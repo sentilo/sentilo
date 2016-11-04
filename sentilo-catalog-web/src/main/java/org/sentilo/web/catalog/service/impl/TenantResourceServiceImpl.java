@@ -35,12 +35,15 @@ package org.sentilo.web.catalog.service.impl;
 import java.util.Arrays;
 import java.util.List;
 
+import org.sentilo.web.catalog.domain.TenantPermission;
 import org.sentilo.web.catalog.service.TenantResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
 
 @Service
 public class TenantResourceServiceImpl implements TenantResourceService {
@@ -50,13 +53,51 @@ public class TenantResourceServiceImpl implements TenantResourceService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
-   * org.sentilo.web.catalog.service.TenantResourceService#updateProviderTenantAuth(java.lang.String
-   * , java.lang.String, boolean)
+   * org.sentilo.web.catalog.service.TenantResourceService#removeTenantGrantFromProviderResources(
+   * java.lang.String, java.lang.String)
    */
-  @Override
-  public void updateResourceTenantsAuthByProvider(final String providerId, final String tenantId, final boolean addGrant) {
+  public void removeTenantGrantFromProviderResources(final String providerId, final String tenantToRemove) {
+    updateResourceTenantsAuthByProvider(providerId, tenantToRemove, false);
+    updateTenantVisibilityFromProviderResources(providerId, tenantToRemove, false);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.TenantResourceService#addTenantGrantToProviderResources(org.
+   * sentilo.web.catalog.domain.TenantPermission)
+   */
+  public void addTenantGrantToProviderResources(final TenantPermission permission) {
+    updateResourceTenantsAuthByProvider(permission.getEntity(), permission.getTarget(), true);
+    updateTenantVisibilityFromProviderResources(permission.getEntity(), permission.getTarget(), permission.getVisible());
+
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.TenantResourceService#addTenantVisibilityToProviderResources(
+   * java.lang.String, java.lang.String)
+   */
+  public void addTenantVisibilityToProviderResources(final String providerId, final String tenantId) {
+    updateTenantVisibilityFromProviderResources(providerId, tenantId, true);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.TenantResourceService#
+   * removeTenantVisibilityFromProviderResources(java.lang.String, java.lang.String)
+   */
+  public void removeTenantVisibilityFromProviderResources(final String providerId, final String tenantToRemove) {
+    updateTenantVisibilityFromProviderResources(providerId, tenantToRemove, false);
+  }
+
+  private void updateResourceTenantsAuthByProvider(final String providerId, final String tenantId, final boolean addGrant) {
 
     // Update the Provider tenants authorization list, adding or removing values as needed and
     // updating dependent elements too (alert, application, component, sensor)
@@ -80,6 +121,18 @@ public class TenantResourceServiceImpl implements TenantResourceService {
       for (final String collection : collections) {
         mongoOps.getCollection(collection).updateMulti(new BasicDBObject("providerId", providerId),
             new BasicDBObject("$pull", new BasicDBObject("tenantsAuth", tenantId)));
+      }
+    }
+  }
+
+  private void updateTenantVisibilityFromProviderResources(final String providerId, final String tenantId, final boolean visible) {
+    if (StringUtils.hasText(tenantId)) {
+      final DBCollection coll = mongoOps.getCollection("component");
+      final BasicDBObject query = new BasicDBObject("providerId", providerId);
+      if (visible) {
+        coll.updateMulti(query, new BasicDBObject("$push", new BasicDBObject("tenantsMapVisible", tenantId)));
+      } else {
+        coll.updateMulti(query, new BasicDBObject("$pull", new BasicDBObject("tenantsMapVisible", tenantId)));
       }
     }
   }

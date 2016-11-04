@@ -41,9 +41,6 @@ public class CatalogAlertResponseMessage extends CatalogResponseMessage {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
   private List<CatalogAlert> alerts;
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-  private List<AlertOwner> owners;
-
   public CatalogAlertResponseMessage() {
     super();
   }
@@ -67,13 +64,4 @@ public class CatalogAlertResponseMessage extends CatalogResponseMessage {
   public void setAlerts(final List<CatalogAlert> alerts) {
     this.alerts = alerts;
   }
-
-  public void setOwners(final List<AlertOwner> owners) {
-    this.owners = owners;
-  }
-
-  public List<AlertOwner> getOwners() {
-    return owners;
-  }
-
 }

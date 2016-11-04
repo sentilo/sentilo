@@ -61,9 +61,9 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ActivityMonitorRepositoryImpl.class);
 
-  private final int defaultNumMaxWorkers = 5;
-  private final int defaultBatchSize = 10;
-  private final int defaultNumMaxRetries = 1;
+  private static final int DEFAULT_NUM_MAX_WORKERS = 5;
+  private static final int DEFAULT_BATCH_SIZE = 10;
+  private static final int DEFAULT_NUM_MAX_RETRIES = 1;
 
   @Value("${batch.size}")
   private int batchSize;
@@ -88,19 +88,16 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
   public void init() {
 
     if (numMaxWorkers == 0) {
-      numMaxWorkers = defaultNumMaxWorkers;
+      numMaxWorkers = DEFAULT_NUM_MAX_WORKERS;
     }
 
     if (batchSize == 0) {
-      batchSize = defaultBatchSize;
+      batchSize = DEFAULT_BATCH_SIZE;
     }
 
     if (numMaxRetries == 0) {
-      numMaxRetries = defaultNumMaxRetries;
+      numMaxRetries = DEFAULT_NUM_MAX_RETRIES;
     }
-
-    LOGGER.info("Initialize ActivityMonitorRepositoryImpl with the following properties: batchSize {},  numMaxRetries {} and numMaxWorkers {} ",
-        batchSize, numMaxRetries, numMaxWorkers);
 
     // workersManager is a mixed ExcutorService between cached and fixed provided by Executors
     // class: it has a maximum number of threads(as Executors.newFixedThreadPool) and controls when
@@ -108,11 +105,15 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
     if (workersManager == null) {
       workersManager = new ThreadPoolExecutor(0, numMaxWorkers, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
+
+    LOGGER.info("Initialized ActivityMonitorRepositoryImpl with the following properties: batchSize {},  numMaxRetries {} and numMaxWorkers {} ",
+        batchSize, numMaxRetries, numMaxWorkers);
+
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.agent.activity.monitor.repository.ActivityMonitorRepository#
    * publishMessageToElasticSearch(org.sentilo.common.domain.EventMessage)
    */
@@ -141,25 +142,25 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
   private void flushToElasticSearch(final BatchProcessContext batchProcessContext) {
     // Assign flush task to a busy worker
     workersManager.submit(new BatchProcessWorker(batchProcessContext));
-    LOGGER.debug("Scheduling batch process task for index {} elements in elasticsearch ", batchProcessContext.getEventsToProcess().size());
+    LOGGER.debug("Scheduled batch process task for index {} elements in elasticsearch ", batchProcessContext.getEventsToProcess().size());
   }
 
   /**
    * Clear batch queue and send to index pending events.
    */
   public void flush() {
-    LOGGER.debug("Call to flush pending tasks");
+    LOGGER.info("Call to flush pending tasks");
     lock.lock();
     try {
       if (!CollectionUtils.isEmpty(batchQueue)) {
-        LOGGER.debug("Flush {} elements to elasticsearch", batchQueue.size());
+        LOGGER.info("Flushing {} elements to elasticsearch", batchQueue.size());
         final BatchProcessContext context = new BatchProcessContext(batchQueue, restClient, numMaxRetries, batchProcessMonitor);
         final BatchProcessWorker worker = new BatchProcessWorker(context);
         worker.call();
       }
     } finally {
       lock.unlock();
-      LOGGER.debug("Flush process finished");
+      LOGGER.info("Flush process finished");
     }
   }
 

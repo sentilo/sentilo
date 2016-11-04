@@ -34,7 +34,6 @@ package org.sentilo.web.catalog.aop.aspect;
 
 import java.util.List;
 
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.sentilo.common.domain.OrderMessage;
@@ -62,8 +61,7 @@ public class TranslateTimestamp implements Ordered {
   private static final int ORDER = 1;
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastObservations(..))", returning = "observations")
-  public
-      Object translateObservationsTimestamp(final JoinPoint jp, final List<Observation> observations) throws Throwable {
+  public Object translateObservationsTimestamp(final List<Observation> observations) {
     if (localDateFormat != null && !CollectionUtils.isEmpty(observations)) {
       for (final Observation observation : observations) {
         observation.setTimestamp(translateTimestampIntoLocalTimeZone(observation.getTimestamp()));
@@ -73,7 +71,7 @@ public class TranslateTimestamp implements Ordered {
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastObservation(..))", returning = "observation")
-  public Object translateObservationTimestamp(final JoinPoint jp, final Observation observation) throws Throwable {
+  public Object translateObservationTimestamp(final Observation observation) {
     if (localDateFormat != null && observation != null) {
       observation.setTimestamp(translateTimestampIntoLocalTimeZone(observation.getTimestamp()));
     }
@@ -81,7 +79,7 @@ public class TranslateTimestamp implements Ordered {
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastAlarmsMessages(..))", returning = "alarms")
-  public Object translateAlarmsTimestamp(final JoinPoint jp, final List<AlarmMessage> alarms) throws Throwable {
+  public Object translateAlarmsTimestamp(final List<AlarmMessage> alarms) {
     if (localDateFormat != null && !CollectionUtils.isEmpty(alarms)) {
       for (final AlarmMessage alarmMessage : alarms) {
         alarmMessage.setTimestamp(translateTimestampIntoLocalTimeZone(alarmMessage.getTimestamp()));
@@ -91,7 +89,7 @@ public class TranslateTimestamp implements Ordered {
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.SensorServiceImpl.getLastOrderMessages(..))", returning = "orders")
-  public Object translateOrdersTimestamp(final JoinPoint jp, final List<OrderMessage> orders) throws Throwable {
+  public Object translateOrdersTimestamp(final List<OrderMessage> orders) {
     if (localDateFormat != null && !CollectionUtils.isEmpty(orders)) {
       for (final OrderMessage orderMessage : orders) {
         orderMessage.setTimestamp(translateTimestampIntoLocalTimeZone(orderMessage.getTimestamp()));
@@ -101,8 +99,7 @@ public class TranslateTimestamp implements Ordered {
   }
 
   @AfterReturning(pointcut = "execution(* org.sentilo.web.catalog.service.impl.ActivityServiceImpl.getLastActivityLogs(..))", returning = "lastActivityLogs")
-  public
-      Object translateActivityTimestamp(final JoinPoint jp, final List<Activity> lastActivityLogs) throws Throwable {
+  public Object translateActivityTimestamp(final List<Activity> lastActivityLogs) {
     if (localDateFormat != null && !CollectionUtils.isEmpty(lastActivityLogs)) {
       for (final Activity activityLog : lastActivityLogs) {
         activityLog.setTimestampToString(translateTimestampIntoLocalTimeZone(activityLog.getTimestamp()));

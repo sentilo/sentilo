@@ -3,8 +3,8 @@
 
 <%-- Custom stylesheets here --%>
 
-<%-- If exists custom styles then overrides other tags --%>
+<%-- If exists a custom style then overrides other tags --%>
 <c:if test="${not empty tenantCustomParams and not empty tenantCustomParams.styleClass}">
-<spring:url value="/static/css/${tenantCustomParams.styleClass}" var="tenantCustomCSS" />
-<link href="${tenantCustomCSS}" rel="stylesheet" media="all">
+<spring:url value="/static/${tenantCustomParams.styleClass}" var="tenantCustomCSS" />
+<link href="${tenantCustomCSS}" rel="stylesheet" media="all">	
 </c:if>

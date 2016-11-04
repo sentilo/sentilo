@@ -42,7 +42,7 @@ public class TenantContextHolder {
 
   /**
    * Obtain the current <code>TenantContext</code>.
-   * 
+   *
    * @return the tenant context (could be <code>null</code>)
    */
   public static TenantContext getContext() {
@@ -51,7 +51,7 @@ public class TenantContextHolder {
 
   /**
    * Associates a new <code>TenantContext</code> with the current thread of execution.
-   * 
+   *
    * @param context the new <code>TenantContext</code> (may not be <code>null</code>)
    */
   public static void setContext(final TenantContext context) {
@@ -68,12 +68,21 @@ public class TenantContextHolder {
 
   /**
    * Returns true if the environment variable sentilo.multitenant is true
-   * 
+   *
    * @return If this Sentilo instance is a multi-tenant instance.
    */
   public static boolean isEnabled() {
     final String propValue = System.getProperty(SentiloConstants.SENTILO_MULTITENANT_PROP_KEY);
     return StringUtils.hasText(propValue) && Boolean.valueOf(propValue);
+  }
+
+  /**
+   * Returns true if #isEnabled() returns true and the environment variable
+   * sentilo.multitenant.infer is true
+   */
+  public static boolean inferTenantFromLogin() {
+    final String propValue = System.getProperty(SentiloConstants.SENTILO_MULTITENANT_INFER_PROP_KEY);
+    return isEnabled() && StringUtils.hasText(propValue) && Boolean.valueOf(propValue);
   }
 
 }

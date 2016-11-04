@@ -49,9 +49,9 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 /**
  * {@link HandlerMethodArgumentResolver} to automatically create {@link Sort} instances from request
  * parameters or {@link SortDefault} annotations from catalog lists.
- * 
+ *
  * Based on {@link SortHandlerMethodArgumentResolver}.
- * 
+ *
  * @since 1.3.0
  */
 public class CatalogSortHandlerMethodArgumentResolver extends SortHandlerMethodArgumentResolver {
@@ -59,12 +59,12 @@ public class CatalogSortHandlerMethodArgumentResolver extends SortHandlerMethodA
   private static final String DEFAULT_SORT_NUMBER_COLUMN = "1";
   private static final String DEFAULT_SORT_DIRECTION = "ASC";
 
-  private final String sortParameter = "page.sort";
-  private final String sortDirParameter = "page.sort.dir";
+  private static final String SORT_PARAMETER = "page.sort";
+  private static final String SORT_DIR_PARAMETER = "page.sort.dir";
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.springframework.web.method.support.HandlerMethodArgumentResolver#resolveArgument(org.
    * springframework.core.MethodParameter,
    * org.springframework.web.method.support.ModelAndViewContainer,
@@ -76,8 +76,8 @@ public class CatalogSortHandlerMethodArgumentResolver extends SortHandlerMethodA
       final WebDataBinderFactory binderFactory) throws Exception {
 
     // By default, all lists are ordered by the first column in an ascending direction
-    final String sortParameterValue = webRequest.getParameter(sortParameter);
-    final String sortDirParameterValue = webRequest.getParameter(sortDirParameter);
+    final String sortParameterValue = webRequest.getParameter(SORT_PARAMETER);
+    final String sortDirParameterValue = webRequest.getParameter(SORT_DIR_PARAMETER);
 
     if (StringUtils.hasText(sortDirParameterValue) && StringUtils.hasText(sortParameterValue)) {
       return parseParameterIntoSort(sortParameterValue, sortDirParameterValue, webRequest);

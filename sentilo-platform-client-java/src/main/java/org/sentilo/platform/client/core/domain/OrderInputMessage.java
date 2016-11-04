@@ -83,7 +83,7 @@ public class OrderInputMessage implements PlatformClientInputMessage, PlatformSe
   /**
    * Constructor a utilizar cuando se quiere publicar una orden destinada a todos los sensores de un
    * proveedor.
-   * 
+   *
    * @param providerId
    * @param order
    */
@@ -94,7 +94,7 @@ public class OrderInputMessage implements PlatformClientInputMessage, PlatformSe
   /**
    * Constructor a utilizar cuando se quiere publicar una orden destinada a un sensor conncreto de
    * un proveedor.
-   * 
+   *
    * @param providerId
    * @param sensorId
    * @param order
@@ -137,7 +137,7 @@ public class OrderInputMessage implements PlatformClientInputMessage, PlatformSe
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#getQueryFilters()
    */
   @Override
@@ -147,7 +147,7 @@ public class OrderInputMessage implements PlatformClientInputMessage, PlatformSe
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#hasQueryFilters()
    */
   @Override
@@ -157,7 +157,7 @@ public class OrderInputMessage implements PlatformClientInputMessage, PlatformSe
 
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("--- Order ---");
     sb.append("\n\t provider:").append(providerId);
     if (StringUtils.hasText(sensorId)) {

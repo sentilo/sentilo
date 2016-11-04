@@ -83,6 +83,9 @@ public class Application implements CatalogDocument, TenantResource {
 
   private Set<String> tenantsAuth;
 
+  /** Show if API's requests from this application must be secured over HTTPs */
+  private boolean restHttps;
+
   public Application() {
     authorizedProviders = new ArrayList<Provider>();
     tenantsAuth = new HashSet<String>();
@@ -107,7 +110,7 @@ public class Application implements CatalogDocument, TenantResource {
     // Hashcode return must be consistent with the equals method
     final int prime = 19;
     int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + (id == null ? 0 : id.hashCode());
     return result;
   }
 
@@ -207,6 +210,14 @@ public class Application implements CatalogDocument, TenantResource {
   @Override
   public void setUpdatedAt(final Date date) {
     updatedAt = date;
+  }
+
+  public boolean isRestHttps() {
+    return restHttps;
+  }
+
+  public void setRestHttps(final boolean restHttps) {
+    this.restHttps = restHttps;
   }
 
 }

@@ -32,24 +32,43 @@
  */
 package org.sentilo.web.catalog.context;
 
+import org.springframework.util.StringUtils;
+
 public class TenantContextImpl implements TenantContext {
 
-  private String currentTenantId;
+  /** Tenant to which logged user belongs */
+  private String userTenant;
 
-  public TenantContextImpl(final String currentTenantId) {
+  /** Tenant filled in at the request uri */
+  private String requestTenant;
+
+  public TenantContextImpl(final String requestTenant) {
     super();
-    this.currentTenantId = currentTenantId;
+    this.requestTenant = requestTenant;
   }
 
+  public TenantContextImpl(final String requestTenant, final String userTenant) {
+    this(requestTenant);
+    this.userTenant = userTenant;
+  }
+
+  /**
+   * In a incoming request, the current tenant is equal to the user tenant, if it is logged in, else
+   * the request tenant
+   */
   @Override
   public String getCurrentTenant() {
-    return currentTenantId;
+    return StringUtils.hasText(userTenant) ? userTenant : requestTenant;
   }
 
   @Override
-  public void setCurrentTenant(final String tenant) {
-    currentTenantId = tenant;
+  public String getRequestTenant() {
+    return requestTenant;
+  }
 
+  @Override
+  public String getUserTenant() {
+    return userTenant;
   }
 
 }

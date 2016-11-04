@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.sentilo.common.domain.AlertOwner;
 import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogAlertInputMessage;
 import org.sentilo.common.domain.CatalogAlertResponseMessage;
@@ -91,38 +90,14 @@ public class ApiAlertController {
   @Autowired
   private CatalogUserDetailsService userDetailsService;
 
-  @RequestMapping(value = "/owners", method = RequestMethod.GET)
-  @ResponseBody
-  public CatalogAlertResponseMessage getOwners() {
-    LOGGER.debug("Catalog Alert API: get alerts owners");
-    CatalogAlertResponseMessage response = null;
-
-    try {
-      final List<Alert> alerts = alertService.findAll();
-      final List<AlertOwner> owners = ApiAlertConverter.convertToAlertOwnersList(alerts);
-
-      LOGGER.debug("Catalog Alert API: found {}  alerts ", owners.size());
-      response = new CatalogAlertResponseMessage();
-      response.setOwners(owners);
-    } catch (final Exception ex) {
-      final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.CATALOG_ALERT_API_ERROR);
-      LOGGER.error("{} - Error searching alerts owners. ", internalErrorCode, ex);
-      final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
-      return new CatalogAlertResponseMessage(errorMessage);
-    }
-
-    return response;
-  }
-
   @RequestMapping(value = "/entity/{entityId}", method = RequestMethod.GET)
   @ResponseBody
   public CatalogAlertResponseMessage getAuthorizedAlerts(@PathVariable final String entityId,
       @RequestParam(required = false) final Map<String, Object> parameters) {
     // Retornamos un listado con la información de todas las alertas a las cuales se puede suscribir
     // la entidad que hace la peticion. Es decir, todas las alertas que tienen como entidad
-    // propietaria
-    // una entidad para la cual la entidad que hace la peticion (aka entidad origen)tiene permiso de
-    // lectura.
+    // propietaria una entidad para la cual la entidad que hace la peticion (aka entidad
+    // origen)tiene permiso de lectura.
     LOGGER.debug("Catalog Alert API: getting authorized alerts. Operation invoked by entity {} ", entityId);
     CatalogAlertResponseMessage response = null;
     try {
@@ -167,8 +142,8 @@ public class ApiAlertController {
 
       if (context.getResults().hasErrors()) {
         final String errorMessage = "Bad request data. Alerts have not been inserted. Please review the following errors";
-        LOGGER.debug("Catalog alert API: alerts have not been inserted. Found {} errors after validate data. {}", context.getResults()
-            .getErrorsCount(), context.getResults().toString());
+        LOGGER.debug("Catalog alert API: alerts have not been inserted. Found {} errors after validate data. {}",
+            context.getResults().getErrorsCount(), context.getResults().toString());
         return new CatalogAlertResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, context.getResults().getErrors());
       } else {
         alertService.insertAll(alerts);
@@ -201,8 +176,8 @@ public class ApiAlertController {
 
       if (context.getResults().hasErrors()) {
         final String errorMessage = "Bad request data. Alerts have not been updated. Please review the following errors";
-        LOGGER.debug("Catalog alert API: alerts have not been updated. Found {} errors after validate data. {}", context.getResults()
-            .getErrorsCount(), context.getResults().toString());
+        LOGGER.debug("Catalog alert API: alerts have not been updated. Found {} errors after validate data. {}",
+            context.getResults().getErrorsCount(), context.getResults().toString());
         return new CatalogAlertResponseMessage(CatalogResponseMessage.BAD_REQUEST, errorMessage, context.getResults().getErrors());
       } else {
         alertService.updateAll(alerts);
@@ -227,7 +202,7 @@ public class ApiAlertController {
 
     LOGGER.debug("Catalog alert API: deleting alerts. Operation invoked by entity {} ", entityId);
     try {
-      if (message == null || (CatalogUtils.arrayIsEmpty(message.getAlertsIds()))) {
+      if (message == null || CatalogUtils.arrayIsEmpty(message.getAlertsIds())) {
         alertService.deleteOwnAlerts(entityId);
         LOGGER.debug("Catalog alert API: deleted all alerts from entity {}", entityId);
       } else if (!SentiloUtils.arrayIsEmpty(message.getAlertsIds())) {

@@ -32,6 +32,7 @@
  */
 package org.sentilo.web.catalog.test.validator;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -51,9 +52,13 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.CatalogComponent;
 import org.sentilo.common.domain.TechnicalDetails;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
+import org.sentilo.web.catalog.domain.LngLat;
+import org.sentilo.web.catalog.domain.Location;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.search.SearchFilter;
@@ -61,12 +66,13 @@ import org.sentilo.web.catalog.search.SearchFilterResult;
 import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorTypesService;
-import org.sentilo.web.catalog.test.AbstractBaseTest;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.validator.ApiValidationResults;
 import org.sentilo.web.catalog.validator.ApiValidator;
+import org.sentilo.web.catalog.validator.LngLatValidator;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
@@ -98,6 +104,15 @@ public class ApiValidatorTest extends AbstractBaseTest {
   @Mock
   private TechnicalDetails technicalDetails;
 
+  @Mock
+  private CatalogComponent catalogComponent;
+
+  @Mock
+  private Component component;
+
+  @Mock
+  private Location location;
+
   @InjectMocks
   private ApiValidator apiValidator;
 
@@ -108,8 +123,8 @@ public class ApiValidatorTest extends AbstractBaseTest {
     when(sensorTypesService.findAll()).thenReturn(getSensorTypes());
     when(componentTypesService.findAll()).thenReturn(Collections.<ComponentType>emptyList());
     when(validator.supports(Sensor.class)).thenReturn(true);
-    when(sensorService.search(any(SearchFilter.class))).thenReturn(
-        new SearchFilterResult<Sensor>(Collections.<Sensor>emptyList(), new SearchFilter(), 0));
+    when(sensorService.search(any(SearchFilter.class)))
+        .thenReturn(new SearchFilterResult<Sensor>(Collections.<Sensor>emptyList(), new SearchFilter(), 0));
   }
 
   @Test
@@ -155,6 +170,46 @@ public class ApiValidatorTest extends AbstractBaseTest {
     final Set<ConstraintViolation<Sensor>> result = validator.validate(sensor);
 
     assertTrue(result.size() == 0);
+  }
+
+  @Test
+  public void isValidLocationFormat() {
+    final String location = "1.123456 4.435678";
+    final String location2 = "1.123456 4.435678, 1.123424 4.435689";
+    final String location3 = "1.123456 4.435678, 2.34567, 1.123424 4.435689";
+    final String location4 = "1.123456 4.435678, 1.abc3424 4.435689";
+
+    final Boolean valid = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location);
+    final Boolean valid2 = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location2);
+    final Boolean valid3 = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location3);
+    final Boolean valid4 = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location4);
+
+    assertTrue(valid);
+    assertTrue(valid2);
+    assertFalse(valid3);
+    assertFalse(valid4);
+
+  }
+
+  @Test
+  public void validateLocationContent() {
+    final LngLat[] lngLat1 = {new LngLat(1.2345, 43.23456)};
+    final LngLat[] lngLat2 = {new LngLat(1.2345, 43.23456), new LngLat(-198.2345, 99.23456)};
+
+    ReflectionTestUtils.setField(apiValidator, "validator", new LngLatValidator());
+
+    when(component.getLocation()).thenReturn(location);
+    // Each invoke to validateLocationContent does two calls to location.getCoordinates()
+    when(location.getCoordinates()).thenReturn(lngLat1, lngLat1, lngLat2, lngLat2);
+
+    final ApiValidationResults results = new ApiValidationResults();
+    final ApiValidationResults results2 = new ApiValidationResults();
+
+    ReflectionTestUtils.invokeMethod(apiValidator, "validateLocationContent", results, component);
+    ReflectionTestUtils.invokeMethod(apiValidator, "validateLocationContent", results2, component);
+
+    assertFalse(results.hasErrors());
+    assertTrue(results2.hasErrors() && results2.getErrorsCount() == 1);
   }
 
   private List<Sensor> getSensorsWithErrors() {

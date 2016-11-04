@@ -57,7 +57,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 @Service
-public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> implements ActivityService {
+public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity>implements ActivityService {
 
   @Autowired
   private ActivityRepository repository;
@@ -71,7 +71,7 @@ public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> i
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ActivityService#getLastRegisters()
    */
   public List<Activity> getLastActivityLogs() {
@@ -85,9 +85,9 @@ public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> i
   @Scheduled(initialDelay = 30000, fixedRate = 3600000)
   public void deleteOldActivityLogs() {
     // Only stores the activity from the last 7 days
-    final long tsToCompare = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000);
+    final long tsToCompare = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000;
     final Criteria criteria = Criteria.where("timestamp").lt(tsToCompare);
-    getMongoOps().remove(new Query(criteria), Activity.class);
+    doDelete(new Query(criteria));
   }
 
   /**
@@ -116,14 +116,14 @@ public class ActivityServiceImpl extends AbstractBaseCrudServiceImpl<Activity> i
 
     final SearchFilterResult<Activity> result = search(filter);
 
-    return (CollectionUtils.isEmpty(result.getContent()) ? new Activity() : result.getContent().get(0));
+    return CollectionUtils.isEmpty(result.getContent()) ? new Activity() : result.getContent().get(0);
   }
 
   private SearchFilter buildFilter() {
     final Pageable pageable = new PageRequest(0, 20, Direction.DESC, "timestamp");
     final SearchFilter filter = new SearchFilter(pageable);
     if (TenantContextHolder.isEnabled()) {
-      filter.addAndParam("tenant", TenantUtils.getCurrentTenant());
+      filter.addAndParam("tenant", TenantUtils.getRequestTenant());
     }
 
     return filter;

@@ -35,7 +35,6 @@ package org.sentilo.web.catalog.service.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import org.sentilo.common.utils.SentiloUtils;
@@ -45,23 +44,14 @@ import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.SearchFilterResult;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.SensorService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.geo.Box;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 
 @Service
-public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component> implements ComponentService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ComponentServiceImpl.class);
+public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component>implements ComponentService {
 
   @Autowired
   private ComponentRepository repository;
@@ -84,7 +74,7 @@ public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component>
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#getEntityId(org.sentilo.web
    * .catalog .domain.CatalogDocument)
@@ -95,18 +85,7 @@ public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component>
 
   /*
    * (non-Javadoc)
-   * 
-   * @see org.sentilo.web.catalog.service.ComponentService#updateMulti(java.util.Collection,
-   * java.lang.String, java.lang.Object)
-   */
-  public void updateMulti(final Collection<String> componentsIds, final String param, final Object value) {
-    final Update update = Update.update(param, value);
-    getMongoOps().updateMulti(buildQueryForIdInCollection(componentsIds), update, Component.class);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ComponentService#findByName(java.lang.String,
    * java.lang.String)
    */
@@ -120,10 +99,9 @@ public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component>
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.service.ComponentService#geoSpatialSearch(org.sentilo.web.catalog.search
-   * .SearchFilter)
+   *
+   * @see org.sentilo.web.catalog.service.ComponentService#geoSpatialSearch(org.sentilo.web.catalog.
+   * search .SearchFilter)
    */
   public SearchFilterResult<Component> geoSpatialSearch(final SearchFilter filter) {
     if (SentiloUtils.arrayIsEmpty(filter.getBounds())) {
@@ -148,20 +126,17 @@ public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component>
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ComponentService#changeAccessType(java.lang.String[],
    * boolean)
    */
-  public void changeAccessType(final String[] componentsIds, final boolean isPublicAccess) {
-    final List<String> values = Arrays.asList(componentsIds);
-    final Query query = buildQueryForIdInCollection(values);
-    final Update update = Update.update("publicAccess", isPublicAccess).set("updatedAt", new Date());
-    getMongoOps().updateMulti(query, update, Component.class);
+  public void changeAccessType(final String[] componentsIds, final Boolean isPublicAccess) {
+    updateMulti(Arrays.asList(componentsIds), "publicAccess", isPublicAccess);
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.service.ComponentService#findByProvider(java.lang.String)
    */
   @Override
@@ -174,55 +149,66 @@ public class ComponentServiceImpl extends AbstractBaseCrudServiceImpl<Component>
 
   /*
    * (non-Javadoc)
-   * 
-   * @see
-   * org.sentilo.web.catalog.service.ComponentService#updateTenantsMapVisibleFromProvider(java.lang
-   * .String)
+   *
+   * @see org.sentilo.web.catalog.service.ComponentService#deleteComponents(java.lang.String,
+   * java.lang.String[])
    */
-  @Override
-  public void updateTenantsMapVisibleFromProvider(final String providerId, final String tenantId, final boolean visible) {
-    if (StringUtils.hasText(tenantId)) {
-      final DBCollection coll = getMongoOps().getCollection("component");
-      final BasicDBObject query = new BasicDBObject("providerId", providerId);
-      if (visible) {
-        coll.updateMulti(query, new BasicDBObject("$push", new BasicDBObject("tenantsMapVisible", tenantId)));
-      } else {
-        coll.updateMulti(query, new BasicDBObject("$pull", new BasicDBObject("tenantsMapVisible", tenantId)));
-      }
-    }
+  public void deleteComponents(final String providerId, final String[] componentsNames) {
+    super.delete(getComponentsFromNames(providerId, componentsNames));
   }
 
-  public void deleteComponents(final String[] componentsNames) {
-    // A la hora de borrar los componentes hay que hacer lo siguiente:
-    // 1. Borrar los componentes
-    // 2. Borrar sensores asociados
-    // 3. Eliminar referencias en componentes que lo tengan como padre
-    super.delete(getComponentsFromNames(componentsNames));
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.ComponentService#findByType(java.lang.String,
+   * java.lang.String)
+   */
+  public List<Component> findByType(final String providerId, final String componentType) {
+    final SearchFilter filter = new SearchFilter();
+    filter.addAndParam("providerId", providerId);
+    filter.addAndParam("componentType", componentType);
+    return getMongoOps().find(buildQuery(filter), Component.class);
   }
 
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.web.
+   * catalog.domain.CatalogDocument)
+   */
   protected void doAfterDelete(final Component component) {
     doAfterDelete(Arrays.asList(new Component[] {component}));
   }
 
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(java.util.
+   * Collection)
+   */
   protected void doAfterDelete(final Collection<Component> entities) {
+    // After delete the components, a second step should be done: remove the sensors children and
+    // the relations with other components
     final List<String> componentsIds = new ArrayList<String>();
     for (final Component component : entities) {
       componentsIds.add(component.getId());
     }
     sensorService.deleteSensorsFromComponents(componentsIds);
-    disconnectChildComponents(componentsIds);
+    disconnectChildrenComponents(componentsIds);
   }
 
-  private List<Component> getComponentsFromNames(final String[] componentsNames) {
-    final List<String> values = Arrays.asList(componentsNames);
-    final Query nameFilter = buildQueryForParamInCollection("name", values);
+  private List<Component> getComponentsFromNames(final String providerId, final String[] componentsNames) {
+    final SearchFilter searchFilter = new SearchFilter();
+    searchFilter.addAndParam("providerId", providerId);
+    searchFilter.addAndParam("name", componentsNames);
+
+    final Query nameFilter = buildQuery(searchFilter);
     return getMongoOps().find(nameFilter, Component.class);
   }
 
-  private void disconnectChildComponents(final List<String> componentsIds) {
-    final Query idsFilter = buildQueryForParamInCollection("parentId", componentsIds);
-    final Update update = Update.update("parentId", null);
-    getMongoOps().updateMulti(idsFilter, update, Component.class);
+  private void disconnectChildrenComponents(final List<String> componentsIds) {
+    updateMulti(componentsIds, "parentId", null);
   }
 
 }

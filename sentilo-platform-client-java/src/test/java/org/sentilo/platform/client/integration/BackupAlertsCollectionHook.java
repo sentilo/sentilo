@@ -46,10 +46,10 @@ import org.springframework.util.CollectionUtils;
  * This hook lets run CatalogAlertServiceOperationsIntegrationTest without break catalog alerts
  * state, i.e., this hooks conserve the internal state after run all tests from
  * CatalogAlertServiceOperationsIntegrationTest.
- * 
+ *
  * Backup any alert belonging to provider testApp_provider before runs any test. This backup allows
  * to restore catalog state after runs all tests.
- * 
+ *
  */
 public class BackupAlertsCollectionHook extends AbstractTestExecutionListener {
 

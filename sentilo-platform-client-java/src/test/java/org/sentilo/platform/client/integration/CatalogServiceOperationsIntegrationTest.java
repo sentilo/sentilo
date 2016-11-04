@@ -166,8 +166,8 @@ public class CatalogServiceOperationsIntegrationTest {
     if (expectedSensorsSize == 0) {
       assertTrue(CollectionUtils.isEmpty(outputMessage.getProviders()));
     } else {
-      assertTrue("Expected " + expectedProvidersSize + " providers but found " + outputMessage.getProviders().size(), outputMessage.getProviders()
-          .size() == expectedProvidersSize);
+      assertTrue("Expected " + expectedProvidersSize + " providers but found " + outputMessage.getProviders().size(),
+          outputMessage.getProviders().size() == expectedProvidersSize);
       int sensorsSize = 0;
       for (final AuthorizedProvider provider : outputMessage.getProviders()) {
         sensorsSize += provider.getSensors().size();
@@ -187,12 +187,10 @@ public class CatalogServiceOperationsIntegrationTest {
   private List<CatalogSensor> buildSensorsToRegister() {
     final List<CatalogSensor> sensors = new ArrayList<CatalogSensor>();
     final CatalogSensor sensor0 = buildSensor("TEST_REC0122", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 122", "number", "wind", "km/h");
-    final CatalogSensor sensor1 =
-        buildSensor("TEST_REC0123", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 123", "number", "43.39950387509218 5.1809202294998613", "temperature",
-            "C");
-    final CatalogSensor sensor2 =
-        buildSensor("TEST_REC0124", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 124", "number", "43.39950387509218 5.1809202294998613", "temperature",
-            "C");
+    final CatalogSensor sensor1 = buildSensor("TEST_REC0123", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 123", "number",
+        "43.39950387509218 5.1809202294998613", "temperature", "C");
+    final CatalogSensor sensor2 = buildSensor("TEST_REC0124", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 124", "number",
+        "43.39950387509218 5.1809202294998613", "temperature", "C");
     final CatalogSensor sensor3 = buildSensor("TEST_REC0125", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 125", "number", "wind", "km/h");
     final CatalogSensor sensor4 = buildSensor("TEST_REC0126", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 126", "number", "wind", "km/h");
     sensors.add(sensor0);

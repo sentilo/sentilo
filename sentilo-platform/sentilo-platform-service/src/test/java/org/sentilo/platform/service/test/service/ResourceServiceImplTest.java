@@ -49,6 +49,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.dao.JedisTemplate;
@@ -59,9 +60,13 @@ public class ResourceServiceImplTest {
 
   private static final String PROVIDER_ID = "provider1";
   private static final String SENSOR_ID = "sensor1";
+  private static final String ALERT_ID = "alert1";
   private static final Long PID = new Long(1);
   private static final Long SID = new Long(1);
+  private static final Long AID = new Long(1);
 
+  @Mock
+  private CatalogAlert catalogAlert;
   @Mock
   private JedisTemplate<String, String> jedisTemplate;
   @Mock
@@ -104,12 +109,13 @@ public class ResourceServiceImplTest {
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
+    fields.put("state", "online");
 
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
     when(jedisSequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(SENSOR_ID, PROVIDER_ID);
+    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, "online", false);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
@@ -123,12 +129,26 @@ public class ResourceServiceImplTest {
   public void registerSensorThatAlreadyExists() {
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(SENSOR_ID, PROVIDER_ID);
+    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, "online", false);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
     verify(jedisSequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisTemplate, times(0)).hmSet(anyString(), anyMapOf(String.class, String.class));
+    verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+  }
+
+  @Test
+  public void updateSensorThatAlreadyExists() {
+    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+
+    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, "online", true);
+
+    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
+    verify(jedisSequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(jedisTemplate).hmSet(anyString(), anyMapOf(String.class, String.class));
     verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
     verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
   }
@@ -214,5 +234,151 @@ public class ResourceServiceImplTest {
     verify(jedisTemplate).del(service.getKeysBuilder().getSensorObservationsKey(SID));
     verify(jedisTemplate).del(service.getKeysBuilder().getSensorOrdersKey(SID));
     verify(jedisSequenceUtils).removeSid(PROVIDER_ID, SENSOR_ID);
+  }
+
+  @Test
+  public void removeAlert() {
+    when(catalogAlert.getId()).thenReturn(ALERT_ID);
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+
+    service.removeAlert(catalogAlert);
+
+    verify(jedisSequenceUtils).getAid(ALERT_ID);
+    verify(jedisTemplate).del(service.getKeysBuilder().getAlertKey(AID));
+    verify(jedisTemplate).del(service.getKeysBuilder().getReverseAlertKey(ALERT_ID));
+    verify(jedisSequenceUtils).removeAid(ALERT_ID);
+  }
+
+  @Test
+  public void registerNewAlert() {
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("alert", ALERT_ID);
+    fields.put("entity", PROVIDER_ID);
+    fields.put("active", "true");
+
+    when(catalogAlert.getId()).thenReturn(ALERT_ID);
+    when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
+    when(catalogAlert.getActive()).thenReturn(Boolean.TRUE.toString());
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(null);
+    when(jedisSequenceUtils.setAid(ALERT_ID)).thenReturn(AID);
+
+    service.registerAlertIfNeedBe(catalogAlert, false);
+
+    verify(jedisSequenceUtils).getAid(ALERT_ID);
+    verify(jedisSequenceUtils).setAid(ALERT_ID);
+    verify(jedisTemplate).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
+    verify(jedisTemplate).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
+  }
+
+  @Test
+  public void registerAlertThatAlreadyExists() {
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("alert", ALERT_ID);
+    fields.put("entity", PROVIDER_ID);
+    fields.put("active", "true");
+
+    when(catalogAlert.getId()).thenReturn(ALERT_ID);
+    when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
+    when(catalogAlert.getActive()).thenReturn(Boolean.TRUE.toString());
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+
+    service.registerAlertIfNeedBe(catalogAlert, false);
+
+    verify(jedisSequenceUtils).getAid(ALERT_ID);
+    verify(jedisSequenceUtils, times(0)).setAid(ALERT_ID);
+    verify(jedisTemplate, times(0)).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
+    verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
+  }
+
+  @Test
+  public void updateAlertThatAlreadyExists() {
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("alert", ALERT_ID);
+    fields.put("entity", PROVIDER_ID);
+    fields.put("active", "true");
+
+    when(catalogAlert.getId()).thenReturn(ALERT_ID);
+    when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
+    when(catalogAlert.getActive()).thenReturn(Boolean.TRUE.toString());
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+
+    service.registerAlertIfNeedBe(catalogAlert, true);
+
+    verify(jedisSequenceUtils).getAid(ALERT_ID);
+    verify(jedisSequenceUtils, times(0)).setAid(ALERT_ID);
+    verify(jedisTemplate).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
+    verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void isSensorDisabled() {
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("provider", PROVIDER_ID);
+    fields.put("sensor", SENSOR_ID);
+    fields.put("state", "online");
+
+    final Map<String, String> fields2 = new HashMap<String, String>(fields);
+    fields2.remove("state");
+    final Map<String, String> fields3 = new HashMap<String, String>(fields);
+    fields3.put("state", "offline");
+
+    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields, fields2, fields3);
+    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+
+    final boolean disabled = service.isSensorDisabled(PROVIDER_ID, SENSOR_ID);
+    final boolean disabled2 = service.isSensorDisabled(PROVIDER_ID, SENSOR_ID);
+    final boolean disabled3 = service.isSensorDisabled(PROVIDER_ID, SENSOR_ID);
+
+    Assert.assertFalse(disabled);
+    Assert.assertFalse(disabled2);
+    Assert.assertTrue(disabled3);
+  }
+
+  @Test
+  public void existSensor() {
+    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID, (Long) null);
+
+    final boolean exist = service.existsSensor(PROVIDER_ID, SENSOR_ID);
+    final boolean exist2 = service.existsSensor(PROVIDER_ID, SENSOR_ID);
+
+    Assert.assertTrue(exist);
+    Assert.assertFalse(exist2);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void isAlertDisabled() {
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("alert", ALERT_ID);
+    fields.put("entity", PROVIDER_ID);
+    fields.put("active", "true");
+
+    final Map<String, String> fields2 = new HashMap<String, String>(fields);
+    fields2.remove("active");
+    final Map<String, String> fields3 = new HashMap<String, String>(fields);
+    fields3.put("active", "false");
+
+    when(jedisTemplate.hGetAll(service.getKeysBuilder().getAlertKey(AID))).thenReturn(fields, fields2, fields3);
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+
+    final boolean disabled = service.isAlertDisabled(ALERT_ID);
+    final boolean disabled2 = service.isAlertDisabled(ALERT_ID);
+    final boolean disabled3 = service.isAlertDisabled(ALERT_ID);
+
+    Assert.assertFalse(disabled);
+    Assert.assertFalse(disabled2);
+    Assert.assertTrue(disabled3);
+  }
+
+  @Test
+  public void existAlert() {
+    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID, (Long) null);
+
+    final boolean exist = service.existsAlert(ALERT_ID);
+    final boolean exist2 = service.existsAlert(ALERT_ID);
+
+    Assert.assertTrue(exist);
+    Assert.assertFalse(exist2);
   }
 }

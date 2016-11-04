@@ -32,7 +32,6 @@
  */
 package org.sentilo.web.catalog.service;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.sentilo.common.domain.OrderMessage;
@@ -40,6 +39,7 @@ import org.sentilo.common.domain.QueryFilterParams;
 import org.sentilo.platform.client.core.domain.AlarmMessage;
 import org.sentilo.platform.client.core.domain.Observation;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.enums.SensorState;
 
 public interface SensorService extends CrudService<Sensor> {
 
@@ -53,14 +53,15 @@ public interface SensorService extends CrudService<Sensor> {
 
   Observation getLastObservation(Sensor sensor, QueryFilterParams params);
 
-  void updateMulti(Collection<String> sensorIds, String param, Object value);
-
-  void deleteSensors(String[] sensorsIds);
+  void deleteSensors(String providerId, String[] sensorsIds);
 
   void deleteSensorsFromComponents(List<String> componentsIds);
 
   Sensor findByName(String providerId, String sensorId);
 
-  void changeAccessType(String[] sensorsIds, boolean isPublicAccess);
+  void changeAccessType(String[] sensorsIds, Boolean isPublicAccess);
 
+  void changeState(final String[] sensorsIds, final SensorState newState, final String newSubstate);
+
+  void notifyStateChange(final Sensor sensor);
 }

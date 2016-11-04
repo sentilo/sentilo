@@ -44,6 +44,8 @@ public class AlarmInputMessage implements PlatformInputMessage, PlatformSearchIn
   private String alertId;
   private String message;
   private String alertType;
+  /** Alert belongs to this entity (either provider or application) */
+  private String entityOwner;
 
   /** Fields related to internal alarms */
   private String providerId;
@@ -68,7 +70,7 @@ public class AlarmInputMessage implements PlatformInputMessage, PlatformSearchIn
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#getQueryFilters()
    */
   public QueryFilterParams getQueryFilters() {
@@ -77,7 +79,7 @@ public class AlarmInputMessage implements PlatformInputMessage, PlatformSearchIn
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.platform.client.core.domain.PlatformSearchInputMessage#hasQueryFilters()
    */
   public boolean hasQueryFilters() {
@@ -138,6 +140,14 @@ public class AlarmInputMessage implements PlatformInputMessage, PlatformSearchIn
 
   public void setComponentId(final String componentId) {
     this.componentId = componentId;
+  }
+
+  public String getEntityOwner() {
+    return entityOwner;
+  }
+
+  public void setEntityOwner(final String entityOwner) {
+    this.entityOwner = entityOwner;
   }
 
 }

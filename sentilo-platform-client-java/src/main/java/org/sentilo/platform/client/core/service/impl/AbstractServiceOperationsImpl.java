@@ -32,10 +32,14 @@
  */
 package org.sentilo.platform.client.core.service.impl;
 
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.rest.RESTClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractServiceOperationsImpl {
+
+  protected StringMessageConverter converter = new DefaultStringMessageConverter();
 
   @Autowired
   private RESTClient restClient;

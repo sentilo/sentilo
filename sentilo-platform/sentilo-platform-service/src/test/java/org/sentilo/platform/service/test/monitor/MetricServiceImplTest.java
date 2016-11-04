@@ -76,16 +76,16 @@ public class MetricServiceImplTest {
   }
 
   @Test
-  public void calculateInstantAvg() {
-    final Float instantAvg1 = (Float) ReflectionTestUtils.invokeMethod(service, "calculateInstantAvg", 1000l, 0l, 30l);
-    final Float instantAvg2 = (Float) ReflectionTestUtils.invokeMethod(service, "calculateInstantAvg", 8167l, 2000l, 30l);
+  public void computeInstantAvg() {
+    final Float instantAvg1 = (Float) ReflectionTestUtils.invokeMethod(service, "computeInstantAvg", 1000l, 0l, 30l);
+    final Float instantAvg2 = (Float) ReflectionTestUtils.invokeMethod(service, "computeInstantAvg", 8167l, 2000l, 30l);
 
     Assert.assertEquals(0f, instantAvg1, 0);
     Assert.assertEquals(Float.valueOf("205.57"), instantAvg2, 0);
   }
 
   @Test
-  public void calculateInitialPerformance() {
+  public void computeInitialPerformance() {
     final String countersKey = "counters:master";
     final String avgsKey = "avgs:master";
     final Map<Object, Object> avgsHash = new HashMap<Object, Object>();
@@ -94,7 +94,7 @@ public class MetricServiceImplTest {
     when(hOperations.get(countersKey, MonitorConstants.TOTAL_REQUESTS_FIELD)).thenReturn(totalRequests);
     when(hOperations.entries(avgsKey)).thenReturn(avgsHash);
 
-    ReflectionTestUtils.invokeMethod(service, "calculatePerformance", countersKey, currentTs);
+    ReflectionTestUtils.invokeMethod(service, "computePerformance", countersKey, currentTs);
 
     Assert.assertFalse(CollectionUtils.isEmpty(avgsHash));
     Assert.assertEquals(totalRequests, avgsHash.get(MonitorConstants.TOTAL_REQUESTS_FIELD));
@@ -103,7 +103,7 @@ public class MetricServiceImplTest {
   }
 
   @Test
-  public void calculatePerformance() {
+  public void computePerformance() {
 
     final String countersKey = "counters:master";
     final String avgsKey = "avgs:master";
@@ -111,8 +111,8 @@ public class MetricServiceImplTest {
     final Map<Object, Object> avgsHash = new HashMap<Object, Object>();
     avgsHash.put(MonitorConstants.MAX_AVG_FIELD, "1900.45");
     avgsHash.put(MonitorConstants.MAX_DAILY_AVG_FIELD, "276.32");
-    avgsHash.put(MonitorConstants.TIMESTAMP_FIELD, Long.toString(currentTs - (60 * 1000)));
-    avgsHash.put(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD, Long.toString(currentTs - (3 * 24 * 60 * 60 * 1000)));
+    avgsHash.put(MonitorConstants.TIMESTAMP_FIELD, Long.toString(currentTs - 60 * 1000));
+    avgsHash.put(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD, Long.toString(currentTs - 3 * 24 * 60 * 60 * 1000));
     avgsHash.put(MonitorConstants.TOTAL_REQUESTS_FIELD, "100000");
 
     final String currentTotalRequests = "540076";
@@ -120,7 +120,7 @@ public class MetricServiceImplTest {
     when(hOperations.get(countersKey, MonitorConstants.TOTAL_REQUESTS_FIELD)).thenReturn(currentTotalRequests);
     when(hOperations.entries(avgsKey)).thenReturn(avgsHash);
 
-    ReflectionTestUtils.invokeMethod(service, "calculatePerformance", countersKey, currentTs);
+    ReflectionTestUtils.invokeMethod(service, "computePerformance", countersKey, currentTs);
 
     Assert.assertFalse(CollectionUtils.isEmpty(avgsHash));
     Assert.assertEquals(currentTotalRequests, avgsHash.get(MonitorConstants.TOTAL_REQUESTS_FIELD));
@@ -131,7 +131,7 @@ public class MetricServiceImplTest {
   }
 
   @Test
-  public void calculatePerformance2() {
+  public void computePerformance2() {
 
     final String countersKey = "counters:master";
     final String avgsKey = "avgs:master";
@@ -139,8 +139,8 @@ public class MetricServiceImplTest {
     final Map<Object, Object> avgsHash = new HashMap<Object, Object>();
     avgsHash.put(MonitorConstants.MAX_AVG_FIELD, "1900.45");
     avgsHash.put(MonitorConstants.MAX_DAILY_AVG_FIELD, "276.32");
-    avgsHash.put(MonitorConstants.TIMESTAMP_FIELD, Long.toString(currentTs - (60 * 1000)));
-    avgsHash.put(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD, Long.toString(currentTs - (3 * 24 * 60 * 60 * 1000)));
+    avgsHash.put(MonitorConstants.TIMESTAMP_FIELD, Long.toString(currentTs - 60 * 1000));
+    avgsHash.put(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD, Long.toString(currentTs - 3 * 24 * 60 * 60 * 1000));
     avgsHash.put(MonitorConstants.TOTAL_REQUESTS_FIELD, "100000");
 
     final String currentTotalRequests = "114117";
@@ -148,14 +148,37 @@ public class MetricServiceImplTest {
     when(hOperations.get(countersKey, MonitorConstants.TOTAL_REQUESTS_FIELD)).thenReturn(currentTotalRequests);
     when(hOperations.entries(avgsKey)).thenReturn(avgsHash);
 
-    ReflectionTestUtils.invokeMethod(service, "calculatePerformance", countersKey, currentTs);
+    ReflectionTestUtils.invokeMethod(service, "computePerformance", countersKey, currentTs);
 
     Assert.assertFalse(CollectionUtils.isEmpty(avgsHash));
     Assert.assertEquals(currentTotalRequests, avgsHash.get(MonitorConstants.TOTAL_REQUESTS_FIELD));
     Assert.assertEquals("235.28", avgsHash.get(MonitorConstants.INSTANT_AVG_FIELD));
     Assert.assertEquals("276.32", avgsHash.get(MonitorConstants.MAX_DAILY_AVG_FIELD));
     Assert.assertEquals("1900.45", avgsHash.get(MonitorConstants.MAX_AVG_FIELD));
-    Assert.assertEquals(Long.toString(currentTs - (3 * 24 * 60 * 60 * 1000)), avgsHash.get(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD));
+    Assert.assertEquals(Long.toString(currentTs - 3 * 24 * 60 * 60 * 1000), avgsHash.get(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD));
+  }
+
+  @Test
+  public void initialComputePerformance() {
+
+    final String countersKey = "counters:master";
+    final String avgsKey = "avgs:master";
+    final long currentTs = System.currentTimeMillis();
+    final Map<Object, Object> avgsHash = new HashMap<Object, Object>();
+
+    final String currentTotalRequests = null;
+
+    when(hOperations.get(countersKey, MonitorConstants.TOTAL_REQUESTS_FIELD)).thenReturn(currentTotalRequests);
+    when(hOperations.entries(avgsKey)).thenReturn(avgsHash);
+
+    ReflectionTestUtils.invokeMethod(service, "computePerformance", countersKey, currentTs);
+
+    Assert.assertFalse(CollectionUtils.isEmpty(avgsHash));
+    Assert.assertEquals("0", avgsHash.get(MonitorConstants.TOTAL_REQUESTS_FIELD));
+    Assert.assertEquals("0.0", avgsHash.get(MonitorConstants.INSTANT_AVG_FIELD));
+    Assert.assertEquals("0.0", avgsHash.get(MonitorConstants.MAX_DAILY_AVG_FIELD));
+    Assert.assertEquals(null, avgsHash.get(MonitorConstants.MAX_AVG_FIELD));
+    Assert.assertEquals(null, avgsHash.get(MonitorConstants.TIMESTAMP_MAX_AVG_FIELD));
   }
 
 }

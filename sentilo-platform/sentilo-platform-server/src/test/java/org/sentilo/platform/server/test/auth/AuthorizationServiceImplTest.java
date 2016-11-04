@@ -42,12 +42,12 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.platform.common.domain.PermissionMessage;
 import org.sentilo.platform.common.domain.PermissionMessage.PermissionType;
 import org.sentilo.platform.common.domain.PermissionsMessage;
 import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.server.auth.impl.AuthorizationServiceImpl;
-import org.sentilo.platform.server.test.AbstractBaseTest;
 
 public class AuthorizationServiceImplTest extends AbstractBaseTest {
 

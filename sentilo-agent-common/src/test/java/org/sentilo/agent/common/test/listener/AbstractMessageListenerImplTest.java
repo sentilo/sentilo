@@ -41,8 +41,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.agent.common.listener.AbstractMessageListenerImpl;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
-import org.sentilo.common.parser.EventMessageConverter;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -52,7 +52,7 @@ public class AbstractMessageListenerImplTest {
   @Mock
   private RedisSerializer<String> serializer;
   @Mock
-  private EventMessageConverter eventConverter;
+  private StringMessageConverter eventConverter;
   @Mock
   private Message message;
   @Mock
@@ -67,7 +67,7 @@ public class AbstractMessageListenerImplTest {
     listener = new AbstractMessageListenerImpl("TEST") {
 
       @Override
-      public void doWithMessage(final Message message, final EventMessage eventMessage) {
+      public void doWithMessage(final EventMessage eventMessage) {
       }
     };
 
@@ -89,7 +89,7 @@ public class AbstractMessageListenerImplTest {
     when(message.getChannel()).thenReturn(topic.getBytes());
     when(serializer.deserialize(value.getBytes())).thenReturn(value);
     when(serializer.deserialize(topic.getBytes())).thenReturn(topic);
-    when(eventConverter.unmarshall(value)).thenReturn(eventMessage);
+    when(eventConverter.unmarshal(value, EventMessage.class)).thenReturn(eventMessage);
 
     listener.onMessage(message, topic.getBytes());
 
@@ -97,7 +97,7 @@ public class AbstractMessageListenerImplTest {
     verify(message).getChannel();
     verify(serializer).deserialize(value.getBytes());
     verify(serializer).deserialize(topic.getBytes());
-    verify(eventConverter).unmarshall(value);
+    verify(eventConverter).unmarshal(value, EventMessage.class);
 
   }
 

@@ -34,7 +34,7 @@
 							<br />
 						</h1>
 						
-						<%@include file="/WEB-INF/jsp/common/include_list_component.jsp"%>
+						<%@include file="/WEB-INF/jsp/common/include_component_list.jsp"%>
 						
 						<c:if test="${showAdminControls}">
 						<div class="control-group pull-right">

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -47,14 +48,17 @@ import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.Sensor.DataType;
+import org.sentilo.web.catalog.domain.SensorSubstate;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.dto.ObservationDTO;
 import org.sentilo.web.catalog.dto.OptionDTO;
+import org.sentilo.web.catalog.enums.SensorState;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.SensorService;
+import org.sentilo.web.catalog.service.SensorSubstateService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.utils.AlarmMessageComparator;
 import org.sentilo.web.catalog.utils.Constants;
@@ -94,6 +98,9 @@ public class SensorController extends CrudController<Sensor> {
   private SensorTypesService sensorTypeService;
 
   @Autowired
+  private SensorSubstateService sensorSubStateService;
+
+  @Autowired
   private MessageSource messageSource;
 
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
@@ -107,8 +114,18 @@ public class SensorController extends CrudController<Sensor> {
   }
 
   @ModelAttribute(Constants.MODEL_SENSOR_DATA_TYPES)
-  public Sensor.DataType[] getSensorDataTypes(final Model model) {
+  public Sensor.DataType[] getSensorDataTypes() {
     return Sensor.DataType.values();
+  }
+
+  @ModelAttribute(Constants.MODEL_SENSOR_STATES)
+  public SensorState[] getSensorStates() {
+    return SensorState.values();
+  }
+
+  @ModelAttribute(Constants.MODEL_SENSOR_SUBSTATES)
+  public List<SensorSubstate> getSensorSubStates() {
+    return sensorSubStateService.findAll();
   }
 
   @RequestMapping("/search/json")
@@ -179,11 +196,21 @@ public class SensorController extends CrudController<Sensor> {
   }
 
   @RequestMapping(value = "/changeAccessType", method = RequestMethod.POST)
-  public String changeAccessType(@RequestParam final String newAccessType, @RequestParam final String[] selectedIds,
-      final HttpServletRequest request, final RedirectAttributes redirectAttributes, final Model model) {
-    final boolean isPublicAccess = (StringUtils.hasText(newAccessType) && "public".equals(newAccessType) ? true : false);
+  public String changeAccessType(@RequestParam final String newAccessType, @RequestParam final String[] selectedIds, final HttpServletRequest request,
+      final RedirectAttributes redirectAttributes, final Model model) {
+    final boolean isPublicAccess = StringUtils.hasText(newAccessType) && "public".equals(newAccessType) ? true : false;
+
     sensorService.changeAccessType(selectedIds, isPublicAccess);
     ModelUtils.addConfirmationMessageTo(model, "accessType.changed");
+    return redirectToList(model, request, redirectAttributes);
+  }
+
+  @RequestMapping(value = "/changeState", method = RequestMethod.POST)
+  public String changeState(@RequestParam final SensorState newState, @RequestParam(required = false) final String newSubstate,
+      @RequestParam final String[] selectedIds, final HttpServletRequest request, final RedirectAttributes redirectAttributes, final Model model) {
+
+    sensorService.changeState(selectedIds, newState, StringUtils.hasText(newSubstate) ? newSubstate : null);
+    ModelUtils.addConfirmationMessageTo(model, "sensorState.changed");
     return redirectToList(model, request, redirectAttributes);
   }
 
@@ -195,8 +222,23 @@ public class SensorController extends CrudController<Sensor> {
     row.add(sensor.getProviderId());
     row.add(FormatUtils.label(sensor.getType()));
     row.add(String.valueOf(sensor.getPublicAccess()));
+    row.add(sensor.getState().toString());
+    row.add(StringUtils.hasText(sensor.getSubstate()) ? substateStyleColumn(sensor) : null);
     row.add(getLocalDateFormat().printAsLocalTime(sensor.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
+  }
+
+  private String substateStyleColumn(final Sensor sensor) {
+    final String description = sensorSubStateService.find(sensor.getSubstate()).getDescription();
+    return String.format("<span class=\"label label-info\" title=\"%s\">%s (%s)</span>", description, sensor.getSubstate(), description);
+  }
+
+  @Override
+  protected void addRowMetadata(final Sensor sensor, final Map<String, String> rowMetadata) {
+    super.addRowMetadata(sensor, rowMetadata);
+    if (StringUtils.hasText(sensor.getSubstate())) {
+      rowMetadata.put("sensorSubstate", sensorSubStateService.find(sensor.getSubstate()).getDescription());
+    }
   }
 
   @Override
@@ -223,7 +265,7 @@ public class SensorController extends CrudController<Sensor> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeNewResource(javax.servlet.http.
    * HttpServletRequest, org.springframework.ui.Model)
    */
@@ -245,7 +287,7 @@ public class SensorController extends CrudController<Sensor> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeEditResource(java.lang.String,
    * org.springframework.ui.Model)
    */
@@ -261,7 +303,7 @@ public class SensorController extends CrudController<Sensor> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeViewResource(java.lang.String,
    * org.springframework.ui.Model)
    */
@@ -275,7 +317,7 @@ public class SensorController extends CrudController<Sensor> {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sentilo.web.catalog.controller.SearchController#doBeforeSearchPage(javax.servlet.http.
    * HttpServletRequest, org.sentilo.web.catalog.search.SearchFilter)
    */
@@ -301,7 +343,62 @@ public class SensorController extends CrudController<Sensor> {
         {Constants.SENSOR_ID_PROP, Constants.PROVIDER_ID_PROP, Constants.TYPE_PROP, Constants.PUBLIC_ACCESS_PROP, Constants.CREATED_AT_PROP};
 
     model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFFIX, "sensor");
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "sensor");
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.controller.CrudController#doAfterViewResource(org.springframework.ui.
+   * Model)
+   */
+  // @Override
+  /*
+   * protected void doAfterViewResource(final Model model) { final Sensor sensor = (Sensor)
+   * model.asMap().get(getEntityModelKey()); if (SensorState.offline.equals(sensor.getState())) {
+   * SensorSubstate substate = sensorSubStateService.find(sensor.getSubstate());
+   * sensor.setSubstateDesc(substate != null ? substate.getDescription() : ""); } }
+   */
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
+   * catalog.domain.CatalogDocument, org.springframework.ui.Model)
+   */
+  @Override
+  protected void doAfterViewResource(final Model model) {
+    final Sensor sensor = (Sensor) model.asMap().get(getEntityModelKey());
+    if (StringUtils.hasText(sensor.getSubstate())) {
+      final SensorSubstate substate = sensorSubStateService.find(sensor.getSubstate());
+      sensor.setSubstateDesc(substate.getDescription());
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
+   * catalog.domain.CatalogDocument, org.springframework.ui.Model)
+   */
+  @Override
+  protected void doBeforeCreateResource(final Sensor sensor, final Model model) {
+    super.doBeforeCreateResource(sensor, model);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeUpdateResource(org.sentilo.web.
+   * catalog.domain.CatalogDocument, org.springframework.ui.Model)
+   */
+  @Override
+  protected void doBeforeUpdateResource(final Sensor sensor, final Model model) {
+    super.doBeforeUpdateResource(sensor, model);
+    if (!StringUtils.hasText(sensor.getSubstate())) {
+      sensor.setSubstate(null);
+    }
   }
 
   private List<Provider> addProviderListTo(final Model model) {

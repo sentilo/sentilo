@@ -32,16 +32,18 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
+import java.util.Collection;
+
 import org.sentilo.web.catalog.domain.User;
 import org.sentilo.web.catalog.repository.UserRepository;
+import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserServiceImpl extends AbstractBaseCrudServiceImpl<User> implements UserService {
+public class UserServiceImpl extends AbstractBaseCrudServiceImpl<User>implements UserService {
 
   @Autowired
   private UserRepository repository;
@@ -66,9 +68,14 @@ public class UserServiceImpl extends AbstractBaseCrudServiceImpl<User> implement
 
   @Override
   public void deleteFromTenant(final String tenantId) {
-    final Criteria queryCriteria = Criteria.where("tenantId").is(tenantId);
-    final Query query = new Query(queryCriteria);
-    getMongoOps().remove(query, User.class);
+    final SearchFilter filter = new SearchFilter();
+    filter.addAndParam("tenantId", tenantId);
+
+    delete(filter);
   }
 
+  @Override
+  protected Query buildQueryForIdInCollection(final Collection<String> values) {
+    return buildQueryForParamInCollection("userName", values);
+  }
 }
