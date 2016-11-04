@@ -12,4 +12,4 @@ Travis CI service at https://travis-ci.org/sentilo/sentilo
 
 Code coverage service at https://coveralls.io/r/sentilo/sentilo
 
-[![Coverage Status](https://coveralls.io/repos/sentilo/sentilo/badge.png?branch=master)](https://coveralls.io/r/sentilo/sentilo) 
+[![Coverage Status](https://coveralls.io/repos/github/sentilo/sentilo/badge.svg?branch=master)](https://coveralls.io/github/sentilo/sentilo?branch=master)
