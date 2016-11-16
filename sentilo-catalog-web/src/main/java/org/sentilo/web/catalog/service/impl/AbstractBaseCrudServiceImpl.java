@@ -382,12 +382,19 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
       final Query queryFiltered = query;
       queryFiltered.fields().include("sensorId").include("providerId").include("applicationId");
       final List<DeletedResource> resources = getMongoOps().find(queryFiltered, DeletedResource.class, collectionName);
+      final List<DeletedResource> newResources = new ArrayList<DeletedResource>();
       for (final DeletedResource resource : resources) {
-        resource.set_class(resourceType.getName());
-        resource.setDeletedAt(new Date());
+        // Before insert collection, existing documents should be removed from collection to evict
+        // duplicate exceptions and truncate bulk insert
+        // Version 2.6+ of MongoDB allows to control this requirement (ordered parameter)
+        if (getMongoOps().findById(resource.getId(), DeletedResource.class) == null) {
+          resource.set_class(resourceType.getName());
+          resource.setDeletedAt(new Date());
+          newResources.add(resource);
+        }
       }
 
-      getMongoOps().insert(resources, DeletedResource.class);
+      getMongoOps().insert(newResources, DeletedResource.class);
     }
 
     getMongoOps().remove(query, resourceType);

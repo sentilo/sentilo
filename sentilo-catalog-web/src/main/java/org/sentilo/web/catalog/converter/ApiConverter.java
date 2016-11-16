@@ -212,33 +212,37 @@ public abstract class ApiConverter {
   private static Sensor buildNewSensor(final CatalogSensor catalogSensor, final ApiConverterContext context) {
     final String providerId = context.getProviderId();
     final String componentId = Component.buildId(providerId, catalogSensor.getComponent());
-    final Sensor sensor = new Sensor(providerId, componentId, catalogSensor.getSensor());
-    sensor.setDescription(catalogSensor.getDescription());
-    sensor.setType(catalogSensor.getType());
-    sensor.setUnit(catalogSensor.getUnit());
-    sensor.setDataType(parseDataTypeValue(catalogSensor.getDataType()));
-
-    if (catalogSensor.getPublicAccess() != null) {
-      sensor.setPublicAccess(catalogSensor.getPublicAccess());
-    }
-
-    if (catalogSensor.getTimeZone() != null) {
-      sensor.setTimeZone(catalogSensor.getTimeZone());
-    }
-
-    if (!CollectionUtils.isEmpty(catalogSensor.getAdditionalInfo())) {
-      sensor.setAdditionalInfo(catalogSensor.getAdditionalInfo());
-    }
-
-    if (catalogSensor.getTechnicalDetails() != null) {
-      sensor.setTechnicalDetails(catalogSensor.getTechnicalDetails());
-    }
-
-    // By default, a new sensor is always online
-    sensor.setState(SensorState.online);
-
-    sensor.setCreatedAt(new Date());
-    sensor.setUpdatedAt(new Date());
+    Sensor sensor = null;
+    
+    if (context.getSensorService().findByName(providerId, catalogSensor.getSensor()) == null) {
+      sensor = new Sensor(providerId, componentId, catalogSensor.getSensor());
+      sensor.setDescription(catalogSensor.getDescription());
+      sensor.setType(catalogSensor.getType());
+      sensor.setUnit(catalogSensor.getUnit());
+      sensor.setDataType(parseDataTypeValue(catalogSensor.getDataType()));
+  
+      if (catalogSensor.getPublicAccess() != null) {
+        sensor.setPublicAccess(catalogSensor.getPublicAccess());
+      }
+  
+      if (catalogSensor.getTimeZone() != null) {
+        sensor.setTimeZone(catalogSensor.getTimeZone());
+      }
+  
+      if (!CollectionUtils.isEmpty(catalogSensor.getAdditionalInfo())) {
+        sensor.setAdditionalInfo(catalogSensor.getAdditionalInfo());
+      }
+  
+      if (catalogSensor.getTechnicalDetails() != null) {
+        sensor.setTechnicalDetails(catalogSensor.getTechnicalDetails());
+      }
+  
+      // By default, a new sensor is always online
+      sensor.setState(SensorState.online);
+  
+      sensor.setCreatedAt(new Date());
+      sensor.setUpdatedAt(new Date());
+    }  
     return sensor;
   }
 
