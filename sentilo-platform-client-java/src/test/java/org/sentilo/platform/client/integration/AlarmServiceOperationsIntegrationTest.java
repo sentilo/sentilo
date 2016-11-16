@@ -61,21 +61,21 @@ public class AlarmServiceOperationsIntegrationTest {
 
   @Test
   public void _01_publish() throws Exception {
-    final AlarmInputMessage message = new AlarmInputMessage(ALERT_NAME, "umbral superado");
+    final AlarmInputMessage message = new AlarmInputMessage(ALERT_NAME, "Level theshold reached");
     platformTemplate.getAlarmOps().publish(message);
-    assertTrue("No se ha realizado correctamente la llamada a la plataforma", true);
+    assertTrue("Wrong call to Sentilo", true);
   }
 
   @Test
   public void _02_publishWithoutAlarmMessage() throws Exception {
-    final AlarmInputMessage message = new AlarmInputMessage("alerta1");
+    final AlarmInputMessage message = new AlarmInputMessage("mockTestAlert");
     boolean error = false;
     try {
       platformTemplate.getAlarmOps().publish(message);
     } catch (final PlatformClientAccessException e) {
       error = true;
     }
-    assertTrue("No se ha realizado correctamente la llamada a la plataforma", error);
+    assertTrue("Wrong call to Sentilo", error);
   }
 
   @Test
@@ -88,12 +88,12 @@ public class AlarmServiceOperationsIntegrationTest {
 
   @Test
   public void _04_getFilteredLastAlarmMessages() throws Exception {
-    final QueryFilterParams filterParams = new QueryFilterParams(2);
+    final QueryFilterParams filterParams = new QueryFilterParams(1);
     final AlarmInputMessage message = new AlarmInputMessage(ALERT_NAME, filterParams);
 
     final AlarmsOutputMessage response = platformTemplate.getAlarmOps().getLastAlarmMessages(message);
     assertTrue(response != null && !CollectionUtils.isEmpty(response.getAlarms()));
-    assertEquals(2, response.getAlarms().size());
+    assertEquals(1, response.getAlarms().size());
   }
 
 }

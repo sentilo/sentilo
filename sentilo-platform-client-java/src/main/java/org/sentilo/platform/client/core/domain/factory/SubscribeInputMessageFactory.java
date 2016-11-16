@@ -33,8 +33,8 @@
 package org.sentilo.platform.client.core.domain.factory;
 
 import org.sentilo.common.domain.SubscribeType;
-import org.sentilo.platform.client.core.domain.Endpoint;
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
+import org.sentilo.platform.client.core.domain.SubscriptionParams;
 import org.springframework.util.StringUtils;
 
 public abstract class SubscribeInputMessageFactory {
@@ -48,15 +48,17 @@ public abstract class SubscribeInputMessageFactory {
     return buildSubscription(type, (String) null);
   }
 
-  public static SubscribeInputMessage buildSubscription(final SubscribeType type, final Endpoint endpoint) throws IllegalArgumentException {
-    return buildSubscription(type, endpoint, (String) null);
+  public static SubscribeInputMessage buildSubscription(final SubscribeType type, final SubscriptionParams subscriptionParams)
+      throws IllegalArgumentException {
+    return buildSubscription(type, subscriptionParams, (String) null);
   }
 
   public static SubscribeInputMessage buildSubscription(final SubscribeType type, final String... resources) throws IllegalArgumentException {
     return buildSubscription(type, null, resources);
   }
 
-  public static SubscribeInputMessage buildSubscription(final SubscribeType type, final Endpoint endpoint, final String... resources)
+  public static SubscribeInputMessage buildSubscription(final SubscribeType type, final SubscriptionParams subscriptionParams,
+      final String... resources)
       throws IllegalArgumentException {
     if (type == null) {
       throw new IllegalArgumentException("Param type is mandatory");
@@ -66,13 +68,13 @@ public abstract class SubscribeInputMessageFactory {
 
     switch (type) {
       case ALARM:
-        message = new AlarmSubscription(endpoint, resources);
+        message = new AlarmSubscription(subscriptionParams, resources);
         break;
       case DATA:
-        message = new DataSubscription(endpoint, resources);
+        message = new DataSubscription(subscriptionParams, resources);
         break;
       case ORDER:
-        message = new OrderSubscription(endpoint, resources);
+        message = new OrderSubscription(subscriptionParams, resources);
         break;
     }
 
@@ -90,9 +92,9 @@ public abstract class SubscribeInputMessageFactory {
 
     private final String alarmId;
 
-    public AlarmSubscription(final Endpoint endpoint, final String... resources) {
+    public AlarmSubscription(final SubscriptionParams subscriptionParams, final String... resources) {
       super(SubscribeType.ALARM);
-      setEndpoint(endpoint);
+      setSubscriptionParams(subscriptionParams);
       alarmId = getArrayValue(resources, 0);
       if (StringUtils.hasText(alarmId)) {
         addResource(ALARM_ID_KEY, alarmId);
@@ -109,9 +111,9 @@ public abstract class SubscribeInputMessageFactory {
     private final String providerId;
     private final String sensorId;
 
-    public OrderSubscription(final Endpoint endpoint, final String... resources) {
+    public OrderSubscription(final SubscriptionParams subscriptionParams, final String... resources) {
       super(SubscribeType.ORDER);
-      setEndpoint(endpoint);
+      setSubscriptionParams(subscriptionParams);
       providerId = getArrayValue(resources, 0);
       sensorId = getArrayValue(resources, 1);
 
@@ -141,9 +143,9 @@ public abstract class SubscribeInputMessageFactory {
     private final String providerId;
     private final String sensorId;
 
-    public DataSubscription(final Endpoint endpoint, final String... resources) {
+    public DataSubscription(final SubscriptionParams subscriptionParams, final String... resources) {
       super(SubscribeType.DATA);
-      setEndpoint(endpoint);
+      setSubscriptionParams(subscriptionParams);
       providerId = getArrayValue(resources, 0);
       sensorId = getArrayValue(resources, 1);
 

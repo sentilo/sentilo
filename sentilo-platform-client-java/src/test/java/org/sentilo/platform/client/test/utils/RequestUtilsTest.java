@@ -46,9 +46,9 @@ import org.sentilo.common.utils.DateUtils;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogAlertInputMessage;
 import org.sentilo.platform.client.core.domain.DataInputMessage;
-import org.sentilo.platform.client.core.domain.Endpoint;
 import org.sentilo.platform.client.core.domain.OrderInputMessage;
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
+import org.sentilo.platform.client.core.domain.SubscriptionParams;
 import org.sentilo.platform.client.core.domain.factory.SubscribeInputMessageFactory;
 import org.sentilo.platform.client.core.utils.RequestUtils;
 
@@ -60,7 +60,7 @@ public class RequestUtilsTest {
   static final String ORDER = "stop";
   static final String ALARM_MESSAGE = "message";
   static final String OBSERVATION = "23";
-  static final Endpoint endpoint = new Endpoint("http://dev.connecta.cat");
+  static final SubscriptionParams subscriptionParams = new SubscriptionParams("http://dev.connecta.cat");
 
   @Test
   public void buildCatalogAlertPath() {
@@ -111,27 +111,27 @@ public class RequestUtilsTest {
 
   @Test
   public void buildSubscribePutOrDeletePath() {
-    SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, endpoint, SENSOR_ID);
+    SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, subscriptionParams, SENSOR_ID);
     String path = RequestUtils.buildPath(message);
     assertEquals("/subscribe/order/" + SENSOR_ID, path);
 
-    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, endpoint);
+    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, subscriptionParams);
     path = RequestUtils.buildPath(message);
     assertEquals("/subscribe/order", path);
 
-    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM, endpoint, ALARM_ID);
+    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM, subscriptionParams, ALARM_ID);
     path = RequestUtils.buildPath(message);
     assertEquals("/subscribe/alarm/" + ALARM_ID, path);
 
-    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM, endpoint);
+    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM, subscriptionParams);
     path = RequestUtils.buildPath(message);
     assertEquals("/subscribe/alarm", path);
 
-    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, endpoint, PROVIDER_ID, SENSOR_ID);
+    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, subscriptionParams, PROVIDER_ID, SENSOR_ID);
     path = RequestUtils.buildPath(message);
     assertEquals("/subscribe/data/" + PROVIDER_ID + "/" + SENSOR_ID, path);
 
-    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, endpoint, PROVIDER_ID);
+    message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, subscriptionParams, PROVIDER_ID);
     path = RequestUtils.buildPath(message);
     assertEquals("/subscribe/data/" + PROVIDER_ID, path);
   }

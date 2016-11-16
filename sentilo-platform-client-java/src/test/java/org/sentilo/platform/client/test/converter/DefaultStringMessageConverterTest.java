@@ -55,9 +55,9 @@ import org.sentilo.platform.client.core.domain.CatalogAlertOutputMessage;
 import org.sentilo.platform.client.core.domain.CatalogDeleteInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogOutputMessage;
-import org.sentilo.platform.client.core.domain.Endpoint;
 import org.sentilo.platform.client.core.domain.OrderInputMessage;
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
+import org.sentilo.platform.client.core.domain.SubscriptionParams;
 import org.sentilo.platform.client.core.domain.SubscriptionsOutputMessage;
 import org.sentilo.platform.client.core.domain.factory.SubscribeInputMessageFactory;
 import org.springframework.util.CollectionUtils;
@@ -70,15 +70,15 @@ public class DefaultStringMessageConverterTest {
   private static final String SENSOR_ID = "sensor1";
   private static final String ORDER = "stop";
   private static final String ENTITY_ID = "prov1";
-  private static final Endpoint endpoint = new Endpoint("http://dev.connecta.cat");
+  private static final SubscriptionParams subscriptionParams = new SubscriptionParams("http://dev.connecta.cat");
 
   private StringMessageConverter converter = new DefaultStringMessageConverter();
 
   @Test
   public void marshallSubscribeInputMessage() throws MessageNotWritableException {
-    final SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, endpoint);
+    final SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, subscriptionParams);
 
-    final String json = converter.marshal(message.getEndpoint());
+    final String json = converter.marshal(message.getSubscriptionParams());
 
     final String body = "{\"endpoint\":\"http://dev.connecta.cat\"}";
     assertNotNull(json);

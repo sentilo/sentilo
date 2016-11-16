@@ -61,7 +61,6 @@ import org.sentilo.platform.client.core.domain.CatalogDeleteInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogInputMessage;
 import org.sentilo.platform.client.core.domain.CatalogOutputMessage;
 import org.sentilo.platform.client.core.domain.DataInputMessage;
-import org.sentilo.platform.client.core.domain.Endpoint;
 import org.sentilo.platform.client.core.domain.Observation;
 import org.sentilo.platform.client.core.domain.ObservationsOutputMessage;
 import org.sentilo.platform.client.core.domain.OrderInputMessage;
@@ -70,6 +69,7 @@ import org.sentilo.platform.client.core.domain.ProviderObservations;
 import org.sentilo.platform.client.core.domain.SensorObservations;
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
 import org.sentilo.platform.client.core.domain.Subscription;
+import org.sentilo.platform.client.core.domain.SubscriptionParams;
 import org.sentilo.platform.client.core.domain.SubscriptionsOutputMessage;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.MutablePropertyValues;
@@ -226,12 +226,12 @@ public class ClientDomainTest {
   }
 
   @Test
-  public void endpoint() throws Exception {
-    final Object[] valuesToCheck = {"mockEndpoint", null, null};
-    final String[] attributesToCheck = {"endpoint", "user", "password"};
+  public void subscriptionParams() throws Exception {
+    final Object[] valuesToCheck = {"mockEndpoint", "123456789AFCD", 4L, 10L};
+    final String[] attributesToCheck = {"endpoint", "secretCallbackKey", "maxRetries", "retryDelay"};
 
-    final Endpoint endpoint = new Endpoint("mockEndpoint");
-    assertFieldValues(endpoint, attributesToCheck, valuesToCheck);
+    final SubscriptionParams subscriptionParams = new SubscriptionParams("mockEndpoint", "123456789AFCD", 4L, 10L);
+    assertFieldValues(subscriptionParams, attributesToCheck, valuesToCheck);
   }
 
   @Test

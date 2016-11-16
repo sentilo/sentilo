@@ -262,8 +262,8 @@ public class DataServiceOperationsIntegrationTest {
 
   private List<Observation> getObservations() {
     final List<Observation> observations = new ArrayList<Observation>();
-    final Observation obs1 = new Observation("1", System.currentTimeMillis());
-    final Observation obs2 = new Observation("2", System.currentTimeMillis() - 3000);
+    final Observation obs1 = new Observation("1", System.currentTimeMillis() - 4320000);
+    final Observation obs2 = new Observation("2", System.currentTimeMillis() - 4300000);
     observations.add(obs1);
     observations.add(obs2);
 

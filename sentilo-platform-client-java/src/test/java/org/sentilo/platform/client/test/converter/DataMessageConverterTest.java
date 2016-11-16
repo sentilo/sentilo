@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.exception.MessageNotWritableException;
 import org.sentilo.platform.client.core.domain.DataInputMessage;
 import org.sentilo.platform.client.core.domain.Observation;
@@ -54,12 +55,12 @@ public class DataMessageConverterTest {
   private static final String OBSERVATION = "23";
   private static final String OBSERVATION2 = "28.4";
 
-  private DataMessageConverter converter = new DataMessageConverter();
+  private StringMessageConverter converter = new DataMessageConverter();
 
   @Test
   public void marshallMessageWithoutBody() throws MessageNotWritableException {
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR_ID, OBSERVATION);
-    final String json = converter.marshall(message);
+    final String json = converter.marshal(message);
     assertNull(json);
   }
 
@@ -67,7 +68,7 @@ public class DataMessageConverterTest {
   public void marshallMessageWithSensorObservations() throws MessageNotWritableException {
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR_ID);
     message.setSensorObservations(buildSensorObservations());
-    final String json = converter.marshall(message);
+    final String json = converter.marshal(message);
     final String expected =
         "{\"observations\":[{\"value\":\"23\",\"timestamp\":\"20/02/2013T16:57:17\"},{\"value\":\"28.4\",\"timestamp\":\"20/02/2013T16:55:37\"}],\"location\":\"35.7 56.4\"}";
     assertNotNull(json);
@@ -78,7 +79,7 @@ public class DataMessageConverterTest {
   public void marshallMessageWithProviderObservations() throws MessageNotWritableException {
     final DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR_ID);
     message.setProviderObservations(buildProviderObservations());
-    final String json = converter.marshall(message);
+    final String json = converter.marshal(message);
     final String expected =
         "{\"sensors\":[{\"observations\":[{\"value\":\"23\",\"timestamp\":\"20/02/2013T16:57:17\"},{\"value\":\"28.4\",\"timestamp\":\"20/02/2013T16:55:37\"}],\"location\":\"35.7 56.4\",\"sensor\":\"sensor1\"}]}";
     assertNotNull(json);

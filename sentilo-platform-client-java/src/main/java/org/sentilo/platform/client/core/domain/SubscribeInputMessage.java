@@ -48,7 +48,7 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
   public static final String SENSOR_ID_KEY = "sensorId";
 
   /** Endpoint al cual se debera enviar las notificaciones mediante Http callback */
-  private Endpoint endpoint;
+  private SubscriptionParams subscriptionParams;
 
   /** Tipo de subscripcion. */
   private final SubscribeType type;
@@ -72,9 +72,9 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
     this(null, type);
   }
 
-  public SubscribeInputMessage(final Endpoint endpoint, final SubscribeType type) {
+  public SubscribeInputMessage(final SubscriptionParams subscriptionParams, final SubscribeType type) {
     super();
-    this.endpoint = endpoint;
+    this.subscriptionParams = subscriptionParams;
     this.type = type;
   }
 
@@ -98,8 +98,8 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
     final StringBuilder sb = new StringBuilder();
     sb.append("--- Subscription ---");
     sb.append("\n\t type:").append(type);
-    if (endpoint != null) {
-      sb.append("\n\t endpoint:").append(endpoint.getEndpoint());
+    if (subscriptionParams != null) {
+      sb.append("\n\t subscriptionParams:").append(subscriptionParams.toString());
     }
     if (!CollectionUtils.isEmpty(resources)) {
       sb.append("\n\t Resources:");
@@ -109,12 +109,12 @@ public class SubscribeInputMessage implements PlatformClientInputMessage {
     return sb.toString();
   }
 
-  protected void setEndpoint(final Endpoint endpoint) {
-    this.endpoint = endpoint;
+  protected void setSubscriptionParams(final SubscriptionParams subscriptionParams) {
+    this.subscriptionParams = subscriptionParams;
   }
 
-  public Endpoint getEndpoint() {
-    return endpoint;
+  public SubscriptionParams getSubscriptionParams() {
+    return subscriptionParams;
   }
 
   public SubscribeType getType() {

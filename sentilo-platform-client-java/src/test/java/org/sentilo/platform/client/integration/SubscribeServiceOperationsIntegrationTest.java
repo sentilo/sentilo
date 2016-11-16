@@ -42,8 +42,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.sentilo.common.domain.SubscribeType;
 import org.sentilo.platform.client.core.PlatformTemplate;
-import org.sentilo.platform.client.core.domain.Endpoint;
 import org.sentilo.platform.client.core.domain.SubscribeInputMessage;
+import org.sentilo.platform.client.core.domain.SubscriptionParams;
 import org.sentilo.platform.client.core.domain.SubscriptionsOutputMessage;
 import org.sentilo.platform.client.core.domain.factory.SubscribeInputMessageFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,8 @@ public class SubscribeServiceOperationsIntegrationTest {
   @Test
   public void _1_subscribe() throws Exception {
     final SubscribeInputMessage message =
-        SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, new Endpoint("http://dev.connecta.cat"), "testApp_provider", "sensor1");
+ SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA,
+        new SubscriptionParams("http://dev.connecta.cat"), "testApp_provider", "sensor1");
     platformTemplate.getSubscribeOps().subscribe(message);
     assertTrue("No se ha realizado correctamente la llamada a la plataforma", true);
   }

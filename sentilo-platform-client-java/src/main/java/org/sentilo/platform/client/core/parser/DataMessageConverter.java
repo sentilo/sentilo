@@ -38,7 +38,8 @@ import org.sentilo.platform.client.core.domain.DataInputMessage;
 
 public class DataMessageConverter extends DefaultStringMessageConverter {
 
-  public String marshall(final DataInputMessage message) throws MessageNotWritableException {
+  public String marshal(final Object obj) throws MessageNotWritableException {
+    final DataInputMessage message = (DataInputMessage) obj;
     // El resultado del marshall depende del tipo de mensaje
     if (message.getSensorObservations() != null) {
       return super.marshal(message.getSensorObservations());

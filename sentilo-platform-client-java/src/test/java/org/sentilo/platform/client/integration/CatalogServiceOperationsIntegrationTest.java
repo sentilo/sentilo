@@ -85,9 +85,10 @@ public class CatalogServiceOperationsIntegrationTest {
 
   @Test
   public void doRegisterGetAndDelete() {
+    final String prefixName = "RGD";
     deleteSensors();
     getSensors(0, 0);
-    registerSensors();
+    registerSensors(prefixName);
     getSensors(1, 5);
     getSensors(1, 2, "temperature");
     getSensors(0, 0, "unknownType");
@@ -97,14 +98,15 @@ public class CatalogServiceOperationsIntegrationTest {
 
   @Test
   public void doRegisterUpdateGetAndDelete() {
+    final String prefixName = "RGD";
     deleteSensors();
     getSensors(0, 0);
-    registerSensors();
+    registerSensors(prefixName);
     getSensors(1, 5);
     getSensors(1, 2, "temperature");
     getSensors(1, 3, "wind");
     getSensors(0, 0, "noise");
-    updateSensors();
+    updateSensors(prefixName);
     getSensors(1, 2, "temperature");
     getSensors(1, 1, "wind");
     getSensors(1, 2, "noise");
@@ -116,14 +118,14 @@ public class CatalogServiceOperationsIntegrationTest {
     getSensors(0, 0);
   }
 
-  private void registerSensors() {
-    final CatalogInputMessage message = new CatalogInputMessage(PROVIDER_ID, buildSensorsToRegister());
+  private void registerSensors(final String prefixName) {
+    final CatalogInputMessage message = new CatalogInputMessage(PROVIDER_ID, buildSensorsToRegister(prefixName));
     message.setIdentityToken(tokenProv);
     platformTemplate.getCatalogOps().registerSensors(message);
   }
 
-  private void updateSensors() {
-    final CatalogInputMessage message = new CatalogInputMessage(PROVIDER_ID, buildSensorsToUpdate());
+  private void updateSensors(final String prefixName) {
+    final CatalogInputMessage message = new CatalogInputMessage(PROVIDER_ID, buildSensorsToUpdate(prefixName));
     message.setIdentityToken(tokenProv);
     platformTemplate.getCatalogOps().updateComponents(message);
   }
@@ -184,15 +186,18 @@ public class CatalogServiceOperationsIntegrationTest {
     platformTemplate.getCatalogOps().deleteProvider(message);
   }
 
-  private List<CatalogSensor> buildSensorsToRegister() {
+  private List<CatalogSensor> buildSensorsToRegister(final String prefixName) {
     final List<CatalogSensor> sensors = new ArrayList<CatalogSensor>();
-    final CatalogSensor sensor0 = buildSensor("TEST_REC0122", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 122", "number", "wind", "km/h");
-    final CatalogSensor sensor1 = buildSensor("TEST_REC0123", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 123", "number",
+    final CatalogSensor sensor0 =
+        buildSensor("TEST_" + prefixName + "0122", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 122", "number", "wind", "km/h");
+    final CatalogSensor sensor1 = buildSensor("TEST_" + prefixName + "0123", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 123", "number",
         "43.39950387509218 5.1809202294998613", "temperature", "C");
-    final CatalogSensor sensor2 = buildSensor("TEST_REC0124", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 124", "number",
+    final CatalogSensor sensor2 = buildSensor("TEST_" + prefixName + "0124", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 124", "number",
         "43.39950387509218 5.1809202294998613", "temperature", "C");
-    final CatalogSensor sensor3 = buildSensor("TEST_REC0125", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 125", "number", "wind", "km/h");
-    final CatalogSensor sensor4 = buildSensor("TEST_REC0126", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 126", "number", "wind", "km/h");
+    final CatalogSensor sensor3 =
+        buildSensor("TEST_" + prefixName + "0125", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 125", "number", "wind", "km/h");
+    final CatalogSensor sensor4 =
+        buildSensor("TEST_" + prefixName + "0126", "TESTAPP_COMPONENT", PROVIDER_ID, "sensor 126", "number", "wind", "km/h");
     sensors.add(sensor0);
     sensors.add(sensor1);
     sensors.add(sensor2);
@@ -202,11 +207,12 @@ public class CatalogServiceOperationsIntegrationTest {
     return sensors;
   }
 
-  private List<CatalogSensor> buildSensorsToUpdate() {
+  private List<CatalogSensor> buildSensorsToUpdate(final String prefixName) {
     final List<CatalogSensor> sensors = new ArrayList<CatalogSensor>();
-    final CatalogSensor sensor0 = buildSensor("TEST_REC0122", "TESTAPP_COMPONENT", PROVIDER_ID, null, null, "noise", "db");
-    final CatalogSensor sensor3 = buildSensor("TEST_REC0125", "TESTAPP_COMPONENT", PROVIDER_ID, null, null, "noise", "db");
-    final CatalogSensor sensor4 = buildSensor("TEST_REC0126", "TESTAPP_COMPONENT", PROVIDER_ID, "desc del sensor 126", null, null, null);
+    final CatalogSensor sensor0 = buildSensor("TEST_" + prefixName + "0122", "TESTAPP_COMPONENT", PROVIDER_ID, null, null, "noise", "db");
+    final CatalogSensor sensor3 = buildSensor("TEST_" + prefixName + "0125", "TESTAPP_COMPONENT", PROVIDER_ID, null, null, "noise", "db");
+    final CatalogSensor sensor4 =
+        buildSensor("TEST_" + prefixName + "0126", "TESTAPP_COMPONENT", PROVIDER_ID, "desc del sensor 126", null, null, null);
     sensors.add(sensor0);
     sensors.add(sensor3);
     sensors.add(sensor4);

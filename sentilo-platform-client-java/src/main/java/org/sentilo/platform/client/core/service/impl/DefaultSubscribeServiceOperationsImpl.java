@@ -64,7 +64,7 @@ public class DefaultSubscribeServiceOperationsImpl extends AbstractServiceOperat
   @Override
   public void subscribe(final SubscribeInputMessage message) {
     LOGGER.debug("Adding subscription message {}", message);
-    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message), message.getIdentityToken());
+    getRestClient().put(RequestUtils.buildPath(message), converter.marshal(message.getSubscriptionParams()), message.getIdentityToken());
     LOGGER.debug("Subscription added");
   }
 
