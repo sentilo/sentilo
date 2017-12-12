@@ -2,6 +2,10 @@
 # Configure Travis CI service to build Sentilo platform, http://github.com/sentilo/sentilo
 #
 sudo: false
+
+# Needed to solve issue with trusty image && JDK 1.6
+dist: precise
+
 language: java
 
 jdk:
