@@ -29,7 +29,7 @@ $(document).ready(function() {
 	</form:label>
 	<div class="controls">
 		<form:hidden path="icon" id="selectedIcon" />
-		<div class="btn-group connecta-icon-group">
+		<div class="btn-group connecta-icon-left connecta-icon-group">
 			<a href="#" data-toggle="dropdown" class="btn dropdown-toggle"> &nbsp;&nbsp;&nbsp;
 				<img src="${iconsPath}/pins1.png" id="selectedIconImage"> <span class="caret"></span> 
 			</a>

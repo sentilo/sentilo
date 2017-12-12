@@ -1,38 +1,33 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,9 +37,7 @@ import javax.validation.Valid;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.controller.BaseComponentController;
 import org.sentilo.web.catalog.domain.Component;
-import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.Location;
-import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.dto.ComponentComponentsDTO;
 import org.sentilo.web.catalog.dto.ComponentSensorsDTO;
 import org.sentilo.web.catalog.dto.ComponentsDTO;
@@ -52,10 +45,10 @@ import org.sentilo.web.catalog.dto.OptionDTO;
 import org.sentilo.web.catalog.editor.LocationPropertyEditor;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ProviderService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -87,8 +80,8 @@ public class ComponentController extends BaseComponentController {
   }
 
   @ModelAttribute(Constants.MODEL_COMPONENT_TYPES)
-  public List<ComponentType> getComponentTypes() {
-    return getComponentTypesService().findAll();
+  public List<OptionDTO> getComponentTypes() {
+    return CatalogUtils.toOptionList(getComponentTypesService().findAll());
   }
 
   @RequestMapping("/search/json")
@@ -97,12 +90,12 @@ public class ComponentController extends BaseComponentController {
     // This method is called in the alert maintenance to select the sensor of the alert.
     final SearchFilter filter = new SearchFilter();
     filter.addAndParam("providerId", providerId);
-    return getComponentService().search(filter).getContent();
+    return CatalogUtils.sortAlphabetically(getComponentService().search(filter).getContent());
   }
 
   @RequestMapping(value = "/{id}/addComponents", method = RequestMethod.GET)
   public String addComponents(@PathVariable final String id, final Model model) {
-    final List<Component> components = getComponentService().findAll();
+    final List<Component> components = CatalogUtils.sortAlphabetically(getComponentService().findAll());
     final ComponentComponentsDTO form = new ComponentComponentsDTO(id, components);
     model.addAttribute(Constants.MODEL_COMPONENT_COMPONENTS, form);
     return Constants.VIEW_ADD_COMPONENTS_TO_COMPONENT;
@@ -232,50 +225,22 @@ public class ComponentController extends BaseComponentController {
     }
   }
 
-  private List<Provider> addProviderListTo(final Model model) {
-    final List<Provider> providers = providerService.findAll();
+  private List<OptionDTO> addProviderListTo(final Model model) {
+    final List<OptionDTO> providers = CatalogUtils.toOptionList(providerService.findAll());
     model.addAttribute(Constants.MODEL_PROVIDERS, providers);
     return providers;
   }
 
   private void addEnergyTypesListTo(final Model model) {
-    final List<OptionDTO> options = new ArrayList<OptionDTO>();
-    final String energyTypes = getMessageSource().getMessage(Constants.ENERGY_TYPES_KEY, null, LocaleContextHolder.getLocale());
-    if (StringUtils.hasText(energyTypes)) {
-      final String[] energyTypesList = energyTypes.split(Constants.COMMA_TOKEN_SPLITTER);
-      for (final String energyType : energyTypesList) {
-        final String energyTypesKey = Constants.ENERGY_TYPES_KEY.concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(energyType);
-        final String label = getOptionLabel(energyTypesKey, energyType);
-        options.add(new OptionDTO(label, energyType));
-      }
-    }
-
-    model.addAttribute(Constants.MODEL_ENERGY_TYPES, options);
+    final String energyTypes = messageSource.getMessage(Constants.ENERGY_TYPES_KEY, null, LocaleContextHolder.getLocale());
+    final List<OptionDTO> energyTypesList = CatalogUtils.toOptionList(energyTypes, Constants.ENERGY_TYPES_KEY, messageSource);
+    model.addAttribute(Constants.MODEL_ENERGY_TYPES, energyTypesList);
   }
 
   private void addConnectivityTypesListTo(final Model model) {
-    final List<OptionDTO> options = new ArrayList<OptionDTO>();
-    final String connectivityTypes = getMessageSource().getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale());
-    if (StringUtils.hasText(connectivityTypes)) {
-      final String[] connectivityTypesList = connectivityTypes.split(Constants.COMMA_TOKEN_SPLITTER);
-      for (final String connectivityType : connectivityTypesList) {
-        final String connectivityTypesKey = Constants.CONNECTIVITY_TYPES_KEY.concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(connectivityType);
-        final String label = getOptionLabel(connectivityTypesKey, connectivityType);
-        options.add(new OptionDTO(label, connectivityType));
-      }
-    }
-
-    model.addAttribute(Constants.MODEL_CONNECTIVITY_TYPES, options);
+    final String connectivityTypes = messageSource.getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale());
+    final List<OptionDTO> connectivityTypesList = CatalogUtils.toOptionList(connectivityTypes, Constants.CONNECTIVITY_TYPES_KEY, messageSource);
+    model.addAttribute(Constants.MODEL_CONNECTIVITY_TYPES, connectivityTypesList);
   }
 
-  private String getOptionLabel(final String key, final String defaultValue) {
-    String label = defaultValue;
-    try {
-      label = getMessageSource().getMessage(key, null, LocaleContextHolder.getLocale());
-    } catch (final NoSuchMessageException nme) {
-      LOGGER.warn("Message key {} couldn't be resolved. Return default value {}", key, defaultValue);
-    }
-
-    return label;
-  }
 }

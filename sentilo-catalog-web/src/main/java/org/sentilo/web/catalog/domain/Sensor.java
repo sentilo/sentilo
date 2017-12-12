@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.domain;
 
@@ -38,13 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.hibernate.validator.constraints.NotBlank;
 import org.sentilo.common.domain.TechnicalDetails;
-import org.sentilo.web.catalog.enums.SensorState;
+import org.sentilo.common.enums.SensorState;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.CompoundKeyBuilder;
 import org.sentilo.web.catalog.utils.Constants;
@@ -56,7 +53,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
 @Document
-public class Sensor implements TenantResource, EntityResource, SyncResource {
+public class Sensor implements TenantResource, EntityResource, SyncResource, AlphabeticalSortable {
 
   private static final long serialVersionUID = 1L;
 
@@ -113,6 +110,8 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
 
   private Set<String> tenantsAuth;
 
+  private Set<String> tenantsListVisible;
+
   private SensorState state;
 
   private String substate;
@@ -127,8 +126,14 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private TechnicalDetails technicalDetails;
 
+  // Visual configuration of sensor on detail views
+  @Valid
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private VisualConfiguration visualConfiguration;
+
   public Sensor() {
     tenantsAuth = new HashSet<String>();
+    tenantsListVisible = new HashSet<String>();
   }
 
   public Sensor(final String id) {
@@ -182,6 +187,7 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
     return true;
   }
 
+  @Override
   public String getId() {
     if (!StringUtils.hasText(id) && StringUtils.hasText(sensorId) && StringUtils.hasText(componentId)) {
       id = buildId(componentId, sensorId);
@@ -200,6 +206,7 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
     }
   }
 
+  @Override
   public String getEntityOwner() {
     return providerId;
   }
@@ -260,18 +267,22 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
     return sensorId;
   }
 
+  @Override
   public void setCreatedAt(final Date createdAt) {
     this.createdAt = createdAt;
   }
 
+  @Override
   public Date getCreatedAt() {
     return createdAt;
   }
 
+  @Override
   public void setUpdatedAt(final Date updatedAt) {
     this.updatedAt = updatedAt;
   }
 
+  @Override
   public Date getUpdatedAt() {
     return updatedAt;
   }
@@ -340,34 +351,52 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
     this.technicalDetails = technicalDetails;
   }
 
+  @Override
   public String getTenantId() {
     return tenantId;
   }
 
+  @Override
   public void setTenantId(final String tenantId) {
     this.tenantId = tenantId;
   }
 
+  @Override
   public Set<String> getTenantsAuth() {
     return tenantsAuth;
   }
 
+  @Override
   public void setTenantsAuth(final Set<String> tenantsAuth) {
     this.tenantsAuth = tenantsAuth;
   }
 
+  @Override
+  public Set<String> getTenantsListVisible() {
+    return tenantsListVisible;
+  }
+
+  @Override
+  public void setTenantsListVisible(final Set<String> tenantsListVisible) {
+    this.tenantsListVisible = tenantsListVisible;
+  }
+
+  @Override
   public String getCreatedBy() {
     return createdBy;
   }
 
+  @Override
   public void setCreatedBy(final String createdBy) {
     this.createdBy = createdBy;
   }
 
+  @Override
   public String getUpdatedBy() {
     return updatedBy;
   }
 
+  @Override
   public void setUpdatedBy(final String updatedBy) {
     this.updatedBy = updatedBy;
   }
@@ -396,4 +425,16 @@ public class Sensor implements TenantResource, EntityResource, SyncResource {
     this.substateDesc = substateDesc;
   }
 
+  public VisualConfiguration getVisualConfiguration() {
+    return visualConfiguration;
+  }
+
+  public void setVisualConfiguration(final VisualConfiguration visualConfiguration) {
+    this.visualConfiguration = visualConfiguration;
+  }
+
+  @Override
+  public String getSortableValue() {
+    return sensorId;
+  }
 }

@@ -1,42 +1,35 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -44,11 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.sentilo.web.catalog.controller.SearchController;
-import org.sentilo.web.catalog.domain.CatalogDocument;
-import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Tenant;
 import org.sentilo.web.catalog.domain.TenantPermission;
 import org.sentilo.web.catalog.dto.DataTablesDTO;
+import org.sentilo.web.catalog.dto.OptionDTO;
 import org.sentilo.web.catalog.dto.TenantPermissionsDTO;
 import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
@@ -57,7 +49,9 @@ import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.TenantPermissionService;
 import org.sentilo.web.catalog.service.TenantService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +105,7 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   public DataTablesDTO getTenantPermissions(final HttpServletRequest request, final Model model, final Pageable pageable,
       @PathVariable final String type, @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam final String tableName,
       @RequestParam(required = false) final String search) {
+
     return getPageList(model, request, pageable, sEcho, tableName, search);
   }
 
@@ -152,7 +147,7 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
     }
 
     createPermissions(id, form.getSelectedProvidersIds(), form.getSelectedEntitiesIds(), form.getPermissionType(),
-        TenantPermission.EntityType.PROVIDER, form.getVisible());
+        TenantPermission.EntityType.PROVIDER, form.getVisible(), form.getListVisible());
 
     return viewTenantDetailPermissionsTab(id, model, "tenant.permissions.added", false, Constants.TAB_3);
   }
@@ -193,6 +188,14 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
     return viewTenantDetailPermissionsTab(id, model, "mapVisibility.changed", false, Constants.TAB_4);
   }
 
+  @RequestMapping(value = "/{id}/changeListVisibility", method = RequestMethod.POST)
+  public String changeListVisibility(@PathVariable final String id, @RequestParam final String newListVisibility,
+      @RequestParam final String[] selectedIds, final Model model) {
+    final boolean isListVisible = StringUtils.hasText(newListVisibility) && "public".equals(newListVisibility) ? true : false;
+    tenantPermissionService.changeListVisibility(selectedIds, isListVisible);
+    return viewTenantDetailPermissionsTab(id, model, "listVisibility.changed", false, Constants.TAB_4);
+  }
+
   @RequestMapping("/{id}/list/excel")
   public ModelAndView getTenantPermissionsExcel(final HttpServletRequest request, final Model model, final HttpServletResponse response,
       @PathVariable final String id, @RequestParam final String tableName, @RequestParam(required = false) final String search) throws IOException {
@@ -231,16 +234,21 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
       row.add(permission.getCreatedBy());
     } else {
       row.add(messageSource.getMessage(String.valueOf(permission.getVisible()), null, LocaleContextHolder.getLocale()));
+      row.add(messageSource.getMessage(String.valueOf(permission.getListVisible()), null, LocaleContextHolder.getLocale()));
     }
 
     return row;
   }
 
   @Override
+  protected List<String> toExcelRow(final TenantPermission permission) {
+    return ExcelGeneratorUtils.getTenantPermissionsExcelRowsData(permission, messageSource, getLocalDateFormat());
+  }
+
+  @Override
   protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames = {Constants.TARGET_PROP, Constants.TYPE_PROP};
-    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "grant");
+    super.doBeforeExcelBuilder(model);
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "tenant.permissions");
   }
 
   @Override
@@ -258,12 +266,12 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   }
 
   private void createPermissions(final String tenantSource, final String[] tenantSourceEntitiesIds, final String[] tenantTargetsIds,
-      final TenantPermission.Type type, final TenantPermission.EntityType entityType, final boolean visible) {
+      final TenantPermission.Type type, final TenantPermission.EntityType entityType, final boolean visible, final boolean listVisible) {
 
     for (final String entityId : tenantSourceEntitiesIds) {
       for (final String targetId : tenantTargetsIds) {
         // Create the permission
-        tenantPermissionService.create(new TenantPermission(tenantSource, entityId, targetId, type, entityType, visible));
+        tenantPermissionService.create(new TenantPermission(tenantSource, entityId, targetId, type, entityType, visible, listVisible));
       }
     }
   }
@@ -285,28 +293,16 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   }
 
   private TenantPermissionsDTO createForm(final String id, final Model model) {
-    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, Arrays.asList(TenantPermission.Type.READ, TenantPermission.Type.WRITE));
+    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, CatalogUtils.toOptionList(TenantPermission.Type.class, "permission", messageSource));
     model.addAttribute(Constants.MODEL_TENANT, tenantService.findAndThrowErrorIfNotExist(new Tenant(id)));
 
-    final List<Provider> providers = providerService.findAll();
-    final List<Tenant> tenants = tenantService.findPublicsButNotMe(id);
-
-    // Sort list before add them into the model
-    final Comparator<CatalogDocument> comparator = new Comparator<CatalogDocument>() {
-
-      @Override
-      public int compare(final CatalogDocument o1, final CatalogDocument o2) {
-        return o1.getId().compareToIgnoreCase(o2.getId());
-      }
-    };
-
-    Collections.sort(providers, comparator);
-    Collections.sort(tenants, comparator);
+    final List<OptionDTO> providers = CatalogUtils.toOptionList(providerService.findAll());
+    final List<OptionDTO> tenants = CatalogUtils.toOptionList(tenantService.findPublicsButNotMe(id));
 
     return new TenantPermissionsDTO(id, providers, tenants);
   }
 
   private void addPermissionTypesToModel(final Model model) {
-    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, TenantPermission.Type.values());
+    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, CatalogUtils.toOptionList(TenantPermission.Type.class, "permission", messageSource));
   }
 }

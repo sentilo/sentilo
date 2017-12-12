@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.impl;
 
@@ -41,7 +37,8 @@ import java.util.Set;
 
 import org.sentilo.common.converter.DefaultStringMessageConverter;
 import org.sentilo.common.converter.StringMessageConverter;
-import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.enums.SensorState;
+import org.sentilo.common.enums.SubscribeType;
 import org.sentilo.platform.common.domain.AlarmSubscription;
 import org.sentilo.platform.common.domain.DataSubscription;
 import org.sentilo.platform.common.domain.NotificationParams;
@@ -90,10 +87,10 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   public void loadSubscriptions() {
     // When platform starts, all persisted subscriptions in Redis are loaded and activated
     final boolean listenerContainerRunning = listenerContainer != null && listenerContainer.isRunning();
-    LOGGER.debug("Listener container isRunning? {}", listenerContainerRunning);
+    LOGGER.info("Listener container isRunning? {}", listenerContainerRunning);
 
     if (!storedSubscriptionsActivated && listenerContainerRunning) {
-      LOGGER.debug("Initialize subscriptions already registered in Redis");
+      LOGGER.info("Initializing subscriptions stored in Redis");
       try {
         final Set<String> storedSubscriptions = jedisTemplate.keys(PubSubConstants.REDIS_SUBS_PATTERN_KEY);
         activateStoredSubscriptions(storedSubscriptions);
@@ -101,6 +98,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
       } catch (final Exception e) {
         storedSubscriptionsActivated = false;
       }
+      LOGGER.info("Process finished");
     }
   }
 
@@ -134,7 +132,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     jedisTemplate.hSet(keysBuilder.getSubscriptionKey(subscription.getSourceEntityId()), topic.getTopic(),
         converter.marshal(subscription.getNotificationParams()));
 
-    LOGGER.debug("Listener {} subscribe to channel {}", subscription.getSourceEntityId(), topic.getTopic());
+    LOGGER.info("Listener {} subscribed to channel {}", subscription.getSourceEntityId(), topic.getTopic());
   }
 
   @Override
@@ -170,7 +168,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
     final Map<String, String> subscriptions = jedisTemplate.hGetAll(key);
     final List<Subscription> subscriptionList = buildEntitySubscriptions(subscription, subscriptions);
 
-    LOGGER.debug("Entity {} has {} subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
+    LOGGER.debug("Entity {} has {} active subscriptions", subscription.getSourceEntityId(), subscriptionList.size());
 
     return subscriptionList;
   }
@@ -193,9 +191,17 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
   }
 
   private void checkSensorState(final String providerId, final String sensorId) {
-    if (StringUtils.hasText(sensorId) && !resourceService.existsSensor(providerId, sensorId)) {
+
+    if (!StringUtils.hasText(sensorId)) {
+      return;
+    }
+
+    final SensorState sensorState = resourceService.getSensorState(providerId, sensorId);
+    final boolean existsSensor = sensorState != null && !sensorState.equals(SensorState.ghost);
+
+    if (!existsSensor) {
       throw new ResourceNotFoundException(sensorId, "Sensor");
-    } else if (StringUtils.hasText(sensorId) && resourceService.isSensorDisabled(providerId, sensorId)) {
+    } else if (SensorState.offline.equals(sensorState)) {
       throw new ResourceOfflineException(sensorId, "Sensor");
     }
   }
@@ -218,7 +224,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
       return;
     }
 
-    LOGGER.debug("Found {} subscriptions stored in Redis", storedSubscriptions.size());
+    LOGGER.info("Found {} subscriptions stored in Redis", storedSubscriptions.size());
 
     for (final String subscriptionKey : storedSubscriptions) {
       // Each subscriptionKey represents an entity subscribed to N channels (in Redis is stored as a
@@ -251,7 +257,7 @@ public class SubscribeServiceImpl extends AbstractPlatformServiceImpl implements
       listener = addNewListener(listenerName);
     }
 
-    LOGGER.debug("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
+    LOGGER.info("Subscribing listener {} to channel {}", listener.getName(), topic.getTopic());
 
     listenerContainer.addMessageListener(listener, topic);
     listener.addSubscription(topic, notificationParams);

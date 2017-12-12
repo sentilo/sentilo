@@ -1,53 +1,53 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.sentilo.web.catalog.context.TenantContextHolder;
+import org.sentilo.web.catalog.context.UserConfigContext;
+import org.sentilo.web.catalog.context.UserConfigContextHolder;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
+import org.sentilo.web.catalog.dto.VisualConfigurationDTO;
 import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.SensorService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.FormatUtils;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +66,7 @@ public abstract class BaseComponentController extends CrudController<Component> 
   private ComponentTypesService componentTypesService;
 
   @Autowired
-  private MessageSource messageSource;
+  protected MessageSource messageSource;
 
   @Autowired
   private SensorService sensorService;
@@ -77,6 +77,19 @@ public abstract class BaseComponentController extends CrudController<Component> 
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
     return Constants.MENU_COMPONENT;
+  }
+
+  @ModelAttribute(Constants.MODEL_VISUAL_CONFIGURATION)
+  public VisualConfigurationDTO getDefaultChartObervationsNumber() {
+    final UserConfigContext context = UserConfigContextHolder.getContext();
+    final VisualConfigurationDTO dto =
+        new VisualConfigurationDTO(context.getUserTimeZone().getID(), context.getUserDatePattern(), context.getUserChartNumObs());
+    return dto;
+  }
+
+  @ModelAttribute(Constants.MODEL_MAX_SYSTEM_DATE_MILLIS)
+  public long getMaxSystemStringDate() {
+    return CatalogUtils.getMaxSystemTimeMillis();
   }
 
   @Override
@@ -95,6 +108,11 @@ public abstract class BaseComponentController extends CrudController<Component> 
     row.add(String.valueOf(component.getPublicAccess()));
     row.add(localDateFormat.printAsLocalTime(component.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
+  }
+
+  @Override
+  protected List<String> toExcelRow(final Component component) {
+    return ExcelGeneratorUtils.getComponentExcelRowsData(component, getMessageSource(), getLocalDateFormat());
   }
 
   @Override
@@ -156,15 +174,6 @@ public abstract class BaseComponentController extends CrudController<Component> 
         model.addAttribute(Constants.MODEL_COMPONENT_ICON, type.getIcon());
       }
     }
-  }
-
-  @Override
-  protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames = {Constants.NAME_PROP, Constants.DESCRIPTION_PROP, Constants.PROVIDER_ID_PROP, Constants.LOCATION_PROP,
-        Constants.TYPE_PROP, Constants.PUBLIC_ACCESS_PROP, Constants.CREATED_AT_PROP};
-
-    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "component");
   }
 
   protected ComponentService getComponentService() {

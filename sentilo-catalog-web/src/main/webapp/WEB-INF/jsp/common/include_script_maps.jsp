@@ -164,12 +164,10 @@
 	};
 	
 	function initializeMapControls() {
-	    var map_pos = $('#map_canvas_1').offset();
-	    var map_control_pos = $('#map_canvas_1').width() - $('#map_controls').width();
+	    var map_pos = $('#map_canvas_1').offset();	    
 	    $('#map_controls').css({
 	    	position:'absolute',
-	    	top: map_pos.top + 10,
-	    	left: map_pos.left + map_control_pos - 10
+	    	top: map_pos.top + 10
 	    });
 	};
 	
@@ -188,13 +186,13 @@
 	        draggable: true,
 	        animation: google.maps.Animation.DROP,
 	    });
-	
-	    var image = new google.maps.MarkerImage(
-	        '${imgSpot}',
-	        new google.maps.Size(22, 22),
-	        new google.maps.Point(0, 0),
-	        new google.maps.Point(11, 11),
-	        new google.maps.Size(22, 22));
+	    
+	    var image = {
+		    url: '${imgSpot}',
+		    size: new google.maps.Size(22, 22),
+		    origin: new google.maps.Point(0, 0),
+		    anchor: new google.maps.Point(0, 22)
+		};
 	    
 	    marker.setIcon(image);	    	    
 	    
@@ -254,14 +252,13 @@
 		return poi;		              
     };
 	
-	function getPOIImage(data) {		
-		var img = data && data.icon ? '${iconsPath}' + data.icon + '-poi.png' : '${defaultIcon}';		
-		return new google.maps.MarkerImage(
-				img,
-				new google.maps.Size(28, 30),  
-		        new google.maps.Point(0, 0),
-		        new google.maps.Point(34, 34),
-		        new google.maps.Size(28, 30));
+    function getPOIImage(data) {		
+		return {
+		    url: data && data.icon ? '${iconsPath}' + data.icon + '-poi.png' : '${defaultIcon}',
+		    size: new google.maps.Size(28, 30),
+		    origin: new google.maps.Point(0, 0),
+		    anchor: new google.maps.Point(0, 30)
+		};
 	};
 			
     function printMobileComponent(poi){
@@ -310,15 +307,15 @@
 		});
 	};
  	
-    function getMobilePOIImage(i, poi) {					    	
+    function getMobilePOIImage(i, poi) {	
     	var total = poi.route.length;
     	var mobileEndIcon = '${iconsPath}' + poi.iconName + '-poi.png';
     	var mobileBeginningIcon = '${iconsPath}' + 'mobile-poi.png';
     	var imgUrl = i == total-1 ? mobileEndIcon : mobileBeginningIcon;
 		var size = i == total-1 ? 25 : 12;
-		var anchorx = i == total-1 ? 15 : 4;
-		var anchory = i == total-1 ? 15 : 7;
-    	
+		var anchorx = i == total-1 ? 0 : 7;
+		var anchory = i == total-1 ? 25 : 7;
+		
 		var image = {
 			  url: imgUrl,
 			  size: new google.maps.Size(size,size),
@@ -357,44 +354,52 @@
 			// the sensor observations are displayed in two columns, so  the number of elements of each column 
 			// is fixed by the the number of sensor observations 
 			var elementsCount = data.sensorLastObservations.length;
-			var numObsCol = (elementsCount%2 == 0)? parseInt(elementsCount/2) : (parseInt(elementsCount/2) +1);	
+			var numObsCol = (elementsCount%2 == 0) ? parseInt(elementsCount/2) : (parseInt(elementsCount/2) +1);	
 			var bodyStyle;
+
+			// Fixs the infowindow location basen on pixelOffset
+			fillInfoWindowPixelOffset(elementsCount, poi, boxOptions)
 			
-			setInfoboxPixelOffset(poi, elementsCount);
-			
-			if(elementsCount >4){
-				boxOptions.pixelOffset = new google.maps.Size(-325, -425);
+			if(elementsCount > 4){
 				bodyStyle = "overflow-y: scroll";
 			} 									
-						
-			for(var i = 0; i < elementsCount; i++) {
-				if (i%numObsCol==0) {
-					if (divIsOpen) {
-						bodyContent += '</div>';
-						vidIsOpen = false;
-					} 
-					bodyContent += '<div class="infobox-body-column">';
-					divIsOpen = true;
-				}
-				var observation = data.sensorLastObservations[i];
-				if (observation.found) {						
-					if (observation.dataType === 'BOOLEAN') {
-						observation.value = eval(observation.value) ? '' : 'No';
+
+			if (elementsCount > 0) {
+				for(var i = 0; i < elementsCount; i++) {
+					if (i%numObsCol==0) {
+						if (divIsOpen) {
+							bodyContent += '</div>';
+							vidIsOpen = false;
+						} 
+						bodyContent += '<div class="infobox-body-column">';
+						divIsOpen = true;
 					}
-					var offlineClass = (observation.sensorState === 'offline') ? 'class="offline"' : '' ;
-					var tooltipText = '';
-					if (observation.sensorSubState != null) {
-						tooltipText += observation.sensorSubstateDesc;
-						
-					} 
-										
-					bodyContent += '<p '+offlineClass+'data-toggle="tooltip" title="'+tooltipText+'">' + observation.value + ' ' + observation.unit + '</p><span class="label label-info">' + observation.sensorType + '</span>';
-				} else {
-					bodyContent += '<p><spring:message code="component.sensor.observation.not.found"/></p><span class="label label-info">' + observation.sensorType + '</span>';
+					var observation = data.sensorLastObservations[i];
+					if (observation.found) {						
+						if (observation.dataType === 'BOOLEAN') {
+							observation.value = eval(observation.value) ? '' : 'No';
+						}
+						var offlineClass = (observation.sensorState === 'offline') ? 'class="offline"' : '' ;
+						var tooltipText = '';
+						if (observation.sensorSubState != null) {
+							tooltipText += observation.sensorSubstateDesc;
+							
+						} 
+											
+						bodyContent += '<p '+offlineClass+'data-toggle="tooltip" title="'+tooltipText+'">' + observation.value + ' ' + observation.unit + '</p><span class="label label-info">' + observation.sensorType + '</span>';
+					} else {
+						bodyContent += '<p><spring:message code="component.sensor.observation.not.found"/></p><span class="label label-info">' + observation.sensorType + '</span>';
+					}
 				}
+				bodyContent += '</div>';
+			} else {
+				// Add a ghost column to fix the gap when component has not sensors
+	    		bodyContent =  '<div class="infobox-body-column">';
+	    		bodyContent += '	<p>&nbsp;</p>';
+	    		bodyContent += '	<span class="label label-info">&nbsp;</span>';
+	    		bodyContent += '</div>';
 			}
 
-			bodyContent += '</div>';
 			bodyContent += '<div style="clear: both;"></div>';
 			
 			var detailUrl = buildPublicComponentDetailUrl(poi);
@@ -413,23 +418,43 @@
 			if(!infowindow){			
 		    	infowindow = new InfoBox(boxOptions);
 			}
-						
+				
 	    	infowindow.setContent(content);	    	
-	    	
-	    	// infobox must be displayed where the user has clicked on the map	    	        	
-			var infoboxMarker = new google.maps.Marker({
-        		position: new google.maps.LatLng(clickEvent.latLng.lat(), clickEvent.latLng.lng()),
-			});
-    		
-	    	infowindow.open(map, infoboxMarker);
+	    	infowindow.open(map, poi);
     	});
     };
         
+    function fillInfoWindowPixelOffset(elementsCount, poi, boxOptions) {
+    	var numRows = parseInt((elementsCount / 2) + (elementsCount%2));
+    	var pixelOffset_x = (poi.multiCoordinates) ? -300 : -290;
+		var pixelOffset_y = -290;
+		
+		if (numRows <= 1) {
+			pixelOffset_y = -315;
+		} else if (numRows == 2) {
+			pixelOffset_y = -380;
+		} else if (numRows >= 3) {
+			pixelOffset_y = -440;
+		}
+		
+		if (poi.routeMarker) {
+			var iconSize = poi.icon.size;
+			if (iconSize.width === 12) {
+				pixelOffset_x = pixelOffset_x - 15;
+				pixelOffset_y = pixelOffset_y + iconSize.width;
+			}
+		}
+		
+		if (poi.multiCoordinates) {
+			pixelOffset_y = pixelOffset_y + 25;
+		}
+		
+		boxOptions.pixelOffset = new google.maps.Size(pixelOffset_x, pixelOffset_y);
+    }
     
     function fillInfoWindow(poi, clickEvent) {    	
     	var observationDiv = '' + new Date().getTime();
     	var footerDiv = 'footer' + observationDiv;
-    	
 		retrieveLastObservations(poi, observationDiv, footerDiv, clickEvent);        								
     };
         
@@ -441,11 +466,16 @@
     	var headerTypeStyle = (poi.type.length > 12 ? "min-width:250px":'');
     	var poiTypeName = $("#componentDropdown").find("li#"+poi.type).find("a").text().trim();
     	
+    	if (!poiTypeName) {
+    		// Workaround for those cases where the componentType has not i18n literal
+    		poiTypeName = poi.type;
+    	}
+    	
     	var content = '<div class="infobox-header">';
     	content += '<div class="infobox-header-icon"><img src="'+poiIcon+'"/></div>';
     	content += '<div class="infobox-header-name"><p>'+name+'</p></div>';
     	content += '<div class="infobox-header-type" style="'+ headerTypeStyle+'"><p>'+ poiTypeName  +'</p></div>';    	
-    	content += '<h3>' + provider +'</h3>';
+        content += '<h3>' + provider +'</h3>';	
     	content += '</div>';
     	
     	return content;       	
@@ -472,7 +502,6 @@
     
     function fillInfoWindowBody(poi, bodyContent, observationDiv, bodyStyle){    	    	
     	var content = '<div class="infobox-body" id="' + observationDiv + '" style="'+ bodyStyle+'">' + bodyContent +'</div>';
-    	
     	return content;    	
     };
     
@@ -480,31 +509,6 @@
     	var content = '<div class="infobox-footer" id="' + footerDiv + '">'+footerContent+'</div>';    	
     	return content;    	
     };
-    
-    /**
-     * Set the infobox pixelOffset attribute, needed to display it centered over the marker where
-     * the user has clicked.
-     * @ poi: marker
-     * @ elementsCount: number of observations to display into the infobox.
-     */
-    function setInfoboxPixelOffset(poi, elementsCount){    	
-    	var pixelOffset_x = (poi.multiCoordinates ? -300 : -325 );    	
-    	if(elementsCount < 3){
-    		pixelOffset_y = (poi.multiCoordinates ? -270 : -300 );					
-		} else if(elementsCount == 3 || elementsCount == 4){
-			pixelOffset_y = -375;			
-		} else if(elementsCount >4){
-			pixelOffset_y = -425;					
-		} 
-    	    	    	
-    	if(poi.routeMarker){
-    		pixelOffset_x = pixelOffset_x +25;
-    		pixelOffset_y = pixelOffset_y +20;
-    	}
-    	
-    	boxOptions.pixelOffset = new google.maps.Size(pixelOffset_x, pixelOffset_y);    	
-    };
-    
     
  	/**
  	 * Return the number used to extend map bounds when server search must be done.
@@ -709,9 +713,13 @@
 	    		clearOverlay();	    			    			    		
 				if(data.components.length > 0){
 		        	for(var i = 0; i < data.components.length; i++) {
-		            	// Component could have one or many coordinates. Depending on whether it have 1 or N coordinates,
+		            	// Component could have zero, one or many coordinates. Depending on whether it have 1 or N coordinates,
 		            	// it will be displayed on the map as a marker or as a polyline/polygon
 		            	var component = data.components[i];
+		            	
+		            	if(!component.coordinates){
+		                    continue;  
+		                }
 		            	
 		            	if(component.coordinates.length == 1){ 
 		            		// marker case		            			            	
@@ -1005,10 +1013,13 @@
 			updateSearchedPosition(marker.getPosition());
 			geocodeAddress(marker.getPosition());
 		});
-
-		var image = new google.maps.MarkerImage('${imgSpot}',
-				new google.maps.Size(22, 22), new google.maps.Point(0, 0),
-				new google.maps.Point(11, 11), new google.maps.Size(22, 22));
+		
+		var image = {
+		    url: '${imgSpot}',
+		    size: new google.maps.Size(22, 22),
+		    origin: new google.maps.Point(0, 0),
+		    anchor: new google.maps.Point(0, 22)
+		};
 
 		marker.setIcon(image);
 

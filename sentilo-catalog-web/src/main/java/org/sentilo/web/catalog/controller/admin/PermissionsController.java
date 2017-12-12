@@ -1,42 +1,35 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,10 +38,9 @@ import javax.validation.Valid;
 
 import org.sentilo.web.catalog.controller.SearchController;
 import org.sentilo.web.catalog.domain.Application;
-import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Permission;
-import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.dto.DataTablesDTO;
+import org.sentilo.web.catalog.dto.OptionDTO;
 import org.sentilo.web.catalog.dto.PermissionsDTO;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.search.builder.SearchFilterUtils;
@@ -56,7 +48,9 @@ import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.PermissionService;
 import org.sentilo.web.catalog.service.ProviderService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -167,6 +161,11 @@ public class PermissionsController extends SearchController<Permission> {
   }
 
   @Override
+  protected List<String> toExcelRow(final Permission permission) {
+    return ExcelGeneratorUtils.getPermissionsExcelRowsData(permission, messageSource, getLocalDateFormat());
+  }
+
+  @Override
   protected CrudService<Permission> getService() {
     return permissionService;
   }
@@ -179,13 +178,6 @@ public class PermissionsController extends SearchController<Permission> {
   @Override
   protected void initViewNames() {
     // Do nothing.
-  }
-
-  @Override
-  protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames = {Constants.TARGET_PROP, Constants.TYPE_PROP};
-    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "permission");
   }
 
   private void createPermissions(final String sourceId, final String[] selectedIds, final Permission.Type type) {
@@ -208,27 +200,13 @@ public class PermissionsController extends SearchController<Permission> {
   }
 
   private void addPermissionTypesToModel(final Model model) {
-    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, Permission.Type.values());
+    model.addAttribute(Constants.MODEL_PERMISSION_TYPES, CatalogUtils.toOptionList(Permission.Type.class, "permission", messageSource));
   }
 
   private PermissionsDTO createForm(final String id, final Model model) {
     addPermissionTypesToModel(model);
-
-    final List<Provider> providers = providerService.findAllowed();
-    final List<Application> applications = applicationService.findAllowed();
-
-    // Sort list before add them into the model
-    final Comparator<CatalogDocument> comparator = new Comparator<CatalogDocument>() {
-
-      @Override
-      public int compare(final CatalogDocument o1, final CatalogDocument o2) {
-        return o1.getId().compareToIgnoreCase(o2.getId());
-      }
-    };
-
-    Collections.sort(providers, comparator);
-    Collections.sort(applications, comparator);
-
+    final List<OptionDTO> providers = CatalogUtils.toOptionList(providerService.findAllowed());
+    final List<OptionDTO> applications = CatalogUtils.toOptionList(applicationService.findAllowed());
     return new PermissionsDTO(id, providers, applications);
   }
 }

@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.client.test.utils;
 
@@ -40,7 +36,8 @@ import java.util.Date;
 import org.junit.Test;
 import org.sentilo.common.domain.OrderMessage;
 import org.sentilo.common.domain.QueryFilterParams;
-import org.sentilo.common.domain.SubscribeType;
+import org.sentilo.common.enums.SubscribeType;
+import org.sentilo.common.rest.RequestContext;
 import org.sentilo.common.rest.RequestParameters;
 import org.sentilo.common.utils.DateUtils;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
@@ -63,92 +60,92 @@ public class RequestUtilsTest {
   static final SubscriptionParams subscriptionParams = new SubscriptionParams("http://dev.connecta.cat");
 
   @Test
-  public void buildCatalogAlertPath() {
+  public void buildCatalogAlertRequestContext() {
     final CatalogAlertInputMessage message = new CatalogAlertInputMessage(PROVIDER_ID);
-    final String path = RequestUtils.buildPath(message);
+    final RequestContext rc = RequestUtils.buildContext(message);
 
-    assertEquals("/catalog/alert/" + PROVIDER_ID, path);
+    assertEquals("/catalog/alert/" + PROVIDER_ID, rc.getPath());
   }
 
   @Test
-  public void buildOrderPath() {
+  public void buildOrderRequestContext() {
     final OrderInputMessage message = new OrderInputMessage(PROVIDER_ID, SENSOR_ID, new OrderMessage(ORDER));
-    final String path = RequestUtils.buildPath(message);
+    final RequestContext rc = RequestUtils.buildContext(message);
 
-    assertEquals("/order/" + PROVIDER_ID + "/" + SENSOR_ID, path);
+    assertEquals("/order/" + PROVIDER_ID + "/" + SENSOR_ID, rc.getPath());
   }
 
   @Test
-  public void buildGlobalOrderPath() {
+  public void buildGlobalOrderRequestContext() {
     final OrderInputMessage message = new OrderInputMessage(PROVIDER_ID, new OrderMessage(ORDER));
-    final String path = RequestUtils.buildPath(message);
+    final RequestContext rc = RequestUtils.buildContext(message);
 
-    assertEquals("/order/" + PROVIDER_ID, path);
+    assertEquals("/order/" + PROVIDER_ID, rc.getPath());
   }
 
   @Test
-  public void buildAlarmPath() {
+  public void buildAlarmRequestContext() {
     final AlarmInputMessage message = new AlarmInputMessage(ALARM_ID, ALARM_MESSAGE);
-    final String path = RequestUtils.buildPath(message);
+    final RequestContext rc = RequestUtils.buildContext(message);
 
-    assertEquals("/alarm/" + ALARM_ID, path);
+    assertEquals("/alarm/" + ALARM_ID, rc.getPath());
   }
 
   @Test
   public void buildSubscribeGetPath() {
     SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER);
-    String path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/order", path);
+    RequestContext rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/order", rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/data", path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/data", rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/alarm", path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/alarm", rc.getPath());
   }
 
   @Test
   public void buildSubscribePutOrDeletePath() {
     SubscribeInputMessage message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, subscriptionParams, SENSOR_ID);
-    String path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/order/" + SENSOR_ID, path);
+    RequestContext rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/order/" + SENSOR_ID, rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ORDER, subscriptionParams);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/order", path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/order", rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM, subscriptionParams, ALARM_ID);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/alarm/" + ALARM_ID, path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/alarm/" + ALARM_ID, rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.ALARM, subscriptionParams);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/alarm", path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/alarm", rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, subscriptionParams, PROVIDER_ID, SENSOR_ID);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/data/" + PROVIDER_ID + "/" + SENSOR_ID, path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/data/" + PROVIDER_ID + "/" + SENSOR_ID, rc.getPath());
 
     message = SubscribeInputMessageFactory.buildSubscription(SubscribeType.DATA, subscriptionParams, PROVIDER_ID);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/subscribe/data/" + PROVIDER_ID, path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/subscribe/data/" + PROVIDER_ID, rc.getPath());
   }
 
   @Test
   public void buildDataPath() {
     DataInputMessage message = new DataInputMessage(PROVIDER_ID, SENSOR_ID);
-    String path = RequestUtils.buildPath(message);
-    assertEquals("/data/" + PROVIDER_ID + "/" + SENSOR_ID, path);
+    RequestContext rc = RequestUtils.buildContext(message);
+    assertEquals("/data/" + PROVIDER_ID + "/" + SENSOR_ID, rc.getPath());
 
     message = new DataInputMessage(PROVIDER_ID);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/data/" + PROVIDER_ID, path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/data/" + PROVIDER_ID, rc.getPath());
 
     message = new DataInputMessage(PROVIDER_ID, SENSOR_ID, OBSERVATION);
-    path = RequestUtils.buildPath(message);
-    assertEquals("/data/" + PROVIDER_ID + "/" + SENSOR_ID + "/" + OBSERVATION, path);
+    rc = RequestUtils.buildContext(message);
+    assertEquals("/data/" + PROVIDER_ID + "/" + SENSOR_ID + "/" + OBSERVATION, rc.getPath());
   }
 
   @Test
@@ -187,5 +184,7 @@ public class RequestUtilsTest {
     assertNull(parameters.get(RequestParameters.LIMIT));
     assertEquals(parameters.get(RequestParameters.FROM), fromText);
     assertNull(parameters.get(RequestParameters.TO));
+
+
   }
 }

@@ -137,24 +137,29 @@
 												</div>
 											</div>
 										</div>
-										<div class="row-fluid">
-											<div class="span12">
-												<div class="control-group pull-right">
-													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-													<c:if test="${showAdminControls}">
-													<a href="${editTenantLink}" class="btn btn-primary"> <spring:message code="tenant.edit.title" /></a>
-													</c:if>
-												</div>
+									</div>
+									<div class="row-fluid">
+										<div class="span12">
+											<div class="control-group pull-right">
+												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+												<c:if test="${showAdminControls}">
+												<a href="${editTenantLink}" class="btn btn-primary"> <spring:message code="tenant.edit.title" /></a>
+												</c:if>
 											</div>
 										</div>
 									</div>
 								</div>
 								<div class="${tab2PaneClass}" id="tab2">
 									<div class="accordion" id="detailAccordion">
+										<c:set var="visualConfiguration" value="${tenant.visualConfiguration}" />
+										<%@include file="/WEB-INF/jsp/common/include_visual_configuration.jsp"%>
+									</div>
+									<br />
+									<div class="accordion" id="detailAccordion">
 										<div class="accordion-group">
 											<div class="accordion-heading">
 												<a class="accordion-toggle" data-toggle="collapse" data-parent="#detailAccordion" href="#detailAccordionCollapse"> 
-													<i class="icon-th"></i> <spring:message code="data" /> <i class="icon-chevron-down pull-right"></i> 
+													<i class="icon-th"></i> <spring:message code="tenant.configParams.mapConfiguration" /> <i class="icon-chevron-down pull-right"></i> 
 												</a>
 											</div>
 											<div id="detailAccordionCollapse" class="accordion-body collapse in">
@@ -192,6 +197,16 @@
 														</div>
 													</div>
 												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row-fluid">
+										<div class="span12">
+											<div class="control-group pull-right">
+												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+												<c:if test="${showAdminControls}">
+												<a href="${editTenantLink}" class="btn btn-primary"> <spring:message code="tenant.edit.title" /></a>
+												</c:if>
 											</div>
 										</div>
 									</div>

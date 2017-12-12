@@ -119,7 +119,7 @@
 				</div>
 			</div>
 		</div>
-
+		<br />
 		<div class="row-fluid">
 			<div class="span12">
 				<div class="control-group  pull-right">
@@ -151,6 +151,24 @@
 		</div>
 	</div>
 	<div class="${tab3PaneClass}" id="tab3">
+		<div class="accordion" id="detailAdditionalInfoAccordion">
+		    <c:set var="visualConfiguration"  value="${sensor.visualConfiguration}" />
+		    <c:set var="isSensorConfiguration" value="true" />
+			<%@include file="/WEB-INF/jsp/common/include_visual_configuration.jsp"%>
+			<br />
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="control-group  pull-right">
+						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+						<c:if test="${showAdminControls}">
+						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
+						</c:if>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="${tab4PaneClass}" id="tab4">
 		<div class="accordion" id="detailAdditionalInfoAccordion">
 		    <c:set var="additionalInfo"  value="${sensor.additionalInfo}" />
 			<%@include file="/WEB-INF/jsp/common/include_additional_info.jsp"%>

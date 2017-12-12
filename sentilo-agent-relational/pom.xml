@@ -10,7 +10,7 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.6.0</version>		
+		<version>1.7.0</version>		
 	</parent>
 
 	<properties>		
@@ -44,7 +44,8 @@
 				            </commandLineArguments>	
 							<jvmSettings>
 								<systemProperties>
-				                  <systemProperty>user.timezone=UTC</systemProperty>				                
+				                  <systemProperty>user.timezone=UTC</systemProperty>
+				                  <systemProperty>file.encoding=UTF-8</systemProperty>				                
 				                </systemProperties>			                
 				                <extraArguments>
 				                  <extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>	

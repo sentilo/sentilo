@@ -339,7 +339,10 @@ $(document).ready(function() {
 	
 	$('form#component').submit(function( event ) {
 		// Before submit content form, update location hidden field with the new coordinates of the component		  
-		$('#location').val(displayPath.getPath().getArray().toString());
+		if(displayPath && displayPath.getPath()){
+			$('#location').val(displayPath.getPath().getArray().toString());
+		}
+		
 		return;
 	});	
 });

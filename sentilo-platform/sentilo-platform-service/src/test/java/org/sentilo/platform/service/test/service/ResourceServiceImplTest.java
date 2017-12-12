@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.test.service;
 
@@ -50,6 +46,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.CatalogAlert;
+import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
 import org.sentilo.platform.service.dao.JedisTemplate;
@@ -115,7 +112,7 @@ public class ResourceServiceImplTest {
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
     when(jedisSequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, "online", false);
+    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, SensorState.online, false);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
@@ -129,7 +126,7 @@ public class ResourceServiceImplTest {
   public void registerSensorThatAlreadyExists() {
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, "online", false);
+    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, SensorState.online, false);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
@@ -143,7 +140,7 @@ public class ResourceServiceImplTest {
   public void updateSensorThatAlreadyExists() {
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, "online", true);
+    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, SensorState.online, true);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
@@ -310,40 +307,32 @@ public class ResourceServiceImplTest {
     verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
   }
 
-  @SuppressWarnings("unchecked")
   @Test
-  public void isSensorDisabled() {
+  public void getSensorState() {
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
-    fields.put("state", "online");
+    fields.put("state", SensorState.online.name());
 
     final Map<String, String> fields2 = new HashMap<String, String>(fields);
     fields2.remove("state");
     final Map<String, String> fields3 = new HashMap<String, String>(fields);
-    fields3.put("state", "offline");
+    fields3.put("state", SensorState.offline.name());
+    final Map<String, String> fields4 = new HashMap<String, String>(fields);
+    fields4.put("state", SensorState.ghost.name());
 
-    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields, fields2, fields3);
+    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields, fields2, fields3, fields4);
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    final boolean disabled = service.isSensorDisabled(PROVIDER_ID, SENSOR_ID);
-    final boolean disabled2 = service.isSensorDisabled(PROVIDER_ID, SENSOR_ID);
-    final boolean disabled3 = service.isSensorDisabled(PROVIDER_ID, SENSOR_ID);
+    final SensorState sensorState = service.getSensorState(PROVIDER_ID, SENSOR_ID);
+    final SensorState sensorState2 = service.getSensorState(PROVIDER_ID, SENSOR_ID);
+    final SensorState sensorState3 = service.getSensorState(PROVIDER_ID, SENSOR_ID);
+    final SensorState sensorState4 = service.getSensorState(PROVIDER_ID, SENSOR_ID);
 
-    Assert.assertFalse(disabled);
-    Assert.assertFalse(disabled2);
-    Assert.assertTrue(disabled3);
-  }
-
-  @Test
-  public void existSensor() {
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID, (Long) null);
-
-    final boolean exist = service.existsSensor(PROVIDER_ID, SENSOR_ID);
-    final boolean exist2 = service.existsSensor(PROVIDER_ID, SENSOR_ID);
-
-    Assert.assertTrue(exist);
-    Assert.assertFalse(exist2);
+    Assert.assertEquals(SensorState.online, sensorState);
+    Assert.assertNull(sensorState2);
+    Assert.assertEquals(SensorState.offline, sensorState3);
+    Assert.assertEquals(SensorState.ghost, sensorState4);
   }
 
   @SuppressWarnings("unchecked")

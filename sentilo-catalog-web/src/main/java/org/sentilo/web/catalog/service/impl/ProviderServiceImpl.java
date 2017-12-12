@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.service.impl;
 
@@ -47,6 +43,7 @@ import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.PermissionService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.TenantPermissionService;
+import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.IdentityKeyGenerator;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.sentilo.web.catalog.validator.EntityKeyValidator;
@@ -115,6 +112,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
    * org.sentilo.web.catalog.service.ProviderService#deleteChildrens(org.sentilo.web.catalog.domain.
    * Provider)
    */
+  @Override
   public void deleteChildren(final Provider provider) {
     deleteRelatedResources(provider, false);
   }
@@ -129,6 +127,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
   public void addGrantedTenant(final String providerId, final String tenantId) {
     final Provider provider = findAndThrowErrorIfNotExist(new Provider(providerId));
     provider.getTenantsAuth().add(tenantId);
+    provider.getTenantsListVisible().add(tenantId);
     getMongoOps().save(provider);
   }
 
@@ -142,6 +141,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
   public void removeGrantedTenant(final String providerId, final String tenantId) {
     final Provider provider = findAndThrowErrorIfNotExist(new Provider(providerId));
     provider.getTenantsAuth().remove(tenantId);
+    provider.getTenantsListVisible().remove(tenantId);
     getMongoOps().save(provider);
   }
 
@@ -190,15 +190,23 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
    * .web.catalog.domain.CatalogDocument)
    */
+  @Override
   protected void doBeforeCreate(final Provider provider) {
+    // id is a mandatory field filled in on screen. But name isn't a mandatory field, so if user
+    // doesn't filled in it, it mandatory but name no
     // El identificador se informa por pantalla (es obligatorio). El nombre, en caso de no estar
     // informado, se rellena con el valor del identificador.
     if (!StringUtils.hasText(provider.getName())) {
       provider.setName(provider.getId());
     }
 
-    // Validamos la unicidad del identificador: no puede existir otra entidad (app o provider) con
-    // el mismo identificador.
+    if (TenantContextHolder.isEnabled()) {
+      // In a multitenant instance, to allow different tenants to have entities with the same id,
+      // the proposed entity id filled in by user is modified by prepending the tenant id
+      final String newId = provider.getTenantId() + Constants.MULTITENANT_ENTITY_ID_PREPEND_TOKEN + provider.getId();
+      provider.setId(newId);
+    }
+
     checkIntegrityKey(provider.getId());
 
     provider.setToken(IdentityKeyGenerator.generateNewToken(provider.getId()));
@@ -213,6 +221,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterDelete(org.sentilo.
    * web.catalog.domain.CatalogDocument)
    */
+  @Override
   protected void doAfterDelete(final Provider provider) {
     doAfterDelete(Arrays.asList(new Provider[] {provider}));
   }
@@ -223,6 +232,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#delete(java.util.Collection)
    */
+  @Override
   protected void doAfterDelete(final Collection<Provider> providers) {
     for (final Provider provider : providers) {
       deleteRelatedResources(provider);

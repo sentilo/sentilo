@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
@@ -59,6 +55,7 @@ import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorSubstateService;
 import org.sentilo.web.catalog.service.SensorTypesService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.LastUpdateMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -135,11 +132,8 @@ public class AbstractMapController extends CatalogBaseController {
       translateAndEscapeSensorType(sensor);
       lastObservationsList.add(new ObservationDTO(sensor, observation));
 
-      // Be careful: every string timestamp is formatted based on the local time zone (see
-      // @TranslateTimestamp).
-      // Therefore, to convert it to milliseconds a localDateFormatter must be used
       if (observation != null) {
-        updatedTimestamps.add(getLocalDateFormat().parseLocalTime(observation.getTimestamp()));
+        updatedTimestamps.add(observation.getTime());
       }
 
       // sort timestamps in descending order
@@ -151,7 +145,7 @@ public class AbstractMapController extends CatalogBaseController {
   }
 
   protected Map<String, String> getIconMap() {
-    final List<ComponentType> componentTypes = getComponentTypesService().findAll();
+    final List<ComponentType> componentTypes = CatalogUtils.sortAlphabetically(getComponentTypesService().findAll());
     final Map<String, String> images = new HashMap<String, String>();
     for (final ComponentType componentType : componentTypes) {
       images.put(componentType.getId(), componentType.getIcon());
@@ -172,15 +166,11 @@ public class AbstractMapController extends CatalogBaseController {
     }
   }
 
-  protected SearchFilter buildSearchFilter(final String[] componentTypes, final String[] bounds, final Principal principal,
-      final boolean filterByAccessType) {
-    final SearchFilter filter = getSearchFilterBuilder().buildMapSearchFilter();
+  protected SearchFilter buildSearchFilter(final String[] componentTypes, final String[] bounds) {
 
-    // If user is not logged in and filterByAccessType param is activated, then only public
-    // components must be returned
-    if (filterByAccessType && principal == null) {
-      filter.addAndParam("publicAccess", Boolean.TRUE);
-    }
+    // If user is not logged in then only public components must be returned
+    // It will be calculated in this build filter method
+    final SearchFilter filter = getSearchFilterBuilder().buildMapSearchFilter();
 
     if (!SentiloUtils.arrayIsEmpty(componentTypes)) {
       filter.addAndParam("componentType", componentTypes);

@@ -32,6 +32,7 @@
 		<intercept-url pattern="/accessDenied" access="permitAll" />
 
 		<intercept-url pattern="/stats/**" access="permitAll" />
+		<intercept-url pattern="/status/**" access="permitAll" />
 		<intercept-url pattern="/component/**" access="permitAll" />
 
 		<intercept-url pattern="/admin/sensortypes/icons/json" access="permitAll" />

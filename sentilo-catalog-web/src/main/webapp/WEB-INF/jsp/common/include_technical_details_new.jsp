@@ -61,7 +61,7 @@
 				<div class="controls">
 					<form:select path="technicalDetails.energy">
 							<form:option value="">${emptySelectMessage}</form:option>
-							<form:options items="${energyTypes}" itemValue="value" itemLabel="label" />							
+							<form:options items="${energyTypes}" itemValue="value" itemLabel="label" />
 						</form:select>
 					<form:errors path="technicalDetails.energy" cssClass="text-error" htmlEscape="false" />
 				</div>
@@ -75,7 +75,7 @@
 					<div class="controls">
 						<form:select path="technicalDetails.connectivity">
 						    <form:option value="">${emptySelectMessage}</form:option>
-							<form:options items="${connectivityTypes}" itemValue="value" itemLabel="label" />							
+							<form:options items="${connectivityTypes}" itemValue="value" itemLabel="label" />
 						</form:select>						
 						<form:errors path="technicalDetails.connectivity" cssClass="text-error" htmlEscape="false" />
 					</div>

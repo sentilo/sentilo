@@ -37,7 +37,7 @@
 							</form:label>
 							<div class="controls">
 								<form:select path="selectedProvidersIds" cssClass="input-large">
-									<form:options items="${permissions.providers}" itemLabel="name" itemValue="id" />
+									<form:options items="${permissions.providers}" itemValue="value" itemLabel="label" />
 								</form:select>
 								<form:errors path="selectedProvidersIds" cssClass="error" htmlEscape="false" />
 							</div>
@@ -48,7 +48,7 @@
 							</form:label>
 							<div class="controls">
 								<form:select path="selectedApplicationsIds" cssClass="input-large">
-									<form:options items="${permissions.applications}" itemLabel="name" itemValue="id" />
+									<form:options items="${permissions.applications}" itemValue="value" itemLabel="label" />
 								</form:select>
 								<form:errors path="selectedApplicationsIds" cssClass="error" htmlEscape="false" />
 							</div>
@@ -59,11 +59,7 @@
 							</form:label>
 							<div class="controls">
 								<form:select path="permissionType" cssClass="input-large">
-									<c:forEach items="${permissionTypes}" var="permissionType">
-										<form:option value="${permissionType}">
-											<spring:message code="permission.${permissionType}" />
-										</form:option>
-									</c:forEach>
+									<form:options items="${permissionTypes}" itemValue="value" itemLabel="label" />
 								</form:select>
 							</div>
 						</div>

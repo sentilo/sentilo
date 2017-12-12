@@ -2,7 +2,7 @@
 <!DOCTYPE configuration>
 
 <configuration>	
-	<shutdownHook/>		
+	<shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>		
 	<!--  Each module could override / extend default configuration providing a file with name custom-logback.xml -->	
 	<include optional="true" resource="custom-logback.xml"/>
 	
@@ -75,7 +75,7 @@
     	<appender-ref ref="FILE_ERROR" />
   	</appender>
   	
-	<logger name="org.sentilo" level="${sentilo.log.level:-DEBUG}" additivity="true">
+	<logger name="org.sentilo" level="${sentilo.log.level:-INFO}" additivity="true">
 		<appender-ref ref="ASYNCFILE_SENTILO_ERROR" />		
 	</logger>
 

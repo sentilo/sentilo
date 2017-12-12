@@ -30,6 +30,7 @@ body {
 	height: 250px;
 	font-size: 14px;
 	line-height: 14px;
+	overflow: auto;
 }
 
 .connecta-table-row {
@@ -511,6 +512,8 @@ h4 {
 #map_controls {
 	position: absolute;
 	z-index: 1;
+	top: 54px;
+	right: 20px;    
 }
 
 #map_controls img {
@@ -529,6 +532,15 @@ h4 {
 	min-width: 21px;
 	height:200px;
 	overflow-y: scroll;
+}
+
+.connecta-icon-left {
+	float: left !important;	
+}
+
+.connecta-icon-group {
+	float: right;
+	margin-left: 2px;
 }
 
 .connecta-icon-group img {
@@ -788,7 +800,7 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 }
 
 .accordion-tall {
-	height: 150px;
+	height: 225px;
 }
 
 .accordion-heading a {
@@ -858,8 +870,27 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
     box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 4px -1px;
     min-width: 40px;
     font-weight: 300;
-    padding-right:30px
+    padding-right:30px;
+    -webkit-column-count: 2; /* Chrome, Safari, Opera */
+    -moz-column-count: 2; /* Firefox */
+    column-count: 2;
+    -webkit-column-gap: 0px; /* Chrome, Safari, Opera */
+    -moz-column-gap: 0px; /* Firefox */
+    column-gap: 0px;
+    
 }
+
+#map_controls .dropdown-menu li>a {
+	display: block;
+	padding: 3px 40px 3px 20px;
+	clear: both;
+	font-weight: normal;
+	line-height: 20px;
+	color: #333;
+	white-space: nowrap;
+	overflow: visible;
+}
+
 #map_controls input {font-weight: 300;}
 #map_controls .add-on {display:none;}
 #map_controls .connecta-icon-location {padding: 8px;}
@@ -884,4 +915,50 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 	.infobox-body {
 		max-width: 548px;
 	}
+}
+
+
+/* Chart controls for graphics */
+.component-chart-controls {
+	margin: 0px;
+	padding: 0px;
+}
+
+/* Public component last observations */
+#componentLastObsValue pre.parsed-json {
+	height: 120px;
+    overflow: auto;
+    margin: 0;
+    font-family: Source Sans Pro, Helvetica Neue, Helvetica, Arial, sans-serif !important;
+    font-size: 13px !important;
+}
+
+#componentLastObsValue .btn-toolbar {
+	margin-top: 20px;
+}
+
+#componentLastObsValue #levels {
+	width: 20px;
+	margin: 0 0 0 5px;
+	text-align: center;
+}
+
+/* Private sensor last observations */
+#sensorLastObsValue pre.parsed-json {
+	/* min-height: 120px; */
+	max-height: 300px;
+    overflow: auto;
+    margin: 0;
+	font-family: Source Sans Pro, Helvetica Neue, Helvetica, Arial, sans-serif !important;
+    font-size: 13px !important;
+}
+
+#sensorLastObsValue .btn-toolbar {
+	margin-top: 20px;
+}
+
+#sensorLastObsValue #levels {
+	width: 20px;
+	margin: 0 0 0 5px;
+	text-align: center;
 }

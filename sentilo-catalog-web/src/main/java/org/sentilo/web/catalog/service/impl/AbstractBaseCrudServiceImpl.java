@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.service.impl;
 
@@ -224,6 +220,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    * @see
    * org.sentilo.web.catalog.service.CrudService#delete(org.sentilo.web.catalog.search.SearchFilter)
    */
+  @Override
   public void delete(final SearchFilter filter) {
     delete(filter, this.type);
   }
@@ -235,6 +232,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    * org.sentilo.web.catalog.service.CrudService#delete(org.sentilo.web.catalog.search.SearchFilter,
    * java.lang.Class)
    */
+  @Override
   public <V extends CatalogDocument> void delete(final SearchFilter filter, final Class<V> resourceType) {
     final Query query = buildQuery(filter);
     doDelete(query, resourceType);
@@ -266,6 +264,15 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    */
   @Override
   public List<T> findAll() {
+
+    /*
+     * // Get the sort field name value Sort sort = null; String fieldOrderName = null; try { // The
+     * getOrderByFieldName() method always returns the search orderBy field name fieldOrderName =
+     * this.type.newInstance().getOrderByFieldValue(); sort = new Sort(Direction.ASC,
+     * fieldOrderName); } catch (final Exception e) { // On error... // Do nothing, and the sort
+     * will be not applied }
+     */
+
     if (applyFilterByTenant(this.type)) {
       final SearchFilter filter = new SearchFilter();
       filter.addAndParam("tenantId", TenantUtils.getCurrentTenant());
@@ -324,6 +331,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    * @see org.sentilo.web.catalog.service.CrudService#updateMulti(java.util.Collection,
    * java.lang.String, java.lang.Object)
    */
+  @Override
   public void updateMulti(final Collection<String> objectIds, final String param, final Object value) {
     updateMulti(objectIds, Arrays.asList(param), Arrays.asList(value));
   }

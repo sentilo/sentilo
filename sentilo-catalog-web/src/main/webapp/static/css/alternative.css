@@ -19,6 +19,8 @@ html, body, #map_canvas_1 {
 
 .map2 {
 	position: absolute !important;
+	top:0px;
+    left:0px;
 }
 
 .navbar {

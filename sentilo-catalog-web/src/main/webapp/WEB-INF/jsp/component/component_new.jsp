@@ -65,7 +65,7 @@
 										</form:label>
 										<div class="controls">
 											<form:select path="componentType">
-												<form:options items="${componentTypes}" itemValue="id" itemLabel="name" />
+												<form:options items="${componentTypes}" itemValue="value" itemLabel="label" />
 											</form:select>
 											<form:errors path="componentType" cssClass="text-error" htmlEscape="false" />
 										</div>
@@ -87,7 +87,7 @@
 										<div class="controls">
 												<form:select path="providerId" id="providerId" disabled="${editMode}">
 													<form:option value="">${emptySelectMessage}</form:option>
-													<form:options items="${providers}" itemValue="id" itemLabel="name" />
+													<form:options items="${providers}" itemValue="value" itemLabel="label" />
 											</form:select>
 											<c:if test="${editMode}">
 												<form:hidden path="providerId" />

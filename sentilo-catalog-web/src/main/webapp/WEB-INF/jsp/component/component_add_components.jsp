@@ -39,7 +39,7 @@
 							</form:label>
 							<div class="controls">
 								<form:select path="selectedIds">
-									<form:options items="${componentComponents.components}" itemLabel="name" itemValue="id" />
+									<form:options items="${componentComponents.components}" itemValue="id" itemLabel="name" />
 								</form:select>
 								<form:errors path="selectedIds" cssClass="error" htmlEscape="false" />
 							</div>

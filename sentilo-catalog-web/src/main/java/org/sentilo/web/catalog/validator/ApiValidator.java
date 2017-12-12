@@ -1,40 +1,37 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.validator;
 
 import static org.sentilo.common.utils.SentiloUtils.arrayContainsValue;
 import static org.sentilo.web.catalog.utils.CatalogUtils.isDouble;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.sentilo.common.domain.CatalogComponent;
@@ -48,6 +45,7 @@ import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
 import org.sentilo.web.catalog.domain.LngLat;
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.domain.Sensor.DataType;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.exception.builder.CompoundDuplicateKeyExceptionBuilder;
 import org.sentilo.web.catalog.service.ComponentTypesService;
@@ -89,7 +87,7 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
     // ... )
     final ApiValidationResults results = new ApiValidationResults();
 
-    // at this moment, only component locations must be validated
+    validateSensorsDataType(results, context);
     validateComponentsLocations(results, context);
 
     return results;
@@ -148,14 +146,14 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
 
   private void validateSensorTypes(final ApiValidationResults results, final Sensor sensor, final List<SensorType> sensorTypes) {
     if (!sensorTypes.contains(new SensorType(sensor.getType()))) {
-      final String errorMessage = String.format("Sensor %s : a wrong value was specified for type field.", sensor.getSensorId());
+      final String errorMessage = buildErrorMessage(SENSOR, sensor.getSensorId(), "type", sensor.getType());
       results.addErrorMessage(errorMessage);
     }
   }
 
   private void validateComponentTypes(final ApiValidationResults results, final Component component, final List<ComponentType> componentTypes) {
     if (!componentTypes.contains(new ComponentType(component.getComponentType()))) {
-      final String errorMessage = String.format("Component %s : a wrong value was specified for componentType field.", component.getName());
+      final String errorMessage = buildErrorMessage(COMPONENT, component.getName(), "componentType", component.getComponentType());
       results.addErrorMessage(errorMessage);
     }
   }
@@ -168,12 +166,12 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
       final String energy = technicalDetails.getEnergy();
 
       if (StringUtils.hasText(energy) && !arrayContainsValue(energyTypesList, energy)) {
-        final String errorMessage = String.format("%s %s : a wrong value was specified for energy field.", resourceType, resourceId);
+        final String errorMessage = buildErrorMessage(resourceType, resourceId, "energy", energy);
         results.addErrorMessage(errorMessage);
       }
 
       if (StringUtils.hasText(connectivity) && !arrayContainsValue(connectivityTypesList, connectivity)) {
-        final String errorMessage = String.format("%s %s : a wrong value was specified for connectivity field.", resourceType, resourceId);
+        final String errorMessage = buildErrorMessage(resourceType, resourceId, "connectivity", connectivity);
         results.addErrorMessage(errorMessage);
       }
     }
@@ -190,7 +188,7 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
         if (!isValidLocationFormat(location)) {
           final String resourceType = isUpdateAction ? COMPONENT : SENSOR;
           final String resourceName = isUpdateAction ? ((CatalogComponent) resource).getComponent() : ((CatalogSensor) resource).getSensor();
-          final String errorMessage = String.format("%s %s : a wrong value was specified for location field.", resourceType, resourceName);
+          final String errorMessage = buildErrorMessage(resourceType, resourceName, "location", location);
           results.addErrorMessage(errorMessage);
         }
       }
@@ -222,7 +220,7 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
       }
 
       if (!valid) {
-        final String errorMessage = String.format("Component %s : a wrong value was specified for location field.", component.getName());
+        final String errorMessage = buildErrorMessage(COMPONENT, component.getName(), "location", Arrays.toString(coordinates));
         results.addErrorMessage(errorMessage);
       }
     }
@@ -237,5 +235,37 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
       areValidCoordinates = false;
     }
     return areValidCoordinates;
+  }
+
+  private void validateSensorsDataType(final ApiValidationResults results, final ApiConverterContext context) {
+    final List<CatalogSensor> resources = context.getMessage().getSensors();
+
+    if (!CollectionUtils.isEmpty(resources)) {
+      for (final CatalogSensor resource : resources) {
+        final String dataType = resource.getDataType();
+        if (StringUtils.hasText(dataType) && !isValidDataType(dataType)) {
+          final String resourceName = resource.getSensor();
+          final String errorMessage = buildErrorMessage(SENSOR, resourceName, "dataType", dataType);
+          results.addErrorMessage(errorMessage);
+        }
+      }
+    }
+  }
+
+  private boolean isValidDataType(final String value) {
+    boolean valid = true;
+
+    try {
+      DataType.valueOf(value.toUpperCase());
+    } catch (final IllegalArgumentException iae) {
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  private String buildErrorMessage(final String resourceType, final String resourceName, final String fieldName, final String fieldValue) {
+    final String errorTemplate = "%s %s: invalid value for field %s (%s).";
+    return String.format(errorTemplate, resourceType, resourceName, fieldName, fieldValue);
   }
 }

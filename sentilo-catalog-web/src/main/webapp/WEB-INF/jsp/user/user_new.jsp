@@ -47,110 +47,142 @@ function validate() {
 						</h1>
 
 						<form:form method="post" modelAttribute="user" action="${actionURL}" class="form-horizontal">
-							<div class="control-group">
-								<form:label path="userName" class="control-label">
-									<spring:message code="user.userName" />
-								</form:label>
-								<div class="controls">
-									<c:if test="${mode == 'create' }">
-										<form:input path="userName" />
-									</c:if>
-									<c:if test="${mode == 'edit' }">
-										<form:input path="userName" readonly="true" />
-										<form:hidden path="createdAt" />
-										<form:hidden path="createdBy" />
-									</c:if>
-									<form:errors path="userName" cssClass="text-error" htmlEscape="false" />
+							
+							<spring:hasBindErrors name="user">
+								<div class="alert alert-block alert-error">
+									<button type="button" class="close" data-dismiss="alert">&times;</button>
+									<h5><spring:message code="error.check.form.errors" /></h5>
+									<ul>
+									<c:forEach var="error" items="${errors.allErrors}">
+										<li class="text-error"><spring:message message="${error}" /></li>
+									</c:forEach>
+									</ul>
 								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="password" class="control-label">
-									<spring:message code="user.password" />
-								</form:label>
-								<div class="controls">
-									<form:password path="password" id="password" showPassword="true" />
-									<form:errors path="password" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="passwordRepeat" class="control-label">
-									<spring:message code="user.password.repeat" />
-								</form:label>
-								<div class="controls">
-									<form:password path="passwordRepeat" id="passwordRepeat" showPassword="true" />
-									<form:errors path="passwordRepeat" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="name" class="control-label">
-									<spring:message code="user.name" />
-								</form:label>
-								<div class="controls">
-									<form:input path="name" />
-									<form:errors path="name" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="description" class="control-label">
-									<spring:message code="user.description" />
-								</form:label>
-								<div class="controls">
-									<form:textarea path="description" />
-									<form:errors path="description" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="email" class="control-label">
-									<spring:message code="user.email" />
-								</form:label>
-								<div class="controls">
-									<form:input path="email" />
-									<form:errors path="email" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="active" class="control-label">
-									<spring:message code="user.active" />
-								</form:label>
-								<div class="controls">
-									<form:checkbox path="active" value="true" />
-									<form:errors path="active" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<div class="control-group">
-								<form:label path="active" class="control-label">
-									<spring:message code="user.rols" />
-								</form:label>
-								<div class="controls">
-									<form:select path="roles" multiple="false">
-										<form:option value="ADMIN" label="ADMIN" />
-										<form:option value="USER" label="USER" />
-										<form:option value="PLATFORM" label="PLATFORM" />
+							</spring:hasBindErrors>
+							
+							<div class="tabbable">
+								<ul class="nav nav-tabs">
+									<li class="active"><a href="#tab1" data-toggle="tab"><spring:message code="component.detail.title" /></a></li>
+									<li><a href="#tab2" data-toggle="tab"><spring:message code="tenant.params.title" /></a></li>
+								</ul>
+								<div class="tab-content">
+									<div class="tab-pane active" id="tab1">
+										<div class="control-group">
+											<form:label path="userName" class="control-label">
+												<spring:message code="user.userName" />
+											</form:label>
+											<div class="controls">
+												<c:if test="${mode == 'create' }">
+													<form:input path="userName" />
+												</c:if>
+												<c:if test="${mode == 'edit' }">
+													<form:input path="userName" readonly="true" />
+													<form:hidden path="createdAt" />
+													<form:hidden path="createdBy" />
+												</c:if>
+												<form:errors path="userName" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="password" class="control-label">
+												<spring:message code="user.password" />
+											</form:label>
+											<div class="controls">
+												<form:password path="password" id="password" showPassword="true" />
+												<form:errors path="password" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="passwordRepeat" class="control-label">
+												<spring:message code="user.password.repeat" />
+											</form:label>
+											<div class="controls">
+												<form:password path="passwordRepeat" id="passwordRepeat" showPassword="true" />
+												<form:errors path="passwordRepeat" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="name" class="control-label">
+												<spring:message code="user.name" />
+											</form:label>
+											<div class="controls">
+												<form:input path="name" />
+												<form:errors path="name" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="description" class="control-label">
+												<spring:message code="user.description" />
+											</form:label>
+											<div class="controls">
+												<form:textarea path="description" />
+												<form:errors path="description" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="email" class="control-label">
+												<spring:message code="user.email" />
+											</form:label>
+											<div class="controls">
+												<form:input path="email" />
+												<form:errors path="email" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="active" class="control-label">
+												<spring:message code="user.active" />
+											</form:label>
+											<div class="controls">
+												<form:checkbox path="active" value="true" />
+												<form:errors path="active" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
+										<div class="control-group">
+											<form:label path="active" class="control-label">
+												<spring:message code="user.rols" />
+											</form:label>
+											<div class="controls">
+												<form:select path="roles" multiple="false">
+													<form:option value="ADMIN" label="ADMIN" />
+													<form:option value="USER" label="USER" />
+													<form:option value="PLATFORM" label="PLATFORM" />
+													<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
+													<form:option value="SUPER_ADMIN" label="SUPER-ADMIN" />
+													</security:authorize>
+												</form:select>
+												<form:errors path="roles" cssClass="text-error" htmlEscape="false" />
+											</div>
+										</div>
 										<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
-										<form:option value="SUPER_ADMIN" label="SUPER-ADMIN" />
+											<div class="control-group">
+												<form:label path="active" class="control-label">
+													<spring:message code="user.tenant" />
+												</form:label>
+												<div class="controls">																				
+													<c:if test="${mode == 'create' }">
+														<form:select path="tenantId">
+															<form:option value="">${emptySelectMessage}</form:option>
+															<form:options items="${tenants}" itemValue="value" itemLabel="label" />
+														</form:select>
+													</c:if>
+													<c:if test="${mode == 'edit' }">
+														<form:input path="tenantId" readonly="true" />											
+													</c:if>										
+													<form:errors path="tenantId" cssClass="text-error" htmlEscape="false" />
+												</div>
+											</div>
 										</security:authorize>
-									</form:select>
-									<form:errors path="roles" cssClass="text-error" htmlEscape="false" />
-								</div>
-							</div>
-							<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
-								<div class="control-group">
-									<form:label path="active" class="control-label">
-										<spring:message code="user.tenant" />
-									</form:label>
-									<div class="controls">
-										<form:select path="tenantId">
-											<form:option value="">${emptySelectMessage}</form:option>
-											<form:options items="${tenants}" itemValue="id" itemLabel="name" />
-										</form:select>
-										<form:errors path="tenantId" cssClass="text-error" htmlEscape="false" />
+										<security:authorize access="hasRole('ROLE_ADMIN')">
+											<input type="hidden" name="tenantId" id="tenantId" value="${tenantId}" />
+										</security:authorize>
+										
+									</div>
+									<div class="tab-pane" id="tab2">
+										<c:set var="isUserConfiguration" value="true" />
+										<%@include file="/WEB-INF/jsp/common/include_visual_configuration_new.jsp"%>
 									</div>
 								</div>
-							</security:authorize>
-							<security:authorize access="hasRole('ROLE_ADMIN')">
-								<input type="hidden" name="tenantId" id="tenantId" value="${tenantId}" />
-							</security:authorize>
-							
+							</div>
 							<div class="control-group">
 								<div class="controls">
 									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>

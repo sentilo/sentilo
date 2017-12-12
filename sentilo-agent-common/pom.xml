@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.sentilo</groupId>
     <artifactId>sentilo-parent-pom</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
   </parent>
   
   <dependencies>
@@ -15,17 +15,7 @@
 		<groupId>org.sentilo</groupId>
 		<artifactId>sentilo-common</artifactId>
 		<version>${platform.version}</version>
-	</dependency>
-	<dependency>
-   		<groupId>org.springframework.data</groupId>
-   		<artifactId>spring-data-redis</artifactId>	   		
-   		<version>${org.springframework.data.redis.version}</version>   		
-	</dependency>
-	<dependency>
-   		<groupId>redis.clients</groupId>
-   		<artifactId>jedis</artifactId>
-   		<version>${jedis.version}</version>
-   	</dependency>
+	</dependency>	
    	<dependency>
 		<groupId>commons-codec</groupId>
 		<artifactId>commons-codec</artifactId>

@@ -20,7 +20,12 @@
 	<context:component-scan base-package="org.sentilo.platform.service.notification" />
 	<context:component-scan base-package="org.sentilo.platform.common.security" />
 
-
+	
+	<!-- RESTClient used by the notifier process  -->
+	<bean id="pushRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" scope="prototype" 
+		p:noValidateCertificates="${api.subs.ssl.no-validate-certificates:false}"/>
+	
+	
 	<!-- Pool a utilizar por la plataforma para toda llamada que no tenga que ver con pubsub -->
 	<bean id="jedisPool" class="redis.clients.jedis.JedisPool" c:poolConfig-ref="jedisPoolConfig" c:host="${jedis.pool.host}"
 		c:port="${jedis.pool.port}" c:timeout="${jedis.pool.timeout}" c:password="${jedis.pool.password}" />

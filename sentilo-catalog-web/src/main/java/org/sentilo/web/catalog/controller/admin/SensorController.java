@@ -1,58 +1,58 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.sentilo.common.domain.OrderMessage;
+import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.client.core.domain.AlarmMessage;
 import org.sentilo.platform.client.core.domain.Observation;
+import org.sentilo.web.catalog.context.UserConfigContext;
+import org.sentilo.web.catalog.context.UserConfigContextHolder;
 import org.sentilo.web.catalog.controller.CrudController;
-import org.sentilo.web.catalog.domain.Component;
-import org.sentilo.web.catalog.domain.Provider;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.Sensor.DataType;
 import org.sentilo.web.catalog.domain.SensorSubstate;
 import org.sentilo.web.catalog.domain.SensorType;
+import org.sentilo.web.catalog.domain.SortedEventsList;
+import org.sentilo.web.catalog.dto.LastEventsDTO;
 import org.sentilo.web.catalog.dto.ObservationDTO;
 import org.sentilo.web.catalog.dto.OptionDTO;
-import org.sentilo.web.catalog.enums.SensorState;
+import org.sentilo.web.catalog.dto.VisualConfigurationDTO;
+import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.CrudService;
@@ -61,13 +61,14 @@ import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorSubstateService;
 import org.sentilo.web.catalog.service.SensorTypesService;
 import org.sentilo.web.catalog.utils.AlarmMessageComparator;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.FormatUtils;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.sentilo.web.catalog.utils.OrderMessageComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -103,29 +104,46 @@ public class SensorController extends CrudController<Sensor> {
   @Autowired
   private MessageSource messageSource;
 
+  @Autowired
+  private LocalDateFormatter localDateFormatter;
+
+  @ModelAttribute(Constants.MODEL_VISUAL_CONFIGURATION)
+  public VisualConfigurationDTO getDefaultChartObervationsNumber() {
+    final UserConfigContext context = UserConfigContextHolder.getContext();
+    final VisualConfigurationDTO dto =
+        new VisualConfigurationDTO(context.getUserTimeZone().getID(), context.getUserDatePattern(), context.getUserChartNumObs());
+    return dto;
+  }
+
   @ModelAttribute(Constants.MODEL_ACTIVE_MENU)
   public String getActiveMenu() {
     return Constants.MENU_SENSOR;
   }
 
   @ModelAttribute(Constants.MODEL_SENSOR_TYPES)
-  public List<SensorType> getSensorTypes() {
-    return sensorTypeService.findAll();
+  public List<OptionDTO> getSensorTypes() {
+    return CatalogUtils.toOptionList(sensorTypeService.findAll());
   }
 
   @ModelAttribute(Constants.MODEL_SENSOR_DATA_TYPES)
-  public Sensor.DataType[] getSensorDataTypes() {
-    return Sensor.DataType.values();
+  public List<OptionDTO> getSensorDataTypes() {
+    return CatalogUtils.toOptionList(Sensor.DataType.class, "sensor.dataType", messageSource);
   }
 
   @ModelAttribute(Constants.MODEL_SENSOR_STATES)
-  public SensorState[] getSensorStates() {
-    return SensorState.values();
+  public List<OptionDTO> getSensorStates() {
+    // SensorState.ghost is an internal value that doesn't be displayed
+    return CatalogUtils.toOptionList(new String[] {SensorState.online.name(), SensorState.offline.name()}, "sensor.state", messageSource);
   }
 
   @ModelAttribute(Constants.MODEL_SENSOR_SUBSTATES)
   public List<SensorSubstate> getSensorSubStates() {
-    return sensorSubStateService.findAll();
+    return CatalogUtils.sortAlphabetically(sensorSubStateService.findAll());
+  }
+
+  @ModelAttribute(Constants.MODEL_MAX_SYSTEM_DATE_MILLIS)
+  public Long getMaxSystemStringDate() {
+    return CatalogUtils.getMaxSystemTimeMillis();
   }
 
   @RequestMapping("/search/json")
@@ -163,25 +181,31 @@ public class SensorController extends CrudController<Sensor> {
 
   @RequestMapping(value = "/lastObs/{sensorId}", method = RequestMethod.GET)
   @ResponseBody
-  public List<Observation> getLastObservations(@PathVariable final String sensorId) {
+  public LastEventsDTO<Observation> getLastObservations(@PathVariable final String sensorId,
+      @RequestParam(value = "limit", required = false) final Integer limit, @RequestParam(value = "from", required = false) final Long from,
+      @RequestParam(value = "to", required = false) final Long to) {
+
+    final Date fromDate = from != null ? new Date(from) : null;
+    final Date toDate = to != null ? new Date(to) : null;
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
-    final List<Observation> observations = sensorService.getLastObservations(sensor);
+    final SortedEventsList<Observation> events = sensorService.getLastObservations(sensor, fromDate, toDate, limit);
+    final LastEventsDTO<Observation> lastEvents = new LastEventsDTO<Observation>(events, localDateFormatter);
 
     // If sensor data is not TEXT type, reverse order collection to display data from left to right
     // in the graphic (most recent right).
     // Elsewhere, data will be read from up to bottom (most recent up)
     if (!DataType.TEXT.equals(sensor.getDataType())) {
-      Collections.reverse(observations);
+      lastEvents.reverse();
     }
 
-    return observations;
+    return lastEvents;
   }
 
   @RequestMapping(value = "/lastAlarms/{sensorId}", method = RequestMethod.GET)
   @ResponseBody
   public List<AlarmMessage> getLastAlarms(@PathVariable final String sensorId) {
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
-    final List<AlarmMessage> alarmMessages = sensorService.getLastAlarmsMessages(sensor);
+    final List<AlarmMessage> alarmMessages = sensorService.getLastAlarmsMessages(sensor).getEvents();
     Collections.sort(alarmMessages, Collections.reverseOrder(new AlarmMessageComparator()));
     return alarmMessages;
   }
@@ -190,7 +214,7 @@ public class SensorController extends CrudController<Sensor> {
   @ResponseBody
   public List<OrderMessage> getLastOrders(@PathVariable final String sensorId) {
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
-    final List<OrderMessage> orderMessages = sensorService.getLastOrderMessages(sensor);
+    final List<OrderMessage> orderMessages = sensorService.getLastOrderMessages(sensor).getEvents();
     Collections.sort(orderMessages, Collections.reverseOrder(new OrderMessageComparator()));
     return orderMessages;
   }
@@ -223,14 +247,14 @@ public class SensorController extends CrudController<Sensor> {
     row.add(FormatUtils.label(sensor.getType()));
     row.add(String.valueOf(sensor.getPublicAccess()));
     row.add(sensor.getState().toString());
-    row.add(StringUtils.hasText(sensor.getSubstate()) ? substateStyleColumn(sensor) : null);
+    row.add(StringUtils.hasText(sensor.getSubstate()) ? FormatUtils.substateStyleColumn(sensor, sensorSubStateService) : null);
     row.add(getLocalDateFormat().printAsLocalTime(sensor.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
-  private String substateStyleColumn(final Sensor sensor) {
-    final String description = sensorSubStateService.find(sensor.getSubstate()).getDescription();
-    return String.format("<span class=\"label label-info\" title=\"%s\">%s (%s)</span>", description, sensor.getSubstate(), description);
+  @Override
+  protected List<String> toExcelRow(final Sensor sensor) {
+    return ExcelGeneratorUtils.getSensorExcelRowsData(sensor, getLocalDateFormat(), sensorSubStateService);
   }
 
   @Override
@@ -337,15 +361,6 @@ public class SensorController extends CrudController<Sensor> {
     }
   }
 
-  @Override
-  protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames =
-        {Constants.SENSOR_ID_PROP, Constants.PROVIDER_ID_PROP, Constants.TYPE_PROP, Constants.PUBLIC_ACCESS_PROP, Constants.CREATED_AT_PROP};
-
-    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "sensor");
-  }
-
   /*
    * (non-Javadoc)
    *
@@ -401,65 +416,46 @@ public class SensorController extends CrudController<Sensor> {
     }
   }
 
-  private List<Provider> addProviderListTo(final Model model) {
-    final List<Provider> providers = providerService.findAll();
+  private List<OptionDTO> addProviderListTo(final Model model) {
+    final List<OptionDTO> providers = CatalogUtils.toOptionList(providerService.findAll());
     model.addAttribute(Constants.MODEL_PROVIDERS, providers);
     return providers;
   }
 
-  private List<Component> addComponentListTo(final Model model) {
-    final List<Component> components = componentService.findAll();
+  private List<OptionDTO> addComponentListTo(final Model model) {
+    final List<OptionDTO> components = CatalogUtils.toOptionList(componentService.findAll());
     model.addAttribute(Constants.MODEL_COMPONENTS, components);
     return components;
   }
 
   private void addSensorLastObservationToModel(final Model model, final Sensor sensor) {
     final Observation observation = sensorService.getLastObservation(sensor);
+
     if (observation == null) {
       ModelUtils.addErrorMessageTo(model, "sensor.error.nodata");
     }
+
+    // If sensor data type is TEXT, and its content is JSON it must no contain special chars
+    if (DataType.TEXT.equals(sensor.getDataType()) && observation != null && CatalogUtils.isJSONValid(observation.getValue())) {
+      // If so, then clean of special characters to pretty print on detail view
+      final String value = observation.getValue().replace("\n", "").replace("\r", "").replace("\t", "").trim();
+      observation.setValue(value);
+    }
+
     model.addAttribute(Constants.MODEL_SENSOR_LAST_OBSERVATION, observation);
+
   }
 
   private void addEnergyTypesListTo(final Model model) {
-    final List<OptionDTO> options = new ArrayList<OptionDTO>();
     final String energyTypes = messageSource.getMessage(Constants.ENERGY_TYPES_KEY, null, LocaleContextHolder.getLocale());
-    if (StringUtils.hasText(energyTypes)) {
-      final String[] energyTypesList = energyTypes.split(Constants.COMMA_TOKEN_SPLITTER);
-      for (final String energyType : energyTypesList) {
-        final String energyTypesKey = Constants.ENERGY_TYPES_KEY.concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(energyType);
-        final String label = getOptionLabel(energyTypesKey, energyType);
-        options.add(new OptionDTO(label, energyType));
-      }
-    }
-
-    model.addAttribute(Constants.MODEL_ENERGY_TYPES, options);
+    final List<OptionDTO> energyTypesList = CatalogUtils.toOptionList(energyTypes, Constants.ENERGY_TYPES_KEY, messageSource);
+    model.addAttribute(Constants.MODEL_ENERGY_TYPES, energyTypesList);
   }
 
   private void addConnectivityTypesListTo(final Model model) {
-    final List<OptionDTO> options = new ArrayList<OptionDTO>();
     final String connectivityTypes = messageSource.getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale());
-    if (StringUtils.hasText(connectivityTypes)) {
-      final String[] connectivityTypesList = connectivityTypes.split(Constants.COMMA_TOKEN_SPLITTER);
-      for (final String connectivityType : connectivityTypesList) {
-        final String connectivityTypesKey = Constants.CONNECTIVITY_TYPES_KEY.concat(Constants.DEFAULT_KEY_TOKEN_SPLITTER).concat(connectivityType);
-        final String label = getOptionLabel(connectivityTypesKey, connectivityType);
-        options.add(new OptionDTO(label, connectivityType));
-      }
-    }
-
-    model.addAttribute(Constants.MODEL_CONNECTIVITY_TYPES, options);
-  }
-
-  private String getOptionLabel(final String key, final String defaultValue) {
-    String label = defaultValue;
-    try {
-      label = messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
-    } catch (final NoSuchMessageException nme) {
-      LOGGER.warn("Message key {} couldn't be resolved. Return default value {}", key, defaultValue);
-    }
-
-    return label;
+    final List<OptionDTO> connectivityTypesList = CatalogUtils.toOptionList(connectivityTypes, Constants.CONNECTIVITY_TYPES_KEY, messageSource);
+    model.addAttribute(Constants.MODEL_CONNECTIVITY_TYPES, connectivityTypesList);
   }
 
   private void translateIdForNameSensorType(final Sensor sensor) {

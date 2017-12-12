@@ -108,9 +108,7 @@ function controlDisplaySubstateFields(){
 					<div class="controls">
 						<select id="sensorState" onchange="controlDisplaySubstateFields();" name="sensorState">
 							<c:forEach items="${sensorStates}" var="sensorState">
-								<option value="${sensorState}"> 
-									<spring:message code="sensor.state.${sensorState}" /> 
-								</option>								
+								<option value="${sensorState.value}">${sensorState.label}</option>
 							</c:forEach>
 						</select>											
 					</div>

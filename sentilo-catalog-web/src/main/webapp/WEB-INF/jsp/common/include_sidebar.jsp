@@ -58,7 +58,7 @@
 	<c:set value=" class='current'" var="classComponent" />
 	<c:set value=" icon-white" var="classComponentIcon" />
 </c:if>
-<c:if test="${activeMenu == '/rule' }">
+<c:if test="${activeMenu == '/alertRule' }">
 	<c:set value=" class='current'" var="classRule" />
 	<c:set value=" icon-white" var="classRuleIcon" />
 </c:if>

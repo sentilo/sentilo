@@ -1,44 +1,39 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.sentilo.common.utils.AlertTriggerType;
+import org.sentilo.common.enums.AlertTriggerType;
 import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.Alert.Type;
@@ -46,7 +41,9 @@ import org.sentilo.web.catalog.service.AlertService;
 import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.ProviderService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -87,18 +84,15 @@ public class AlertController extends CrudController<Alert> {
     row.add(alert.getId()); // checkbox
     row.add(alert.getId());
     row.add(FormatUtils.label(messageSource.getMessage("alert.type." + alert.getType().toString(), null, LocaleContextHolder.getLocale())));
-    row.add(formatTriggerColumn(alert));
+    row.add(FormatUtils.formatAlertTriggerColumn(alert));
     row.add(String.valueOf(alert.isActive()));
     row.add(getLocalDateFormat().printAsLocalTime(alert.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
   }
 
-  private String formatTriggerColumn(final Alert alert) {
-    String value = "";
-    if (Type.INTERNAL.equals(alert.getType())) {
-      value = alert.getTrigger().name() + "(" + alert.getExpression() + ")";
-    }
-    return StringUtils.hasText(value) ? FormatUtils.label(value) : value;
+  @Override
+  protected List<String> toExcelRow(final Alert alert) {
+    return ExcelGeneratorUtils.getAlertExcelRowsData(alert, messageSource, getLocalDateFormat());
   }
 
   private void addAlertMasterDataTo(final Model model) {
@@ -109,19 +103,19 @@ public class AlertController extends CrudController<Alert> {
   }
 
   private void addProviderListTo(final Model model) {
-    model.addAttribute(Constants.MODEL_PROVIDERS, providerService.findAll());
+    model.addAttribute(Constants.MODEL_PROVIDERS, CatalogUtils.toOptionList(providerService.findAll()));
   }
 
   private void addApplicationListTo(final Model model) {
-    model.addAttribute(Constants.MODEL_APPLICATIONS, applicationService.findAll());
+    model.addAttribute(Constants.MODEL_APPLICATIONS, CatalogUtils.toOptionList(applicationService.findAll()));
   }
 
   private void addAlertTypesTo(final Model model) {
-    model.addAttribute(Constants.MODEL_ALERT_TYPES, Alert.Type.values());
+    model.addAttribute(Constants.MODEL_ALERT_TYPES, CatalogUtils.toOptionList(Alert.Type.class, "alert.type", messageSource));
   }
 
   private void addAlertTriggersTo(final Model model) {
-    model.addAttribute(Constants.MODEL_ALERT_TRIGGERS, AlertTriggerType.values());
+    model.addAttribute(Constants.MODEL_ALERT_TRIGGERS, CatalogUtils.toOptionList(AlertTriggerType.class, "alert.trigger", messageSource));
   }
 
   @Override
@@ -202,20 +196,6 @@ public class AlertController extends CrudController<Alert> {
         alert.setProviderId(null);
       }
     }
-  }
-
-  /*
-   * (non-Javadoc)
-   *
-   * @see
-   * org.sentilo.web.catalog.controller.SearchController#doBeforeExcelBuilder(org.springframework
-   * .ui.Model)
-   */
-  protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames = {Constants.ID_PROP, Constants.NAME_PROP, Constants.TYPE_PROP, Constants.CREATED_AT_PROP};
-
-    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "alert");
   }
 
 }

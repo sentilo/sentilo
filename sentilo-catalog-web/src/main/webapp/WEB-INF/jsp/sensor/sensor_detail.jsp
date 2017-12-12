@@ -41,7 +41,8 @@
 					<ul class="nav nav-tabs">
 						<li class="${tab1Class}"><a href="#tab1" data-toggle="tab"><spring:message code="sensor.detail.title" /></a></li>
 						<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message code="technicalDetails.tab.label" /></a></li>
-						<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message code="sensor.additionalInfo" /></a></li>
+						<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message code="sensor.visualConfiguration" /></a></li>
+						<li class="${tab4Class}"><a href="#tab4" data-toggle="tab"><spring:message code="sensor.additionalInfo" /></a></li>
 						<li><a href="${dataSensorLink}"><spring:message code="sensor.data" /></a></li>
 					</ul>
 					<%@include file="include_sensor_detail.jsp"%>
@@ -50,7 +51,8 @@
 					<ul class="nav nav-tabs">
 						<li><a href="${detailSensorLink}"><spring:message code="sensor.detail.title" /> </a></li>						
 						<li><a href="${detailSensorLink}?openedTab=2"><spring:message code="technicalDetails.tab.label" /> </a></li>
-						<li><a href="${detailSensorLink}?openedTab=3"><spring:message code="sensor.additionalInfo" /> </a></li>
+						<li><a href="${detailSensorLink}?openedTab=3"><spring:message code="sensor.visualConfiguration" /></a></li>
+						<li><a href="${detailSensorLink}?openedTab=4"><spring:message code="sensor.additionalInfo" /> </a></li>
 						<li class="active"><a href="${dataSensorLink}"><spring:message code="sensor.data" /> </a></li>
 					</ul>
 					<%@include file="include_sensor_data.jsp"%>

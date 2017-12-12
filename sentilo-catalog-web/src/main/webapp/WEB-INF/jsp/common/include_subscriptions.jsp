@@ -2,13 +2,13 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <c:if test="${not empty applicationId}">
-	<spring:url value="/admin/subscriptions/application/${applicationId}" var="sAjaxSource" />
-	<c:set value="${applicationId}" var="entityId" />
+	<spring:url value="/admin/subscriptions/${applicationId}" var="sAjaxSource" />	
 	<spring:url value="/application/" var="detailPrefix" />
+	<c:set value="${applicationId}" var="entityId" />
 	<c:set var="subscriptionTable" value="subscriptionApplicationTable"/>
 </c:if>
 <c:if test="${not empty providerId}">
-	<spring:url value="/admin/subscriptions/provider/${providerId}" var="sAjaxSource" />
+	<spring:url value="/admin/subscriptions/${providerId}" var="sAjaxSource" />
 	<spring:url value="/provider/" var="detailPrefix" />
 	<c:set value="${providerId}" var="entityId" />
 	<c:set var="subscriptionTable" value="subscriptionProviderTable"/>

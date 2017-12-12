@@ -5,19 +5,20 @@
   This file lets you customize some params from map as defaultCenter, styles, ...
 --> 
 
-<c:if test="${not empty tenantCustomParams}">
+<c:if test="${(not empty tenantCustomParams) && (not empty tenantCustomParams.mapParams)}">
+	<c:set var="mapParams" value="${tenantCustomParams.mapParams}" />
 	<script type="text/javascript">
 	<!-- // 
-		<c:if test="${not empty tenantCustomParams.mapParams.center}">
-			var defaultMapCenter = [ ${tenantCustomParams.mapParams.center.latitude}, ${tenantCustomParams.mapParams.center.longitude} ];
+		<c:if test="${not empty mapParams.center}">
+			var defaultMapCenter = [ ${mapParams.center.latitude}, ${mapParams.center.longitude} ];
 		</c:if>
 		
-		<c:if test="${not empty tenantCustomParams.mapParams.zoomLevel}">	
-			var defaultZoomLevel = ${tenantCustomParams.mapParams.zoomLevel};
+		<c:if test="${(not empty mapParams.zoomLevel) && (mapParams.zoomLevel > 0)}">	
+			var defaultZoomLevel = ${mapParams.zoomLevel};
 		</c:if>
 		
-		<c:if test="${not empty tenantCustomParams.mapParams.bgColor}">
-			var defaultBgHomeMapColor = {"color" : "${tenantCustomParams.mapParams.bgColor}"};
+		<c:if test="${not empty mapParams.bgColor}">
+			var defaultBgHomeMapColor = {"color" : "${mapParams.bgColor}"};
 		</c:if>	
 	// -->
 	</script>

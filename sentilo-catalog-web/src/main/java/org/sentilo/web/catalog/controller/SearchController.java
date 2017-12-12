@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller;
 
@@ -59,10 +55,10 @@ import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.TenantUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Order;
@@ -92,7 +88,6 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
    */
   private static final String LAST_SEARCH_PARAMS_MAP = "lastSearchParamsMap";
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(SearchController.class);
   protected SentiloRedirectStrategy redirectStrategy = new SentiloRedirectStrategy();
 
   @Autowired
@@ -104,11 +99,11 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
   private final SearchFilterBuilder searchFilterBuilder = new DefaultSearchFilterBuilderImpl();
   private final Map<String, String> viewNames = new HashMap<String, String>();
 
+  private String typeShortName;
+
   protected abstract CrudService<T> getService();
 
   protected abstract List<String> toRow(T resource);
-
-  protected abstract void doBeforeExcelBuilder(Model model);
 
   protected abstract void initViewNames();
 
@@ -170,17 +165,26 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
     final SearchFilterResult<T> result = getExcelExport(request, response, tableName);
     final List<List<String>> rows = new ArrayList<List<String>>();
     for (final T resource : result.getContent()) {
-      final List<String> row = toRow(resource);
+      final List<String> row = toExcelRow(resource);
       rows.add(row);
     }
 
     doBeforeExcelBuilder(model);
     model.addAttribute(Constants.RESULT_LIST, rows);
+
     return new ModelAndView(EXCEL_VIEW, tableName, model);
   }
 
   public LocalDateFormatter getLocalDateFormat() {
     return localDateFormat;
+  }
+
+  protected String getTypeShortName() {
+    if (typeShortName == null) {
+      final Class<?> clazz = GenericTypeResolver.resolveTypeArgument(this.getClass(), SearchController.class);
+      typeShortName = clazz.getSimpleName().toLowerCase();
+    }
+    return typeShortName;
   }
 
   protected DataTablesDTO toDataTables(final Integer sEcho, final List<T> resources, final Long count) {
@@ -258,6 +262,17 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
 
   protected Map<String, String> getViewNames() {
     return viewNames;
+  }
+
+  protected List<String> toExcelRow(final T resource) {
+    // Must be overrided by subclasses to get the excel export rows
+    return toRow(resource);
+  }
+
+  protected void doBeforeExcelBuilder(final Model model) {
+    // To override by subclasses.
+    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, getTypeShortName());
+    model.addAttribute(Constants.LIST_COLUMN_NAMES, ExcelGeneratorUtils.getColumnsNames(getTypeShortName()));
   }
 
   @SuppressWarnings("unchecked")

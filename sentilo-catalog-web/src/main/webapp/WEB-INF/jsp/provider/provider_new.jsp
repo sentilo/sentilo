@@ -47,6 +47,9 @@
 							</form:label>
 							<div class="controls">
 								<c:if test="${mode == 'create' }">
+									<c:if test="${multitenantIsEnabled}">
+										<span class="label">${tenantId}@</span>
+									</c:if>
 									<form:input path="id" />
 								</c:if>
 								<c:if test="${mode == 'edit' }">

@@ -14,6 +14,7 @@
 <spring:url value="/static/css/jquery.pnotify.default.css" var="jqueryPinesNotifyCSS" />
 <spring:url value="/static/css/jquery.tagsinput.css" var="jqueryTagsInputCSS" />
 <spring:url value="/static/css/bootstrap-colorpicker.min.css" var="bootstrapColorPickerCSS" />
+<spring:url value="/static/css/jquery.jsonPresenter.css" var="jsonPresenterCSS" />
 
 <link href="${googleFonts}" rel="stylesheet" media="all">
 <link href="${bootstrapCSS}" rel="stylesheet" media="all">
@@ -27,6 +28,7 @@
 <link href="${jqueryPinesNotifyCSS}" rel="stylesheet" media="all">
 <link href="${jqueryTagsInputCSS}" rel="stylesheet" media="all">
 <link href="${bootstrapColorPickerCSS}" rel="stylesheet" media="all">
+<link href="${jsonPresenterCSS}" rel="stylesheet" media="all">
 
 <!--[if IE 7]>
 	<link rel="stylesheet" href="${awesomeFontIE7CSS}">

@@ -3,25 +3,63 @@
 
 <%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp"%>
 
+<c:set var="theFuture" value="${maxSystemDateMillis}" />
+<c:choose>
+	<c:when test="${not empty sensor.visualConfiguration.chartVisibleObservationsNumber}">
+		<!-- The sensor config -->
+		<c:set var="chartObservationsNumber" value="${sensor.visualConfiguration.chartVisibleObservationsNumber}" />
+	</c:when>
+	<c:when test="${not empty visualConfiguration.chartVisibleObservationsNumber}">
+		<!-- The tenant config -->
+		<c:set var="chartObservationsNumber" value="${visualConfiguration.chartVisibleObservationsNumber}" />
+	</c:when>
+	<c:otherwise>
+		<!-- The default value -->
+		<c:set var="chartObservationsNumber" value="10" />
+	</c:otherwise>
+</c:choose>
+
 <spring:url value="/admin/sensor/lastObs/${sensor.id}/" var="lastObservationsRESTURL" />
+<spring:url value="/static/js/sentilo/sensor_data.js" var="sensorDataJS" />
 
-
-
+<script type="text/javascript" src="${sensorDataJS}"></script>
 <script type="text/javascript">
+
 $(document).ready(function() {
 	
-	<c:if test="${sensor.dataType == 'NUMBER'}">
-		makeNumberChart('#plot', '${lastObservationsRESTURL}', '${sensor.unit}');
-	</c:if>
+	var dataType = '${sensor.dataType}';
+	var value = '${sensorLastObservation.value}';
+	var sensorUnit = '${sensor.unit}';
+	var limit = ${chartObservationsNumber};
+	var lastObsUrl = '${lastObservationsRESTURL}';
+	var theFuture = '${theFuture}';
 	
-	<c:if test="${sensor.dataType == 'BOOLEAN'}">
-		makeBooleanChart('#plot', '${lastObservationsRESTURL}', '${sensor.unit}');
-	</c:if>
-
-	<c:if test="${sensor.dataType == 'TEXT'}">
-		makeTextChart('#plot', '${lastObservationsRESTURL}', '${sensor.unit}');
-	</c:if>
+	initSensorDataVariables(
+		dataType, 
+		sensorUnit, 
+		limit, 
+		lastObsUrl, 
+		theFuture
+	);
+	
+	$("#chartNavigateLeft").click(function() {
+		chartNavigateLeft(retrieveChartPanel);
+	});
+	
+	$("#chartNavigateRight").click(function() {
+		chartNavigateRight(retrieveChartPanel);
+	});
+	
+	$("#chartNavigateRefresh").click(function() {
+		chartNavigateRefresh(retrieveChartPanel);
+	});
+	
+	initChartControls();
+	retrieveChartPanel();
+	printLastSensorObservationValue(dataType, value);
+	
 });
+
 </script>
 
 <div class="row-fluid">
@@ -36,6 +74,16 @@ $(document).ready(function() {
 				<div id="lastDataAccordionCollapse" class="accordion-body collapse in">
 					<div class="accordion-inner">
 						<div class="container-fluid">
+							<div class="row-fluid">
+								<div class="span4">
+									<strong><spring:message code="sensor.observation.timestamp" /> </strong>
+								</div>
+								<div class="span8">
+									<c:if test="${not empty sensorLastObservation}">
+										${fn:replace(sensorLastObservation.timestamp,'T', ' ')} 										
+									</c:if>
+								</div>
+							</div>
 							<div class="row-fluid">
 								<div class="span4">
 									<strong><spring:message code="sensor.dataType" /> </strong>
@@ -54,18 +102,9 @@ $(document).ready(function() {
 								<div class="span4">
 									<strong><spring:message code="sensor.observation.value" /> </strong>
 								</div>
-								<div class="span8">${sensorLastObservation.value}</div>
+								<div id="sensorLastObsValue" class="span8"></div>
 							</div>
-							<div class="row-fluid">
-								<div class="span4">
-									<strong><spring:message code="sensor.observation.timestamp" /> </strong>
-								</div>
-								<div class="span8">
-									<c:if test="${not empty sensorLastObservation}">
-										${fn:replace(sensorLastObservation.timestamp,'T', ' ')} 										
-									</c:if>
-								</div>
-							</div>
+							
 						</div>
 					</div>
 				</div>
@@ -94,6 +133,8 @@ $(document).ready(function() {
 				<div id="activityAccordionCollapse" class="accordion-body collapse in">
 					<div class="accordion-inner">
 						<div class="observation-graph" id="plot"></div>
+						<hr />
+						<%@ include file="/WEB-INF/jsp/common/include_chart_controls.jsp" %>
 					</div>
 				</div>
 			</div>

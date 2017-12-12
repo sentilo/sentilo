@@ -17,7 +17,7 @@
 	<aop:aspectj-autoproxy proxy-target-class="true" />	
 	
 	<!-- Enables the Spring MVC @Controller programming model -->
-	<annotation-driven validator="validator">		
+	<annotation-driven validator="validator" conversion-service="sentiloConversionService">		
 		<argument-resolvers>			
 			<!-- Pageable argument resolver -->
 			<beans:bean class="org.springframework.data.web.PageableHandlerMethodArgumentResolver" 
@@ -56,6 +56,8 @@
 	<interceptors>
 		<!-- Changes the locale when a 'locale' request parameter is sent; e.g. /?locale=de -->
 		<beans:bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />
+		<!-- Get user specific configurations -->
+		<beans:bean id="userConfigInterceptor" class="org.sentilo.web.catalog.interceptor.UserConfigInterceptor" />
 	</interceptors>
 
 	<!-- selects a static view for rendering without the need for an explicit controller -->	
@@ -86,6 +88,7 @@
 	<!-- Scans within the controller package of the application for @Components to configure as beans -->
 	<context:component-scan base-package="org.sentilo.web.catalog.controller" />
 	<context:component-scan base-package="org.sentilo.web.catalog.validator" />
-	<context:component-scan base-package="org.sentilo.web.catalog.view" />	
+	<context:component-scan base-package="org.sentilo.web.catalog.view" />
+	<context:component-scan base-package="org.sentilo.web.catalog.format" />	
 
 </beans:beans>

@@ -86,13 +86,27 @@ function controlDisplaySubstateFields(){
 						</h1>
 
 						<form:form method="post" modelAttribute="sensor" action="${actionURL}" class="form-horizontal" autocomplete="off">
+						
+							<spring:hasBindErrors name="sensor">
+								<div class="alert alert-block alert-error">
+									<button type="button" class="close" data-dismiss="alert">&times;</button>
+									<h5><spring:message code="error.check.form.errors" /></h5>
+									<ul>
+									<c:forEach var="error" items="${errors.allErrors}">
+										<li class="text-error"><strong><spring:message code="${error.field}" />:</strong> <spring:message message="${error}" /></li>
+									</c:forEach>
+									</ul>
+								</div>
+							</spring:hasBindErrors>
+						
 							<input type="hidden" id="tenantId" name="tenantId" value="${tenantId}" />
 							<fieldset>
 								<div class="tabbable">
 									<ul class="nav nav-tabs">
 										<li class="active"><a href="#tab1" data-toggle="tab"><spring:message code="sensor.detail.title" /></a></li>
 										<li><a href="#tab2" data-toggle="tab"><spring:message code="technicalDetails.tab.label" /></a></li>
-										<li><a href="#tab3" data-toggle="tab"><spring:message code="sensor.additionalInfo" /></a></li>
+										<li><a href="#tab3" data-toggle="tab"><spring:message code="sensor.visualConfiguration" /></a></li>
+										<li><a href="#tab4" data-toggle="tab"><spring:message code="sensor.additionalInfo" /></a></li>
 									</ul>
 									<c:if test="${editMode}">
 										<form:hidden path="id" />
@@ -111,7 +125,6 @@ function controlDisplaySubstateFields(){
 													<form:errors path="sensorId" cssClass="text-error" htmlEscape="false" />
 												</div>
 											</div>
-
 											<c:if test="${empty providerId}">
 												<div class="control-group">
 													<form:label path="providerId" class="control-label">
@@ -120,7 +133,7 @@ function controlDisplaySubstateFields(){
 													<div class="controls">
 														<form:select path="providerId" id="providerId" onchange="populateComponents();" disabled="${editMode}">
 															<form:option value="">${emptySelectMessage}</form:option>
-															<form:options items="${providers}" itemValue="id" itemLabel="name" />
+															<form:options items="${providers}" itemValue="value" itemLabel="label" />
 														</form:select>
 														<c:if test="${editMode}">
 															<form:hidden path="providerId" />
@@ -152,7 +165,7 @@ function controlDisplaySubstateFields(){
 													<form:select path="componentId" cssClass="input-large" disabled="${editMode}">
 														<form:option value="">${emptySelectMessage}</form:option>
 														<c:if test="${editMode}">
-															<form:options items="${components}" itemLabel="name" itemValue="id" />
+															<form:options items="${components}" itemValue="value" itemLabel="label" />
 														</c:if>
 													</form:select>
 													<c:if test="${editMode}">
@@ -177,7 +190,7 @@ function controlDisplaySubstateFields(){
 												</form:label>
 												<div class="controls">
 													<form:select path="type">
-														<form:options items="${sensorTypes}" itemValue="id" itemLabel="name" />
+														<form:options items="${sensorTypes}" itemValue="value" itemLabel="label" />
 													</form:select>
 													<form:errors path="type" cssClass="text-error" htmlEscape="false" />
 												</div>
@@ -188,11 +201,7 @@ function controlDisplaySubstateFields(){
 												</form:label>
 												<div class="controls">
 													<form:select path="dataType">
-														<c:forEach items="${sensorDataTypes}" var="dataType">
-															<form:option value="${dataType}">
-																<spring:message code="sensor.dataType.${dataType}" />
-															</form:option>
-														</c:forEach>
+														<form:options items="${sensorDataTypes}" itemValue="value" itemLabel="label" />
 													</form:select>
 													<form:errors path="dataType" cssClass="text-error" htmlEscape="false" />
 												</div>
@@ -215,24 +224,17 @@ function controlDisplaySubstateFields(){
 													<form:errors path="timeZone" cssClass="text-error" htmlEscape="false" />
 												</div>
 											</div>
-											
-											
 											<div class="control-group">
 												<form:label path="state" class="control-label">
 													<spring:message code="sensor.state" />
 												</form:label>
 												<div class="controls">
 													<form:select path="state" id="sensorState" onchange="controlDisplaySubstateFields();">
-														<c:forEach items="${sensorStates}" var="sensorState">
-															<form:option value="${sensorState}">
-																<spring:message code="sensor.state.${sensorState}" />
-															</form:option>
-														</c:forEach>
+														<form:options items="${sensorStates}" itemValue="value" itemLabel="label" />
 													</form:select>
 													<form:errors path="state" cssClass="text-error" htmlEscape="false" />
 												</div>
 											</div>
-											
 											<div class="control-group" id="substateFields">
 												<form:label path="substate" class="control-label">
 													<spring:message code="sensor.substate" />
@@ -252,14 +254,20 @@ function controlDisplaySubstateFields(){
 											<c:set var="resourceIsComponent"  value="false" />
 											<%@include file="/WEB-INF/jsp/common/include_technical_details_new.jsp"%>
 										</div>
-										<div class="tab-pane" id="tab3">
+										<div class="tab-pane" id="tab3">											
+											<c:set var="resourceIsComponent" value="false" />
+											<c:set var="isSensorConfiguration" value="true" />
+											<%@include file="/WEB-INF/jsp/common/include_visual_configuration_new.jsp"%>
+										</div>
+										<div class="tab-pane" id="tab4">
 											<c:set var="additionalInfo"  value="${sensor.additionalInfo}" />
 											<%@include file="/WEB-INF/jsp/common/include_additional_info.jsp"%>
 										</div>
 									</div>
 								</div>
+								<br />
 								<div class="control-group">
-									<div class="controls">
+									<div class="controls pull-right">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 										<c:if test="${showAdminControls}">
 										<a href="#" onclick="$('form#sensor').submit();" class="btn btn-success"> <spring:message code="button.save" /> </a>

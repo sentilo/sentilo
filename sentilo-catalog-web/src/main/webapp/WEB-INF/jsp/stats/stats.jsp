@@ -6,161 +6,49 @@
 
 <spring:url value="/stats/json" var="statsLink" />
 <spring:url value="/stats/activity/json" var="activityLink" />
+<spring:url value="/static/js/sentilo/stats.js" var="statsJS" />
 
+<c:set var="theFuture" value="${maxSystemDateMillis}" />
+
+<script type="text/javascript" src="${statsJS}"></script>
 <script type="text/javascript">
 
-//Refresh stats every 30 seconds and activity every 5 minutes
-var refreshStatsMS = 1000 * 30;
-var refreshActivityMS = 1000 * 60 * 5;
-
-
-var datasets = [];
-
-var choiceContainer;
-
-var refreshStats = function(selector, line1, line2, line3, line4) {
-
-    var stats = $(selector);
-    stats.html("");
-    stats.append($("<span/>").addClass("stats").html(line1));
-    stats.append("<br/>");
-    stats.append($("<span/>").addClass("stats-sub").html(line2));
-    stats.append("<br/>");
-    stats.append($("<span/>").html(line3));
-    stats.append("<br/>");
-    stats.append($("<span/>").html(line4));
-};
-
-var refreshDeviceStats = function(data) {
-    refreshStats("#devicesStats", data.totalDevices, '<spring:message code="stats.devices.active"/>', data.totalRouterDevices + " <spring:message code="stats.devices.routers"/>", data.totalOtherDevices + " <spring:message code="stats.devices.others"/>");	
-    refreshStats("#eventsStats", data.totalEvents, '<spring:message code="stats.events.processed"/>', data.totalOrderEvents + " <spring:message code="stats.events.orders"/>", data.totalAlarmEvents + " <spring:message code="stats.events.alarms"/>");	
-    refreshStats("#performanceStats", data.eventsPerSecond, '<spring:message code="stats.events.persecond"/>', data.dailyAverageRate + " <spring:message code="stats.average.rate.perday"/>", data.maxRate + " <spring:message code="stats.max.rate"/>");	
-    refreshStats("#accountsStats", data.totalActiveAccounts, '<spring:message code="stats.accounts.active"/>', data.totalProviderAccounts + " <spring:message code="stats.accounts.providers"/>", data.totalApplicationAccounts +  " <spring:message code="stats.accounts.applications"/>");	
-};
-
-
-var ajaxStats = function() {
-	$.getJSON('${statsLink}', function(data) {
-		refreshDeviceStats(data);
-	});
-};
-
-var ajaxActivity = function() {
-	$.getJSON('${activityLink}', function(data) {
-		refreshActivityGraph(data);
-	});
-};
-
-var initializeChart = function() {
-	datasets = {
-		"data": {
-			label: "Data",
-			data: []
-		},        
-		"orders": {
-			label: "Orders", 
-			data: []
-		},
-		"alarms": {
-			label: "Alarms",
-			data: []
-		}
-	};
-
-	xAxisLabels = [];
-    // hard-code color indices to prevent them from shifting as
-    // countries are turned on/off
-    var i = 0;
-    $.each(datasets, function(key, val) {
-        val.color = i;
-        ++i;
-    });
-	    
-    // insert checkboxes 
-    choiceContainer = $("#choices");
-    $.each(datasets, function(key, val) {
-        choiceContainer.append('<input type="checkbox" style="float:left;margin-left:5px" name="' + key +
-         '" checked="checked" id="id' + key + '">' +
-         '<label style="float:left; margin:0 5px 5px; color:#777777;" for="id' + key + '">'
-         + val.label + '</label>');
-    });
-    choiceContainer.find("input").click(plotAccordingToChoices);
-            
-    plotAccordingToChoices();
-    $("#placeholder").UseTooltip();
-} 
-
-function plotAccordingToChoices() {
-    var data = [];
-    $("#placeholder").empty();
-    
-    choiceContainer.find("input:checked").each(function () {
-        var key = $(this).attr("name");
-        if (key && datasets[key])
-            data.push(datasets[key]);
-    });
-    
-
-    if (data.length > 0) {
-		$.plot($("#placeholder"), data, {
-        	
-			//yaxis: { min: 0, },
-            //xaxis: { tickDecimals: 0 }, 
-      
-			series: {
-				lines: { show: true,
-					lineWidth: 3,
-					fill: true, fillColor: { colors: [ { opacity: 0.08 }, { opacity: 0.1 } ] }
-				},
-				points: { show: true },
-				shadowSize: 2
-			},
-			grid: {
-				hoverable: true, 
-				clickable: true, 
-				tickColor: "#eee",
-				borderWidth: 0
-			},
-			colors: ["#2FABE9","#8833aa", "#FA5833"],
-			//legend: legendOptions,
-			//grid: gridOptions,
-			xaxis: xaxisOptions,
-			//xaxis: {ticks:10, tickDecimals: 0},
-			yaxis: {ticks:3, tickDecimals: 0}
-        });
-    }
-}
-
-function refreshActivityGraph(lastActivityLogs){
-	datasets['data'].data = [];
-    datasets['orders'].data = [];
-    datasets['alarms'].data = [];
-    xAxisLabels = [];
-	
-	$.each(lastActivityLogs, function(index, lastActivityLog) {
-        var putAlarms = lastActivityLog['putAlarms'];
-        var putObservations = lastActivityLog['putObservations']; 
-        var putOrders = lastActivityLog['putOrders'];	
-        var timestamp = formatGraphTimestamp(lastActivityLog['timestampToString']);
-        
-        
-        datasets['data'].data.push([index, putObservations]);
-        datasets['orders'].data.push([index, putOrders]);
-        datasets['alarms'].data.push([index, putAlarms]);
-        
-        xAxisLabels.push(timestamp);
-    });   
-    
-	plotAccordingToChoices();
-    $("#placeholder").UseTooltip();
-}
-
 $(document).ready(function() {
+	
+	$("#chartNavigateLeft").click(function() {
+		chartNavigateLeft(ajaxActivity);
+	});
+
+	$("#chartNavigateRight").click(function() {
+		chartNavigateRight(ajaxActivity);
+	});
+
+	$("#chartNavigateRefresh").click(function() {
+		chartNavigateRefresh(ajaxActivity);
+	});
+	
+	initUrls('${statsLink}', '${activityLink}');
+	
+	initMessages('<spring:message code="stats.devices.active"/>',
+			 '<spring:message code="stats.devices.routers"/>',
+			 '<spring:message code="stats.devices.others"/>',
+			 '<spring:message code="stats.events.processed"/>',
+			 '<spring:message code="stats.events.orders"/>',
+			 '<spring:message code="stats.events.alarms"/>',
+			 '<spring:message code="stats.events.persecond"/>',
+			 '<spring:message code="stats.average.rate.perday"/>',
+			 '<spring:message code="stats.max.rate"/>',
+			 '<spring:message code="stats.accounts.active"/>',
+			 '<spring:message code="stats.accounts.providers"/>',
+			 '<spring:message code="stats.accounts.applications"/>');
+	
+	initTimes('${theFuture}');
+	initChartControls();
 	initializeChart();
 	ajaxStats();
 	ajaxActivity();
 	setInterval(ajaxStats, refreshStatsMS);
-	setInterval(ajaxActivity, refreshActivityMS);	
+	setInterval(ajaxActivity, refreshActivityMS);
 });
 </script>
 
@@ -246,15 +134,16 @@ $(document).ready(function() {
 								</div>
 								<div id="activityAccordionCollapse" class="accordion-body collapse in">
 									<div class="accordion-inner">
-										<div id="placeholder" style="width: 95%; height: 150px; margin: 0 auto; padding: 0px; position: relative;"></div>
+										<div id="placeholder" style="width: 100%; height: 150px; margin: 0 auto; padding: 0px; position: relative;"></div>
 										<p id="choices"></p>
+										<hr />
+										<%@ include file="/WEB-INF/jsp/common/include_chart_controls.jsp" %>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-
 			</div>
 		</div>
 	</div>

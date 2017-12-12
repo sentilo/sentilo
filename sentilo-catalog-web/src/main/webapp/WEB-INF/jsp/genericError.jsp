@@ -39,6 +39,9 @@
 							<spring:message code="error.stacktrace" />
 						</button>
 						<div id="errorTrace">
+						    <!--  Root cause -->
+							<c:out value="${exception.cause}" />
+							<br />
 							<c:forEach items="${exception.stackTrace}" var="trace">
 								<c:out value="${trace}" />
 								<br />

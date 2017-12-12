@@ -251,11 +251,7 @@ $(document).ready(function() {
 								</form:label>
 								<div class="controls">
 									<form:select path="type" onchange="togglealertType(this.value);" id="alertType" disabled="${editMode}">
-										<c:forEach items="${alertTypes}" var="alertType">
-											<form:option value="${alertType}">
-												<spring:message code="alert.type.${alertType}" />
-											</form:option>
-										</c:forEach>
+										<form:options items="${alertTypes}" itemValue="value" itemLabel="label" />
 									</form:select>
 									<c:if test="${editMode}">
 										<form:hidden path="type" />
@@ -270,7 +266,7 @@ $(document).ready(function() {
 								<div class="controls">
 									<form:select path="providerId" id="providerId" onchange="populateComponents();" disabled="${editMode}">
 										<form:option value="">${emptySelectMessage}</form:option>
-										<form:options items="${providers}" itemValue="id" itemLabel="name" />
+										<form:options items="${providers}" itemValue="value" itemLabel="label" />
 									</form:select>
 									<c:if test="${editMode}">
 										<form:hidden path="providerId" />
@@ -308,7 +304,7 @@ $(document).ready(function() {
 								<div class="controls">
 									<form:select path="applicationId" id="applicationId" disabled="${editMode}">
 										<form:option value="">${emptySelectMessage}</form:option>
-										<form:options items="${applications}" itemValue="id" itemLabel="name" />																				
+										<form:options items="${applications}" itemValue="value" itemLabel="label" />																				
 									</form:select>
 									<c:if test="${editMode}">
 										<form:hidden path="applicationId" />
@@ -328,11 +324,7 @@ $(document).ready(function() {
 									</form:label>
 									<div class="controls">
 										<form:select path="trigger" id="trigger">
-											<c:forEach items="${alertTriggers}" var="alertTrigger">
-												<form:option value="${alertTrigger}">
-													<spring:message code="alert.trigger.${alertTrigger}" />
-												</form:option>
-											</c:forEach>
+											<form:options items="${alertTriggers}" itemValue="value" itemLabel="label" />
 										</form:select>
 										<form:errors path="trigger" cssClass="text-error" htmlEscape="false" />
 									</div>

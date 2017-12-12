@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.domain;
 
@@ -37,8 +33,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -57,8 +55,10 @@ public class User implements CatalogDocument, TenantResource {
   @NotBlank
   @Pattern(regexp = Constants.VALIDATION_ENTITY_NAME_REGEXP)
   private String userName;
+
   @NotBlank
   private String password;
+
   @NotBlank
   private String passwordRepeat;
 
@@ -68,6 +68,11 @@ public class User implements CatalogDocument, TenantResource {
 
   @Email
   private String email;
+
+  // Visual configuration of sensor on detail views
+  @Valid
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private VisualConfiguration visualConfiguration;
 
   @DateTimeFormat(pattern = Constants.DATETIME_FORMAT)
   private Date createdAt;
@@ -85,11 +90,15 @@ public class User implements CatalogDocument, TenantResource {
 
   private Set<String> tenantsAuth;
 
+  private Set<String> tenantsListVisible;
+
   @NotEmpty
   private List<Role> roles;
 
   public User() {
     tenantsAuth = new HashSet<String>();
+    tenantsListVisible = new HashSet<String>();
+    visualConfiguration = new VisualConfiguration();
   }
 
   public User(final String userName) {
@@ -160,10 +169,20 @@ public class User implements CatalogDocument, TenantResource {
     this.email = email;
   }
 
+  public VisualConfiguration getVisualConfiguration() {
+    return visualConfiguration;
+  }
+
+  public void setVisualConfiguration(final VisualConfiguration visualConfiguration) {
+    this.visualConfiguration = visualConfiguration;
+  }
+
+  @Override
   public Date getCreatedAt() {
     return createdAt;
   }
 
+  @Override
   public void setCreatedAt(final Date createdAt) {
     this.createdAt = createdAt;
   }
@@ -184,10 +203,12 @@ public class User implements CatalogDocument, TenantResource {
     this.roles = roles;
   }
 
+  @Override
   public void setUpdatedAt(final Date updatedAt) {
     this.updatedAt = updatedAt;
   }
 
+  @Override
   public Date getUpdatedAt() {
     return updatedAt;
   }
@@ -200,36 +221,53 @@ public class User implements CatalogDocument, TenantResource {
     this.passwordRepeat = passwordRepeat;
   }
 
+  @Override
   public String getTenantId() {
     return tenantId;
   }
 
+  @Override
   public void setTenantId(final String tenantId) {
     this.tenantId = tenantId;
   }
 
+  @Override
   public Set<String> getTenantsAuth() {
     return tenantsAuth;
   }
 
+  @Override
   public void setTenantsAuth(final Set<String> tenantsAuth) {
     this.tenantsAuth = tenantsAuth;
   }
 
+  @Override
+  public Set<String> getTenantsListVisible() {
+    return tenantsListVisible;
+  }
+
+  @Override
+  public void setTenantsListVisible(final Set<String> tenantsListVisible) {
+    this.tenantsListVisible = tenantsListVisible;
+  }
+
+  @Override
   public String getCreatedBy() {
     return createdBy;
   }
 
+  @Override
   public void setCreatedBy(final String createdBy) {
     this.createdBy = createdBy;
   }
 
+  @Override
   public String getUpdatedBy() {
     return updatedBy;
   }
 
+  @Override
   public void setUpdatedBy(final String updatedBy) {
     this.updatedBy = updatedBy;
   }
-
 }

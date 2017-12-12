@@ -7,6 +7,8 @@
 <spring:url value="/admin/users/${user.userName}/edit" var="editUserLink" />
 <spring:url value="/admin/users/list?nameTableRecover=userTable&fromBack=true" var="backURL" />
 
+<%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
+
 <div class="container-fluid">
 	<div class="content">
 		<div class="row-fluid">
@@ -27,7 +29,16 @@
 
 						<div class="tabbable">
 							<ul class="nav nav-tabs">
-								<li class="active"><a href="#tab1" data-toggle="tab"><spring:message code="user.detail.title" /> </a></li>
+								<li class="active">
+									<a href="#tab1" data-toggle="tab">
+										<spring:message code="user.detail.title" />
+									</a>
+								</li>
+								<li class="${tab2Class}">
+									<a href="#tab2" data-toggle="tab">
+										<spring:message code="user.params.title" />
+									</a>
+								</li>
 							</ul>
 							<div class="tab-content">
 								<div class="tab-pane active" id="tab1">
@@ -94,14 +105,19 @@
 											</div>
 										</div>
 									</div>
-									<div class="row-fluid">
-										<div class="span12">
-											<div class="control-group pull-right">
-												<c:if test="${showAdminControls}">	
-												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<a href="${editUserLink}" class="btn btn-primary"> <spring:message code="user.edit.title" /> </a>
-												</c:if>
-											</div>
+								</div>
+								<div class="${tab2PaneClass}" id="tab2">
+									<c:set var="visualConfiguration" value="${user.visualConfiguration}" />
+									<c:set var="isUserConfiguration" value="true" />
+									<%@include file="/WEB-INF/jsp/common/include_visual_configuration.jsp"%>												
+								</div>
+								<div class="row-fluid">
+									<div class="span12">
+										<div class="control-group pull-right">
+											<c:if test="${showAdminControls}">	
+											<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
+											<a href="${editUserLink}" class="btn btn-primary"> <spring:message code="user.edit.title" /> </a>
+											</c:if>
 										</div>
 									</div>
 								</div>

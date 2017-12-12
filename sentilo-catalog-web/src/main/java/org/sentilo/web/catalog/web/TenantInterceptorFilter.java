@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.web;
 
@@ -60,7 +56,7 @@ public class TenantInterceptorFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(TenantInterceptorFilter.class);
   private static final String SPRING_SECURITY_CONTEXT = "SPRING_SECURITY_CONTEXT";
 
-  private final String[] mappings = {"/", "/home", "/admin", "/auth", "/api", "/component", "/stats", "/static", "/WEB-INF",
+  private final String[] mappings = {"/", "/home", "/admin", "/auth", "/api", "/component", "/stats", "/status", "/static", "/WEB-INF",
       "/j_spring_security_check", "/j_spring_security_logout"};
 
   @Override
@@ -104,15 +100,6 @@ public class TenantInterceptorFilter implements Filter {
 
   private String formatTenantTokenContextPath(final String tenant) {
     return StringUtils.hasText(tenant) ? tenant + "/" : "";
-  }
-
-  private TenantContext lookupTenant(final HttpServletRequest request) {
-    final String requestTenant = lookupRequestTenant(request);
-    final String userTenant = lookupUserTenant(request);
-
-    LOGGER.debug("Request [{}] checked and lookup userTenant [{}] and requestTenant [{}]", request.getRequestURI(), userTenant, requestTenant);
-
-    return new TenantContextImpl(requestTenant, userTenant);
   }
 
   private boolean isMultiTenantRequest(final HttpServletRequest request) {

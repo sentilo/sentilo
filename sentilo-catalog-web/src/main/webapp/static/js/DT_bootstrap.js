@@ -1,6 +1,6 @@
 /* Set the defaults for DataTables initialisation */
 $.extend( true, $.fn.dataTable.defaults, {
-	"sDom": "<'row-fluid'<'span6'l><'span6'f>r>t<'row-fluid'<'span6'i><'span6'p>>",
+  "sDom": "<'row-fluid'<'span6'l><'span6'f>r>t<'row-fluid'<'span6'i><'span6'p>>",
 	"sPaginationType": "bootstrap",
 	"oLanguage": {
 		"sLengthMenu": "_MENU_ records per page"
@@ -12,7 +12,6 @@ $.extend( true, $.fn.dataTable.defaults, {
 $.extend( $.fn.dataTableExt.oStdClasses, {
 	"sWrapper": "dataTables_wrapper form-inline"
 } );
-
 
 /* API method to get paging information */
 $.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
@@ -44,14 +43,18 @@ $.extend( $.fn.dataTableExt.oPagination, {
 			};
 
 			$(nPaging).addClass('pagination').append(
-				'<ul>'+
-					'<li class="prev disabled"><a href="#">&larr; '+oLang.sPrevious+'</a></li>'+
-					'<li class="next disabled"><a href="#">'+oLang.sNext+' &rarr; </a></li>'+
-				'</ul>'
+					'<ul>' +
+					    '<li class="first disabled"><a href="#"><i class="icon-fast-backward"></i></a></li>' +
+					    '<li class="prev  disabled"><a href="#"><i class="icon-chevron-left"></i></a></li>' +
+					    '<li class="next  disabled"><a href="#"><i class="icon-chevron-right"></i></a></li>' +
+					    '<li class="last  disabled"><a href="#"><i class="icon-fast-forward"></i></a></li>' +
+				    '</ul>'
 			);
 			var els = $('a', nPaging);
-			$(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
-			$(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
+            $(els[0]).bind('click.DT', { action: "first" }, fnClickHandler);
+            $(els[1]).bind('click.DT', { action: "previous" }, fnClickHandler);
+            $(els[2]).bind('click.DT', { action: "next" }, fnClickHandler);
+            $(els[3]).bind('click.DT', { action: "last" }, fnClickHandler);
 		},
 
 		"fnUpdate": function ( oSettings, fnDraw ) {
@@ -75,22 +78,21 @@ $.extend( $.fn.dataTableExt.oPagination, {
 				iEnd = iStart + iListLength - 1;
 			}
 
-			for ( i=0, ien=an.length ; i<ien ; i++ ) {
-				// Remove the middle elements
-				$('li:gt(0)', an[i]).filter(':not(:last)').remove();
+			for (i = 0, iLen = an.length ; i < iLen ; i++) {
+                // Remove the middle elements
+                $('li:gt(1)', an[i]).filter(':not(.next,.last)').remove();
 
-				// Add the new list items and their event handlers
+             // Add the new list items and their event handlers
 				for ( j=iStart ; j<=iEnd ; j++ ) {
 					sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
 					$('<li '+sClass+'><a href="#">'+j+'</a></li>')
-						.insertBefore( $('li:last', an[i])[0] )
+						.insertBefore($('.next,.last', an[i])[0])
 						.bind('click', function (e) {
 							e.preventDefault();
 							oSettings._iDisplayStart = (parseInt($('a', this).text(),10)-1) * oPaging.iLength;
 							fnDraw( oSettings );
 						} );
 				}
-
 				// Add / remove disabled classes from the static elements
 				if ( oPaging.iPage === 0 ) {
 					$('li:first', an[i]).addClass('disabled');
@@ -103,6 +105,18 @@ $.extend( $.fn.dataTableExt.oPagination, {
 				} else {
 					$('li:last', an[i]).removeClass('disabled');
 				}
+				
+	       if (oPaging.iPage === 0) {
+                    $('.first,.prev', an[i]).addClass('disabled');
+                } else {
+                    $('.first,.prev', an[i]).removeClass('disabled');
+                }
+
+                if (oPaging.iPage === oPaging.iTotalPages - 1 || oPaging.iTotalPages === 0) {
+                    $('.next,.last', an[i]).addClass('disabled');
+                } else {
+                    $('.next,.last', an[i]).removeClass('disabled');
+                }
 			}
 		}
 	}
@@ -145,6 +159,7 @@ if ( $.fn.DataTable.TableTools ) {
 		}
 	} );
 }
+
 
 $.extend( $.fn.dataTableExt.oStdClasses, {
     "sWrapper": "dataTables_wrapper form-inline"

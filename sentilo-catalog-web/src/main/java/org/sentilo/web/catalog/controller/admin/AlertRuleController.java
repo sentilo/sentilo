@@ -1,45 +1,40 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.web.catalog.controller.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import org.sentilo.common.utils.AlertTriggerType;
+import org.sentilo.common.enums.AlertTriggerType;
 import org.sentilo.web.catalog.controller.CrudController;
 import org.sentilo.web.catalog.domain.AlertRule;
 import org.sentilo.web.catalog.domain.ApplyAlertRuleResponse;
@@ -49,7 +44,9 @@ import org.sentilo.web.catalog.service.ComponentTypesService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.SensorTypesService;
+import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.sentilo.web.catalog.utils.Constants;
+import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.ValidationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -121,7 +118,7 @@ public class AlertRuleController extends CrudController<AlertRule> {
   @RequestMapping(value = "/confirm/json", method = RequestMethod.GET)
   public List<Sensor> getApplicableSensors(final HttpServletRequest request, @RequestParam(required = true) final String providerId,
       @RequestParam(required = false) final String componentType, @RequestParam(required = false) final String sensorType, final Model model) {
-    return alertRuleService.findSensors(providerId, componentType, sensorType);
+    return CatalogUtils.sortAlphabetically(alertRuleService.findSensors(providerId, componentType, sensorType));
   }
 
   @Override
@@ -141,6 +138,11 @@ public class AlertRuleController extends CrudController<AlertRule> {
     row.add(alertRule.getSensorType());
     row.add(getLocalDateFormat().printAsLocalTime(alertRule.getCreatedAt(), Constants.DATETIME_FORMAT));
     return row;
+  }
+
+  @Override
+  protected List<String> toExcelRow(final AlertRule alertRule) {
+    return ExcelGeneratorUtils.getAlertRuleExcelRowsData(alertRule, getLocalDateFormat());
   }
 
   @Override
@@ -178,14 +180,6 @@ public class AlertRuleController extends CrudController<AlertRule> {
     buildAlerts(alertRule, redirectAttributes, false);
   }
 
-  @Override
-  protected void doBeforeExcelBuilder(final Model model) {
-    final String[] listColumnNames =
-        {Constants.NAME_PROP, Constants.PROVIDER_ID_PROP, Constants.COMPONENT_TYPE_PROP, Constants.SENSOR_TYPE_PROP, Constants.CREATED_AT_PROP};
-    model.addAttribute(Constants.LIST_COLUMN_NAMES, Arrays.asList(listColumnNames));
-    model.addAttribute(Constants.MESSAGE_KEYS_PREFIX, "alertrule");
-  }
-
   private void buildAlerts(final AlertRule alertRule, final RedirectAttributes redirectAttributes, final boolean isReapplied) {
     // Create the massive alerts
     final ApplyAlertRuleResponse response = alertRuleService.createAlerts(alertRule);
@@ -208,18 +202,19 @@ public class AlertRuleController extends CrudController<AlertRule> {
   }
 
   private void addProviderListTo(final Model model) {
-    model.addAttribute(Constants.MODEL_PROVIDERS, providerService.findAll());
+    model.addAttribute(Constants.MODEL_PROVIDERS, CatalogUtils.toOptionList(providerService.findAll()));
   }
 
   private void addComponentTypesTo(final Model model) {
-    model.addAttribute(Constants.MODEL_COMPONENT_TYPES, componentTypesService.findAll());
+    model.addAttribute(Constants.MODEL_COMPONENT_TYPES, CatalogUtils.toOptionList(componentTypesService.findAll()));
   }
 
   private void addSensorTypesTo(final Model model) {
-    model.addAttribute(Constants.MODEL_SENSOR_TYPES, sensorTypesService.findAll());
+    model.addAttribute(Constants.MODEL_SENSOR_TYPES, CatalogUtils.toOptionList(sensorTypesService.findAll()));
   }
 
   private void addAlertTriggersTo(final Model model) {
-    model.addAttribute(Constants.MODEL_ALERT_RULE_TRIGGERS, AlertTriggerType.values());
+    model.addAttribute(Constants.MODEL_ALERT_RULE_TRIGGERS, CatalogUtils.toOptionList(AlertTriggerType.class, "alert.trigger", messageSource));
   }
+
 }

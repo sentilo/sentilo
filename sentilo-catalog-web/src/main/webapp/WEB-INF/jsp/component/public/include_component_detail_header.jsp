@@ -23,10 +23,10 @@ function geocodeAddress(latitude, longitude, target) {
 
 function returnToComponentMap(){
 	var componentMapUrl = '${componentMap}';
-	var centerLatValue = '${param.lat}';
-	var centerLngValue = '${param.lng}';
-	var zoomValue = '${param.zoom}';
-	var filterValue = '${param.filter}';
+	var centerLatValue = parseToFloat('<c:out value="${param.lat}" />'); 
+	var centerLngValue = parseToFloat('<c:out value="${param.lng}" />'); 
+	var zoomValue = parseToInteger('<c:out value="${param.zoom}" />');			
+	var filterValue = '<c:out value="${param.filter}" />';
 	var alternativeValue = '${alternative}'
 	var mapType = '${param.mapType}';
 

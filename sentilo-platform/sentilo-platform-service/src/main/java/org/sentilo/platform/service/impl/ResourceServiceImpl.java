@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.impl;
 
@@ -39,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sentilo.common.domain.CatalogAlert;
+import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.Alert;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.common.service.ResourceService;
@@ -80,7 +77,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * org.sentilo.platform.common.service.ResourceService#registerSensorIfNeedBe(java.lang.String,
    * java.lang.String, java.lang.String)
    */
-  public Long registerSensorIfNeedBe(final String providerId, final String sensorId, final String state, final boolean update) {
+  public Long registerSensorIfNeedBe(final String providerId, final String sensorId, final SensorState state, final boolean update) {
     Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
     // Sensor must be registered into Redis if its sid doesn't exist or if update is true
     if (sid == null || update) {
@@ -101,10 +98,10 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       final Map<String, String> fields = new HashMap<String, String>();
       fields.put(PROVIDER, providerId);
       fields.put(SENSOR, sensorId);
-      fields.put(STATE, state);
+      fields.put(STATE, state.name());
       jedisTemplate.hmSet(keysBuilder.getSensorKey(sid), fields);
 
-      LOGGER.debug("Registered in Redis sensor [{}]  with sid [{}] and state [{}], belonging to provider [{}]", sensorId, sid, state, providerId);
+      LOGGER.debug("Saved in Redis sensor [{}]  with sid [{}] and state [{}], belonging to provider [{}]", sensorId, sid, state.name(), providerId);
     }
 
     return sid;
@@ -232,7 +229,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       final Set<String> sids = getSensorsFromProvider(pid);
       if (!CollectionUtils.isEmpty(sids)) {
         for (final String sid : sids) {
-          removeSensor(Long.valueOf(sid), providerId, pid);
+          removeSensor(Long.valueOf(sid), providerId, false);
         }
       }
 
@@ -256,7 +253,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
     LOGGER.debug("Deleting in Redis sensor [{}] belonging to  provider {}", sensorId, providerId);
     final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
     if (sid != null) {
-      removeSensor(sid, providerId, null);
+      removeSensor(sid, providerId, true);
     }
 
     LOGGER.debug("Sensor [{}], belonging to provider [{}], deleted.", sensorId, providerId);
@@ -285,31 +282,19 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
   /*
    * (non-Javadoc)
    *
-   * @see org.sentilo.platform.common.service.ResourceService#isSensorDisabled(java.lang.String,
+   * @see org.sentilo.platform.common.service.ResourceService#getSensorState(java.lang.String,
    * java.lang.String)
    */
-  public boolean isSensorDisabled(final String providerId, final String sensorId) {
+  public SensorState getSensorState(final String providerId, final String sensorId) {
     final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
-    boolean sensorDisabled = false;
+    SensorState sensorState = null;
 
     if (sid != null) {
       final Sensor sensor = getSensor(sid);
-      sensorDisabled = sensor != null && StringUtils.hasText(sensor.getState()) && !ENABLE_STATE.equals(sensor.getState());
+      sensorState = StringUtils.hasText(sensor.getState()) ? SensorState.valueOf(sensor.getState()) : null;
     }
 
-    return sensorDisabled;
-  }
-
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.sentilo.platform.common.service.ResourceService#existsSensor(java.lang.String,
-   * java.lang.String)
-   */
-  public boolean existsSensor(final String providerId, final String sensorId) {
-    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
-
-    return sid != null;
+    return sensorState;
   }
 
   /*
@@ -340,7 +325,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
     return aid != null;
   }
 
-  private void removeSensor(final Long sid, final String providerId, Long pid) {
+  private void removeSensor(final Long sid, final String providerId, final boolean removeFromProviderList) {
 
     if (sid != null) {
       // Remove key sensor:{providerId}:{sensorId}:sid
@@ -355,10 +340,13 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
 
       // Remove key sid:{sid}
       jedisTemplate.del(keysBuilder.getSensorKey(sid));
-      if (pid == null) {
-        // Solo si pid == null, i.e., no se esta borrando tb el proveedor,
-        // eliminamos la referencia al sensor de la lista keysBuilder.getProviderSensorsKey(pid)
-        pid = jedisSequenceUtils.getPid(providerId);
+      if (removeFromProviderList) {
+        // Only if removeFromProviderList is true, i.e., method is invoked to remove only sensor
+        // identified by sid,
+        // also remove reference to sensor in the list defined by key
+        // keysBuilder.getProviderSensorsKey(pid)
+
+        final Long pid = jedisSequenceUtils.getPid(providerId);
         jedisTemplate.sRem(keysBuilder.getProviderSensorsKey(pid), sid.toString());
       }
 

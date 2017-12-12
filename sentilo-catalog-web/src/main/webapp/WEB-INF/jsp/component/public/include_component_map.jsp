@@ -21,7 +21,7 @@ function selectComponentType(id, name, icon) {
 			<a href="#" data-toggle="dropdown" class="btn dropdown-toggle"> &nbsp;&nbsp;&nbsp; <img
 				src="${iconsPath}/pins6.png" id="selectedComponentIcon" /> <span id="selectedComponentLabel">${allTypesLabel}</span>
 				<span class="caret"></span> </a>
-			<ul class="dropdown-menu" id="componentDropdown">
+			<ul class="dropdown-menu pull-right" id="componentDropdown">
 				<c:forEach var="componentType" items="${componentTypes}">
 					<li id='${componentType.id}'><a href="#"
 						onclick="selectComponentType('${componentType.id}', '<spring:eval expression="componentType.name" htmlEscape="false" javaScriptEscape="true" />', '${componentType.icon}')">

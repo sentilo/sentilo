@@ -1,34 +1,30 @@
 /*
  * Sentilo
- *  
- * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de Barcelona.
- * Modified by Opentrends adding support for multitenant deployments and SaaS. Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  * 
- *   
- * This program is licensed and may be used, modified and redistributed under the
- * terms  of the European Public License (EUPL), either version 1.1 or (at your 
- * option) any later version as soon as they are approved by the European 
- * Commission.
- *   
- * Alternatively, you may redistribute and/or modify this program under the terms
- * of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either  version 3 of the License, or (at your option) any later 
- * version. 
- *   
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
- * CONDITIONS OF ANY KIND, either express or implied. 
- *   
- * See the licenses for the specific language governing permissions, limitations 
- * and more details.
- *   
- * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along 
- * with this program; if not, you may find them at: 
- *   
- *   https://joinup.ec.europa.eu/software/page/eupl/licence-eupl
- *   http://www.gnu.org/licenses/ 
- *   and 
- *   https://www.gnu.org/licenses/lgpl.txt
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
  */
 package org.sentilo.platform.service.test.notification;
 
@@ -100,9 +96,11 @@ public class NotificationRetryRepositoryImplTest {
 
   @Test
   public void getEmptyEventsToRetry() {
-    when(zSetOperations.rangeByScore(eq("push:pending:events"), eq(0d), any(Double.class))).thenReturn(Collections.<String>emptySet());
+    final long limit = 100;
+    when(zSetOperations.rangeByScore(eq("push:pending:events"), eq(0d), any(Double.class), eq(0l), eq(limit)))
+        .thenReturn(Collections.<String>emptySet());
 
-    final List<NotificationRetryEvent> retryEvents = repository.getEventsToRetry();
+    final List<NotificationRetryEvent> retryEvents = repository.getEventsToRetry(System.currentTimeMillis(), limit);
 
     verify(eventParser, times(0)).unmarshall(any(String.class));
     Assert.assertTrue(CollectionUtils.isEmpty(retryEvents));
@@ -110,11 +108,12 @@ public class NotificationRetryRepositoryImplTest {
 
   @Test
   public void getEventsToRetry() {
+    final long limit = 100;
     final String retryEvent = "{\"message\":\"mockMessage\", \"retryCount\":1}";
-    when(zSetOperations.rangeByScore(eq("push:pending:events"), eq(0d), any(Double.class)))
+    when(zSetOperations.rangeByScore(eq("push:pending:events"), eq(0d), any(Double.class), eq(0l), eq(limit)))
         .thenReturn(new HashSet<String>(Arrays.asList(retryEvent)));
 
-    final List<NotificationRetryEvent> retryEvents = repository.getEventsToRetry();
+    final List<NotificationRetryEvent> retryEvents = repository.getEventsToRetry(System.currentTimeMillis(), limit);
 
     verify(eventParser, times(1)).unmarshall(any(String.class));
     Assert.assertTrue(retryEvents.size() == 1);

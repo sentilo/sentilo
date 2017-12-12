@@ -1,8 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:message code="datatables.sFirst" var="sFirst" />
 <spring:message code="datatables.sPrevious" var="sPrevious" />
 <spring:message code="datatables.sNext" var="sNext" />
+<spring:message code="datatables.sLast" var="sLast" />
 <spring:message code="datatables.sInfo" var="sInfo" />
 <spring:message code="datatables.sSearch" var="sSearch" />
 <spring:message code="datatables.sLengthMenu" var="sLengthMenu" />
@@ -44,59 +46,6 @@ var tuneUpTable = function() {
 	}
 }
 
-function updatePaginationNumber (oSettings){
-	// Change the Pagination Number with the new oSetting
-	var an = oSettings.aanFeatures.p;
-	var oPaging = oSettings.oInstance.fnPagingInfo();
-	var iListLength = 5;
-	var i, ien, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
-	
-	if ( oPaging.iTotalPages < iListLength) {
-		iStart = 1;
-		iEnd = oPaging.iTotalPages;
-	}
-	else if ( oPaging.iPage <= iHalf ) {
-		iStart = 1;
-		iEnd = iListLength;
-	} else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
-		iStart = oPaging.iTotalPages - iListLength + 1;
-		iEnd = oPaging.iTotalPages;
-	} else {
-		iStart = oPaging.iPage - iHalf + 1;
-		iEnd = iStart + iListLength - 1;
-	}
-	for ( i=0, ien=an.length ; i<ien ; i++ ) {
-			// Remove the middle elements
-			$('li:gt(0)', an[i]).filter(':not(:last)').remove();
-
-			// Add the new list items and their event handlers
-			for ( j=iStart ; j<=iEnd ; j++ ) {
-				sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
-				$('<li '+sClass+'><a href="#">'+j+'</a></li>')
-					.insertBefore( $('li:last', an[i])[0] )
-					.bind('click', function (e) {
-						e.preventDefault();
-						oSettings._iDisplayStart = (parseInt($('a', this).text(),10)-1) * oPaging.iLength;
-						fnDraw( oSettings );
-					} );
-			}
-
-			// Add / remove disabled classes from the static elements
-			if ( oPaging.iPage === 0 ) {
-				$('li:first', an[i]).addClass('disabled');
-			} else {
-				$('li:first', an[i]).removeClass('disabled');
-			}
-
-			if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
-				$('li:last', an[i]).addClass('disabled');
-			} else {
-				$('li:last', an[i]).removeClass('disabled');
-			}
-		}
-	
-}
-
 function reFillSearch(asyncTable){
 	if(asyncTable && paramsSearchMap){
 		$(asyncTable.tableSelector+'_filter :input').val(paramsSearchMap.wordToSearch);
@@ -106,8 +55,6 @@ function reFillSearch(asyncTable){
 		oSettings._iDisplayLength = parseInt(paramsSearchMap.pageSize);
 		oSettings._iDisplayStart = parseInt(paramsSearchMap.pageNumber,10) * paramsSearchMap.pageSize;
 		asyncTable.oApi._fnUpdateInfo(oSettings);
-		
-		updatePaginationNumber(oSettings);
 	}
 	paramsSearchMap = null;
 }
@@ -170,8 +117,10 @@ var translateRESTParameters = function(url, aoData, fnCallback) {
 
 function tableLabels() {
 	var paginationLabels = {
+		'sFirst': '${sFirst}',
 		'sNext': '${sNext}',
 		'sPrevious': '${sPrevious}',
+		'sLast': '${sLast}'
 	}
 	var oLanguage = {
 		'sLengthMenu': '${sLengthMenu}',
@@ -244,7 +193,8 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 		'aaSorting': defaultSorting,
 		'sAjaxSource' : sAjaxSource,
 		'bServerSide' : true,
-	    'fnServerData' : translateRESTParameters
+	    'fnServerData' : translateRESTParameters,
+	    'pagingType': 'full_numbers'
 	} );
 	
 	asyncTable.tableSelector = selector;
@@ -268,13 +218,17 @@ function  makeTableAsync(tableNameSelector, sAjaxSource, detailLink, firstColumn
 	}
 	
 	if($("input[name='selectAllRows']")){
-		$("input[name='selectAllRows']").on( "click", function(){
-			var checkAll = $(this).is(':checked');		
-			$("input[name='selectedIds']").prop('checked', checkAll);				
+		$("input[name='selectAllRows']").on( "click", function() {			
+			if ($("input[name='selectedIds']").length > 0) {
+				var checkAll = $(this).is(':checked');		
+				$("input[name='selectedIds']").prop('checked', checkAll);	
+			} else {
+				$(this).prop('checked', false);
+			}
 		});
 	}
 	
-	// If logged in user has role USER then first column must be rendered empty, i.e., no checkbox must be displayed	
+	// If logged in user has role USER then first column must be rendered empty, i.e., no checkbox column must be displayed	
 	<security:authorize access="hasRole('ROLE_USER')">	
 		firstColumnRenderDelegate = function (data, type, row) {
 		  return '';

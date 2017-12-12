@@ -11,11 +11,11 @@ minRouteZoomLevel = defaultZoomLevel;
 $(document).ready(function() {	
 	<c:choose>
 		<c:when test="${not empty param.lat}">
-			var centerLatValue = ${param.lat};
-			var centerLngValue = ${param.lng};
-			var zoomValue = ${param.zoom};
-			var filterValue = '${param.filter}';	
-			var centerValue = (centerLatValue && centerLngValue ? [centerLatValue, centerLngValue]:[]);
+		var centerLatValue = parseToFloat('<c:out value="${param.lat}" />'); 
+		var centerLngValue = parseToFloat('<c:out value="${param.lng}" />'); 
+		var zoomValue = parseToInteger('<c:out value="${param.zoom}" />');			
+		var filterValue = '<c:out value="${param.filter}" />';	
+		var centerValue = (centerLatValue && centerLngValue ? [centerLatValue, centerLngValue]:null);
 			
 			initializeComponentMap("#map_canvas_1", centerValue, zoomValue);
 			

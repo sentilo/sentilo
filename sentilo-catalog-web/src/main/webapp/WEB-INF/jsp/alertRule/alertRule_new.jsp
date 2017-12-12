@@ -161,7 +161,7 @@
 								<div class="controls">
 									<form:select path="providerId" id="providerId" onchange="populateComponentTypes(); populateSensorTypes();" disabled="${editMode}">
 										<form:option value="">${emptySelectMessage}</form:option>
-										<form:options items="${providers}" itemValue="id" itemLabel="name" />
+										<form:options items="${providers}" itemValue="value" itemLabel="label" />
 									</form:select>
 									<c:if test="${editMode}">
 										<form:hidden path="providerId" />
@@ -176,7 +176,7 @@
 								<div class="controls">
 									<form:select path="componentType">
 										<form:option value=""></form:option>
-										<form:options items="${componentTypes}" itemValue="id" itemLabel="name" />
+										<form:options items="${componentTypes}" itemValue="value" itemLabel="label" />
 									</form:select>
 									<form:errors path="componentType" cssClass="text-error" htmlEscape="false" />
 								</div>
@@ -188,7 +188,7 @@
 								<div class="controls">
 									<form:select path="sensorType">
 										<form:option value=""></form:option>
-										<form:options items="${sensorTypes}" itemValue="id" itemLabel="name" />
+										<form:options items="${sensorTypes}" itemValue="value" itemLabel="label" />
 									</form:select>
 									<form:errors path="sensorType" cssClass="text-error" htmlEscape="false" />
 								</div>
@@ -205,11 +205,7 @@
 									</form:label>
 									<div class="controls">
 										<form:select path="trigger" id="trigger">
-											<c:forEach items="${alertRuleTriggers}" var="alertRuleTrigger">
-												<form:option value="${alertRuleTrigger}">
-													<spring:message code="alert.trigger.${alertRuleTrigger}" />
-												</form:option>
-											</c:forEach>
+											<form:options items="${alertRuleTriggers}" itemValue="value" itemLabel="label" />
 										</form:select>
 										<form:errors path="trigger" cssClass="text-error" htmlEscape="false" />
 									</div>
