@@ -1,11 +1,12 @@
 # .travis.yml
 # Configure Travis CI service to build Sentilo platform, http://github.com/sentilo/sentilo
 #
+sudo: false
 language: java
 
 jdk:
   - oraclejdk8
-  - oraclejdk7
+  - openjdk7
   - openjdk6
   
 after_success:
