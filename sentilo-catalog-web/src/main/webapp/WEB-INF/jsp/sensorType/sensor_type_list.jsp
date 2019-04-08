@@ -10,13 +10,13 @@
 <spring:url value="/admin/sensortypes/delete" var="deleteURL" />
 <spring:url value="/admin/sensortypes/list/excel?tableName=${sensorTypeTable}" var="excelSource" />
 <spring:url value="/admin/sensortypes/list/json" var="sAjaxSource" />
-<spring:url value="/admin/sensortypes/" var="detailPrefix" />
+<spring:url value="/admin/sensortypes/" var="sensorTypeDetailPrefix" />
 
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {	
-	var tableSensorType =	makeTableAsync('${sensorTypeTable}', '${sAjaxSource}');
+	var tableSensorType =	makeTableAsync('${sensorTypeTable}', '${sAjaxSource}', '${sensorTypeDetailPrefix}');
 	
 });
 </script>

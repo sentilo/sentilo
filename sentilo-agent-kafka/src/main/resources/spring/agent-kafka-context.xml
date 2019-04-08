@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:annotation-config />
+
+	<import resource="classpath:spring/agent-kafka-properties-context.xml" />	
+	<import resource="classpath:spring/agent-kafka-pubsub-context.xml" />
+	<import resource="classpath:spring/agent-kafka-persistence-context.xml" />
+	
+	<context:component-scan base-package="org.sentilo.agent.kafka" />
+	<context:component-scan base-package="org.sentilo.agent.common.listener" />	
+	<context:component-scan base-package="org.sentilo.agent.common.service" />    
+  	<context:component-scan base-package="org.sentilo.agent.common.repository" />
+  	<context:component-scan base-package="org.sentilo.agent.common.scheduler" />
+  	<context:component-scan base-package="org.sentilo.agent.common.config" />
+  	<context:component-scan base-package="org.sentilo.common.config" />
+  	<context:component-scan base-package="org.springframework.kafka.core" />
+
+	<bean class="org.sentilo.agent.kafka.utils.TopicName" 
+		p:topicNameMode="${kafka.topicNameMode}"
+		p:topicPrefix="${kafka.topicPrefix}"
+		p:topicSeparator="${kafka.topicSeparator}"
+	/>
+	
+	<task:annotation-driven scheduler="platformScheduler" />
+	<task:scheduler id="platformScheduler" pool-size="5" />
+	
+	<beans profile="dev">
+		<bean id="kafkaTemplate" class="org.springframework.kafka.core.KafkaTemplate">
+		    <constructor-arg>
+		        <bean class="org.springframework.kafka.core.DefaultKafkaProducerFactory">
+		            <constructor-arg>
+		                <map>
+		                    <entry key="bootstrap.servers" value="${kafka.bootstrap.servers}" />
+		                    <entry key="key.serializer" value="org.apache.kafka.common.serialization.StringSerializer" />
+		                    <entry key="value.serializer" value="org.apache.kafka.common.serialization.StringSerializer" />
+		                    <entry key="max.block.ms" value="${kafka.request.timeout.ms}" />
+		                </map>
+		            </constructor-arg>
+		        </bean>
+		    </constructor-arg>
+		</bean>
+	</beans>
+		
+</beans>

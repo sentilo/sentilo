@@ -3,6 +3,7 @@
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
 <spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', application)"/>
+<spring:eval var="showActiveSubscriptionsTab" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', application)"/>
 
 <spring:url value="/admin/application/${application.id}/edit" var="editApplicationLink" />
 <spring:url value="/admin/application/list?nameTableRecover=applicationTable&fromBack=true" var="backURL" />
@@ -34,8 +35,10 @@
 											code="application.detail.title" /> </a></li>
 								<li class="${tab2Class}"><a href="#tab2" data-toggle="tab"><spring:message
 											code="application.permissions" /> </a></li>
+								<c:if test="${showActiveSubscriptionsTab}">
 								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message
 											code="subscriptions.active.tab.label" /> </a></li>
+								</c:if>
 							</ul>
 							<div class="tab-content">
 								<div class="${tab1PaneClass}" id="tab1">
@@ -114,6 +117,7 @@
 									<c:set var="applicationId" scope="request" value="${application.id}" />
 									<jsp:include page="/WEB-INF/jsp/common/include_permission_list.jsp" />
 								</div>
+								<c:if test="${showActiveSubscriptionsTab}">
 								<div class="${tab3PaneClass}" id="tab3">
 									<c:set var="applicationId" scope="request" value="${application.id}" />
 									<jsp:include page="/WEB-INF/jsp/common/include_subscriptions.jsp" />
@@ -121,6 +125,7 @@
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 									</div>
 								</div>
+								</c:if>
 							</div>
 						</div>
 					</div>

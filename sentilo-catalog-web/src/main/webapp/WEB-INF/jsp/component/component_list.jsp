@@ -6,7 +6,6 @@
 
 <c:set var="componentTable"  value="componentTable" />
 
-<spring:url value="/admin/component/" var="detailPrefix" />
 <spring:url value="/admin/component/new" var="newComponentLink" />
 <spring:url value="/admin/component/list/json" var="sAjaxSourceComp" />
 <spring:url value="/admin/component/delete" var="deleteURL" />

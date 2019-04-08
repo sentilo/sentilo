@@ -7,6 +7,7 @@
 	<spring:message code="user.edit.title" var="pageTitle" />
 	<spring:url value="/admin/users/${user.userName}/detail" var="backURL" />
 	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('EDIT', user)"/>
+	<%@include file="/WEB-INF/jsp/user/user_modalPassword.jsp"%>
 </c:if>
 <c:if test="${mode == 'create' }">
 	<spring:url value="/admin/users/create" var="actionURL" />
@@ -16,17 +17,15 @@
 </c:if>
 
 <script type="text/javascript">
-function validate() {
-	
-	var password = $('#password').val();
-	var passwordRepeat = $('#passwordRepeat').val();
-	
-	if (password === passwordRepeat) {
-		$('form#user').submit();
-	} else {
-		showErrorNotification('<spring:message code="user.password.notmatch"/>', '<spring:message code="user.password.notmatch"/>');
+
+    function showChangePasswordModalWindow() {
+        showModal();
+    }
+
+	function validate() {
+			$('form#user').submit();
 	}
-}
+
 </script>
 
 <div class="container-fluid">
@@ -47,14 +46,14 @@ function validate() {
 						</h1>
 
 						<form:form method="post" modelAttribute="user" action="${actionURL}" class="form-horizontal">
-							
+
 							<spring:hasBindErrors name="user">
 								<div class="alert alert-block alert-error">
 									<button type="button" class="close" data-dismiss="alert">&times;</button>
 									<h5><spring:message code="error.check.form.errors" /></h5>
 									<ul>
 									<c:forEach var="error" items="${errors.allErrors}">
-										<li class="text-error"><spring:message message="${error}" /></li>
+										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" />:</strong> <spring:message message="${error}" /></li>
 									</c:forEach>
 									</ul>
 								</div>
@@ -77,28 +76,11 @@ function validate() {
 												</c:if>
 												<c:if test="${mode == 'edit' }">
 													<form:input path="userName" readonly="true" />
+													<a href="#" onclick="showChangePasswordModalWindow();" class="btn btn-primary"> <spring:message code="user.changePassword" /> </a>
 													<form:hidden path="createdAt" />
 													<form:hidden path="createdBy" />
 												</c:if>
 												<form:errors path="userName" cssClass="text-error" htmlEscape="false" />
-											</div>
-										</div>
-										<div class="control-group">
-											<form:label path="password" class="control-label">
-												<spring:message code="user.password" />
-											</form:label>
-											<div class="controls">
-												<form:password path="password" id="password" showPassword="true" />
-												<form:errors path="password" cssClass="text-error" htmlEscape="false" />
-											</div>
-										</div>
-										<div class="control-group">
-											<form:label path="passwordRepeat" class="control-label">
-												<spring:message code="user.password.repeat" />
-											</form:label>
-											<div class="controls">
-												<form:password path="passwordRepeat" id="passwordRepeat" showPassword="true" />
-												<form:errors path="passwordRepeat" cssClass="text-error" htmlEscape="false" />
 											</div>
 										</div>
 										<div class="control-group">
@@ -133,8 +115,14 @@ function validate() {
 												<spring:message code="user.active" />
 											</form:label>
 											<div class="controls">
-												<form:checkbox path="active" value="true" />
+											<c:if test="${mode == 'create' or showAdminControls }">
+												<form:checkbox path="active" value="true"/>
 												<form:errors path="active" cssClass="text-error" htmlEscape="false" />
+											</c:if>
+											<c:if test="${mode == 'edit' and not showAdminControls }">
+												<form:checkbox path="active" value="true" disabled="true"/>
+												<form:hidden path="active" />
+											</c:if>
 											</div>
 										</div>
 										<div class="control-group">
@@ -142,6 +130,7 @@ function validate() {
 												<spring:message code="user.rols" />
 											</form:label>
 											<div class="controls">
+                                            <c:if test="${mode == 'create' or showAdminControls }">
 												<form:select path="roles" multiple="false">
 													<form:option value="ADMIN" label="ADMIN" />
 													<form:option value="USER" label="USER" />
@@ -151,6 +140,18 @@ function validate() {
 													</security:authorize>
 												</form:select>
 												<form:errors path="roles" cssClass="text-error" htmlEscape="false" />
+                                            </c:if>
+                                            <c:if test="${mode == 'edit' and not showAdminControls }">
+												<form:select path="roles" multiple="false" disabled="true">
+													<form:option value="ADMIN" label="ADMIN" />
+													<form:option value="USER" label="USER" />
+													<form:option value="PLATFORM" label="PLATFORM" />
+													<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
+														<form:option value="SUPER_ADMIN" label="SUPER-ADMIN" />
+													</security:authorize>
+												</form:select>
+                                                <form:hidden path="roles" />
+                                            </c:if>
 											</div>
 										</div>
 										<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
@@ -172,7 +173,7 @@ function validate() {
 												</div>
 											</div>
 										</security:authorize>
-										<security:authorize access="hasRole('ROLE_ADMIN')">
+										<security:authorize access="hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')">
 											<input type="hidden" name="tenantId" id="tenantId" value="${tenantId}" />
 										</security:authorize>
 										
@@ -186,7 +187,7 @@ function validate() {
 							<div class="control-group">
 								<div class="controls">
 									<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-									<c:if test="${showAdminControls}">
+									<c:if test="${showAdminControls or mode == 'edit'}">
 										<a href="#" onclick="validate();" class="btn btn-success"> <spring:message code="button.save" /> </a>
 									</c:if>
 								</div>

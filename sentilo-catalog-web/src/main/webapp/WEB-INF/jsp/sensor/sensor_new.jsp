@@ -2,6 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:message code="sensor.ttl.tooltip" var="ttlTooltip"/>
+
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/sensor/${sensor.id}/edit" var="actionURL" />
 	<spring:message code="sensor.edit.title" var="pageTitle" />
@@ -93,7 +95,7 @@ function controlDisplaySubstateFields(){
 									<h5><spring:message code="error.check.form.errors" /></h5>
 									<ul>
 									<c:forEach var="error" items="${errors.allErrors}">
-										<li class="text-error"><strong><spring:message code="${error.field}" />:</strong> <spring:message message="${error}" /></li>
+										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" />:</strong> <spring:message message="${error}" /></li>
 									</c:forEach>
 									</ul>
 								</div>
@@ -125,7 +127,6 @@ function controlDisplaySubstateFields(){
 													<form:errors path="sensorId" cssClass="text-error" htmlEscape="false" />
 												</div>
 											</div>
-											<c:if test="${empty providerId}">
 												<div class="control-group">
 													<form:label path="providerId" class="control-label">
 														<spring:message code="sensor.providerId" />
@@ -142,11 +143,6 @@ function controlDisplaySubstateFields(){
 													</div>
 												</div>
 												<input type="hidden" name="origin" value="sensor" />
-											</c:if>
-											<c:if test="${not empty providerId}">
-												<input type="hidden" name="providerId" id="providerId" value="${providerId}" />
-												<input type="hidden" name="origin" value="provider" />
-											</c:if>
 
 											<div class="control-group">
 												<form:label path="description" class="control-label">
@@ -246,7 +242,16 @@ function controlDisplaySubstateFields(){
 													</form:select>
 													<form:errors path="substate" cssClass="text-error" htmlEscape="false" />
 												</div>
-											</div>																						
+											</div>		
+											<div class="control-group">
+												<form:label path="ttl" id="ttl" class="control-label">
+													<spring:message code="sensor.ttl"/>
+												</form:label>
+												<div class="controls">
+													<form:input path="ttl" tooltip="${ttlTooltip}" />
+													<form:errors path="ttl" cssClass="text-error" htmlEscape="false" />
+												</div>
+											</div>																				
 											
 											<%@include file="/WEB-INF/jsp/common/include_input_tags.jsp"%>
 										</div>

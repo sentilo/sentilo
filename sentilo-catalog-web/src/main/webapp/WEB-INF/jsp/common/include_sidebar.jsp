@@ -1,19 +1,25 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:url value="/admin/provider/list?nameTableRecover=providerTable" var="providerListURL" />
-<spring:url value="/admin/application/list?nameTableRecover=applicationTable" var="applicationListURL" />
-<spring:url value="/admin/alert/list?nameTableRecover=alertTable" var="alertListURL" />
-<spring:url value="/admin/alertRule/list?nameTableRecover=alertRuleTable" var="alertRuleListURL" />
-<spring:url value="/admin/sensor/list?nameTableRecover=sensorTable" var="sensorListURL" />
-<spring:url value="/admin/users/list?nameTableRecover=userTable" var="userListURL" />
-<spring:url value="/admin/sensortypes/list?nameTableRecover=sensorTypeTable" var="sensorTypesListURL" />
-<spring:url value="/admin/componenttypes/list?nameTableRecover=componentTypeTable" var="componentTypesListURL" />
-<spring:url value="/admin/component/list?nameTableRecover=componentTable" var="componentListURL" />
+<sec:authentication var="principal" property="principal"/>
+<spring:eval var="isFederationEnabled" expression="T(org.sentilo.web.catalog.security.SecurityUtils).isFederationEnabled()"/>
+
+<spring:url value="/admin/provider/list?sfamr=true&nameTableRecover=providerTable" var="providerListURL" />
+<spring:url value="/admin/application/list?sfamr=true&nameTableRecover=applicationTable" var="applicationListURL" />
+<spring:url value="/admin/alert/list?sfamr=true&nameTableRecover=alertTable" var="alertListURL" />
+<spring:url value="/admin/alertRule/list?sfamr=true&nameTableRecover=alertRuleTable" var="alertRuleListURL" />
+<spring:url value="/admin/sensor/list?sfamr=true&nameTableRecover=sensorTable" var="sensorListURL" />
+<spring:url value="/admin/users/list?sfamr=true&nameTableRecover=userTable" var="userListURL" />
+<spring:url value="/admin/users/${principal.username}/detail" var="userDetailURL"/>
+<spring:url value="/admin/sensortypes/list?sfamr=true&nameTableRecover=sensorTypeTable" var="sensorTypesListURL" />
+<spring:url value="/admin/componenttypes/list?sfamr=true&nameTableRecover=componentTypeTable" var="componentTypesListURL" />
+<spring:url value="/admin/component/list?sfamr=true&nameTableRecover=componentTable" var="componentListURL" />
 <security:authorize access="hasRole('ROLE_ADMIN')">
-<spring:url value="/admin/tenant/${tenantCustomParams.tenantId}/detail" var="tenantDetailURL" />
+	<spring:url value="/admin/tenant/${tenantCustomParams.tenantId}/detail?sfamr=true" var="tenantDetailURL" />
 </security:authorize>
-<spring:url value="/admin/tenant/list?nameTableRecover=tenantTable" var="tenantListURL" />
+<spring:url value="/admin/tenant/list?sfamr=true&nameTableRecover=tenantTable" var="tenantListURL" />
+<spring:url value="/admin/activesubscriptions/list?nameTableRecover=activeSubscriptionsTable" var="activeSubscriptionsListURL" />
+<spring:url value="/admin/federation/list?nameTableRecover=federationTable" var="federationListURL" />
 
 <c:set value=" connecta-icon-black" var="classApplicationIcon" />
 <c:set value=" connecta-icon-black" var="classProviderIcon" />
@@ -25,6 +31,8 @@
 <c:set value=" connecta-icon-black" var="classComponentIcon" />
 <c:set value=" connecta-icon-black" var="classRuleIcon" />
 <c:set value=" connecta-icon-black" var="classTenantIcon" />
+<c:set value=" connecta-icon-black" var="classActiveSubscriptionsIcon" />
+<c:set value=" connecta-icon-black" var="classFederationIcon" />
  
 <c:if test="${activeMenu == '/application' }">
 	<c:set value=" class='current'" var="classApplication" />
@@ -66,87 +74,119 @@
 	<c:set value=" class='current'" var="classTenant" />
 	<c:set value=" icon-white" var="classTenantIcon" />
 </c:if>
+<c:if test="${activeMenu == '/activesubscriptions'}">
+	<c:set value=" class='current'" var="classActiveSubscriptions" />
+	<c:set value=" icon-white" var="classActiveSubscriptionsIcon" />
+</c:if>
+<c:if test="${activeMenu == '/federation'}">
+	<c:set value=" class='current'" var="classFederation" />
+	<c:set value=" icon-white" var="classFederationIcon" />
+</c:if>
 
 <div id="menu-left" class="sidebar-nav">
 	<ul class="nav nav-list">
-		<security:authorize ifAnyGranted="ROLE_SUPER_ADMIN,ROLE_ADMIN,ROLE_USER">
-		<li class="nav-header">
-			<spring:message code="sidebar.admin.title" />
-		</li>
-		<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
-		<li>
-			<a href="${tenantListURL}"${classTenant}> 
-				<i class="icon-briefcase${classTenantIcon}"></i>
-				<spring:message code="sidebar.tenants.title" /> 
-			</a>
-		</li>
-		</security:authorize>
-		<security:authorize access="hasRole('ROLE_ADMIN')">
-		<li>
-			<a href="${tenantDetailURL}"${classTenant}> 
-				<i class="icon-briefcase${classTenantIcon}"></i>
-				<spring:message code="sidebar.tenant.title" />
-			</a>
-		</li>
-		</security:authorize>
-		<security:authorize ifAnyGranted="ROLE_SUPER_ADMIN,ROLE_ADMIN">
-		<li>
-			<a href="${userListURL}"${classUser}>
-				<i class="icon-user${classUserIcon}"></i> 
-				<spring:message	code="menu.admin.user.title" /> 
-			</a>
-		</li>
-		</security:authorize>
-		<security:authorize ifAnyGranted="ROLE_ADMIN,ROLE_USER">
-		<li>
-			<a href="${applicationListURL}"${classApplication}>
-				<i class="icon-cog${classApplicationIcon}"></i> 
-				<spring:message code="menu.admin.application.title" /> 
-			</a>
-		</li>
-		<li>
-			<a href="${providerListURL}"${classProvider}>
-				<i class="icon-exchange${classProviderIcon}"></i> 
-				<spring:message	code="menu.admin.provider.title" /> 
-			</a>
-		</li>
-		<li>
-			<a href="${componentListURL}"${classComponent}>
-				<i class="icon-cogs${classComponentIcon}"></i> 
-				<spring:message	code="sidebar.component.title" /> 
-			</a>
-		</li>
-		<li>
-			<a href="${sensorListURL}"${classSensor}> 
-				<i class="icon-beaker${classSensorIcon}"></i> 
-				<spring:message	code="sidebar.sensor.title" /> 
-			</a>
-		</li>
-		<li>
-			<a href="${alertListURL}"${classAlert}>	
-				<i class="icon-bell-alt${classAlertIcon}"></i>
-				<spring:message code="sidebar.alert.title" /> 
-			</a>
-		</li>
-		<li>
-			<a href="${alertRuleListURL}"${classRule}> 
-				<i class="icon-tasks${classRuleIcon}"></i>
-				<spring:message code="menu.admin.alertrule.title" /> 
-			</a>
-		</li>
-		</security:authorize>
-		<li>
-			<a href="${sensorTypesListURL}"${classSensorType}> 
-				<i class="icon-wrench${classSensorTypeIcon}"></i> 
-				<spring:message	code="menu.admin.sensortype.title" /> 
-			</a>
-		</li>
-		<li>
-			<a href="${componentTypesListURL}"${classComponentType}> 
-				<i class="icon-adjust${classComponentTypeIcon}"></i>
-				<spring:message code="menu.admin.componenttype.title" />
-			</a>
-		</li>
+		<security:authorize   access="hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN','ROLE_USER')">
+			<li class="nav-header">
+				<spring:message code="sidebar.admin.title" />
+			</li>
+			<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
+			<li>
+				<a href="${tenantListURL}"${classTenant}> 
+					<i class="icon-briefcase${classTenantIcon}"></i>
+					<spring:message code="sidebar.tenants.title" /> 
+				</a>
+			</li>
+			</security:authorize>
+			<security:authorize access="hasRole('ROLE_ADMIN')">
+			<li>
+				<a href="${tenantDetailURL}"${classTenant}> 
+					<i class="icon-briefcase${classTenantIcon}"></i>
+					<spring:message code="sidebar.tenant.title" />
+				</a>
+			</li>
+			</security:authorize>
+			<security:authorize access="hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN')">
+			<li>
+				<a href="${userListURL}"${classUser}>
+					<i class="icon-user${classUserIcon}"></i> 
+					<spring:message	code="menu.admin.user.title" /> 
+				</a>
+			</li>
+			</security:authorize>
+			<security:authorize access="hasAnyRole('ROLE_USER')">
+				<li>
+					<a href="${userDetailURL}"${classUser}>
+						<i class="icon-user${classUserIcon}"></i>
+						<spring:message	code="menu.normal.user.title" />
+					</a>
+				</li>
+			</security:authorize>
+			<security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_USER')">
+			<li>
+				<a href="${applicationListURL}"${classApplication}>
+					<i class="icon-cog${classApplicationIcon}"></i> 
+					<spring:message code="menu.admin.application.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${providerListURL}"${classProvider}>
+					<i class="icon-exchange${classProviderIcon}"></i> 
+					<spring:message	code="menu.admin.provider.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${componentListURL}"${classComponent}>
+					<i class="icon-cogs${classComponentIcon}"></i> 
+					<spring:message	code="sidebar.component.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${sensorListURL}"${classSensor}> 
+					<i class="icon-beaker${classSensorIcon}"></i> 
+					<spring:message	code="sidebar.sensor.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${alertListURL}"${classAlert}>	
+					<i class="icon-bell-alt${classAlertIcon}"></i>
+					<spring:message code="sidebar.alert.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${alertRuleListURL}"${classRule}> 
+					<i class="icon-tasks${classRuleIcon}"></i>
+					<spring:message code="menu.admin.alertrule.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${activeSubscriptionsListURL}"${classActiveSubscriptions}>
+					<i class="icon-check${classActiveSubscriptionsIcon}"></i> 
+					<spring:message	code="menu.admin.activesubscription.title" /> 
+				</a>
+			</li>
+			</security:authorize>
+			<li>
+				<a href="${sensorTypesListURL}"${classSensorType}> 
+					<i class="icon-wrench${classSensorTypeIcon}"></i> 
+					<spring:message	code="menu.admin.sensortype.title" /> 
+				</a>
+			</li>
+			<li>
+				<a href="${componentTypesListURL}"${classComponentType}> 
+					<i class="icon-adjust${classComponentTypeIcon}"></i>
+					<spring:message code="menu.admin.componenttype.title" />
+				</a>
+			</li>
+			<security:authorize access="hasRole('ROLE_ADMIN')">
+				<c:if test="${isFederationEnabled}">
+					<li>
+						<a href="${federationListURL}"${classFederation}> 
+							<i class="icon-briefcase${classFederationIcon}"></i>
+							<spring:message code="menu.admin.federation.title" />
+						</a>
+					</li>
+				</c:if>	
+			</security:authorize>
 		</security:authorize>
 	</ul>
 </div>

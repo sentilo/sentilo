@@ -84,7 +84,7 @@ public class PlatformServiceImplTest {
     @Override
     public boolean matches(final Object argument) {
       final RequestContext rc = (RequestContext) argument;
-      return this.path.equals(rc.getPath());
+      return path.equals(rc.getPath());
     }
 
   }

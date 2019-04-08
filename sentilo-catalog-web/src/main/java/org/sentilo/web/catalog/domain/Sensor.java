@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -35,11 +35,10 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.Range;
 import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.common.enums.SensorState;
 import org.sentilo.web.catalog.utils.CatalogUtils;
@@ -52,13 +51,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 @Document
-public class Sensor implements TenantResource, EntityResource, SyncResource, AlphabeticalSortable {
+public class Sensor implements FederatedResource, TenantResource, EntityResource, SyncResource, AlphabeticalSortable {
 
   private static final long serialVersionUID = 1L;
 
   public enum DataType {
-    NUMBER, BOOLEAN, TEXT,
+    NUMBER, BOOLEAN, TEXT, JSON, LINK, AUDIO_LINK, VIDEO_LINK, IMAGE_LINK, FILE_LINK
   }
 
   @Id
@@ -98,12 +100,12 @@ public class Sensor implements TenantResource, EntityResource, SyncResource, Alp
   @ValidTimeZone
   private String timeZone;
 
-  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  @JsonInclude(value = Include.NON_EMPTY)
   private String tags;
 
   private Boolean publicAccess = Boolean.FALSE;
 
-  @JsonSerialize(include = Inclusion.NON_EMPTY)
+  @JsonInclude(value = Include.NON_EMPTY)
   private String metaData;
 
   private String tenantId;
@@ -116,19 +118,26 @@ public class Sensor implements TenantResource, EntityResource, SyncResource, Alp
 
   private String substate;
 
+  @Range
+  private int ttl;
+
   @Transient
   private String substateDesc;
 
+  private Boolean federatedResource = Boolean.FALSE;
+
+  private String federatedServiceId;
+
   // Additional info
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(value = Include.NON_EMPTY)
   private Map<String, String> additionalInfo;
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private TechnicalDetails technicalDetails;
 
   // Visual configuration of sensor on detail views
   @Valid
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private VisualConfiguration visualConfiguration;
 
   public Sensor() {
@@ -201,7 +210,7 @@ public class Sensor implements TenantResource, EntityResource, SyncResource, Alp
     final String[] tokens = CompoundKeyBuilder.splitCompoundKey(id);
     if (tokens.length == 3) {
       providerId = tokens[0];
-      componentId = tokens[1];
+      componentId = CompoundKeyBuilder.buildCompoundKey(tokens[0], tokens[1]);
       sensorId = tokens[2];
     }
   }
@@ -413,6 +422,14 @@ public class Sensor implements TenantResource, EntityResource, SyncResource, Alp
     return substate;
   }
 
+  public int getTtl() {
+    return ttl;
+  }
+
+  public void setTtl(final int ttl) {
+    this.ttl = ttl;
+  }
+
   public void setSubstate(final String substate) {
     this.substate = substate;
   }
@@ -436,5 +453,22 @@ public class Sensor implements TenantResource, EntityResource, SyncResource, Alp
   @Override
   public String getSortableValue() {
     return sensorId;
+  }
+
+  public void setFederatedResource(final Boolean federatedResource) {
+    this.federatedResource = federatedResource;
+  }
+
+  public String getFederatedServiceId() {
+    return federatedServiceId;
+  }
+
+  public void setFederatedServiceId(final String federatedServiceId) {
+    this.federatedServiceId = federatedServiceId;
+  }
+
+  @Override
+  public Boolean getFederatedResource() {
+    return federatedResource;
   }
 }

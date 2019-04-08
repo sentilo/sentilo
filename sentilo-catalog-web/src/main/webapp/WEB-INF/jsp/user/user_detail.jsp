@@ -89,6 +89,20 @@
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
+															<strong><spring:message code="user.active" /> </strong>
+														</div>
+														<div class="span8">
+															<c:if test="${user.active == true}">
+																<input type="checkbox" name="active" value="active" disabled="true" checked/>
+															</c:if>
+															<c:if test="${user.active == false}">
+																<input type="checkbox" name="active" value="active" disabled="true"/>
+															</c:if>
+
+														</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
 															<strong><spring:message code="user.rols" /> </strong>
 														</div>
 														<div class="span8">${user.roles}</div>
@@ -114,10 +128,8 @@
 								<div class="row-fluid">
 									<div class="span12">
 										<div class="control-group pull-right">
-											<c:if test="${showAdminControls}">	
 											<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 											<a href="${editUserLink}" class="btn btn-primary"> <spring:message code="user.edit.title" /> </a>
-											</c:if>
 										</div>
 									</div>
 								</div>

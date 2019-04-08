@@ -12,19 +12,15 @@
 
 <script type="text/javascript">
 
-var asyncTable;
-var detail_prefix = '';
-var linkable = true;
-var paramsSearchMap;
 var firstPass = true;
 
-var tuneUpTable = function() {
+var tuneUpTable = function(asyncTable) {
 
-	if (asyncTable.fnGetData().length && linkable) {		
+	if (asyncTable.fnGetData().length && asyncTable.linkable) {		
 		var rows = $(asyncTable.tableSelector + ' tbody tr');
 		rows.click(function () {
 			var aData = asyncTable.fnGetData(this, 0);			
-			document.location.href = detail_prefix + aData + '/detail';
+			document.location.href = asyncTable.detail_prefix + aData + '/detail';
 		});
 		rows.css('cursor', 'pointer');
 	}
@@ -47,20 +43,22 @@ var tuneUpTable = function() {
 }
 
 function reFillSearch(asyncTable){
-	if(asyncTable && paramsSearchMap){
-		$(asyncTable.tableSelector+'_filter :input').val(paramsSearchMap.wordToSearch);
-		$('select[name="' + asyncTable.tableSelector.substring(1)+'_length' + '"]').val(paramsSearchMap.pageSize);
+	
+	if(asyncTable && asyncTable.paramsSearchMap){
+		$(asyncTable.tableSelector+'_filter :input').val(asyncTable.paramsSearchMap.wordToSearch);
+		$('select[name="' + asyncTable.tableSelector.substring(1)+'_length' + '"]').val(asyncTable.paramsSearchMap.pageSize);
 		var oSettings = asyncTable.fnSettings();
-		oSettings.oPreviousSearch.sSearch = paramsSearchMap.wordToSearch;
-		oSettings._iDisplayLength = parseInt(paramsSearchMap.pageSize);
-		oSettings._iDisplayStart = parseInt(paramsSearchMap.pageNumber,10) * paramsSearchMap.pageSize;
+		oSettings.oPreviousSearch.sSearch = asyncTable.paramsSearchMap.wordToSearch;
+		oSettings._iDisplayLength = parseInt(asyncTable.paramsSearchMap.pageSize);
+		oSettings._iDisplayStart = parseInt(asyncTable.paramsSearchMap.pageNumber,10) * asyncTable.paramsSearchMap.pageSize;
 		asyncTable.oApi._fnUpdateInfo(oSettings);
-	}
-	paramsSearchMap = null;
+		
+		asyncTable.paramsSearchMap = null;
+	}	
 }
 
-var translateRESTParameters = function(url, aoData, fnCallback) {
-
+var translateRESTParameters = function(url, aoData, fnCallback, oSettings) {
+	
     //extract name/value pairs into a simpler map for use later
     var paramMap = {};
     for ( var i = 0; i < aoData.length; i++) {
@@ -80,13 +78,20 @@ var translateRESTParameters = function(url, aoData, fnCallback) {
     var sEcho = paramMap.sEcho;
     
     var searchTextBack;
-    if(firstPass && paramsSearchMap){
-    	pageNum = (paramsSearchMap.pageNumber == 0)? 1 : parseInt(paramsSearchMap.pageNumber) + 1;
-    	pageSize = paramsSearchMap.pageSize;
-    	sortName = paramsSearchMap.sortColumn;
-    	sortDir = paramsSearchMap.sortDirecction;
-    	if (paramsSearchMap.wordToSearch) {
-    		searchTextBack = escape(paramsSearchMap.wordToSearch);
+    var asyncTable = oSettings.oInstance;
+    var paramsSearchMap = oSettings.paramsSearchMap;
+    
+    if(!asyncTable.paramsSearchMap && oSettings.oInit.paramsSearchMap){
+    	asyncTable.paramsSearchMap = oSettings.oInit.paramsSearchMap
+    }
+    
+    if(firstPass && asyncTable.paramsSearchMap){
+    	pageNum = (asyncTable.paramsSearchMap.pageNumber == 0)? 1 : parseInt(asyncTable.paramsSearchMap.pageNumber) + 1;
+    	pageSize = asyncTable.paramsSearchMap.pageSize;
+    	sortName = asyncTable.paramsSearchMap.sortColumn;
+    	sortDir = asyncTable.paramsSearchMap.sortDirecction;
+    	if (asyncTable.paramsSearchMap.wordToSearch) {
+    		searchTextBack = escape(asyncTable.paramsSearchMap.wordToSearch);
     	}
     	firstPass = false;
     }
@@ -111,7 +116,7 @@ var translateRESTParameters = function(url, aoData, fnCallback) {
         data.iTotalRecords = data.totalCount;
         data.iTotalDisplayRecords = data.totalCount;
         fnCallback(data);
-		tuneUpTable();                   
+		tuneUpTable(asyncTable);                   
     });     	
 };
 
@@ -137,15 +142,7 @@ function dontShowDetail(event) {
 	event.stopPropagation();
 }
 
-function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detailLink, firstColumnRenderDelegate,orderable) {
-	
-	if (typeof detailLink != 'undefined') {
-		linkable = detailLink;
-	}
-	
-	detail_prefix = detailPrefix;
-
-	//tableSelector = selector;
+function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detailLink, firstColumnRenderDelegate,orderable) {	
 	
 	if (typeof(firstColumnRenderDelegate) === 'undefined') {
 		firstColumnRenderDelegate = function (data, type, row) {
@@ -169,19 +166,9 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 		firstColumnDefinition
 	];
 	
-	var defaultSorting = [[1, "asc"]];
-	
-	if(mapSearch){
-		paramsSearchMap = mapSearch;
-		defaultSorting = [[mapSearch.sortColumn,mapSearch.sortDirecction]]; 
-	}
-	
-	var orderSort = true;
-	if (typeof orderable != 'undefined') {
-		orderSort = orderable;
-	}
-	
-	
+	var defaultSorting = mapSearch ? [[mapSearch.sortColumn,mapSearch.sortDirecction]] : [[1, "asc"]];		
+	var orderSort = typeof orderable != 'undefined' ? orderable : true;
+		
 	asyncTable = $(selector).dataTable( {
 		'sDom': '<"row-fluid"<"span6"l><"span6"f>r>t<"row-fluid"<"span6"i><"span6"p>>',
 		'sPaginationType': 'bootstrap',
@@ -194,19 +181,41 @@ function  _makeTableAsync(sAjaxSource, selector, detailPrefix, mapSearch, detail
 		'sAjaxSource' : sAjaxSource,
 		'bServerSide' : true,
 	    'fnServerData' : translateRESTParameters,
-	    'pagingType': 'full_numbers'
+	    'pagingType': 'full_numbers',
+	    'paramsSearchMap': mapSearch 
 	} );
 	
-	asyncTable.tableSelector = selector;
+	// Set additional attributes to asyncTable instance			
+	asyncTable.tableSelector = selector;		
+	
+	asyncTable.detail_prefix = detailPrefix;
+	asyncTable.linkable = typeof detailLink != 'undefined' ? detailLink : true;
+	asyncTable.paramsSearchMap = mapSearch;
 	
 	reFillSearch(asyncTable);
+	makeTableScrollable(selector);
 	
 	return asyncTable;
     
 }
 
-function  makeTableAsync(tableNameSelector, sAjaxSource, detailLink, firstColumnRenderDelegate,orderable){
-    var mapSearch;
+function makeTableScrollable(selector) {
+	// Wrapp data table & allow to overflow with x-scroll
+	$(selector).wrap('<div class="dataTable-overfow"></div>');
+	$('form[id="command"]').wrap('<div class="dataTable-overfow-wrapper"></div>');
+}
+
+/**
+ * Defines a new object dataTable where its data is loaded asynchronously with an AJAX request.
+ * @param tableNameSelector: unique identifier for the list. Must match with the id of a DOM element (mandatory)  
+ * @param sAjaxSource: AJAX request to get data list (mandatory)
+ * @param detailPrefixURL: URL prefix to access to the detail of each row. If it's empty or undefined then rows are not linkable (optional)
+ * @param firstColumnRenderDelegate: function to render the first column of each row. If it's not defined, a checkbox is rendered (optional)
+ * @param orderable: set if the list is orderable. By default, lists are orderable (optional)
+ */
+function  makeTableAsync(tableNameSelector, sAjaxSource, detailPrefixURL, firstColumnRenderDelegate, orderable){
+    
+	var mapSearch;
 	
 	if('${lastSearchParams}'){
 		mapSearch = {'wordToSearch':unescape('${lastSearchParams.wordToSearch}'),
@@ -234,9 +243,10 @@ function  makeTableAsync(tableNameSelector, sAjaxSource, detailLink, firstColumn
 		  return '';
 		};
 	</security:authorize>
-	
-	
-	return _makeTableAsync(sAjaxSource, '#'+tableNameSelector, '${detailPrefix}', mapSearch, detailLink, firstColumnRenderDelegate,orderable);
+		
+	var linkable = detailPrefixURL? true: false;
+			
+	return _makeTableAsync(sAjaxSource, '#'+tableNameSelector, detailPrefixURL, mapSearch, linkable, firstColumnRenderDelegate, orderable);
 }
 </script>
 

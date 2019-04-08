@@ -2,13 +2,16 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-
 <spring:url value="/admin/sensor/lastOb/" var="lastSensorObservationAjaxPrefix" />
 <spring:url value="/admin/sensor/lastObs/" var="activityURLPrefix" />
 <spring:url value="/admin/sensor/lastOrders/" var="ordersURLPrefix" />
 <spring:url value="/admin/sensor/lastAlarms/" var="alarmsURLPrefix" />
 <spring:url value="/admin/component/list?nameTableRecover=componentTable&fromBack=true" var="backURL" />
+
 <spring:url value="/static/js/sentilo/component_detail.js" var="componentDetailJS" />
+
+<%-- MEDIA PLAYERS SCRIPTS --%>
+<spring:url value="/static/js/sentilo/media_players.js" var="mediaPlayersJS" />
 
 <c:set var="componentId" scope="request" value="${component.id}" />
 <c:set var="theFuture" value="${maxSystemDateMillis}" />
@@ -20,9 +23,6 @@
 <%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
 <%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp"%>
 
-<!-- Get chart visual configuration based on component sensor / component tenant / default value -->
-<c:set var="chartVisibleObservationsNumber" value="${visualConfiguration.chartVisibleObservationsNumber}" />	
-
 
 <script type="text/javascript" src="${componentDetailJS}"></script>
 <script type="text/javascript">
@@ -32,11 +32,33 @@ $(document).ready(function() {
 	var componentPath = '${component.location}';
 	var theFuture = '${theFuture}';
 	var dataType = 'activity';
-	var chartVisibleObservationsNumber = ${chartVisibleObservationsNumber};
 	var lastObsUrl = '${lastSensorObservationAjaxPrefix}';
 	var activityURLPrefix = '${activityURLPrefix}';
 	var ordersURLPrefix = '${ordersURLPrefix}';
 	var alarmsURLPrefix = '${alarmsURLPrefix}';
+	
+	window.messages = {
+		boolValues: {
+			falseValue: '<spring:message code="false"/>',
+			trueValue: '<spring:message code="true"/>'
+		},
+		chart: {
+			iniDate: '<spring:message code="universalMap.details.sensor.chart.iniDate"/>',
+			endDate: '<spring:message code="universalMap.details.sensor.chart.endDate"/>'
+		},
+		players: {
+			timestamp: '<spring:message code="universalMap.details.players.timestamp"/>',
+			filename: '<spring:message code="universalMap.details.players.filename"/>',
+			ellapsed: '<spring:message code="universalMap.details.players.ellapsed"/>',
+			download: '<spring:message code="universalMap.details.players.download"/>'
+		},
+		json: {
+			timestamp: '<spring:message code="universalMap.details.json.timestamp"/>',
+			expandAll: '<spring:message code="universalMap.details.json.expandAll"/>',
+			collapseAll: '<spring:message code="universalMap.details.json.collapseAll"/>',
+			expandLevels: '<spring:message code="universalMap.details.json.expandLevels"/>'
+		}
+	};
 	
 	initComponentDetailVariables(
 		lastObsUrl, 
@@ -44,11 +66,8 @@ $(document).ready(function() {
 		ordersURLPrefix, 
 		alarmsURLPrefix, 
 		theFuture, 
-		dataType, 
-		chartVisibleObservationsNumber
+		dataType
 	);
-	
-	initChartControls();
 	
 	initializeMap('${component.location.centroid[1]}','${component.location.centroid[0]}', componentPath.split(','), '${componentIcon}');
 	
@@ -70,11 +89,10 @@ $(document).ready(function() {
 				<c:set var="alreadySet" value="${true}"/>  
 				firstSelPublicSensor={
 					'id': '${sensor.id}',			
-					'label': '${fn:replace(sensor.type,search,replace)} (${sensor.unit})',
+					'label': '${fn:replace(sensor.type,search,replace)}',
 					'dataType': '${sensor.dataType}',
-					'visualConfiguration': {
-						'chartVisibleObservationsNumber': '${sensor.visualConfiguration.chartVisibleObservationsNumber}'	
-					}
+					'unit': '${sensor.unit}',
+					'type': '${sensor.type}'						
 				};
 			</c:if>
 		</c:forEach>
@@ -82,18 +100,6 @@ $(document).ready(function() {
 			selectSensor(firstSelPublicSensor, '${lastSensorObservationAjaxPrefix}');
 		} 
 	</c:if>
-	
-	$("#chartNavigateLeft").click(function() {
-		chartNavigateLeft(retrieveChartPanel);
-	});
-	
-	$("#chartNavigateRight").click(function() {
-		chartNavigateRight(retrieveChartPanel);
-	});
-	
-	$("#chartNavigateRefresh").click(function() {
-		chartNavigateRefresh(retrieveChartPanel);
-	});
 	
 });
 </script>

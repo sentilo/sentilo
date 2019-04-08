@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -46,6 +46,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.CatalogAlert;
+import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.service.dao.JedisSequenceUtils;
@@ -103,16 +104,23 @@ public class ResourceServiceImplTest {
 
   @Test
   public void registerNewSensor() {
+    final CatalogSensor sensor = new CatalogSensor();
+    sensor.setProvider(PROVIDER_ID);
+    sensor.setSensor(SENSOR_ID);
+    sensor.setState(SensorState.online);
+    sensor.setTtl(5 * 60);
+
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
     fields.put("state", "online");
+    fields.put("ttl", Integer.toString(5 * 60));
 
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
     when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
     when(jedisSequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, SensorState.online, false);
+    service.registerSensorIfNeedBe(sensor, false);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils).getPid(PROVIDER_ID);
@@ -124,9 +132,13 @@ public class ResourceServiceImplTest {
 
   @Test
   public void registerSensorThatAlreadyExists() {
+    final CatalogSensor sensor = new CatalogSensor();
+    sensor.setProvider(PROVIDER_ID);
+    sensor.setSensor(SENSOR_ID);
+    sensor.setState(SensorState.online);
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, SensorState.online, false);
+    service.registerSensorIfNeedBe(sensor, false);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
@@ -138,16 +150,53 @@ public class ResourceServiceImplTest {
 
   @Test
   public void updateSensorThatAlreadyExists() {
+    final CatalogSensor sensor = new CatalogSensor();
+    sensor.setProvider(PROVIDER_ID);
+    sensor.setSensor(SENSOR_ID);
+    sensor.setState(SensorState.online);
+    sensor.setTtl(30 * 60);
+
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("provider", PROVIDER_ID);
+    fields.put("sensor", SENSOR_ID);
+    fields.put("state", "online");
+    fields.put("ttl", Integer.toString(30 * 60));
+
     when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
-    service.registerSensorIfNeedBe(PROVIDER_ID, SENSOR_ID, SensorState.online, true);
+    service.registerSensorIfNeedBe(sensor, true);
 
     verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
     verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
     verify(jedisSequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisTemplate).hmSet(anyString(), anyMapOf(String.class, String.class));
+    verify(jedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
     verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
     verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+  }
+
+  @Test
+  public void registerGhostSensor() {
+    final Sensor sensor = new Sensor(PROVIDER_ID, SENSOR_ID);
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("provider", PROVIDER_ID);
+    fields.put("sensor", SENSOR_ID);
+    fields.put("state", SensorState.ghost.name());
+    fields.put("ttl", "0");
+
+    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
+    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(jedisSequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+
+    service.registerGhostSensorIfNeedBe(sensor);
+
+    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
+    verify(jedisSequenceUtils).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(jedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
+    verify(jedisTemplate).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(jedisTemplate).set(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+    Assert.assertEquals(SID, sensor.getSid());
+    Assert.assertEquals(SensorState.ghost, sensor.getState());
   }
 
   @Test
@@ -174,7 +223,7 @@ public class ResourceServiceImplTest {
   }
 
   @Test
-  public void getSensor() {
+  public void getSensorFromInternalSid() {
     final Map<String, String> fields = new HashMap<String, String>();
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
@@ -186,7 +235,23 @@ public class ResourceServiceImplTest {
     verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
     Assert.assertEquals(PROVIDER_ID, sensor.getProvider());
     Assert.assertEquals(SENSOR_ID, sensor.getSensor());
+  }
 
+  @Test
+  public void getSensorFromParams() {
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("provider", PROVIDER_ID);
+    fields.put("sensor", SENSOR_ID);
+
+    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields);
+
+    final Sensor sensor = service.getSensor(PROVIDER_ID, SENSOR_ID);
+
+    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
+    Assert.assertEquals(PROVIDER_ID, sensor.getProvider());
+    Assert.assertEquals(SENSOR_ID, sensor.getSensor());
   }
 
   @Test
@@ -307,6 +372,7 @@ public class ResourceServiceImplTest {
     verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void getSensorState() {
     final Map<String, String> fields = new HashMap<String, String>();

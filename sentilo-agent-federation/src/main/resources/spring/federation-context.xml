@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:c="http://www.springframework.org/schema/c" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        
+        http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+	
+	<import resource="classpath:spring/federation-properties-context.xml"/>
+
+	<bean id="remoteRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" />	
+	<bean id="localRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" p:host="${rest.client.local.host}" />
+	
+	
+	<bean id="mongoCredentials" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+	  <property name="staticMethod" value="org.sentilo.common.mongo.MongoCredentialsBuilder.encodeCredentials"/>	  
+	  <property name="arguments">
+        <list>
+            <value>${catalog.mongodb.user}</value>
+            <value>${catalog.mongodb.password}</value>
+            <value>${catalog.mongodb.database}</value>
+        </list>
+      </property>
+	</bean>
+	
+	
+	<!-- Default bean name is 'mongoClient' -->	
+	<mongo:mongo-client host="${catalog.mongodb.host}" port="${catalog.mongodb.port}" credentials="#{mongoCredentials}"/>
+
+	<!-- Default bean name is 'mongoDbFactory' -->
+	<mongo:db-factory dbname="${catalog.mongodb.database}" mongo-ref="mongoClient"  write-concern="ACKNOWLEDGED" />
+	
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate" c:mongoDbFactory-ref="mongoDbFactory" />
+
+</beans> 

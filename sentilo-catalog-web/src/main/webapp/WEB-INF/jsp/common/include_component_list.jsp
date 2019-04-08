@@ -7,11 +7,12 @@
 </c:if>
 <c:if test="${not empty providerId}">
 	<c:set var="componentTable"  value="providerDetailComponentTable" />
-	<spring:url value="/admin/component/list/json?providerId=${providerId}" var="sAjaxSourceComp" />
-	<spring:url value="/admin/provider/" var="detailPrefix" />
+	<spring:url value="/admin/component/list/json?providerId=${providerId}" var="sAjaxSourceComp" />	
 	<c:set value="${providerId}" var="entityId" />
 	<spring:url value="/admin/component/list/excel?tableName=${componentTable}&providerId=${providerId}" var="componentExcelSource" />
 </c:if>
+
+<spring:url value="/admin/component/" var="componentDetailPrefix" />
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
@@ -25,7 +26,7 @@ $(document).ready(function() {
 			return '';
 		}; 
 	}
-	makeTableAsync('${componentTable}', '${sAjaxSourceComp}',linkToDetail, firstColumnRenderDelegate);						    	
+	makeTableAsync('${componentTable}', '${sAjaxSourceComp}', '${componentDetailPrefix}', firstColumnRenderDelegate);						    	
 });
 
 </script>

@@ -5,6 +5,7 @@ var datasets = [];
 var choiceContainer;
 var statsLink = null;
 var activityLink = null;
+var chartNav = null;
 
 // Get messages from JSP
 var statsDevicesDctiveMsg = '';
@@ -42,37 +43,6 @@ var initMessages = function(statsDevicesDctive,statsDevicesRouters,statsDevicesO
 	statsAccountsApplicationsMsg = statsAccountsApplications;
 }
 
-var initTimes = function(theFuture) {
-	to = theFuture;
-}
-
-var initNavData = function() {
-	navData.startDate = null;
-	navData.endDate = null;
-	navData.startTime = null;
-	navData.endTime = null;
-	navData.numItems = 0;
-	
-	initYAxisMinMaxValues();
-};
-
-var initYAxisMinMaxValues = function() {
-	yAxisMinMaxOptions.min = NaN;
-	yAxisMinMaxOptions.max = NaN;
-};
-
-var updateYAxisMinMaxValues = function(currentValue) {
-	var theValue = Number(currentValue);
-	if (theValue) {		
-		if (isNaN(yAxisMinMaxOptions.max) || theValue > yAxisMinMaxOptions.max) {
-			yAxisMinMaxOptions.max = theValue;
-		}				
-		if (isNaN(yAxisMinMaxOptions.min) || theValue < yAxisMinMaxOptions.min) {
-			yAxisMinMaxOptions.min = theValue;
-		}
-	}
-};
-
 var refreshStats = function(selector, line1, line2, line3, line4) {
     var stats = $(selector);
     stats.html("");
@@ -99,130 +69,68 @@ var ajaxStats = function() {
 };
 
 var ajaxActivity = function() {
-	var url = createChartUrl(activityLink + '/', from, to);
-	$.getJSON(url, function(data) {
-		refreshActivityGraph(data);
-	});
+	chartNav = [];
+	showStatisticsDataChart("#placeholder", null, null);
 };
 
-var initializeChart = function() {
-	datasets = {
-		"data": {
-			label: "Data",
-			data: []
-		},        
-		"orders": {
-			label: "Orders", 
-			data: []
-		},
-		"alarms": {
-			label: "Alarms",
-			data: []
-		}
-	};
-
-	xAxisLabels = [];
-    // hard-code color indices to prevent them from shifting as
-    // countries are turned on/off
-    var i = 0;
-    $.each(datasets, function(key, val) {
-        val.color = i;
-        ++i;
-    });
-	    
-    // insert checkboxes 
-    choiceContainer = $("#choices");
-    $.each(datasets, function(key, val) {
-        choiceContainer.append('<input type="checkbox" style="float:left;margin-left:5px" name="' + key +
-         '" checked="checked" id="id' + key + '">' +
-         '<label style="float:left; margin:0 5px 5px; color:#777777;" for="id' + key + '">'
-         + val.label + '</label>');
-    });
-    choiceContainer.find("input").click(plotAccordingToChoices);
-            
-    plotAccordingToChoices();
-    $("#placeholder").UseTooltip();
-} 
-
-var refreshChartControlLabels = function() {
-	// Update the control labels
-	$("#chartToDate").text((navData.startDate !== 'undefined' && navData.startDate !== null) ? navData.startDate : '');
-	$("#chartFromDate").text((navData.endDate !== 'undefined' && navData.endDate !== null) ? navData.endDate : '');
-	$("#numObservations").text(navData.numItems);
-}
-
-function plotAccordingToChoices() {
-    var data = [];
-    $("#placeholder").empty();
-    
-    choiceContainer.find("input:checked").each(function () {
-        var key = $(this).attr("name");
-        if (key && datasets[key])
-            data.push(datasets[key]);
-    });
-    
-
-    if (data.length > 0) {
-		$.plot($("#placeholder"), data, {
-        	
-			//yaxis: { min: 0, },
-            //xaxis: { tickDecimals: 0 }, 
-      
-			series: {
-				lines: { show: true,
-					lineWidth: 3,
-					fill: true, fillColor: { colors: [ { opacity: 0.08 }, { opacity: 0.1 } ] }
-				},
-				points: { show: true },
-				shadowSize: 2
-			},
-			grid: {
-				hoverable: true, 
-				clickable: true, 
-				tickColor: "#eee",
-				borderWidth: 0
-			},
-			colors: ["#2FABE9","#8833aa", "#FA5833"],
-			//legend: legendOptions,
-			//grid: gridOptions,
-			xaxis: xaxisOptions,
-			//xaxis: {ticks:10, tickDecimals: 0},
-			yaxis: {ticks:3, tickDecimals: 0}
-        });
-    }
-}
-
-function refreshActivityGraph(lastActivityLogs){
-	datasets['data'].data = [];
-    datasets['orders'].data = [];
-    datasets['alarms'].data = [];
-    xAxisLabels = [];
+function showStatisticsDataChart(dataPanel, from, to) {
+	var url = createChartUrl(activityLink + '/', from, to);
+	$.getJSON(url, function(data) {
+		$(dataPanel).empty();
+		printStatisticsChart(data, dataPanel, {height: 300, bottomPadding: 20});
+		$(dataPanel).addClass('ct-chart-centered-labels');
+		
+		var fromTimestamp = (data.fromTimestamp===null) ? '' : data.fromTimestamp;
+		var toTimestamp = (data.toTimestamp===null) ? '' : data.toTimestamp;
+		
+		var iniDateMessage = (messages.chart.iniDate===null) ? 'Initial date:' : messages.chart.iniDate;
+		var endDateMessage = (messages.chart.endDate===null) ? 'End date:' : messages.chart.endDate;
+		
+		var chartControls = 
+			'<div class="chart-controls row-fluid">' +
+			'	<div class="chart-controls span3">' +
+			'		<div class="btn-group">' +
+		    '  			<button id="chart-control-prev-btn" class="btn"><i class="icon-chevron-left"></i></button>' +
+		    '  			<button id="chart-control-refresh-btn" class="btn"><i class="icon-refresh"></i></button>' +
+		    '  			<button id="chart-control-next-btn" class="btn"><i class="icon-chevron-right"></i></button>' +
+		    '		</div>' +
+			'	</div>' +
+			'	<div class="chart-start-date span3"><span class="chart-controls-label">'+ iniDateMessage +'&nbsp;</span><span class="chart-controls-value">' + fromTimestamp + '</span></div>' +
+			'	<div class="chart-end-date span6"><span class="chart-controls-label">'+ endDateMessage +'&nbsp;</span><span class="chart-controls-value">' + toTimestamp + '</span></div>' +
+			'</div>';
+		
+		$("#chart-controls").html($(chartControls));
+		
+		$("#chart-control-prev-btn").unbind('click');
+		$("#chart-control-prev-btn").on('click', function(e) {
+			var navActual = {
+				fromTimestamp: data.fromTimestamp, 
+				toTimestamp: data.toTimestamp, 
+				fromTime: data.fromTime, 
+				toTime: data.toTime
+			};
+			chartNav.push(navActual);
+			showStatisticsDataChart(dataPanel, null, data.fromTime);
+		});
+		
+		$("#chart-control-refresh-btn").unbind('click');
+		$("#chart-control-refresh-btn").on('click', function(e) {
+			chartNav = [];
+			showStatisticsDataChart(dataPanel, null, null);
+		});
+		
+		$("#chart-control-next-btn").unbind('click');
+		$("#chart-control-next-btn").on('click', function(e) {
+			var prevNav = chartNav.pop();
+			var to = null;
+			if (!prevNav) {
+				chartNav = [];
+			} else {
+				to = prevNav.toTime + 1000;
+			}
+			showStatisticsDataChart(dataPanel, null, to);
+		});
+		
+	});
 	
-    initNavData();
-    
-	$.each(lastActivityLogs.events, function(index, lastActivityLog) {
-        var putAlarms = lastActivityLog['putAlarms'];
-        var putObservations = lastActivityLog['putObservations']; 
-        var putOrders = lastActivityLog['putOrders'];	
-        var timestamp = formatGraphTimestamp(lastActivityLog['timestampToString']);
-        
-        datasets['data'].data.push([index, putObservations]);
-        datasets['orders'].data.push([index, putOrders]);
-        datasets['alarms'].data.push([index, putAlarms]);
-        
-        xAxisLabels.push(timestamp);
-    });   
-	
-	// Load graph data indexes
-	navData.startTime = lastActivityLogs.fromTime;
-	navData.startDate = lastActivityLogs.fromTimestamp;
-	navData.endTime = lastActivityLogs.toTime;
-	navData.endDate = lastActivityLogs.toTimestamp;
-	navData.numItems = lastActivityLogs.size;
-    	
-	plotAccordingToChoices();
-    $("#placeholder").UseTooltip();
-    
-	// if callback exist execute it
-    refreshChartControlLabels();
 }

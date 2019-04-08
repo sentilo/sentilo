@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -34,24 +34,28 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.sentilo.common.domain.EventMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Converts values from org.sentilo.common.domain.MessageEvent to values accepted by OpenTSDB:
  * http://opentsdb.net/docs/build/html/user_guide/writing.html
  *
  * "integer" value bounds correspond to java.lang.Long extent. Floating point values correspond to
- * java.lang.Float. 
+ * java.lang.Float.
  */
 public class OpenTSDBValueConverter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OpenTSDBValueConverter.class);
 
   private static Boolean metricsFromSensorType = true;
+
+  private static final String ILLEGAL_CHARACTERS_REGEX = "[^a-zA-Z0-9-_\\/.]";
 
   /**
    * Return metric name either in form of &lt;event type&gt;.&lt;sensor type&gt; or &lt;event
@@ -70,7 +74,7 @@ public class OpenTSDBValueConverter {
       metric = event.getType().toLowerCase() + '.' + event.getProvider() + '.' + event.getSensor();
     }
 
-    return metric;
+    return replaceIllegalCharacters(metric);
   }
 
   /**
@@ -128,29 +132,34 @@ public class OpenTSDBValueConverter {
 
   }
 
+  /**
+   * OpenTSDB accepts only characters included in a-z, A-Z, 0-9
+   *
+   * @param value
+   * @return String without illegal characters
+   */
+  public static String replaceIllegalCharacters(final String value) {
+    return StringUtils.hasText(value) ? value.replaceAll(ILLEGAL_CHARACTERS_REGEX, ".") : value;
+  }
+
   private static Map<String, Object> extractMeasuresFromComplexType(final String parentMeasureName, final JsonNode jsonNode) {
 
     final Map<String, Object> unwrappedValues = new HashMap<String, Object>();
 
     if (jsonNode.isContainerNode()) {
-
-      final Iterator<Entry<String, JsonNode>> i = jsonNode.getFields();
+      final Iterator<Entry<String, JsonNode>> i = jsonNode.fields();
       while (i.hasNext()) {
         final Entry<String, JsonNode> childEntry = i.next();
         unwrappedValues.putAll(extractMeasuresFromComplexType(parentMeasureName + "." + childEntry.getKey(), childEntry.getValue()));
       }
-
     } else {
-
       final String measureName = parentMeasureName;
-
       try {
         final Object value = getSimpleValue(jsonNode.asText());
         unwrappedValues.put(measureName, value);
       } catch (final ParseException pe) {
         // probably String or some non-numeric value. Pass
       }
-
     }
     return unwrappedValues;
   }

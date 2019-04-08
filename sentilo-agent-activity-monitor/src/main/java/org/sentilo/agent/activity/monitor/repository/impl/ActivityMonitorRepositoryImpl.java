@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -30,6 +30,7 @@ package org.sentilo.agent.activity.monitor.repository.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -43,8 +44,11 @@ import org.sentilo.agent.activity.monitor.repository.ActivityMonitorRepository;
 import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessContext;
 import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessMonitor;
 import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessWorker;
+import org.sentilo.common.converter.DefaultStringMessageConverter;
+import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.rest.RESTClient;
+import org.sentilo.common.rest.RequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +84,8 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
   private final Lock lock = new ReentrantLock();
   private List<EventMessage> batchQueue = new ArrayList<EventMessage>();
 
+  private String esVersion;
+
   @PostConstruct
   public void init() {
 
@@ -101,6 +107,8 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
     if (workersManager == null) {
       workersManager = new ThreadPoolExecutor(0, numMaxWorkers, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
+
+    esVersion = getElasticVersion();
 
     LOGGER.info("Initialized ActivityMonitorRepositoryImpl with the following properties: batchSize {},  numMaxRetries {} and numMaxWorkers {} ",
         batchSize, numMaxRetries, numMaxWorkers);
@@ -130,7 +138,7 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
     } finally {
       lock.unlock();
       if (eventsToIndex != null) {
-        flushToElasticSearch(new BatchProcessContext(eventsToIndex, restClient, numMaxRetries, batchProcessMonitor));
+        flushToElasticSearch(new BatchProcessContext(eventsToIndex, restClient, numMaxRetries, esVersion, batchProcessMonitor));
       }
     }
   }
@@ -150,7 +158,7 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
     try {
       if (!CollectionUtils.isEmpty(batchQueue)) {
         LOGGER.info("Flushing {} elements to elasticsearch", batchQueue.size());
-        final BatchProcessContext context = new BatchProcessContext(batchQueue, restClient, numMaxRetries, batchProcessMonitor);
+        final BatchProcessContext context = new BatchProcessContext(batchQueue, restClient, numMaxRetries, esVersion, batchProcessMonitor);
         final BatchProcessWorker worker = new BatchProcessWorker(context);
         worker.call();
       }
@@ -158,6 +166,15 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
       lock.unlock();
       LOGGER.info("Flush process finished");
     }
+  }
+
+  @SuppressWarnings({"unused", "rawtypes"})
+  private String getElasticVersion() {
+    final StringMessageConverter converter = new DefaultStringMessageConverter();
+    final String response = restClient.get(new RequestContext("/"));
+    final Map obj = (Map) converter.unmarshal(response, Map.class);
+    final String version = (String) ((Map) obj.get("version")).get("number");
+    return version;
   }
 
 }

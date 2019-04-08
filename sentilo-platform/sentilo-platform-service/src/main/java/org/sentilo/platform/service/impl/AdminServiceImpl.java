@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -30,9 +30,11 @@ package org.sentilo.platform.service.impl;
 
 import java.util.List;
 
+import org.sentilo.common.config.SentiloArtifactConfigRepository;
 import org.sentilo.common.domain.CatalogAlert;
-import org.sentilo.common.domain.CatalogProvider;
+import org.sentilo.common.domain.CatalogEntity;
 import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
@@ -61,8 +63,12 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
 
   @Autowired
   private CounterService counterService;
+
   @Autowired
   private MetricService metricService;
+
+  @Autowired
+  private SentiloArtifactConfigRepository configRepository;
 
   @Override
   public Statistics getStatistics() {
@@ -91,12 +97,18 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
 
   @Override
   public void delete(final AdminInputMessage message) {
-    // This method must remove everything stored in Redis related to sensors, providers or alerts.
-    // The data, such as observations, orders and alarms, does not need be removed because them have
-    // a ttl associated with and Redis automatically deleted them.
+    // This method must remove everything stored in Redis related to sensors, providers,
+    // applications or
+    // alerts.
+    // Data, such as observations, orders and alarms, does not need be removed at this step because
+    // them
+    // have
+    // a ttl associated with and Redis will automatically deleted them.
 
     // Furthermore, these data will be orphaned so them cannot be retrieved with the API REST.
-    if (!CollectionUtils.isEmpty(message.getProviders())) {
+    if (!CollectionUtils.isEmpty(message.getApplications())) {
+      deleteApplications(message.getApplications());
+    } else if (!CollectionUtils.isEmpty(message.getProviders())) {
       deleteProviders(message.getProviders());
     } else if (!CollectionUtils.isEmpty(message.getSensors())) {
       deleteSensors(message.getSensors());
@@ -117,11 +129,35 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
     }
   }
 
-  private void deleteProviders(final List<CatalogProvider> providers) {
-    for (final CatalogProvider provider : providers) {
-      LOGGER.debug("Deleting provider [{}]", provider.getProvider());
-      resourceService.removeProvider(provider.getProvider());
-      subscribeService.remove(new Subscription(provider.getProvider()));
+  @Override
+  public void saveArtifactConfig(final AdminInputMessage message) {
+    if (!CollectionUtils.isEmpty(message.getArtifactsConfig())) {
+      for (final String artifactKey : message.getArtifactsConfig().keySet()) {
+        configRepository.saveArtifactConfig(artifactKey, message.getArtifactsConfig().get(artifactKey));
+      }
+    }
+  }
+
+  @Override
+  public PlatformConfigMessage getPlatformConfig() {
+    final PlatformConfigMessage configMessage = new PlatformConfigMessage();
+    configMessage.setGlobalConfig(configRepository.readGlobalConfig());
+
+    return configMessage;
+  }
+
+  private void deleteApplications(final List<CatalogEntity> applications) {
+    for (final CatalogEntity application : applications) {
+      LOGGER.debug("Deleting application subscriptions [{}]", application.getEntityId());
+      subscribeService.remove(new Subscription(application.getEntityId()));
+    }
+  }
+
+  private void deleteProviders(final List<CatalogEntity> providers) {
+    for (final CatalogEntity provider : providers) {
+      LOGGER.debug("Deleting provider [{}]", provider.getEntityId());
+      resourceService.removeProvider(provider.getEntityId());
+      subscribeService.remove(new Subscription(provider.getEntityId()));
     }
   }
 
@@ -159,7 +195,7 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
     // Provider should be created if it doesn't exist in Redis yet. But if sensor exists, it should
     // be updated
     resourceService.registerProviderIfNeedBe(sensor.getProvider());
-    resourceService.registerSensorIfNeedBe(sensor.getProvider(), sensor.getSensor(), sensor.getState(), true);
+    resourceService.registerSensorIfNeedBe(sensor, true);
   }
 
 }

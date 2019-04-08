@@ -35,10 +35,10 @@
 			<c:if test="${not isUserConfiguration}">
 				<div class="row-fluid">
 					<div class="span4">
-						<strong><spring:message code="visualConfiguration.chartVisibleObservationsNumber" /> </strong>
+						<strong><spring:message code="visualConfiguration.chartVisiblePointsNumber" /> </strong>
 					</div>
-					<c:if test="${not empty visualConfiguration and not empty visualConfiguration.chartVisibleObservationsNumber}">
-						<div class="span8">${visualConfiguration.chartVisibleObservationsNumber}</div>
+					<c:if test="${not empty visualConfiguration and not empty visualConfiguration.chartVisiblePointsNumber}">
+						<div class="span8">${visualConfiguration.chartVisiblePointsNumber}</div>
 					</c:if>
 				</div>
 			</c:if>

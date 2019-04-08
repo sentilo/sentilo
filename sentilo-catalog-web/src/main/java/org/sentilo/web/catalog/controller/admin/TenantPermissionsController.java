@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -54,10 +54,12 @@ import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ExcelGeneratorUtils;
 import org.sentilo.web.catalog.utils.ModelUtils;
 import org.sentilo.web.catalog.utils.TenantUtils;
+import org.sentilo.web.catalog.utils.enums.EntityType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -100,8 +102,8 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
     return Constants.MENU_TENANT;
   }
 
+  @RequestMapping(value = "/{type}/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  @RequestMapping("/{type}/{id}")
   public DataTablesDTO getTenantPermissions(final HttpServletRequest request, final Model model, final Pageable pageable,
       @PathVariable final String type, @PathVariable final String id, @RequestParam final Integer sEcho, @RequestParam final String tableName,
       @RequestParam(required = false) final String search) {
@@ -146,8 +148,8 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
       return Constants.VIEW_ADD_TENANT_PERMISSIONS;
     }
 
-    createPermissions(id, form.getSelectedProvidersIds(), form.getSelectedEntitiesIds(), form.getPermissionType(),
-        TenantPermission.EntityType.PROVIDER, form.getVisible(), form.getListVisible());
+    createPermissions(id, form.getSelectedProvidersIds(), form.getSelectedEntitiesIds(), form.getPermissionType(), EntityType.PROVIDER,
+        form.getVisible(), form.getListVisible());
 
     return viewTenantDetailPermissionsTab(id, model, "tenant.permissions.added", false, Constants.TAB_3);
   }
@@ -266,7 +268,7 @@ public class TenantPermissionsController extends SearchController<TenantPermissi
   }
 
   private void createPermissions(final String tenantSource, final String[] tenantSourceEntitiesIds, final String[] tenantTargetsIds,
-      final TenantPermission.Type type, final TenantPermission.EntityType entityType, final boolean visible, final boolean listVisible) {
+      final TenantPermission.Type type, final EntityType entityType, final boolean visible, final boolean listVisible) {
 
     for (final String entityId : tenantSourceEntitiesIds) {
       for (final String targetId : tenantTargetsIds) {

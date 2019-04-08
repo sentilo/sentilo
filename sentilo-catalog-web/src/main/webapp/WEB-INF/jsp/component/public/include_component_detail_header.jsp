@@ -8,14 +8,15 @@
 
 <script type="text/javascript">
 
-function geocodeAddress(latitude, longitude, target) {
+function createComponentHeader(latitude, longitude, target) {
 	var geo = new google.maps.Geocoder();
+	var componentDescription = '${component.description}';
 	geo.geocode({
 			'latLng' : new google.maps.LatLng(latitude, longitude)
 		},
 		function (results, status) {
 			if (status == google.maps.GeocoderStatus.OK && results[0]) {
-				$(target).html(results[0].formatted_address);
+				$(target).html(componentDescription + ' / ' + results[0].formatted_address);
 			}
 		}
 	);
@@ -49,8 +50,7 @@ function returnToComponentMap(){
 $(document).ready(function() {	
 	var latitude = ${component.location.centroid[1]};
 	var longitude = ${component.location.centroid[0]} 	
-	
-	geocodeAddress( latitude, longitude,'#componentAddress');			
+	createComponentHeader(latitude, longitude, '#componentHeader');			
 });
 
 </script>
@@ -69,7 +69,7 @@ $(document).ready(function() {
 	</div>
 	<h1 class="lead">
 		<div class="pull-left">
-				<span id="componentAddress"></span><br/>
+				<span id="componentHeader"></span><br/>
 				<small> ${component.name} / ${component.componentType} / ${component.providerId} </small><br/>					 															
 		</div>
 	</h1>	

@@ -7,7 +7,7 @@
 <c:set var="providerTable" value="providerTable"/>
 
 <spring:url value="/admin/provider/new" var="newProviderLink" />
-<spring:url value="/admin/provider/" var="detailPrefix" />
+<spring:url value="/admin/provider/" var="providerDetailPrefix" />
 <spring:url value="/admin/provider/delete" var="deleteURL" />
 <spring:url value="/admin/provider/list/excel?tableName=${providerTable}" var="excelSource" />
 <spring:url value="/admin/provider/list/json" var="sAjaxSource" />
@@ -17,7 +17,7 @@
 <script type="text/javascript">
 $(document).ready(function() {	
 	
-	var tableProvider =	makeTableAsync('${providerTable}', '${sAjaxSource}');
+	var tableProvider =	makeTableAsync('${providerTable}', '${sAjaxSource}', '${providerDetailPrefix}');
 	
 });
 </script>

@@ -22,7 +22,7 @@
 			return '<input type="checkbox" name="selectedIds" value="' + data +'" onclick="check(event);"/>';
 		}; 
 		
-		var table =	makeTableAsync('${tenantToPermissionsTable}', '${sAjaxSource}', false, firstColumnRenderDelegate);
+		var table =	makeTableAsync('${tenantToPermissionsTable}', '${sAjaxSource}', null, firstColumnRenderDelegate);
 	});
 </script>
 

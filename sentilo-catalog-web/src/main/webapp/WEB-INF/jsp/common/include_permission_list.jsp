@@ -6,8 +6,7 @@
 <c:if test="${not empty applicationId}">
 	<spring:url value="/admin/permissions/application/${applicationId}" var="sAjaxSource" />
 	<spring:url value="/admin/permissions/application/${applicationId}/add" var="addPermissionURL" />
-	<spring:url value="/admin/permissions/application/${applicationId}/remove" var="removePermissionURL" />
-	<spring:url value="/provider/" var="detailPrefix" />
+	<spring:url value="/admin/permissions/application/${applicationId}/remove" var="removePermissionURL" />	
 	<c:set value="${applicationId}" var="entityId" />
 	<c:set value="providers" var="modelAttribute" />
 	<spring:eval var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', application)"/>
@@ -17,8 +16,7 @@
 <c:if test="${not empty providerId}">
 	<spring:url value="/admin/permissions/provider/${providerId}" var="sAjaxSource" />
 	<spring:url value="/admin/permissions/provider/${providerId}/add" var="addPermissionURL" />
-	<spring:url value="/admin/permissions/provider/${providerId}/remove" var="removePermissionURL" />
-	<spring:url value="/sensor/" var="detailPrefix" />
+	<spring:url value="/admin/permissions/provider/${providerId}/remove" var="removePermissionURL" />	
 	<c:set value="${providerId}" var="entityId" />
 	<c:set value="sensors" var="modelAttribute" />
 	<spring:url value="/admin/provider/list?nameTableRecover=providerTable&fromBack=true" var="backURL" />
@@ -38,10 +36,7 @@
 		return '<input type="checkbox" name="selectedIds" value="' + data +'" onclick="check(event);"/>';
 		}; 
 		
-		var table =	makeTableAsync('${permissionTable}', '${sAjaxSource}', false, firstColumnRenderDelegate);
-		/* if(table.fnSettings().aoData.length === 0) {
-		    $('#excel_'+'${permissionTable}').css("display", "none");
-		} */
+		var table =	makeTableAsync('${permissionTable}', '${sAjaxSource}', null, firstColumnRenderDelegate);		
 });
 </script>
 

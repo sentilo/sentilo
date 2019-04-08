@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -52,7 +52,7 @@ import org.apache.http.protocol.ResponseConnControl;
 import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
-import org.sentilo.platform.server.SentiloThreadPoolExecutor;
+import org.sentilo.platform.server.SentiloHttpRequestTask;
 import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
@@ -80,6 +80,7 @@ public class RequestListenerThread extends Thread {
   private ThreadPool threadPool;
 
   private int port;
+  private int socketTcpBacklog;
   private int socketMillisecondsTimeout;
   private int socketBufferSize;
   private boolean staleConnectionCheck;
@@ -113,7 +114,7 @@ public class RequestListenerThread extends Thread {
   public void run() {
     try {
       initialize();
-      LOGGER.info("Listening on port {}", port);
+      LOGGER.info("Server initialized and listening on port {}", port);
       while (notInterrupted()) {
         manageConnection(new DefaultHttpServerConnection());
       }
@@ -140,8 +141,6 @@ public class RequestListenerThread extends Thread {
     initializeConnectionParams();
     registerURLS();
     initializeThreadPool();
-
-    LOGGER.info("Server is initialized.");
   }
 
   private void registerHandlers() {
@@ -167,8 +166,8 @@ public class RequestListenerThread extends Thread {
   }
 
   private void initializeListener() throws IOException {
-    LOGGER.info("Initializing listener on port {}", port);
-    serverSocket = new ServerSocket(port);
+    LOGGER.info("Initializing listener on port {} with TCP backlog {}", port, getSocketTcpBacklog());
+    serverSocket = new ServerSocket(port, getSocketTcpBacklog());
   }
 
   private void initializeThreadPool() {
@@ -196,7 +195,7 @@ public class RequestListenerThread extends Thread {
   private void manageConnection(final DefaultHttpServerConnection conn) throws IOException {
     final Socket s = serverSocket.accept();
     conn.bind(s, params);
-    threadPool.submit(new SentiloThreadPoolExecutor(httpService, conn));
+    threadPool.submit(new SentiloHttpRequestTask(httpService, conn));
   }
 
   private boolean notInterrupted() {
@@ -212,7 +211,7 @@ public class RequestListenerThread extends Thread {
       LOGGER.warn("Error stopping thread pool.", e);
     }
 
-    LOGGER.info("Thread pool shutdown");
+    LOGGER.warn("Thread pool shutdown");
   }
 
   private void releaseSocketPort() {
@@ -309,5 +308,13 @@ public class RequestListenerThread extends Thread {
 
   public void setAuthenticationService(final AuthenticationService authenticationService) {
     this.authenticationService = authenticationService;
+  }
+
+  public int getSocketTcpBacklog() {
+    return socketTcpBacklog;
+  }
+
+  public void setSocketTcpBacklog(final int socketTcpBacklog) {
+    this.socketTcpBacklog = socketTcpBacklog;
   }
 }

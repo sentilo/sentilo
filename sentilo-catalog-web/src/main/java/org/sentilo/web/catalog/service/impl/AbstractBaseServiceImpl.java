@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -69,13 +69,18 @@ public abstract class AbstractBaseServiceImpl {
     }
 
     if (!filter.andParamsIsEmpty()) {
-      final Criteria[] aCriteria = buildAndParamsCriteria(filter.getAndParams());
+      final Criteria[] aCriteria = buildFilterParamsCriteria(filter.getAndParams());
       queryCriteria = queryCriteria.andOperator(aCriteria);
     }
 
     if (!filter.paramsIsEmpty()) {
       final Criteria[] aCriteria = buildOrParamsCriteria(filter.getParams());
       queryCriteria = queryCriteria.orOperator(aCriteria);
+    }
+
+    if (!filter.norParamsIsEmpty()) {
+      final Criteria[] aCriteria = buildFilterParamsCriteria(filter.getNorParams());
+      queryCriteria = queryCriteria.norOperator(aCriteria);
     }
 
     final Query query = new Query(queryCriteria);
@@ -99,21 +104,22 @@ public abstract class AbstractBaseServiceImpl {
     return query;
   }
 
-  protected Criteria[] buildAndParamsCriteria(final Map<String, Object> andParams) {
-    // andParams contiene la lista de filtros a aplicar en modo conjuncion, es decir, con el
+  protected Criteria[] buildFilterParamsCriteria(final Map<String, Object> filterParams) {
+    // filterParams contiene la lista de filtros a aplicar en modo conjuncion, es decir, con el
     // operador AND
     // Además, en función del tipo de valor (colección o simple) la comparativa del valor siempre
     // será o bien mediante "es exactamente este valor", es decir, se debe comportar como un EQUALS,
     // o bien mediante "está dentro del conjunto {...}".
-    // andParams admite valores NULL
-    final Set<String> andParamsKeys = andParams.keySet();
-    final Criteria[] aCriteria = new Criteria[andParamsKeys.size()];
+
+    // filterParams admite valores NULL
+    final Set<String> filterParamsKeys = filterParams.keySet();
+    final Criteria[] aCriteria = new Criteria[filterParamsKeys.size()];
     int i = 0;
-    for (final String param : andParamsKeys) {
-      if (isCollectionValue(andParams.get(param))) {
-        aCriteria[i] = Criteria.where(param).in(getCollectionValue(andParams.get(param)));
+    for (final String filterParam : filterParamsKeys) {
+      if (isCollectionValue(filterParams.get(filterParam))) {
+        aCriteria[i] = Criteria.where(filterParam).in(getCollectionValue(filterParams.get(filterParam)));
       } else {
-        aCriteria[i] = Criteria.where(param).is(andParams.get(param));
+        aCriteria[i] = Criteria.where(filterParam).is(filterParams.get(filterParam));
       }
 
       i++;
@@ -148,7 +154,7 @@ public abstract class AbstractBaseServiceImpl {
   protected Query buildQuery(final String paramName, final Collection<String> values, final Map<String, Object> filterParams) {
     Criteria queryCriteria = Criteria.where(paramName).in(values);
     if (!CollectionUtils.isEmpty(filterParams)) {
-      final Criteria[] aCriteria = buildAndParamsCriteria(filterParams);
+      final Criteria[] aCriteria = buildFilterParamsCriteria(filterParams);
       queryCriteria = queryCriteria.andOperator(aCriteria);
     }
 

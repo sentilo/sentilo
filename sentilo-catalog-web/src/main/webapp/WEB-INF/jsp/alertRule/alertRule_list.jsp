@@ -6,7 +6,7 @@
 
 <spring:url value="/admin/alertRule/delete" var="deleteURL" />
 <spring:url value="/admin/alertRule/new" var="newRuleURL" />
-<spring:url value="/admin/alertRule/" var="detailPrefix" />
+<spring:url value="/admin/alertRule/" var="alertRuleDetailPrefix" />
 <spring:url value="/admin/alertRule/list/excel?tableName=${alertRuleTable}" var="excelSource" />
 <spring:url value="/admin/alertRule/list/json" var="sAjaxSource" />
 
@@ -14,7 +14,7 @@
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 	$(document).ready(function() {
-		makeTableAsync('${alertRuleTable}', '${sAjaxSource}');
+		makeTableAsync('${alertRuleTable}', '${sAjaxSource}', '${alertRuleDetailPrefix}');
 	});
 </script>
 

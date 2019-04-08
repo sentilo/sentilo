@@ -23,7 +23,7 @@
 						<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
 
 						<h1 class="lead">
-							${sensorType.name}<br /> <small><spring:message code="id" /> ${componentType.id}</small>
+							${componentType.name}<br /> <small><spring:message code="id" /> ${componentType.id}</small>
 						</h1>
 
 						<div class="tabbable">

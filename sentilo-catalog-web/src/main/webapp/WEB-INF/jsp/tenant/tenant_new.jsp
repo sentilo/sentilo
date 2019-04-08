@@ -52,7 +52,7 @@ $(document).ready(function() {
 									<h5><spring:message code="error.check.form.errors" /></h5>
 									<ul>
 									<c:forEach var="error" items="${errors.allErrors}">
-										<li class="text-error"><strong><spring:message code="${error.field}" />:</strong> <spring:message message="${error}" /></li>
+										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" />:</strong> <spring:message message="${error}" /></li>
 									</c:forEach>
 									</ul>
 								</div>
@@ -125,8 +125,7 @@ $(document).ready(function() {
 											</div>
 										</div>
 									</div>
-									<div class="tab-pane" id="tab2">
-										<c:set var="resourceIsComponent" value="false" />
+									<div class="tab-pane" id="tab2">										
 										<%@include file="/WEB-INF/jsp/common/include_visual_configuration_new.jsp"%>
 										<br />
 										<div class="accordion-group">

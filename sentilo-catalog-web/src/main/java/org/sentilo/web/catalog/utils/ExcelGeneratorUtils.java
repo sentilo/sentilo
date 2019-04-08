@@ -9,12 +9,14 @@ import java.util.Map;
 
 import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.web.catalog.context.TenantContextHolder;
+import org.sentilo.web.catalog.domain.ActiveSubscription;
 import org.sentilo.web.catalog.domain.Alert;
 import org.sentilo.web.catalog.domain.AlertRule;
 import org.sentilo.web.catalog.domain.Application;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.ComponentType;
+import org.sentilo.web.catalog.domain.FederationConfig;
 import org.sentilo.web.catalog.domain.LngLat;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Provider;
@@ -36,12 +38,12 @@ import org.springframework.util.StringUtils;
 public class ExcelGeneratorUtils {
 
   private enum ListType {
-    provider, application, component, sensor, sensortype, componenttype, permission, grant, user, alert, alertrule, tenant, tenantpermission;
+    provider, application, component, sensor, sensortype, componenttype, permission, grant, user, alert, alertrule, tenant, tenantpermission, activesubscription, federationconfig;
   }
 
   public static List<String> getColumnsNames(final String listTypeNAme) {
 
-    final ListType listType = ListType.valueOf(listTypeNAme); // surround with try/catch
+    final ListType listType = ListType.valueOf(listTypeNAme);
 
     switch (listType) {
       case provider:
@@ -70,6 +72,10 @@ public class ExcelGeneratorUtils {
         return getPermissionsExcelColumnNames();
       case tenantpermission:
         return getTenantPermissionsExcelColumnNames();
+      case activesubscription:
+        return getActiveSubscriptionExcelColumnNames();
+      case federationconfig:
+        return getFederationConfigExcelColumnNames();
       default:
         return Collections.emptyList();
     }
@@ -266,22 +272,7 @@ public class ExcelGeneratorUtils {
     row.add(component.getName());
     row.add(component.getDescription());
     row.add(component.getProviderId());
-
-    final StringBuilder sbL = new StringBuilder();
-    if (component.getLocation() != null) {
-      if (component.getLocation().getCoordinates() != null && component.getLocation().getCoordinates().length > 0) {
-        for (final LngLat coord : component.getLocation().getCoordinates()) {
-          if (sbL.length() > 0) {
-            sbL.append("\n");
-          }
-          sbL.append(coord.getLatitude() + ", " + coord.getLongitude());
-        }
-      } else if (component.getLocation().getCentroid() != null && component.getLocation().getCoordinates().length == 2) {
-        sbL.append(component.getLocation().getCoordinates()[1] + ", " + component.getLocation().getCoordinates()[0]);
-      }
-    }
-    row.add(sbL.toString());
-
+    row.add(buildLocationCell(component));
     row.add(String.valueOf(component.getPublicAccess()));
 
     if (component.isMobileComponent()) {
@@ -310,6 +301,24 @@ public class ExcelGeneratorUtils {
     addAuditInfo(component, row, localDateFormatter);
 
     return row;
+  }
+
+  private static String buildLocationCell(final Component component) {
+    final StringBuilder sbL = new StringBuilder();
+    if (component.getLocation() != null) {
+      if (component.getLocation().getCoordinates() != null && component.getLocation().getCoordinates().length > 0) {
+        for (final LngLat coord : component.getLocation().getCoordinates()) {
+          if (sbL.length() > 0) {
+            sbL.append("\n");
+          }
+          sbL.append(coord.getLatitude() + ", " + coord.getLongitude());
+        }
+      } else if (component.getLocation().getCentroid() != null && component.getLocation().getCoordinates().length == 2) {
+        sbL.append(component.getLocation().getCoordinates()[1] + ", " + component.getLocation().getCoordinates()[0]);
+      }
+    }
+
+    return sbL.toString();
   }
 
   private static List<String> getComponentExcelColumnNames() {
@@ -636,6 +645,61 @@ public class ExcelGeneratorUtils {
     return row;
   }
 
+  public static List<String> getActiveSubscriptionsExcelRowsData(final ActiveSubscription activeSubscription,
+      final LocalDateFormatter localDateFormatter, final CatalogUserDetails userDetails) {
+    final List<String> row = new ArrayList<String>();
+    row.add(activeSubscription.getEntityId());
+    row.add(activeSubscription.getEntityType().name());
+    row.add(activeSubscription.getSubscriptionType());
+    if (activeSubscription.getProvider() != null && activeSubscription.getProvider().endsWith("*")) {
+      row.add(activeSubscription.getProvider().substring(0, activeSubscription.getProvider().length() - 1));
+    } else {
+      row.add(activeSubscription.getProvider());
+    }
+    row.add(activeSubscription.getSensor());
+    row.add(activeSubscription.getEndpoint());
+    row.add(String.valueOf(activeSubscription.getMaxRetries()));
+    row.add(String.valueOf(activeSubscription.getRetryDelay()));
+    return row;
+  }
+
+  public static List<String> getFederationConfigExcelRowsData(final FederationConfig resource, final LocalDateFormatter localDateFormatter) {
+    final List<String> row = new LinkedList<String>();
+
+    row.add(resource.getId());
+    row.add(resource.getName());
+    row.add(resource.getDescription());
+    row.add(resource.getAppClientName());
+    row.add(resource.getAppClientToken());
+    row.add(resource.getSourceEndpoint());
+    row.add(resource.getSourceContactName());
+    row.add(resource.getSourceContactMail());
+    row.add(localDateFormatter.printAsLocalTime(resource.getLastSyncTime(), Constants.DATETIME_FORMAT));
+
+    addAuditInfo(resource, row, localDateFormatter);
+
+    return row;
+  }
+
+  private static List<String> getFederationConfigExcelColumnNames() {
+    final List<String> listColumnNames = new LinkedList<String>();
+    listColumnNames.add(Constants.ID_PROP);
+    listColumnNames.add(Constants.NAME_PROP);
+    listColumnNames.add(Constants.DESCRIPTION_PROP);
+    listColumnNames.add(Constants.APP_CLIENT_NAME_PROP);
+    listColumnNames.add(Constants.APP_CLIENT_TOKEN_PROP);
+    listColumnNames.add(Constants.FEDERATION_SERVER_API_ENDPOINT_PROP);
+    listColumnNames.add(Constants.CONTACT_NAME_PROP);
+    listColumnNames.add(Constants.CONTACT_EMAIL_PROP);
+    listColumnNames.add(Constants.FEDERATION_SERVER_LAST_SYNC_PROP);
+    listColumnNames.add(Constants.CREATED_AT_PROP);
+    listColumnNames.add(Constants.CREATED_BY_PROP);
+    listColumnNames.add(Constants.UPDATED_AT_PROP);
+    listColumnNames.add(Constants.UPDATED_BY_PROP);
+
+    return listColumnNames;
+  }
+
   private static List<String> getUserExcelColumnNames() {
     final List<String> listColumnNames = new ArrayList<String>();
     listColumnNames.add(Constants.USER_NAME_PROP);
@@ -656,6 +720,21 @@ public class ExcelGeneratorUtils {
     listColumnNames.add(Constants.CREATED_BY_PROP);
     listColumnNames.add(Constants.UPDATED_AT_PROP);
     listColumnNames.add(Constants.UPDATED_BY_PROP);
+
+    return listColumnNames;
+  }
+
+  private static List<String> getActiveSubscriptionExcelColumnNames() {
+    final List<String> listColumnNames = new LinkedList<String>();
+
+    listColumnNames.add(Constants.ENTITY_ID_PROP);
+    listColumnNames.add(Constants.ENTITY_TYPE_PROP);
+    listColumnNames.add(Constants.SUBSCRIPTION_TYPE_PROP);
+    listColumnNames.add(Constants.PROVIDER_PROP);
+    listColumnNames.add(Constants.SENSOR_PROP);
+    listColumnNames.add(Constants.ENDPOINT_PROP);
+    listColumnNames.add(Constants.MAX_RETRIES_PROP);
+    listColumnNames.add(Constants.RETRY_DELAY_PROP);
 
     return listColumnNames;
   }
@@ -706,9 +785,8 @@ public class ExcelGeneratorUtils {
         keyValues.put(Constants.VISUAL_CONFIGURATION_DATFEORMATPATTERN_PROP, visualConfiguration.getDateFormatPattern());
       }
 
-      if (visualConfiguration.getChartVisibleObservationsNumber() != null) {
-        keyValues.put(Constants.VISUAL_CONFIGURATION_CHARTVISIBLEOBSN_PROP,
-            Integer.toString(visualConfiguration.getChartVisibleObservationsNumber()));
+      if (visualConfiguration.getChartVisiblePointsNumber() != null) {
+        keyValues.put(Constants.VISUAL_CONFIGURATION_CHARTVISIBLEOBSN_PROP, Integer.toString(visualConfiguration.getChartVisiblePointsNumber()));
       }
     }
     return CatalogUtils.mapToString(keyValues);

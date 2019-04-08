@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -53,9 +53,11 @@ import org.sentilo.web.catalog.dto.ObservationDTO;
 import org.sentilo.web.catalog.dto.OptionDTO;
 import org.sentilo.web.catalog.dto.VisualConfigurationDTO;
 import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
+import org.sentilo.web.catalog.format.misc.SensorValueFormatter;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ComponentService;
 import org.sentilo.web.catalog.service.CrudService;
+import org.sentilo.web.catalog.service.PlatformService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.sentilo.web.catalog.service.SensorSubstateService;
@@ -70,6 +72,7 @@ import org.sentilo.web.catalog.utils.OrderMessageComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
@@ -102,16 +105,22 @@ public class SensorController extends CrudController<Sensor> {
   private SensorSubstateService sensorSubStateService;
 
   @Autowired
+  private PlatformService platformService;
+
+  @Autowired
   private MessageSource messageSource;
 
   @Autowired
   private LocalDateFormatter localDateFormatter;
 
+  @Autowired
+  private SensorValueFormatter sensorValueFormatter;
+
   @ModelAttribute(Constants.MODEL_VISUAL_CONFIGURATION)
   public VisualConfigurationDTO getDefaultChartObervationsNumber() {
     final UserConfigContext context = UserConfigContextHolder.getContext();
     final VisualConfigurationDTO dto =
-        new VisualConfigurationDTO(context.getUserTimeZone().getID(), context.getUserDatePattern(), context.getUserChartNumObs());
+        new VisualConfigurationDTO(context.getUserTimeZone().getID(), context.getUserDatePattern(), context.getChartVisiblePointsNumber());
     return dto;
   }
 
@@ -146,7 +155,7 @@ public class SensorController extends CrudController<Sensor> {
     return CatalogUtils.getMaxSystemTimeMillis();
   }
 
-  @RequestMapping("/search/json")
+  @RequestMapping(value = "/search/json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<Sensor> search(final HttpServletRequest request, @RequestParam(required = true) final String search,
       @RequestParam(required = true) final String providerId, @RequestParam(required = false) final String componentId, final Model model) {
@@ -167,41 +176,40 @@ public class SensorController extends CrudController<Sensor> {
     return Constants.VIEW_SENSOR_DETAIL;
   }
 
-  @RequestMapping(value = "/lastOb/{sensorId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/lastOb/{sensorId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ObservationDTO getLastObservation(@PathVariable final String sensorId) {
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
     if (sensor != null) {
       translateIdForNameSensorType(sensor);
       final Observation observation = sensorService.getLastObservation(sensor);
-      return new ObservationDTO(sensor, observation);
+      return createObservationDTO(sensor, observation);
     }
     return null;
   }
 
-  @RequestMapping(value = "/lastObs/{sensorId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/lastObs/{sensorId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  public LastEventsDTO<Observation> getLastObservations(@PathVariable final String sensorId,
-      @RequestParam(value = "limit", required = false) final Integer limit, @RequestParam(value = "from", required = false) final Long from,
-      @RequestParam(value = "to", required = false) final Long to) {
+  public LastEventsDTO<ObservationDTO> getLastObservations(@PathVariable final String sensorId,
+      @RequestParam(value = "from", required = false) final Long from, @RequestParam(value = "to", required = false) final Long to) {
 
     final Date fromDate = from != null ? new Date(from) : null;
     final Date toDate = to != null ? new Date(to) : null;
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
-    final SortedEventsList<Observation> events = sensorService.getLastObservations(sensor, fromDate, toDate, limit);
-    final LastEventsDTO<Observation> lastEvents = new LastEventsDTO<Observation>(events, localDateFormatter);
+    final SortedEventsList<Observation> events = sensorService.getLastObservations(sensor, fromDate, toDate);
+    final LastEventsDTO<ObservationDTO> lastEvents = convertLastObservationsToLastObservationsDTO(sensor, events);
 
     // If sensor data is not TEXT type, reverse order collection to display data from left to right
     // in the graphic (most recent right).
     // Elsewhere, data will be read from up to bottom (most recent up)
-    if (!DataType.TEXT.equals(sensor.getDataType())) {
+    if (DataType.BOOLEAN.equals(sensor.getDataType()) || DataType.NUMBER.equals(sensor.getDataType())) {
       lastEvents.reverse();
     }
 
     return lastEvents;
   }
 
-  @RequestMapping(value = "/lastAlarms/{sensorId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/lastAlarms/{sensorId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<AlarmMessage> getLastAlarms(@PathVariable final String sensorId) {
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
@@ -210,7 +218,7 @@ public class SensorController extends CrudController<Sensor> {
     return alarmMessages;
   }
 
-  @RequestMapping(value = "/lastOrders/{sensorId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/lastOrders/{sensorId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<OrderMessage> getLastOrders(@PathVariable final String sensorId) {
     final Sensor sensor = sensorService.find(new Sensor(sensorId));
@@ -364,42 +372,38 @@ public class SensorController extends CrudController<Sensor> {
   /*
    * (non-Javadoc)
    *
-   * @see
-   * org.sentilo.web.catalog.controller.CrudController#doAfterViewResource(org.springframework.ui.
-   * Model)
-   */
-  // @Override
-  /*
-   * protected void doAfterViewResource(final Model model) { final Sensor sensor = (Sensor)
-   * model.asMap().get(getEntityModelKey()); if (SensorState.offline.equals(sensor.getState())) {
-   * SensorSubstate substate = sensorSubStateService.find(sensor.getSubstate());
-   * sensor.setSubstateDesc(substate != null ? substate.getDescription() : ""); } }
-   */
-
-  /*
-   * (non-Javadoc)
-   *
    * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
    * catalog.domain.CatalogDocument, org.springframework.ui.Model)
    */
   @Override
   protected void doAfterViewResource(final Model model) {
     final Sensor sensor = (Sensor) model.asMap().get(getEntityModelKey());
+    setDefaultTtl(sensor);
     if (StringUtils.hasText(sensor.getSubstate())) {
       final SensorSubstate substate = sensorSubStateService.find(sensor.getSubstate());
       sensor.setSubstateDesc(substate.getDescription());
     }
+
   }
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
-   * catalog.domain.CatalogDocument, org.springframework.ui.Model)
-   */
   @Override
-  protected void doBeforeCreateResource(final Sensor sensor, final Model model) {
-    super.doBeforeCreateResource(sensor, model);
+  protected void doAfterNewResource(final Model model) {
+    super.doAfterNewResource(model);
+    final Sensor sensor = (Sensor) model.asMap().get(getEntityModelKey());
+    setDefaultTtl(sensor);
+  }
+
+  @Override
+  protected void doAfterEditResource(final Model model) {
+    super.doAfterEditResource(model);
+    final Sensor sensor = (Sensor) model.asMap().get(getEntityModelKey());
+    setDefaultTtl(sensor);
+  }
+
+  private void setDefaultTtl(final Sensor sensor) {
+    if (sensor.getTtl() == 0) {
+      sensor.setTtl(platformService.getPlatformTtl());
+    }
   }
 
   /*
@@ -442,7 +446,8 @@ public class SensorController extends CrudController<Sensor> {
       observation.setValue(value);
     }
 
-    model.addAttribute(Constants.MODEL_SENSOR_LAST_OBSERVATION, observation);
+    // ObservationDTO
+    model.addAttribute(Constants.MODEL_SENSOR_LAST_OBSERVATION, createObservationDTO(sensor, observation));
 
   }
 
@@ -465,4 +470,31 @@ public class SensorController extends CrudController<Sensor> {
     }
   }
 
+  private LastEventsDTO<ObservationDTO> convertLastObservationsToLastObservationsDTO(final Sensor sensor,
+      final SortedEventsList<Observation> events) {
+    // Update the observation for S3 cases
+    // Return ObservationDTO
+    final List<ObservationDTO> observationDtoList = new ArrayList<ObservationDTO>();
+    for (final Observation observation : events.getEvents()) {
+      observationDtoList.add(createObservationDTO(sensor, observation));
+    } ;
+
+    // Create new SortedEventsList<ObservationDTO> from SortedEventsList<Observation>
+    final SortedEventsList<ObservationDTO> eventsDTO = new SortedEventsList<ObservationDTO>(observationDtoList);
+    eventsDTO.setFrom(events.getFrom());
+    eventsDTO.setTo(events.getTo());
+
+    return new LastEventsDTO<ObservationDTO>(eventsDTO, localDateFormatter);
+  }
+
+  private ObservationDTO createObservationDTO(final Sensor sensor, final Observation observation) {
+
+    final ObservationDTO observationDTO = new ObservationDTO(sensor, observation);
+
+    if (StringUtils.hasText(observationDTO.getValue())) {
+      observationDTO.setFormattedValue(sensorValueFormatter.formatValue(sensor, observation));
+    }
+
+    return observationDTO;
+  }
 }

@@ -32,12 +32,12 @@
 			</c:if>
 			<c:if test="${not isUserConfiguration}">
 				<div class="control-group">
-					<form:label path="visualConfiguration.chartVisibleObservationsNumber" class="control-label">
-						<spring:message code="visualConfiguration.chartVisibleObservationsNumber" />
+					<form:label path="visualConfiguration.chartVisiblePointsNumber" class="control-label">
+						<spring:message code="visualConfiguration.chartVisiblePointsNumber" />
 					</form:label>
 					<div class="controls">
-						<form:input path="visualConfiguration.chartVisibleObservationsNumber"  />
-						<form:errors path="visualConfiguration.chartVisibleObservationsNumber" cssClass="text-error" htmlEscape="false" />
+						<form:input path="visualConfiguration.chartVisiblePointsNumber"  />
+						<form:errors path="visualConfiguration.chartVisiblePointsNumber" cssClass="text-error" htmlEscape="false" />
 					</div>
 				</div>
 			</c:if>

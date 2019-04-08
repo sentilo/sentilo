@@ -7,7 +7,6 @@
 <c:set var="requestUriTokens" value="${fn:split(requestScope['javax.servlet.forward.servlet_path'], '/')}" />
 <c:set var="currentSchema" value="${fn:contains(header['X-Forwarded-Proto'], 'https') ? 'https' : 'http'}"/>
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,6 +16,11 @@
 <meta http-equiv="Cache-Control" content="no-cache" >
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0" >
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="_csrf" content="${_csrf.token}"/>
+<meta name="_csrf_header" content="${_csrf.headerName}"/>
+
+
 <title><spring:message code="generic.title" /></title>
 
 <%@include file="/WEB-INF/jsp/common/styles.jsp"%>

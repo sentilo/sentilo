@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -48,6 +48,7 @@ import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.OrderMessage;
 import org.sentilo.common.domain.QueryFilterParams;
 import org.sentilo.common.domain.SensorOrdersMessage;
+import org.sentilo.common.utils.DateUtils;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
 import org.sentilo.platform.client.core.domain.AlarmMessage;
 import org.sentilo.platform.client.core.domain.AlarmsOutputMessage;
@@ -137,10 +138,12 @@ public class ClientDomainTest {
 
   @Test
   public void alarmMessage() throws Exception {
-    final Object[] values = {"mockMessage", "mockSender", "18/06/2014T08:00:00"};
-    final String[] attributes = {"message", "sender", "timestamp"};
+    final String sTimestamp = "18/06/2014T08:00:00";
+    final Object[] values = {"mockMessage", "mockSender", sTimestamp, DateUtils.toMillis(sTimestamp)};
+    final String[] attributes = {"message", "sender", "timestamp", "time"};
+    final Object[] constructorValues = {"mock order", "mock sender", sTimestamp};
 
-    buildAndCompareObjects(AlarmMessage.class, attributes, values);
+    buildAndCompareObjects(AlarmMessage.class, attributes, values, constructorValues);
   }
 
   @Test
@@ -287,10 +290,6 @@ public class ClientDomainTest {
   }
 
   // Utility methods
-
-  private <T> void buildAndCompareObjects(final Class<T> clazz, final String[] attributes, final Object[] values) throws Exception {
-    buildAndCompareObjects(clazz, attributes, values, values);
-  }
 
   private <T> void buildAndCompareObjects(final Class<T> clazz, final String[] attributes, final Object[] values, final Object[] constructorValues)
       throws Exception {

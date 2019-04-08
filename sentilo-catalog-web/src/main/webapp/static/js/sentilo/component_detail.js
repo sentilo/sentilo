@@ -4,22 +4,34 @@ var selectedSensor = undefined;
 var dataType = null;
 
 var lastObsUrl = null;
-var activityURLPrefix = null;
+var dataURLPrefix = null;
 var ordersURLPrefix = null;
 var alarmsURLPrefix = null;
+
+var chartNav = null;
+
+window.messages = {
+	boolValues: {
+		falseValue: 'no',
+		trueValue: 'yes'
+	},
+	chart: {
+		iniDate: 'Initial date:',
+		endDate: 'End date:'
+	}	
+};
 
 /**
  * Init all script variables needed by the graphs and data boxes
  */
-var initComponentDetailVariables = function(url, activityUrl, ordersUrl, alarmsUrl, maxChartDate, type, numObs) {
+var initComponentDetailVariables = function(url, dataUrl, ordersUrl, alarmsUrl, maxChartDate, type) {
 	lastObsUrl = url;
-	activityURLPrefix = activityUrl;
+	dataURLPrefix = dataUrl;
 	ordersURLPrefix = ordersUrl;
 	alarmsURLPrefix = alarmsUrl;
 	theFuture = maxChartDate;
 	to = theFuture;
 	dataType = type;
-	chartVisibleObservationsNumber = numObs;
 }
 
 /*
@@ -63,14 +75,159 @@ var retrieveOrders = function(placeholder, url) {
  * Updates activity panel
  */
 var retrieveActivity = function(placeholder, url, label) {
-	if (selectedSensor.dataType == 'BOOLEAN') {
-		makeBooleanChart(placeholder, url, label, refreshChartControlLabels);
-	} else if (selectedSensor.dataType == 'TEXT') {
-		makeTextChart(placeholder, url, label, refreshChartControlLabels);
+	if (selectedSensor.dataType === 'LINK' || 
+		selectedSensor.dataType === 'AUDIO_LINK' || 
+		selectedSensor.dataType === 'IMAGE_LINK' || 
+		selectedSensor.dataType === 'VIDEO_LINK' || 
+		selectedSensor.dataType === 'FILE_LINK') {
+		makeLinkChart(placeholder, url, selectedSensor.dataType, refreshChartControlLabels);
+	} else if (selectedSensor.dataType === 'TEXT' || selectedSensor.dataType === 'JSON') {
+		makeTextChart(placeholder, "#lastSensorDataPanel", url, selectedSensor.dataType, refreshChartControlLabels);
+	} else if (selectedSensor.dataType === 'BOOLEAN') {
+		chartNav = [];
+		$(placeholder).empty();
+		showBooleanDataChart(url, placeholder);
 	} else {
-		makeNumberChart(placeholder, url, label, refreshChartControlLabels);
+		chartNav = [];
+		$(placeholder).empty();
+		showNumericDataChart(url, placeholder, selectedSensor.label, selectedSensor.unit);
 	}
 };
+
+function showBooleanDataChart(url, dataPanel, filters) {
+	jsonGET(url, filters, function(data) {
+		var chartAnchor = $('<div id="bool-chart" class="ct-chart ct-perfect-fourth ct-chart-centered-labels"></div>');
+		$(dataPanel).html(chartAnchor);
+		printBooleanChart(data, '#bool-chart', {height: 220, bottomPadding: 20});
+		
+		var fromTimestamp = (data.fromTimestamp===null) ? '' : data.fromTimestamp;
+		var toTimestamp = (data.toTimestamp===null) ? '' : data.toTimestamp;
+		
+		var iniDateMessage = window.messages.chart.iniDate;
+		var endDateMessage = window.messages.chart.endDate;
+		
+		var chartControls = 
+			'<div class="chart-controls row-fluid">' +
+			'	<div class="chart-controls span3">' +
+			'		<div class="btn-group">' +
+		    '  			<button id="chart-control-prev-btn" class="btn"><i class="icon-chevron-left"></i></button>' +
+		    '  			<button id="chart-control-refresh-btn" class="btn"><i class="icon-refresh"></i></button>' +
+		    '  			<button id="chart-control-next-btn" class="btn"><i class="icon-chevron-right"></i></button>' +
+		    '		</div>' +
+			'	</div>' +
+			'	<div class="chart-start-date span3"><span class="chart-controls-label">' + iniDateMessage + '&nbsp;</span><span class="chart-controls-value">' + fromTimestamp + '</span></div>' +
+			'	<div class="chart-end-date span6"><span class="chart-controls-label">'+ endDateMessage +'&nbsp;</span><span class="chart-controls-value">' + toTimestamp + '</span></div>' +
+			'</div>';
+		
+		$(dataPanel).append($(chartControls));
+		
+		$("#chart-control-prev-btn").unbind('click');
+		$("#chart-control-prev-btn").on('click', function(e) {
+			filters = {
+				to: data.fromTime
+			};
+			var navActual = {
+				fromTimestamp: data.fromTimestamp, 
+				toTimestamp: data.toTimestamp, 
+				fromTime: data.fromTime, 
+				toTime: data.toTime
+			};
+			chartNav.push(navActual);
+			showBooleanDataChart(url, dataPanel, filters);
+		});
+		
+		$("#chart-control-refresh-btn").unbind('click');
+		$("#chart-control-refresh-btn").on('click', function(e) {
+			chartNav = [];
+			filters = {};
+			showBooleanDataChart(url, dataPanel, filters);
+		});
+		
+		$("#chart-control-next-btn").unbind('click');
+		$("#chart-control-next-btn").on('click', function(e) {
+			var prevNav = chartNav.pop();
+			if (!prevNav) {
+				chartNav = [];
+				filters = {};
+			} else {
+				filters = {
+					to: prevNav.toTime + 1000
+				};	
+			}
+			showBooleanDataChart(url, dataPanel, filters);
+		});
+		
+	});
+	
+}
+
+function showNumericDataChart(url, dataPanel, sensorType, unit, filters) {
+	jsonGET(url, filters, function(data) {
+		var chartAnchor = $('<div id="num-chart" class="ct-chart ct-perfect-fourth ct-chart-centered-labels"></div>');
+		$(dataPanel).html(chartAnchor);
+		printNumericalChart(data, sensorType, unit, '#num-chart', {height: 220, bottomPadding: 20});
+		
+		var fromTimestamp = (data.fromTimestamp===null) ? '' : data.fromTimestamp;
+		var toTimestamp = (data.toTimestamp===null) ? '' : data.toTimestamp;
+		
+		var iniDateMessage = window.messages.chart.iniDate;
+		var endDateMessage = window.messages.chart.endDate;
+		
+		var chartControls = 
+			'<div class="chart-controls row-fluid">' +
+			'	<div class="chart-controls span3">' +
+			'		<div class="btn-group">' +
+		    '  			<button id="chart-control-prev-btn" class="btn"><i class="icon-chevron-left"></i></button>' +
+		    '  			<button id="chart-control-refresh-btn" class="btn"><i class="icon-refresh"></i></button>' +
+		    '  			<button id="chart-control-next-btn" class="btn"><i class="icon-chevron-right"></i></button>' +
+		    '		</div>' +
+			'	</div>' +
+			'	<div class="chart-start-date span3"><span class="chart-controls-label">'+ iniDateMessage +'&nbsp;</span><span class="chart-controls-value">' + fromTimestamp + '</span></div>' +
+			'	<div class="chart-end-date span6"><span class="chart-controls-label">'+ endDateMessage +'&nbsp;</span><span class="chart-controls-value">' + toTimestamp + '</span></div>' +
+			'</div>';
+		
+		$(dataPanel).append($(chartControls));
+		
+		$("#chart-control-prev-btn").unbind('click');
+		$("#chart-control-prev-btn").on('click', function(e) {
+			filters = {
+				to: data.fromTime
+			};
+			var navActual = {
+				fromTimestamp: data.fromTimestamp, 
+				toTimestamp: data.toTimestamp, 
+				fromTime: data.fromTime, 
+				toTime: data.toTime
+			};
+			chartNav.push(navActual);
+			showNumericDataChart(url, dataPanel, sensorType, unit, filters);
+		});
+		
+		$("#chart-control-refresh-btn").unbind('click');
+		$("#chart-control-refresh-btn").on('click', function(e) {
+			chartNav = [];
+			filters = {};
+			showNumericDataChart(url, dataPanel, sensorType, unit, filters);
+		});
+		
+		$("#chart-control-next-btn").unbind('click');
+		$("#chart-control-next-btn").on('click', function(e) {
+			var prevNav = chartNav.pop();
+			if (!prevNav) {
+				chartNav = [];
+				filters = {};
+			} else {
+				filters = {
+					to: prevNav.toTime + 1000
+				};	
+			}
+			showNumericDataChart(url, dataPanel, sensorType, unit, filters);
+		});
+		
+	});
+	
+}
+
 
 var refreshChartControlLabels = function(theNavData) {
 	
@@ -92,67 +249,42 @@ var refreshChartControlLabels = function(theNavData) {
  */
 
 var addLastSensorObservationToPanel = function(panel, data) {
-
-	var isJsonValue = false;
-	var stats = $('<div id="componentLastObsValue" class="stats"></div>');
-	var date = '<br/> <spring:message code="component.sensor.observation.lastupdated"/> <br/>';
-	if (data.found) {
-		date = date + formatTimestamp(data.timestamp);
-					
-		if (data.dataType == 'BOOLEAN') {
-			data.value = eval(data.value) ? '' : 'No';
-			stats.html(data.value + ' ' + data.unit);
-		} else if (data.dataType == 'TEXT') {
-			if (!$.isNumeric(data.value) && validateJson(data.value)) {
-				// stats.html('<pre class="json">' + jsonPrettyPrint.toHtml(jQuery.parseJSON(data.value)) + '</pre>');
-				isJsonValue = true;
+	if (data.dataType === 'AUDIO_LINK') {
+		showAndLoadAudioPlayer(panel, data.value, data.formattedValue, data.sensor, data.sensorType, data.timestamp);
+		stopPreviousRefresh();
+	} else if (data.dataType === 'VIDEO_LINK') {
+		showAndLoadVideoPlayer(panel, data.value, data.formattedValue, data.sensor, data.sensorType, data.timestamp);
+		stopPreviousRefresh();
+	} else if (data.dataType === 'IMAGE_LINK') {
+		showImage(panel, data.value, data.formattedValue, data.sensor, data.sensorType, data.timestamp);
+		stopPreviousRefresh();
+	} else if (data.dataType === 'FILE_LINK') {
+		var filename = data.value.substring(data.value.lastIndexOf('/')+1);
+		showFile(panel, data.value, data.formattedValue, filename, data.sensor, data.sensorType, data.timestamp);
+		stopPreviousRefresh();
+	} else if (data.dataType === 'LINK') {
+		showLink(panel, data.value, data.sensor, data.sensorType, data.timestamp);
+	} else if (data.dataType === 'JSON') {
+		showJson(panel, data.value, data.timestamp);
+	} else {
+		var stats = $('<div id="componentLastObsValue" class="stats"></div>');
+		var date = '<br/> <spring:message code="component.sensor.observation.lastupdated"/> <br/>';
+		if (data.found) {
+			date = date + formatTimestamp(data.timestamp);
+			if (data.dataType == 'BOOLEAN') {
+				data.value = eval(data.value) ? messages.boolValues.trueValue.toUpperCase() : messages.boolValues.falseValue.toUpperCase();
+				stats.html(data.value + ' ' + data.unit);
 			} else {
 				stats.html(data.value + ' ' + data.unit);
-			}
+			} 
 		} else {
-			stats.html(data.value + ' ' + data.unit);
+			date = date + '<spring:message code="component.sensor.observation.not.found"/>';
+			stats.html('<spring:message code="component.sensor.observation.not.found"/>');
 		}
-		
-	} else {
-		date = date + '<spring:message code="component.sensor.observation.not.found"/>';
-		stats.html('<spring:message code="component.sensor.observation.not.found"/>');
-	}
-	panel.append(data.sensor+'<br/>'+data.sensorType+'<br/>');
-	panel.append(stats);
-	panel.append(date);
-	panel.append($('<br/>'));
-	
-	if (isJsonValue) {
-		$("#componentLastObsValue").removeClass("stats");
-		
-		var jsonContainer = $('#componentLastObsValue');
-		jsonContainer
-			.jsonPresenter('destroy')
-			.jsonPresenter({ json: jQuery.parseJSON(data.value) })
-			.jsonPresenter('expand', 0);
-		
-		var actionButtonsToolbar = $('<div class="btn-toolbar pull-right"><i class="icon-align-left"></i></a>');
-		var actionButtonsGrp = $('<div class="btn-group" />');
-				
-		// Collapse all button
-		actionButtonsGrp.append($('<a class="btn" href="#" id="collapse-all"><i class="icon-resize-small"></i></a>')
-			.on('click', function() {
-				jsonContainer.jsonPresenter('collapseAll');
-			})
-		);
-		
-		// Expand all button
-		actionButtonsGrp.append($('<a class="btn" href="#" id="expand-all"><i class="icon-resize-full"></i></a>')
-			.on('click', function() {
-				jsonContainer.jsonPresenter('expandAll');
-			})
-		);
-				
-		
-		// Append buttons
-		actionButtonsToolbar.append(actionButtonsGrp);
-		jsonContainer.append(actionButtonsToolbar);
-		jsonContainer.jsonPresenter('expandAll');
+		panel.append(data.sensor + '<br/> ' +data.sensorType + '<br/>');
+		panel.append(stats);
+		panel.append(date);
+		panel.append($('<br/>'));
 	}
 	
 };
@@ -173,23 +305,14 @@ var retrieveLastSensorObservationPanel = function() {
  */
 
 var retrieveChartPanel = function() {
-	
-	// Get sensor's visual configuration
-	// Sensor > Tenant > Default
-	var limit = selectedSensor.visualConfiguration.chartVisibleObservationsNumber;
-	if (typeof limit === 'undefined' || limit === null || limit === '') { 
-		if (typeof chartVisibleObservationsNumber !== 'undefined' && chartVisibleObservationsNumber !== null && chartVisibleObservationsNumber !== '') {
-			limit = chartVisibleObservationsNumber;
-		} 
-	}
-	
+		
 	// Retrieve chart data
-	if (dataType === 'activity') {
-		retrieveActivity('#activity_placeholder', createChartUrl(activityURLPrefix + selectedSensor.id + "/", from, to, limit), selectedSensor.label);
+	if (dataType === 'data') {
+		retrieveActivity('#activity_placeholder', createChartUrl(dataURLPrefix + selectedSensor.id + "/", from, to), selectedSensor.label);
 	} else if (dataType === 'orders') {
-		retrieveOrders('#orders_placeholder', createChartUrl(ordersURLPrefix + selectedSensor.id + "/", from, to, limit));
+		retrieveOrders('#orders_placeholder', createChartUrl(ordersURLPrefix + selectedSensor.id + "/", from, to));
 	} else if (dataType === 'alarms') {
-		retrieveAlarms('#alarms_placeholder', createChartUrl(alarmsURLPrefix + selectedSensor.id + "/", from, to, limit));
+		retrieveAlarms('#alarms_placeholder', createChartUrl(alarmsURLPrefix + selectedSensor.id + "/", from, to));
 	}
 	
 }
@@ -233,5 +356,5 @@ var changeDataType = function(type) {
  */
 var selectSensor = function(sensor) {
 	selectedSensor = sensor;
-	changeDataType('activity');
+	changeDataType('data');
 }

@@ -7,7 +7,7 @@
 <c:set var="tenantTable" value="tenantTable"/>
 
 <spring:url value="/admin/tenant/delete" var="deleteURL" />
-<spring:url value="/admin/tenant/" var="detailPrefix" />
+<spring:url value="/admin/tenant/" var="tenantDetailPrefix" />
 <spring:url value="/admin/tenant/new" var="newTenantURL" />
 <spring:url value="/admin/tenant/list/json" var="sAjaxSource" />
 <spring:url value="/admin/tenant/list/excel?tableName=${tenantTable}" var="excelSource" />
@@ -15,7 +15,7 @@
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {		
-	var table =	makeTableAsync('${tenantTable}', '${sAjaxSource}');		
+	var table =	makeTableAsync('${tenantTable}', '${sAjaxSource}', '${tenantDetailPrefix}');		
 });
 </script>
 

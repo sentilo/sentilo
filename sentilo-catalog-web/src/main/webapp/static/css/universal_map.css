@@ -1,0 +1,198 @@
+#component-detail-modal-info-window {
+	z-index: 9999;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	overflow: auto;
+	height: 350px;
+	border-top: 7px solid rgba(0, 0, 0, 0.1);
+	background-color: transparent;
+}
+
+#component-sections {
+	position: absolute;
+	right: 0;
+}
+
+#component-detail-modal-info-window .container-fluid {
+	background: white;
+	height: 342px;
+	padding-top: 8px;
+}
+
+#historic-data-wrapper {
+	height: 240px;
+}
+
+#component-details {
+	height: 325px;
+	overflow: auto;
+}
+
+#sensor-data-detail .accordion-group {
+	padding: 1px;
+	background-color: white;
+	border: none;
+}
+
+.component-info {
+	font-size: 18px;
+	color: #999;
+	font-weight: 300;
+}
+
+#sensors-list-tabs {
+	display: flex;
+}
+
+#alarms-list-tab-content, #orders-list-tab-content {
+	margin-top: 20px;
+}
+
+#historic-data-wrapper .label-info, #historic-data-wrapper .badge-info {
+	font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial,
+		sans-serif;
+	background-color: #fff;
+	text-shadow: none;
+	color: #888;
+	font-weight: 400;
+	border-radius: 10px;
+}
+
+#sensor-data-detail .span10 {
+	margin-left: 0 !important;
+}
+
+.sensor-last-value, .sensor-unit {
+	font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial,
+		sans-serif;
+	font-size: 28px;
+	font-weight: normal;
+	line-height: 26px;
+	margin: 0;
+	max-width: 180px;
+	overflow: hidden;
+	padding-right: 0;
+	padding-top: 15px;
+	text-align: right;
+	text-overflow: ellipsis;
+	display: inline;
+	color: #333;
+}
+
+.sensor-unit {
+	padding-left: 4px;
+	display: inline !important;
+}
+
+.sensor-id, .sensor-type {
+	background-color: transparent;
+	color: #aaa;
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 14px;
+	overflow: hidden;
+	text-align: right;
+	text-overflow: ellipsis;
+	text-shadow: none;
+	vertical-align: baseline;
+	white-space: nowrap;
+}
+
+.sensor-tab {
+	text-align: right;
+}
+
+#sensors-list-tabs {
+	margin: 0px;
+}
+
+#component-detail-modal-info-window .nav-pills {
+	bottom: -4px;
+	position: fixed;
+	right: 0px;
+	z-index: 5;
+}
+
+#component-detail-modal-info-window .nav {
+	margin-bottom: 2px;
+}
+
+#sensor-data-detail .span2, .component-details .span9,
+	.component-details .span3, hr, #image-details, #audio-details,
+	#file-details, #json-details, #video-details {
+	display: none;
+}
+
+.modal-layer-opened .infobox-body {
+	display: none;
+}
+
+.modal-layer-opened .countA {
+	margin-top: 82px;
+}
+
+.modal-layer-opened .countB {
+	margin-top: 149px;
+}
+
+.modal-layer-opened .countC {
+	margin-top: 210px;
+}
+
+.component-name, .component-type, .component-provider-id, .component-id,
+	.infobox-header h3 {
+	font-size: 18px;
+	margin: 0px;
+	color: #999;
+	display: inline;
+}
+
+.component-description {
+	padding: 20px 0;
+}
+
+.component-last-update, .component-location {
+	display: none;
+}
+
+.no-sensors-message, .no-alarms-message, .no-orders-message {
+	margin-top: 20px;
+	color: #888;
+	font-size: 18px;
+}
+
+.sensor-name {
+	font-size: 18px;
+	margin-top: 4px;
+}
+
+.component-address {
+	margin: 0px;
+	color: #333;
+	font-size: 21px;
+	line-height: 21px;
+	margin-bottom: 10px;
+	margin-top: 10px;
+	font-weight: 300;
+}
+
+.component-type:before, .component-provider-id:before, .infobox-header h3:before
+	{
+	content: " / ";
+}
+
+.history-accordion-wrapper .accordion-heading .accordion-toggle {
+	font-size: 16px;
+	white-space: nowrap;
+}
+
+.component-image {
+	min-height: 150px;
+}
+
+a, a:active, a:focus {
+	outline: none;
+	ie-dummy: expression(this.hideFocus = true);
+}

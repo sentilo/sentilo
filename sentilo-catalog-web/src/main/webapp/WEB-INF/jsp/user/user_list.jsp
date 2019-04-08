@@ -9,14 +9,14 @@
 <spring:url value="/admin/users/delete" var="deleteURL" />
 <spring:url value="/admin/users/new" var="newUserURL" />
 <spring:url value="/admin/users/list/excel?tableName=${userTable}" var="excelSource" />
-<spring:url value="/admin/users/" var="detailPrefix" />
+<spring:url value="/admin/users/" var="userDetailPrefix" />
 <spring:url value="/admin/users/list/json" var="sAjaxSource" />
 
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {	
-	var tableUser =	makeTableAsync('${userTable}', '${sAjaxSource}');
+	var tableUser =	makeTableAsync('${userTable}', '${sAjaxSource}', '${userDetailPrefix}');
 	
 });
 </script>

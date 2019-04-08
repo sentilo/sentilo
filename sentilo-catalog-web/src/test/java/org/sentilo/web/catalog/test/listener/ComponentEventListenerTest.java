@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -49,11 +49,15 @@ import org.sentilo.web.catalog.domain.RoutePoint;
 import org.sentilo.web.catalog.domain.RoutePointList;
 import org.sentilo.web.catalog.listener.ComponentEventListener;
 import org.sentilo.web.catalog.service.ComponentService;
+import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
 
 public class ComponentEventListenerTest {
 
   @Spy
   private Location location;
+
+  @Mock
+  private BeforeConvertEvent<Component> eventConvert;
 
   @Mock
   private Component component;
@@ -68,16 +72,18 @@ public class ComponentEventListenerTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     when(component.getUpdatedAt()).thenReturn(new Date());
+    when(eventConvert.getSource()).thenReturn(component);
   }
 
   @Test
   public void onBeforeConvertForStaticComponent() {
     final LngLat[] coordinates = {new LngLat(41.528, 2.134)};
     location.setCoordinates(coordinates);
+
     when(component.getLocation()).thenReturn(location);
     when(component.isMobileComponent()).thenReturn(false);
 
-    listener.onBeforeConvert(component);
+    listener.onBeforeConvert(eventConvert);
 
     verify(location).setCentroid(coordinates[0].toArray());
     verify(component, times(0)).setRoutePointList(any(RoutePointList.class));
@@ -95,7 +101,7 @@ public class ComponentEventListenerTest {
     when(component.isMobileComponent()).thenReturn(true);
     when(component.getRoutePointList()).thenReturn(null);
 
-    listener.onBeforeConvert(component);
+    listener.onBeforeConvert(eventConvert);
 
     verify(location).setCentroid(coordinates[0].toArray());
     verify(component, times(5)).getLocation();
@@ -118,7 +124,7 @@ public class ComponentEventListenerTest {
     when(component.isMobileComponent()).thenReturn(true);
     when(component.getRoutePointList()).thenReturn(route);
 
-    listener.onBeforeConvert(component);
+    listener.onBeforeConvert(eventConvert);
 
     verify(location).setCentroid(newCoordinates[0].toArray());
     verify(location, times(1)).setCoordinates(any(LngLat[].class));
@@ -140,7 +146,7 @@ public class ComponentEventListenerTest {
     when(component.isMobileComponent()).thenReturn(true);
     when(component.getRoutePointList()).thenReturn(route);
 
-    listener.onBeforeConvert(component);
+    listener.onBeforeConvert(eventConvert);
 
     verify(location).setCentroid(coordinates[0].toArray());
     verify(component, times(5)).getLocation();
@@ -153,7 +159,7 @@ public class ComponentEventListenerTest {
   public void onBeforeConvertWithNullLocation() {
     when(component.getLocation()).thenReturn(null);
 
-    listener.onBeforeConvert(component);
+    listener.onBeforeConvert(eventConvert);
 
     verify(location, times(0)).setCentroid(any(Double[].class));
     verify(location, times(0)).setCoordinates(any(LngLat[].class));
@@ -167,7 +173,7 @@ public class ComponentEventListenerTest {
     location.setCoordinates(coordinates);
     when(component.getLocation()).thenReturn(location);
 
-    listener.onBeforeConvert(component);
+    listener.onBeforeConvert(eventConvert);
 
     verify(location).setCoordinates(expectedCoordinates);
   }

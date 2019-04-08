@@ -28,9 +28,9 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
-import java.util.Properties;
 import java.util.TimeZone;
 
+import org.sentilo.common.config.SentiloArtifactConfigService;
 import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.web.catalog.context.UserConfigContextHolder;
 import org.sentilo.web.catalog.context.UserConfigContextImpl;
@@ -57,7 +57,7 @@ public class UserConfigServiceImpl implements UserConfigService {
   private static final Logger LOGGER = LoggerFactory.getLogger(UserConfigServiceImpl.class);
 
   @Autowired
-  private Properties catalogProperties;
+  private SentiloArtifactConfigService configService;
 
   @Autowired
   private UserService userService;
@@ -69,12 +69,12 @@ public class UserConfigServiceImpl implements UserConfigService {
   public void refreshCatalogUserConfigContext() {
 
     /*
-     * Load user config params (TZ & date format pattern). Algorithm to load these parameters
-     * follows the following steps:
+     * Load user config params (TZ ,date format pattern and number of points to display in charts).
+     * Algorithm to load these parameters follows the following hierarchy:
      *
-     * - first get it from user's profile (if are defined) - then get it from current tenant's
-     * profile - then get it from instance configuration - and last, get it by default - UTC -
-     * dd/MM/yyyy'T'HH:mm:ss
+     * - first try to get them from user's profile - next try to get them from current tenant's
+     * profile - else, try to get them from instance configuration - and finally, get their default
+     * values (UTC, dd/MM/yyyy'T'HH:mm:ss, 10)
      */
 
     User user = null;
@@ -82,16 +82,11 @@ public class UserConfigServiceImpl implements UserConfigService {
     // Get tenant
     final Tenant tenant = getRequestTenant();
 
-    // Get the instance configuration
-    final String instanceTimeZone = catalogProperties.getProperty("catalog.default.timezone", Constants.DEFAULT_TIME_ZONE);
-    final String instanceDateFormatPattern = catalogProperties.getProperty("catalog.default.datePattern", SentiloConstants.TIMESTAMP_PATTERN);
-    Integer instanceChartNumObs = null;
-    try {
-      instanceChartNumObs =
-          Integer.parseInt(catalogProperties.getProperty("catalog.default.chart.numObs", String.valueOf(Constants.DEFAULT_CHART_OBS_NUMBER)));
-    } catch (final NumberFormatException e) {
-      instanceChartNumObs = Constants.DEFAULT_CHART_OBS_NUMBER;
-    }
+    // Get the instance config values: these are the default values to set
+    final String instanceTimeZone = configService.getConfigValue("catalog.default.timezone", Constants.DEFAULT_TIME_ZONE);
+    final String instanceDateFormatPattern = configService.getConfigValue("catalog.default.datePattern", SentiloConstants.TIMESTAMP_PATTERN);
+    final Integer instanceChartNumPoints =
+        configService.getConfigValue("catalog.default.chart.numPoints", Integer.class, Constants.DEFAULT_CHART_POINTS_NUMBER);
 
     // Test if user is logged and get its info
     if (SecurityContextHolder.getContext().getAuthentication() != null
@@ -104,10 +99,10 @@ public class UserConfigServiceImpl implements UserConfigService {
     // Finally create the correct config values
     final String timeZone = getTimeZone(user, tenant, instanceTimeZone);
     final String dateFormatPattern = getDateFormatPatter(user, tenant, instanceDateFormatPattern);
-    final Integer chartNumObs = getChartVisibleObservationsNumber(user, tenant, instanceChartNumObs);
+    final Integer chartNumPoints = getChartVisiblePointsNumber(user, tenant, instanceChartNumPoints);
 
     // Create / Update the user config context
-    final UserConfigContextImpl userConfigContext = new UserConfigContextImpl(TimeZone.getTimeZone(timeZone), dateFormatPattern, chartNumObs);
+    final UserConfigContextImpl userConfigContext = new UserConfigContextImpl(TimeZone.getTimeZone(timeZone), dateFormatPattern, chartNumPoints);
     UserConfigContextHolder.setContext(userConfigContext);
 
     // All the user config params are mandatory
@@ -121,34 +116,10 @@ public class UserConfigServiceImpl implements UserConfigService {
     UserConfigContextHolder.clearContext();
   }
 
-  @Override
-  public void setDefaultCatalogUserConfigContext() {
-    // Get the instance configuration
-    final String instanceTimeZone = catalogProperties.getProperty("catalog.default.timezone", Constants.DEFAULT_TIME_ZONE);
-    final String instanceDateFormatPattern = catalogProperties.getProperty("catalog.default.datePattern", SentiloConstants.TIMESTAMP_PATTERN);
-    Integer instanceChartNumObs = null;
-    try {
-      instanceChartNumObs =
-          Integer.parseInt(catalogProperties.getProperty("catalog.default.chart.numObs", String.valueOf(Constants.DEFAULT_CHART_OBS_NUMBER)));
-    } catch (final NumberFormatException e) {
-      instanceChartNumObs = Constants.DEFAULT_CHART_OBS_NUMBER;
-    }
-
-    // Create the user config context with default instance values
-    final UserConfigContextImpl userConfigContext =
-        new UserConfigContextImpl(TimeZone.getTimeZone(instanceTimeZone), instanceDateFormatPattern, instanceChartNumObs);
-    UserConfigContextHolder.setContext(userConfigContext);
-
-    // All the user config params are mandatory
-    assertCorrectConfigParamsValues(userConfigContext);
-
-    LOGGER.debug("Setting default catalog user config params: {}", userConfigContext);
-  }
-
   private void assertCorrectConfigParamsValues(final UserConfigContextImpl userConfigContext) {
-    Assert.notNull(userConfigContext.getUserTimeZone(), "[UserConfigService] userTtimeZone config param is empty");
+    Assert.notNull(userConfigContext.getUserTimeZone(), "[UserConfigService] userTimeZone config param is empty");
     Assert.hasText(userConfigContext.getUserDatePattern(), "[UserConfigService] userDatePattern config param is empty");
-    Assert.isTrue(userConfigContext.getUserChartNumObs() != null && userConfigContext.getUserChartNumObs() > 0,
+    Assert.isTrue(userConfigContext.getChartVisiblePointsNumber() != null && userConfigContext.getChartVisiblePointsNumber() > 0,
         "[UserConfigService] userChartNumObs config param is not a positive number greater than 0");
   }
 
@@ -188,15 +159,14 @@ public class UserConfigServiceImpl implements UserConfigService {
     }
   }
 
-  private Integer getChartVisibleObservationsNumber(final User user, final Tenant tenant, final Integer instanceChartNumObs) {
-    if (getUserChartVisibleObservationsNumber(user) != null) {
-      return getUserChartVisibleObservationsNumber(user);
-    } else if (tenant != null && tenant.getVisualConfiguration() != null
-        && tenant.getVisualConfiguration().getChartVisibleObservationsNumber() != null
-        && tenant.getVisualConfiguration().getChartVisibleObservationsNumber() > 0) {
-      return tenant.getVisualConfiguration().getChartVisibleObservationsNumber();
+  private Integer getChartVisiblePointsNumber(final User user, final Tenant tenant, final Integer instanceChartNumPoints) {
+    if (getUserChartVisiblePointsNumber(user) != null) {
+      return getUserChartVisiblePointsNumber(user);
+    } else if (tenant != null && tenant.getVisualConfiguration() != null && tenant.getVisualConfiguration().getChartVisiblePointsNumber() != null
+        && tenant.getVisualConfiguration().getChartVisiblePointsNumber() > 0) {
+      return tenant.getVisualConfiguration().getChartVisiblePointsNumber();
     } else {
-      return instanceChartNumObs;
+      return instanceChartNumPoints;
     }
   }
 
@@ -214,9 +184,9 @@ public class UserConfigServiceImpl implements UserConfigService {
     return null;
   }
 
-  private Integer getUserChartVisibleObservationsNumber(final User user) {
-    if (user != null && user.getVisualConfiguration() != null && user.getVisualConfiguration().getChartVisibleObservationsNumber() != null) {
-      return user.getVisualConfiguration().getChartVisibleObservationsNumber();
+  private Integer getUserChartVisiblePointsNumber(final User user) {
+    if (user != null && user.getVisualConfiguration() != null && user.getVisualConfiguration().getChartVisiblePointsNumber() != null) {
+      return user.getVisualConfiguration().getChartVisiblePointsNumber();
     }
     return null;
   }

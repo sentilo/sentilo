@@ -8,14 +8,14 @@
 
 <spring:url value="/admin/componenttypes/new" var="newComponentTypeURL" />
 <spring:url value="/admin/componenttypes/delete" var="deleteURL" />
-<spring:url value="/admin/componenttypes/" var="detailPrefix" />
+<spring:url value="/admin/componenttypes/" var="componentTypeDetailPrefix" />
 <spring:url value="/admin/componenttypes/list/json" var="sAjaxSource" />
 <spring:url value="/admin/componenttypes/list/excel?tableName=${componentTypeTable}" var="excelSource" />
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {	
-	var tableComponentType = makeTableAsync('${componentTypeTable}', '${sAjaxSource}');
+	var tableComponentType = makeTableAsync('${componentTypeTable}', '${sAjaxSource}', '${componentTypeDetailPrefix}');
 	
 });
 </script>

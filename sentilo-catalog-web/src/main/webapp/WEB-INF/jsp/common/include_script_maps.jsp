@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:eval expression="@catalogProperties.getProperty('google.api.key')" var="apiKey"/>
+<spring:eval expression="@catalogConfigProperties.getProperty('google.api.key')" var="apiKey"/>
 <c:choose>
 	<c:when test="${not empty apiKey}">
 		<c:set var="mapsAPIUrl" value="${currentSchema}://maps.google.com/maps/api/js?v=3.16&libraries=places&language=en&key=${apiKey}"/>
@@ -28,11 +28,22 @@
 
 <spring:url value="/static/img/spot.png" var="imgSpot" />
 <spring:url value="/static/img/" var="imgsPath" />
-<spring:url value="/static/img/icons/" var="iconsPath" />
+<spring:url value="/static/img/icons" var="iconsPath" />
 <spring:url value="/static/img/icons/pins6-poi.png" var="defaultIcon" />
 
 <script type="text/javascript">
 <!-- // 	
+
+	window.messages = {
+		boolValues: {
+			falseValue: '<spring:message code="false"/>',
+			trueValue: '<spring:message code="true"/>'
+		}
+	};
+
+	// Show detailed modal view on component map
+	var useDetailedFrontView = true;
+
     // the initial map center (Barcelona city)    
     var defaultMapCenter = [ 41.4001221, 2.172839 ];
 	var defaultZoomLevel = 14;
@@ -51,14 +62,22 @@
 	// on the universal viewer (by default as POIs)
 	var multiCoordinatesAsPois = true;
 	
+	// Small devices width
+	var smallDevicesWidth = 767;
 	
 	// Home map config
 	var defaultBgHomeMapColor = {"color" : "#0088ff"}; 
-	
+
+	// Default infobox pixel offsets for detailed view cases
+	var defaultInfoboxPixelOffset_Y_A = -265;
+	var defaultInfoboxPixelOffset_Y_B = -330;
+	var defaultInfoboxPixelOffset_Y_C = -390;
+
 	var geocoder;
 	var map;
 	var marker;
 	var infowindow;
+	var infowindowMustBeClosed;
 	var mc;
 	var oms;
 	
@@ -108,7 +127,7 @@
 			disableAutoPan:false, //Infobox must be displayed entirely within the map's visible area 
 			enableEventPropagation: false		
 	}; 
-    var clusterImgsPath = '${iconsPath}';
+    var clusterImgsPath = '${iconsPath}/';
 	var clusterStyles = [[{
         url: clusterImgsPath+'poi-group.png',
         width: 53,
@@ -141,6 +160,9 @@
         textColor: '#ffffff'        
       }]];
 	
+	function setInfowindowMustBeClosed(close) {
+		infowindowMustBeClosed = close;
+	}
 	
 	function showMapControls() {
 		$('#map_controls').show();
@@ -213,8 +235,18 @@
 	    	oms = new OverlappingMarkerSpiderfier(map,{markersWontMove: true, markersWontHide: true, keepSpiderfied: true, legWeight: 0});	    	    	 
 		}
 
-		google.maps.event.addListener(map, 'click', function() {			
+		google.maps.event.addListener(map, 'click', function(e) {	
+			if (e.placeId) {
+				// Since we don't want show Google Maps Place Poi Infowindows
+				// Lets stop the event!
+				e.stop();
+			}
+			
 			closeInfoWindow();
+			
+			if (isModalLayerVisible()) {
+				hideModalLayer();	
+			}
         });	
 		
 		// These two controls change map options to turn off panning/zooming when the mouse enters the infobox
@@ -254,7 +286,7 @@
 	
     function getPOIImage(data) {		
 		return {
-		    url: data && data.icon ? '${iconsPath}' + data.icon + '-poi.png' : '${defaultIcon}',
+		    url: data && data.icon ? '${iconsPath}/' + data.icon + '-poi.png' : '${defaultIcon}',
 		    size: new google.maps.Size(28, 30),
 		    origin: new google.maps.Point(0, 0),
 		    anchor: new google.maps.Point(0, 30)
@@ -301,7 +333,7 @@
     };
     
     function addPolylineMarkerListener(polylineMarker){
-		google.maps.event.addListener(polylineMarker,'click', function(event) {									    	
+		google.maps.event.addListener(polylineMarker,'click', function(event) {
 			closeInfoWindow();															
 			fillInfoWindow(polylineMarker, event);						    			    
 		});
@@ -309,8 +341,8 @@
  	
     function getMobilePOIImage(i, poi) {	
     	var total = poi.route.length;
-    	var mobileEndIcon = '${iconsPath}' + poi.iconName + '-poi.png';
-    	var mobileBeginningIcon = '${iconsPath}' + 'mobile-poi.png';
+    	var mobileEndIcon = '${iconsPath}/' + poi.iconName + '-poi.png';
+    	var mobileBeginningIcon = '${iconsPath}/' + 'mobile-poi.png';
     	var imgUrl = i == total-1 ? mobileEndIcon : mobileBeginningIcon;
 		var size = i == total-1 ? 25 : 12;
 		var anchorx = i == total-1 ? 0 : 7;
@@ -329,10 +361,11 @@
 	
 
 	function closeInfoWindow() {
-    	if (infowindow) {
+		if (infowindow && infowindowMustBeClosed === true) {
     		infowindow.close(map, this);
     		infowindow = null;
-    	}    			
+    	}
+    	infowindowMustBeClosed = true;
     };
 
     function retrieveLastObservations(poi, observationDiv, footerDiv, clickEvent) {    	
@@ -377,7 +410,7 @@
 					var observation = data.sensorLastObservations[i];
 					if (observation.found) {						
 						if (observation.dataType === 'BOOLEAN') {
-							observation.value = eval(observation.value) ? '' : 'No';
+							observation.value = eval(observation.value) ? window.messages.boolValues.trueValue.toUpperCase() : window.messages.boolValues.falseValue.toUpperCase();
 						}
 						var offlineClass = (observation.sensorState === 'offline') ? 'class="offline"' : '' ;
 						var tooltipText = '';
@@ -403,38 +436,54 @@
 			bodyContent += '<div style="clear: both;"></div>';
 			
 			var detailUrl = buildPublicComponentDetailUrl(poi);
+			setComponentDetailUrl(detailUrl);
+
+			var numRows = parseInt((elementsCount / 2) + (elementsCount%2));
+			var altClass = (numRows <= 1) ? "countA" : (numRows == 2) ? "countB" : "countC";
 			
-			var content = '<a href="' + detailUrl + '">';
-			content += '<div class="infobox" id="infobox">';
+			var componentId = poi.componentId;
+			var content = '<a href="#" onclick="updateModalLayer(\''+componentId+'\'); infowindowMustBeClosed=false;">';
+			
+			// Decide wich detail to show
+			// For small devices, or not desired cases, uses old detail page
+			if (window.innerWidth < smallDevicesWidth || useDetailedFrontView !== undefined && useDetailedFrontView === false) {
+				content = '<a href="' + detailUrl + '">';	
+			} 
+			
+			content += '<div class="infobox ' + altClass + '" id="infobox">';
 			content += '<div class="infobox-content" style="display:block">';
 			content += fillInfoWindowHeader(poi);
 			content += fillInfoWindowBody(poi, bodyContent, observationDiv, bodyStyle);
 			content += fillInfoWindowFooter(poi, data.lastUpdateTimeMessage, footerDiv);
 	    	content += '</div>';  	    		    	
-	    	content += '<div class="arrow"></div>';	    	
-	    	content += '</div>';			
-	    	content += '</a>';
+	    	content += '<div class="poi-infowindow-arrow"></div>';	    	
+	    	content += '</div>';
+	    	
+			if (window.innerWidth < smallDevicesWidth || useDetailedFrontView !== undefined && useDetailedFrontView === false) {
+	    		content += '</a>';
+	    	}
 			
-			if(!infowindow){			
+			if(!infowindow){
 		    	infowindow = new InfoBox(boxOptions);
-			}
+			} 
 				
 	    	infowindow.setContent(content);	    	
 	    	infowindow.open(map, poi);
+	    	
     	});
     };
-        
+    
     function fillInfoWindowPixelOffset(elementsCount, poi, boxOptions) {
     	var numRows = parseInt((elementsCount / 2) + (elementsCount%2));
     	var pixelOffset_x = (poi.multiCoordinates) ? -300 : -290;
 		var pixelOffset_y = -290;
 		
 		if (numRows <= 1) {
-			pixelOffset_y = -315;
+			pixelOffset_y = defaultInfoboxPixelOffset_Y_A;
 		} else if (numRows == 2) {
-			pixelOffset_y = -380;
+			pixelOffset_y = defaultInfoboxPixelOffset_Y_B;
 		} else if (numRows >= 3) {
-			pixelOffset_y = -440;
+			pixelOffset_y = defaultInfoboxPixelOffset_Y_C;
 		}
 		
 		if (poi.routeMarker) {
@@ -455,14 +504,14 @@
     function fillInfoWindow(poi, clickEvent) {    	
     	var observationDiv = '' + new Date().getTime();
     	var footerDiv = 'footer' + observationDiv;
-		retrieveLastObservations(poi, observationDiv, footerDiv, clickEvent);        								
+		retrieveLastObservations(poi, observationDiv, footerDiv, clickEvent);
     };
         
     
     function fillInfoWindowHeader(poi){    	    	    	    		    	
     	var provider = poi.componentId.split('.')[0];
     	var name = poi.componentId.split('.')[1];
-    	var poiIcon = '${iconsPath}' + poi.iconName + '.png';
+    	var poiIcon = '${iconsPath}/' + poi.iconName + '.png';
     	var headerTypeStyle = (poi.type.length > 12 ? "min-width:250px":'');
     	var poiTypeName = $("#componentDropdown").find("li#"+poi.type).find("a").text().trim();
     	
@@ -555,10 +604,17 @@
         // a new listener, we must do a call to remove all previous listeners on the specified event.
     	oms.clearListeners('click');
     	
-    	oms.addListener('click', function(poi, event) {									    	
+    	oms.addListener('click', function(poi, event) {
+
+    		infowindowMustBeClosed = true;
+    		
+    		if (infowindow && isModalLayerVisible()) {
+    			updateModalLayer(poi.componentId);
+    		}
+    		
 			closeInfoWindow();							
 			poiClicked = true;		    	
-	    	fillInfoWindow(poi, event);											    			    	
+	    	fillInfoWindow(poi, event);
    		});
 
 		mc.repaint();
@@ -772,11 +828,11 @@
 	    };
 		    	
 	    google.maps.event.addListener(map, 'zoom_changed', function () {	    	
-	    	closeInfoWindow();	
 	        zoomChanged = true;
 	    });
 	
-	    google.maps.event.addListener(map, 'idle', function () {	    		    		    	
+	    google.maps.event.addListener(map, 'idle', function () {
+	    	infowindowMustBeClosed = false;
 	        if(!poiClicked){
 		    	if(marker.getPosition() == undefined) {
 					updateMarkers(map.getCenter(),true);
@@ -818,11 +874,15 @@
 			},
 			navigationControl : true,
 			scrollwheel : true,
-			streetViewControl : true
+			fullscreenControl : false,
+			streetViewControl : true,
+			styles: [{
+				"featureType": "poi",
+				"stylers": [{ "visibility": "simplified" }]
+			}]
 		};
 	
 		addGeometricElementToMap(map, latitude, longitude, coordinates, icon, options);
-		
 		
 	};
 	
@@ -893,11 +953,12 @@
 							mapTypeControl : false,
 							navigationControl : false,
 							scrollwheel : false,
+							fullscreenControl : false,
 							streetViewControl : false,
-							//JG: Añadido para deshabilitar los controles
+							//Added to disable controls
 							zoomControl : false,
 							panControl : false,
-							//JG: ends
+							//ends
 							styles : [ {
 										"stylers" : [ visibilityOn, bgColor, saturation ]
 									}, {
@@ -942,10 +1003,11 @@
 					navigationControl : false,
 					panControl : false,
 					scrollwheel : true,
+					fullscreenControl : false,
 					streetViewControl : true,
 					styles : [ {
 						"featureType" : "poi",
-						"stylers" : [ {	"visibility" : "simplified"	} ]
+						"stylers" : [ {	"visibility" : "simplified"} ]
 					}, {
 						"elementType" : "labels.icon",
 						"stylers" : [ {	"visibility" : "off"} ]
@@ -955,6 +1017,7 @@
 		});
 
 		smap_init();
+		showMapControls();
 	};
 
 	// **************************************************************
@@ -1104,7 +1167,8 @@
 					mapTypeControl : true,
 					navigationControl : false,
 					scrollwheel : true,
-					streetViewControl : true,
+					fullscreenControl : false,
+					streetViewControl : true
 				}
 			}
 		});

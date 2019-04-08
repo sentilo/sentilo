@@ -1,0 +1,100 @@
+/**** AUDIO PLAYER STYLES ****/
+#waveform-error-wrapper {
+	width: 100%;
+	border: 1px solid red;
+	margin-bottom: 10px;
+}
+
+#waveform-error-wrapper p {
+	color: red;
+	padding: 3px;
+	margin: 0px;
+	font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 13px;
+}
+
+#audio-player-wrapper hr {
+	margin-top: 25px;
+}
+
+/**** VIDEO PLAYER STYLES ****/
+#video-player-wrapper {
+	
+}
+
+#video-player {
+	height: 150px;
+	display:block;
+    margin:auto;
+}
+
+.sntl-admin #video-player {
+	margin: 0px;
+} 
+
+
+/**** IMAGE VIEWER STYLES ****/
+#image-player-wrapper {
+	
+}
+
+#image-player-wrapper img {
+	max-height: 150px;
+	display:block;
+    margin:auto;
+}
+
+.sntl-admin #image-player-wrapper img {
+	margin: 0px;	
+}
+
+/***** FILE DOWNLOADER ******/
+#file-wrapper {
+	text-align: center;
+}
+
+.sntl-admin #file-wrapper {
+	text-align: left;
+}
+
+#file-link {
+	vertical-align: middle;
+}
+
+/******** COMMON STYLES ******/
+#controller-wrapper,
+#file-info-wrapper {
+	width: 100%;
+	float: left;
+}
+
+#controller-buttons,
+#controller-info {
+	float: left;
+	line-height: 30px;
+}
+
+#controller-info {
+	padding-left: 15px;
+}
+
+ .file-date-separator {
+ 	margin: 5px 0;
+ }
+ 
+ 
+ .sntl-admin .player-sensor-info {
+ 	display: none;
+ }
+ 
+ .player-sensor-value-link {
+ 	display: none;
+ }
+ 
+ .sntl-admin .player-sensor-value-link {
+ 	display: block;
+ }
+ 
+ .sntl-admin #image-wrapper {
+    height: 155px;
+}

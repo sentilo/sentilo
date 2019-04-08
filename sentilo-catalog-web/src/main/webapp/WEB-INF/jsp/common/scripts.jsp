@@ -7,6 +7,7 @@
 <spring:message code="ok" var="okButtonLabel" />
 
 <script type="text/javascript">
+
 function openDetail(url) {
 	window.location.href = url;
 };
@@ -96,6 +97,14 @@ function addParamToUrl(url, paramName, paramValue){
 	return (paramValue && paramValue!='' ? url + charToAdd +paramName+'=' + paramValue : url);
 }
 
+function addDefaultHeaders() {
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function(e, xhr, options) {
+        xhr.setRequestHeader(header, token);
+    });
+};
+
 function jsonGET(url, data, success) {
     $.ajax({
     	'contentType':'application/x-www-form-urlencoded; charset=UTF-8',
@@ -106,6 +115,19 @@ function jsonGET(url, data, success) {
         'success' : success
     });
 };
+
+function jsonPOST(url, data, success) {
+    addDefaultHeaders();
+    $.ajax({
+        'contentType':'application/json; charset=UTF-8',
+        'dataType' : 'json',
+        'type' : 'POST',
+        'url' : addTimestampToURL(url),
+        'data' : data,
+        'success' : success
+    });
+};
+
 
 function buildTextHiddenField(fieldName, fieldValue){
 	return '<input type="hidden" name="'+fieldName+'" value="'+fieldValue+'" />';	
@@ -200,6 +222,13 @@ var jsonPrettyPrint = {
 <spring:url value="/static/js/jquery.tagsinput.js" var="jqueryTagsInputJS" />
 <spring:url value="/static/js/bootstrap-colorpicker.min.js" var="bootstrapColorPickerJS" />
 <spring:url value="/static/js/jquery.jsonPresenter.js" var="jsonPresenterJS" />
+<spring:url value="/static/js/sentilo/tooltips.js" var="tooltipsJS" />
+<spring:url value="/static/js/wavesurfer.min.js" var="waveSurferJS" />
+<spring:url value="/static/js/chartist-plugin-legend.js" var="chartistPluginLegendJS" />
+<spring:url value="/static/js/chartist-plugin-tooltip.js" var="chartistPluginTooltipJS" />
+<spring:url value="/static/js/chartist.min.js" var="chartistJS" />
+<spring:url value="/static/js/sentilo/chartist.js" var="sentiloChartistJS" />
+<spring:url value="/static/js/sentilo/media_players.js" var="mediaPlayersJS" />
 
 <script type="text/javascript" src="${jqueryJS}"></script>
 <script type="text/javascript" src="${bootstrapJS}"></script>
@@ -209,5 +238,21 @@ var jsonPrettyPrint = {
 <script type="text/javascript" src="${jqueryTagsInputJS}"></script>
 <script type="text/javascript" src="${bootstrapColorPickerJS}"></script>
 <script type="text/javascript" src="${jsonPresenterJS}"></script>
+<script type="text/javascript" src="${tooltipsJS}"></script>
+<script type="text/javascript" src="${waveSurferJS}"></script>
+<script type="text/javascript" src="${chartistJS}"></script>
+<script type="text/javascript" src="${chartistPluginLegendJS}"></script>
+<script type="text/javascript" src="${chartistPluginTooltipJS}"></script>
+<script type="text/javascript" src="${sentiloChartistJS}"></script>
+<script type="text/javascript" src="${mediaPlayersJS}"></script>
+
+<c:if test="${not empty currentRequestMapping}">
+	<c:choose>
+		<c:when test="${fn:contains(currentRequestMapping, '/component/map')}">
+			<spring:url value="/static/js/sentilo/universal_map.js" var="universalMapJS" />
+			<script type="text/javascript" src="${universalMapJS}"></script>
+		</c:when>
+	</c:choose>
+</c:if>
 
 <%@include file="/WEB-INF/jsp/common/customScripts.jsp"%>

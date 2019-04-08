@@ -1,33 +1,66 @@
 package org.sentilo.web.catalog.test.service;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Collection;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.sentilo.common.test.AbstractBaseTest;
+import org.sentilo.common.domain.PlatformActivity;
+import org.sentilo.common.domain.PlatformMetricsMessage;
+import org.sentilo.common.utils.SentiloConstants;
+import org.sentilo.web.catalog.context.TenantContextHolder;
+import org.sentilo.web.catalog.context.UserConfigContextHolder;
+import org.sentilo.web.catalog.context.UserConfigContextImpl;
 import org.sentilo.web.catalog.domain.Activity;
+import org.sentilo.web.catalog.service.PlatformService;
 import org.sentilo.web.catalog.service.impl.ActivityServiceImpl;
-import org.sentilo.web.catalog.utils.CatalogUtils;
-import org.springframework.data.mongodb.core.MongoOperations;
+import org.sentilo.web.catalog.utils.Constants;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-public class ActivityServiceImplTest extends AbstractBaseTest {
+import com.mongodb.bulk.BulkWriteResult;
+
+public class ActivityServiceImplTest extends AbstractBaseCrudServiceImplTest {
 
   @InjectMocks
   private ActivityServiceImpl activityService;
 
   @Mock
-  private MongoOperations mongoOperations;
+  private UserConfigContextImpl userConfigContext;
+
+  @Mock
+  private PlatformService platformService;
 
   @Before
   public void setUp() throws Exception {
+    TenantContextHolder.clearContext();
+    UserConfigContextHolder.clearContext();
+    System.clearProperty(SentiloConstants.SENTILO_MULTITENANT_PROP_KEY);
+
     MockitoAnnotations.initMocks(this);
+
+    UserConfigContextHolder.setContext(userConfigContext);
+    when(userConfigContext.getChartVisiblePointsNumber()).thenReturn(Constants.DEFAULT_CHART_POINTS_NUMBER);
+  }
+
+  @After
+  public void tearDown() {
+    System.clearProperty(SentiloConstants.SENTILO_MULTITENANT_PROP_KEY);
+    TenantContextHolder.clearContext();
+    SecurityContextHolder.clearContext();
   }
 
   @Test
@@ -36,7 +69,7 @@ public class ActivityServiceImplTest extends AbstractBaseTest {
 
     activityService.getLastActivityLogs(from, to);
 
-    verify(mongoOperations).find(argThat(new QueryMatcher(from, to)), eq(Activity.class));
+    verify(mongoOps).find(argThat(new FromToQueryMatcher(from, to)), eq(Activity.class));
   }
 
   @Test
@@ -45,30 +78,30 @@ public class ActivityServiceImplTest extends AbstractBaseTest {
 
     activityService.getLastActivityLogs(from, to);
 
-    verify(mongoOperations).find(argThat(new QueryMatcher(from, to)), eq(Activity.class));
+    verify(mongoOps).find(argThat(new FromToQueryMatcher(from, to)), eq(Activity.class));
   }
 
-  class QueryMatcher extends ArgumentMatcher<Query> {
+  @Test
+  public void deleteOldActivityLogs() {
+    activityService.deleteOldActivityLogs();
 
-    private final Long from;
-    private final Long to;
+    verify(mongoOps).remove(any(Query.class), eq(Activity.class));
+  }
 
-    public QueryMatcher(final Long from, final Long to) {
-      this.from = from;
-      this.to = to == null ? CatalogUtils.getMaxSystemTimeMillis() : to;
-    }
+  @Test
+  public void getAndStorePlatformActivity() throws Exception {
+    final PlatformMetricsMessage pmm = Mockito.mock(PlatformMetricsMessage.class);
+    final Collection<PlatformActivity> activities = generateRandomList(PlatformActivity.class);
+    final BulkOperations bulkOps = Mockito.mock(BulkOperations.class);
+    final BulkWriteResult result = Mockito.mock(BulkWriteResult.class);
+    when(platformService.getPlatformActivity()).thenReturn(pmm);
+    when(pmm.getActivity()).thenReturn(activities);
+    when(mongoOps.bulkOps(BulkMode.UNORDERED, Activity.class)).thenReturn(bulkOps);
+    when(bulkOps.execute()).thenReturn(result);
 
-    @Override
-    public boolean matches(final Object argument) {
-      final Query query = (Query) argument;
-      final boolean matchesPage = query.getLimit() == 20 && query.getSkip() == 0;
-      final boolean matchesSort = query.getSortObject().toString().equals("{ \"timestamp\" : -1}");
-      final boolean matchesQuery =
-          from != null ? query.getQueryObject().toString().equals("{ \"timestamp\" : { \"$lte\" : " + to + " , \"$gte\" : " + from + "}}")
-              : query.getQueryObject().toString().equals("{ \"timestamp\" : { \"$lte\" : " + to + "}}");
+    activityService.getAndStorePlatformActivity();
 
-      return matchesPage && matchesSort && matchesQuery;
-    }
-
+    verify(bulkOps, times(activities.size())).insert(any(Activity.class));
+    verify(bulkOps).execute();
   }
 }

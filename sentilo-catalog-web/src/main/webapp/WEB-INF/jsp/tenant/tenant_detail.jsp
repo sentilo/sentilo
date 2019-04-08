@@ -141,7 +141,6 @@
 									<div class="row-fluid">
 										<div class="span12">
 											<div class="control-group pull-right">
-												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 												<c:if test="${showAdminControls}">
 												<a href="${editTenantLink}" class="btn btn-primary"> <spring:message code="tenant.edit.title" /></a>
 												</c:if>

@@ -15,7 +15,6 @@
 <spring:url value="/admin/component/${component.id}/removeSensors" var="deleteSensorsURL" />
 <spring:url value="/admin/component/list?nameTableRecover=componentTable&fromBack=true" var="backURL" />
 <spring:url value="/admin/component/list/json?parentId=${componentId}" var="sAjaxSourceComp" />
-<spring:url value="/admin/component/" var="detailPrefix" />
 <spring:url value="/admin/sensor/list/excel?tableName=${sensorTable}&componentId=${component.id}" var="sensorExcelSource" />
 
 
@@ -153,7 +152,7 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<c:if test="${showAdminControls}">
+												<c:if test="${showAdminControls and not component.federatedResource}">
 												<a href="${editComponentLink }" class="btn btn-primary"> 
 													<spring:message code="component.edit.title" />
 												</a>
@@ -180,7 +179,7 @@
 											<div class="span12">
 												<div class="control-group pull-right">
 													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-													<c:if test="${showAdminControls}">
+													<c:if test="${showAdminControls and not component.federatedResource}">
 													<a href="${editComponentLink }" class="btn btn-primary">
 														<spring:message code="component.edit.title" />
 													</a>
@@ -199,7 +198,7 @@
 											<div class="span12">
 												<div class="control-group pull-right">
 													<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-													<c:if test="${showAdminControls}">
+													<c:if test="${showAdminControls and not component.federatedResource}">
 													<a href="${editComponentLink }" class="btn btn-primary">
 														<spring:message code="component.edit.title" />
 													</a>

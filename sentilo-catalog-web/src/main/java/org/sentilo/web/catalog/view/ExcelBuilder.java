@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -36,14 +36,13 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFFont;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFCellUtil;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellUtil;
 import org.sentilo.web.catalog.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -52,17 +51,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.view.document.AbstractExcelView;
+import org.springframework.web.servlet.view.document.AbstractXlsView;
 
 @Component
-public class ExcelBuilder extends AbstractExcelView {
+public class ExcelBuilder extends AbstractXlsView {
 
   @Autowired
   private MessageSource messageSource;
 
   @SuppressWarnings("unchecked")
   @Override
-  protected void buildExcelDocument(final Map<String, Object> model, final HSSFWorkbook workbook, final HttpServletRequest request,
+  protected void buildExcelDocument(final Map<String, Object> model, final Workbook workbook, final HttpServletRequest request,
       final HttpServletResponse response) throws Exception {
 
     final List<List<String>> resourceList = (List<List<String>>) model.get(Constants.RESULT_LIST);
@@ -70,18 +69,18 @@ public class ExcelBuilder extends AbstractExcelView {
 
     final boolean ignoreFirstValue = !CollectionUtils.isEmpty(resourceList) && columnsKeys.size() != resourceList.get(0).size();
 
-    final HSSFSheet sheet = workbook.createSheet("list");
+    final Sheet sheet = workbook.createSheet("list");
 
-    final HSSFRow header = sheet.createRow(0);
-    final HSSFCellStyle style = workbook.createCellStyle();
-    final HSSFFont font = workbook.createFont();
-    font.setBoldweight(Font.BOLDWEIGHT_BOLD);
+    final Row header = sheet.createRow(0);
+    final CellStyle style = workbook.createCellStyle();
+    final Font font = workbook.createFont();
+    font.setBold(true);
     style.setFont(font);
     // Call method to put the Column names Headers
     getHeaderExcel(header, style, columnsKeys);
     int i = 0;
     for (final List<String> rowValues : resourceList) {
-      final HSSFRow row = sheet.createRow(++i);
+      final Row row = sheet.createRow(++i);
       // put the content in the rows
       toExcelRow(rowValues, row, ignoreFirstValue);
     }
@@ -91,11 +90,11 @@ public class ExcelBuilder extends AbstractExcelView {
     }
   }
 
-  private void toExcelRow(final List<String> rowValues, final HSSFRow row, final boolean ignoreFirstValue) {
+  private void toExcelRow(final List<String> rowValues, final Row row, final boolean ignoreFirstValue) {
     int column = 0;
     for (int i = ignoreFirstValue ? 1 : 0; i < rowValues.size(); i++) {
       final String value = rowValues.get(i);
-      HSSFCellUtil.createCell(row, column++, cleanLabelwrapper(value));
+      CellUtil.createCell(row, column++, cleanLabelwrapper(value));
     }
   }
 
@@ -128,11 +127,11 @@ public class ExcelBuilder extends AbstractExcelView {
     return columnKeys;
   }
 
-  private void getHeaderExcel(final HSSFRow header, final HSSFCellStyle style, final List<String> columnsKeys) {
+  private void getHeaderExcel(final Row header, final CellStyle style, final List<String> columnsKeys) {
     int i = 0;
     final Locale locale = LocaleContextHolder.getLocale();
     for (final String columnKey : columnsKeys) {
-      final HSSFCell cellHeader = header.createCell(i++);
+      final Cell cellHeader = header.createCell(i++);
       cellHeader.setCellStyle(style);
       cellHeader.setCellValue(messageSource.getMessage(columnKey, null, locale).toUpperCase(locale));
     }

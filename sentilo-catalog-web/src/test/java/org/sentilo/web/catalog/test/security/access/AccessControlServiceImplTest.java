@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +57,7 @@ import org.sentilo.web.catalog.security.access.impl.AccessControlServiceImpl;
 import org.sentilo.web.catalog.security.enums.ActionType;
 import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AccessControlServiceImplTest {
 
@@ -89,6 +91,12 @@ public class AccessControlServiceImplTest {
     when(userDetails.isAdminUser()).thenReturn(false);
     when(userDetails.isUser()).thenReturn(false);
 
+  }
+
+  @After
+  public void tearDown() {
+    System.clearProperty(SentiloConstants.SENTILO_MULTITENANT_PROP_KEY);
+    SecurityContextHolder.clearContext();
   }
 
   // Tests to check user access to tenants
@@ -203,14 +211,33 @@ public class AccessControlServiceImplTest {
   }
 
   @Test
-  public void checkUserAccessToUser() {
+  public void checkUserAccessToUserFromOtherTenant() {
     final User resource = new User("1");
     when(userDetails.isUser()).thenReturn(true);
+    when(userDetails.getTenantId()).thenReturn("anotherTenantId");
+    when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
 
-    final boolean allowedCRUDL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
+    final boolean allowedCRDUL = checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.READ)
         | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.SAVE) | checkAccess(resource, ActionType.DELETE);
 
-    Assert.assertFalse(allowedCRUDL);
+    Assert.assertFalse(allowedCRDUL);
+  }
+
+  @Test
+  public void checkUserAccessToEditItsData() {
+    final User resource = new User("1");
+    resource.setTenantId(USER_TENANT_ID);
+    when(userDetails.isUser()).thenReturn(true);
+    when(userDetails.getUsername()).thenReturn(resource.getUserName());
+    when(service.findAndThrowErrorIfNotExist(any(CatalogDocument.class))).thenReturn(resource);
+
+    final boolean allowedCDL =
+        checkAccess(resource, ActionType.LIST) | checkAccess(resource, ActionType.CREATE) | checkAccess(resource, ActionType.DELETE);
+
+    final boolean allowedRU = checkAccess(resource, ActionType.READ) | checkAccess(resource, ActionType.SAVE);
+
+    Assert.assertFalse(allowedCDL);
+    Assert.assertTrue(allowedRU);
   }
 
   // Tests to check user access to tenants resources (application, provider, component and sensor)

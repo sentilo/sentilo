@@ -73,7 +73,12 @@ body {
 }
 
 .map2 {
-	height: 604px;
+	bottom: 10px;
+    left: 10px;
+    position: absolute !important;
+    right: 10px;
+    top: 44px;
+    height:auto;
 	-webkit-border-radius: 0 0 6px 6px;
 	-moz-border-radius: 0 0 6px 6px;
 	border-radius: 0 0 6px 6px;
@@ -318,13 +323,13 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
 	padding-right: 10px
 }
 
-.arrow {
+.poi-infowindow-arrow {
     background: none repeat scroll 0 0 transparent;
     border: medium none;
     bottom: -37px;
     position: relative;
 }
-.arrow:after, .arrow:before {
+.poi-infowindow-arrow:after, .poi-infowindow-arrow:before {
     border: medium solid transparent;
     content: " ";
     height: 0;
@@ -333,13 +338,13 @@ ul.nav li.dropdown:hover>ul.dropdown-menu {
     position: absolute;
     width: 0;
 }
-.arrow:after {
+.poi-infowindow-arrow:after {
     border-color: white transparent transparent;
     border-width: 30px;
     margin-left: -30px;
     margin-top: -10px;
 }
-.arrow:before {
+.poi-infowindow-arrow:before {
     border-color: rgba(0, 0, 0, 0.1) transparent transparent;
     border-width: 30px;
     margin-left: -30px;
@@ -826,8 +831,10 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 }
 
 .container-fluid {
-	max-width: 1280px;
+	max-width: inherit;
 	margin: 0 auto;
+	padding-left: 30px;
+	padding-right: 30px;
 }
 
 /********** Color picker **********/
@@ -961,4 +968,23 @@ h1 [class^="icon-"],h1 [class*=" icon-"] {
 	width: 20px;
 	margin: 0 0 0 5px;
 	text-align: center;
+}
+
+/* 	Sobreescribim els estils del td de datatables per a aconseguir
+	que el text de les capçaleres no es superposi a les icones d'ordenació */
+table.dataTable td {
+    padding: 8px 20px 8px 8px;
+}
+
+/* Make dataTables scrollable horizantally */
+.dataTable-overfow-wrapper {
+     width: 100%;
+}
+.dataTable-overfow {
+	overflow-x: auto;
+}
+
+.tooltip-icon {
+	font-size: 14px;
+	padding: 5px;
 }

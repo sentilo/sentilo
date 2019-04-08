@@ -1,19 +1,20 @@
 package org.sentilo.web.catalog.dto;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class StatusItemDTO implements Comparable<StatusItemDTO> {
 
   private transient int order;
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private String id;
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private String name;
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private String description;
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private boolean status;
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private String stateDesc;
 
   public StatusItemDTO(final int order, final String name, final String description) {

@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -35,6 +35,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
@@ -53,6 +54,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -61,9 +63,12 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.IdleConnectionEvictor;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
@@ -100,25 +105,30 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   private HttpClient httpClient;
   private Credentials credentials;
-  private final AuthScope authScope = AuthScope.ANY;
   private HttpRequestInterceptor[] interceptors;
+  private IdleConnectionEvictor idleConnectionMonitor;
 
   private String host;
   private String secretKey;
   private boolean noValidateCertificates = false;
 
+  // Connection pool parameters
+  private int maxTotalConnections = 400;
+  private int maxTotalConnectionsPerRoute = 50;
+  private long connectionTimeToLiveMs = DEFAULT_READ_TO_MS;
+
   public RESTClientImpl() {
   }
 
-  public String get(final RequestContext rc) throws RESTClientException {
+  public String get(final RequestContext rc) {
     final String targetHost = getRequestTargetHost(rc);
     final URI uri = URIUtils.getURI(targetHost, rc.getPath(), rc.getParameters());
     final HttpGet get = new HttpGet(uri);
 
-    return executeHttpCall(get, rc.getIdentityToken());
+    return executeHttpCall(get, rc);
   }
 
-  public String post(final RequestContext rc) throws RESTClientException {
+  public String post(final RequestContext rc) {
     final String targetHost = getRequestTargetHost(rc);
 
     LOGGER.debug("Send post message to host {} and path {}", targetHost, rc.getPath());
@@ -128,19 +138,19 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
     final URI uri = URIUtils.getURI(targetHost, rc.getPath());
     final HttpPost post = new HttpPost(uri);
 
-    return executeHttpCall(post, rc.getBody(), rc.getIdentityToken());
+    return executeHttpCall(post, rc.getBody(), rc);
   }
 
-  public String put(final RequestContext rc) throws RESTClientException {
+  public String put(final RequestContext rc) {
     final String targetHost = getRequestTargetHost(rc);
     final URI uri = URIUtils.getURI(targetHost, rc.getPath());
 
     final HttpPut put = new HttpPut(uri);
 
-    return executeHttpCall(put, rc.getBody(), rc.getIdentityToken());
+    return executeHttpCall(put, rc.getBody(), rc);
   }
 
-  public String delete(final RequestContext rc) throws RESTClientException {
+  public String delete(final RequestContext rc) {
     final String targetHost = getRequestTargetHost(rc);
 
     // As a request DELETE cannot have body, we simulate the call to DELETE doing a PUT request with
@@ -150,9 +160,8 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
     final HttpRequestBase delete = StringUtils.hasText(rc.getBody()) ? new HttpPut(uri) : new HttpDelete(uri);
 
-    return executeHttpCall(delete, rc.getBody(), rc.getIdentityToken());
+    return executeHttpCall(delete, rc.getBody(), rc);
   }
-
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -160,10 +169,30 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
       final PoolingHttpClientConnectionManager pccm = noValidateCertificates
           ? new PoolingHttpClientConnectionManager(buildTrustSSLConnectionSocketFactory()) : new PoolingHttpClientConnectionManager();
-      // Increase max total connection to 400
-      pccm.setMaxTotal(400);
-      // Increase default max connection per route to 50
-      pccm.setDefaultMaxPerRoute(50);
+      // Set max total connection
+      pccm.setMaxTotal(maxTotalConnections);
+      // Set default max connection per route
+      pccm.setDefaultMaxPerRoute(maxTotalConnectionsPerRoute);
+
+      // Keep alive header definition:
+      // https://tools.ietf.org/id/draft-thomson-hybi-http-timeout-01.html#rfc.section.2.1
+      final ConnectionKeepAliveStrategy keepAliveStrategy = new DefaultConnectionKeepAliveStrategy() {
+
+        public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
+          long keepAliveDuration = super.getKeepAliveDuration(response, context);
+          // By default, if server response no defines any keep-alive timeout it is set to equals
+          // connectionTimeToLiveMs
+          if (keepAliveDuration == -1) {
+            keepAliveDuration = connectionTimeToLiveMs;
+          }
+          return keepAliveDuration;
+        }
+      };
+
+      // idle connection monitor thread: runs every 30 seconds to remove from the pool both closed
+      // connections and idle connections with an inactivity time greater than 10s
+      idleConnectionMonitor = new IdleConnectionEvictor(pccm, 30, TimeUnit.SECONDS, 10, TimeUnit.SECONDS);
+      idleConnectionMonitor.start();
 
       // Define timeouts
       RequestConfig.Builder requestBuilder = RequestConfig.custom();
@@ -173,11 +202,13 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
       final HttpClientBuilder httpClientBuilder = HttpClients.custom();
       httpClientBuilder.setDefaultRequestConfig(requestBuilder.build());
+      httpClientBuilder.setKeepAliveStrategy(keepAliveStrategy);
+      httpClientBuilder.setRetryHandler(new SentiloHttpRequestRetryHandler());
       httpClientBuilder.setConnectionManager(pccm);
 
       if (credentials != null) {
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(authScope, credentials);
+        credentialsProvider.setCredentials(AuthScope.ANY, credentials);
         httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
       }
 
@@ -194,7 +225,11 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
 
   public void destroy() throws Exception {
     // As recommended by HttpClient API, when the client is destroyed the related connectionManager
-    // must be closed
+    // must be closed and the idle connection monitor thread must be stopped
+    if (idleConnectionMonitor != null) {
+      idleConnectionMonitor.shutdown();
+    }
+
     ((CloseableHttpClient) httpClient).close();
   }
 
@@ -202,7 +237,7 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
     return StringUtils.hasText(rc.getHost()) ? rc.getHost() : host;
   }
 
-  private void validateResponse(final HttpResponse response) throws RESTClientException {
+  private void validateResponse(final HttpResponse response) {
     LOGGER.info("Response code: {}", response.getStatusLine().getStatusCode());
     // A response status code between 200 and 299 is considered a success status
     final StatusLine statusLine = response.getStatusLine();
@@ -217,29 +252,19 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
       } catch (final Exception e) {
         // Ignored
       }
+      LOGGER.debug("Response error message: {}", sb.toString());
       throw new RESTClientException(statusLine.getStatusCode(), sb.toString());
     }
   }
 
-  private String executeHttpCall(final HttpRequestBase httpRequest, final String identityToken) throws RESTClientException {
-    return executeHttpCall(httpRequest, null, identityToken);
+  private String executeHttpCall(final HttpRequestBase httpRequest, final RequestContext rc) {
+    return executeHttpCall(httpRequest, null, rc);
   }
 
-  private String executeHttpCall(final HttpRequestBase httpRequest, final String body, final String identityToken) throws RESTClientException {
+  private String executeHttpCall(final HttpRequestBase httpRequest, final String body, final RequestContext rc) {
     try {
       LOGGER.info("Executing http call to:  {} ", httpRequest.toString());
-      if (StringUtils.hasText(body)) {
-        ((HttpEntityEnclosingRequestBase) httpRequest).setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
-      }
-
-      if (StringUtils.hasText(identityToken)) {
-        httpRequest.addHeader(RESTUtils.buildIdentityHeader(identityToken));
-      }
-
-      if (StringUtils.hasText(secretKey)) {
-        addSignedHeader(httpRequest, body);
-      }
-
+      prepareRequest(httpRequest, body, rc);
       final HttpResponse response = httpClient.execute(httpRequest);
       validateResponse(response);
       if (response.getEntity() != null) {
@@ -258,11 +283,30 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
     }
   }
 
-  private void addSignedHeader(final HttpRequestBase httpRequest, final String body) throws GeneralSecurityException {
+  private void prepareRequest(final HttpRequestBase httpRequest, final String body, final RequestContext rc) throws GeneralSecurityException {
+    if (StringUtils.hasText(body)) {
+      ((HttpEntityEnclosingRequestBase) httpRequest).setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
+    }
+
+    if (StringUtils.hasText(rc.getIdentityToken())) {
+      httpRequest.addHeader(RESTUtils.buildIdentityHeader(rc.getIdentityToken()));
+    }
+
+    if (StringUtils.hasText(secretKey) || StringUtils.hasText(rc.getSecretKey())) {
+      addSignedHeader(httpRequest, body, rc);
+    }
+  }
+
+  private void addSignedHeader(final HttpRequestBase httpRequest, final String body, final RequestContext rc) throws GeneralSecurityException {
+    final String targetHost = getRequestTargetHost(rc);
+    final String currentSecretKey = StringUtils.hasText(rc.getSecretKey()) ? rc.getSecretKey() : secretKey;
     final String currentDate = DateUtils.timestampToString(System.currentTimeMillis());
-    final String hmac = HMACBuilder.buildHeader(body, host, secretKey, currentDate);
+    final String hmac = HMACBuilder.buildHeader(body, targetHost, currentSecretKey, currentDate);
     httpRequest.addHeader(SentiloConstants.HMAC_HEADER, hmac);
     httpRequest.addHeader(SentiloConstants.DATE_HEADER, currentDate);
+
+    LOGGER.trace("HMAC header build params -- body {}  -- host {} -- secretKey {} -- date {} ", body, targetHost, currentSecretKey, currentDate);
+
     LOGGER.debug("Add header {} with value {}", SentiloConstants.HMAC_HEADER, hmac);
     LOGGER.debug("Add header {} with value {}", SentiloConstants.DATE_HEADER, currentDate);
   }

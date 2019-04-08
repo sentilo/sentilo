@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -32,10 +32,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
+import org.bson.Document;
 import org.sentilo.web.catalog.admin.domain.DeletedResource;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.SyncResource;
@@ -49,23 +52,27 @@ import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.TenantUtils;
-import org.sentilo.web.catalog.validator.DefaultEntityKeyValidatorImpl;
-import org.sentilo.web.catalog.validator.EntityKeyValidator;
+import org.sentilo.web.catalog.validator.DefaultResourceKeyValidatorImpl;
+import org.sentilo.web.catalog.validator.ResourceKeyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import com.mongodb.MongoException;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.DistinctIterable;
+import com.mongodb.client.MongoCollection;
 
 public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> extends AbstractBaseServiceImpl implements CrudService<T>, ApplicationContextAware {
 
@@ -80,7 +87,8 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   private ApplicationContext context;
 
   private final Class<T> type;
-  private EntityKeyValidator entityKeyValidator;
+
+  private ResourceKeyValidator resourceKeyValidator;
   private ResourceNotFoundExceptionBuilder resourceNotFoundExceptionBuilder;
 
   public AbstractBaseCrudServiceImpl(final Class<T> type) {
@@ -89,7 +97,7 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
 
   @PostConstruct
   public void init() {
-    this.setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(type, getRepository()));
+    this.setResourceKeyValidator(new DefaultResourceKeyValidatorImpl(type, getRepository()));
     this.setResourceNotFoundExceptionBuilder(new DefaultCatalogBuilderExceptionImpl(type));
     doAfterInit();
   }
@@ -144,21 +152,19 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   @Override
   @Auditable(actionType = AuditingActionType.CREATE)
   public Collection<T> insertAll(final Collection<T> entities) throws MongoException, DataAccessException {
-    // Este metodo permite hacer un insert de todos los elementos de la colección. Pero en caso de
-    // que un elemento de esta ya este
-    // registrado en el sistema lo que hace es interrumpir el alta sin lanzar ningún error.
-    // Esto provoca que los elementos no leidos aun de la colección no se inserten.
-    // Por ello hacemos una modificación y antes de invocar al metodo insert, filtramos los
-    // elementos de la colección ya existentes: esto penaliza el rendimiento,
-    // pero por otro lado garantiza la inserción de los elementos.
-    final Collection<T> entitiesFiltered = removeFromCollectionIfAlreadyExists(entities);
-    if (!entitiesFiltered.isEmpty()) {
-      getMongoOps().insert(entitiesFiltered, this.type);
+
+    if (!CollectionUtils.isEmpty(entities)) {
+      final BulkOperations bulkInsertOperation = getMongoOps().bulkOps(BulkMode.UNORDERED, this.type);
+      for (final T entity : entities) {
+        bulkInsertOperation.insert(entity);
+      }
+
+      final BulkWriteResult result = bulkInsertOperation.execute();
+      LOGGER.debug("{} resources of type {} has been inserted", result.getInsertedCount(), this.type.getName());
+      doAfterCreate(entities);
     }
 
-    doAfterCreate(entitiesFiltered);
-
-    return entitiesFiltered;
+    return entities;
   }
 
   /*
@@ -245,16 +251,31 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    */
   @Override
   public T find(final T entity) {
-    return getRepository().findOne(getEntityId(entity));
+    // TODO: to redefine in a future release. Method should return an Optional<T> and clients should
+    // control when result is either present or empty.
+    // Actual version checks internally this control and returns null if result is not present to
+    // facilitate the upgrade to new version of Spring Data without change many code of Sentilo.
+    return findById(getEntityId(entity));
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.CrudService#findById(java.lang.String)
+   */
+  public T findById(final String id) {
+    // TODO: deprecated find in a futures release and replace by this method
+    final Optional<T> result = getRepository().findById(id);
+    return result.isPresent() ? result.get() : null;
   }
 
   @Override
   public T findAndThrowErrorIfNotExist(final T entity) {
-    final T entityToReturn = find(entity);
-    if (entityToReturn == null) {
+    final Optional<T> entityToReturn = getRepository().findById(entity.getId());
+    if (!entityToReturn.isPresent()) {
       getResourceNotFoundExceptionBuilder().buildAndThrowResourceNotFoundException(entity.getId());
     }
-    return entityToReturn;
+    return entityToReturn.get();
   }
 
   /*
@@ -290,19 +311,13 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    */
   @Override
   public SearchFilterResult<T> search(final SearchFilter filter) {
-    // El resultado debe ser un objeto Page<T>, el cual internamente contiene el listado a mostrar,
-    // el total de registros y
-    // el objeto Pageable original. En nuestro caso, como queremos el SearchFilter, lo que hacemos
-    // es inspirarnos en esta
-    // clase para crear la SearchFilterResult.
-
     final Query countQuery = filter.isCountTotal() ? buildCountQuery(filter) : null;
     final long total = filter.isCountTotal() ? getMongoOps().count(countQuery, this.type) : -1;
 
     final Query query = buildQuery(filter);
     final List<T> content = getMongoOps().find(query, this.type);
 
-    return new SearchFilterResult<T>(content, filter, total);
+    return new SearchFilterResult<T>(content, total);
   }
 
   /*
@@ -321,8 +336,8 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
    * @see org.sentilo.web.catalog.service.CrudService#exist(java.lang.String)
    */
   @Override
-  public boolean exist(final String entityId) {
-    return getRepository().exists(entityId);
+  public boolean exists(final String entityId) {
+    return getRepository().existsById(entityId);
   }
 
   /*
@@ -347,8 +362,12 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
     updateMulti(buildQueryForIdInCollection(objectIds), params, values);
   }
 
+  public Class<T> getType() {
+    return type;
+  }
+
   protected <V> void updateMulti(final Query query, final List<String> params, final List<V> values) {
-    Assert.isTrue(params.size() == values.size());
+    Assert.isTrue(params.size() == values.size(), "[Assertion failed] - number of parameters and values must be equal");
 
     final String userName = userDetailsService.getCatalogUserDetails().getUsername();
     final Update update = Update.update(params.get(0), values.get(0));
@@ -390,26 +409,57 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
       final Query queryFiltered = query;
       queryFiltered.fields().include("sensorId").include("providerId").include("applicationId");
       final List<DeletedResource> resources = getMongoOps().find(queryFiltered, DeletedResource.class, collectionName);
-      final List<DeletedResource> newResources = new ArrayList<DeletedResource>();
-      for (final DeletedResource resource : resources) {
-        // Before insert collection, existing documents should be removed from collection to evict
-        // duplicate exceptions and truncate bulk insert
-        // Version 2.6+ of MongoDB allows to control this requirement (ordered parameter)
-        if (getMongoOps().findById(resource.getId(), DeletedResource.class) == null) {
-          resource.set_class(resourceType.getName());
-          resource.setDeletedAt(new Date());
-          newResources.add(resource);
-        }
-      }
 
-      getMongoOps().insert(newResources, DeletedResource.class);
+      if (!CollectionUtils.isEmpty(resources)) {
+        final BulkOperations bulkInsertOperation = getMongoOps().bulkOps(BulkMode.UNORDERED, DeletedResource.class);
+        for (final DeletedResource resource : resources) {
+          resource.setResourceClass(resourceType.getName());
+          resource.setDeletedAt(new Date());
+          bulkInsertOperation.insert(resource);
+        }
+
+        final BulkWriteResult result = bulkInsertOperation.execute();
+        LOGGER.debug("{} deleted resources has been registered to be synchronized later ", result.getInsertedCount());
+      }
     }
 
     getMongoOps().remove(query, resourceType);
   }
 
+  protected List<String> distinct(final String collectionName, final String fieldName) {
+    return distinct(collectionName, fieldName, String.class, null);
+  }
+
+  protected List<String> distinct(final String collectionName, final String fieldName, final Query query) {
+    return distinct(collectionName, fieldName, String.class, query);
+  }
+
+  protected <TResult> List<TResult> distinct(final String collectionName, final String fieldName, final Class<TResult> resultClass,
+      final Query query) {
+    // MongoCollection, from version 3.0, has change distinct method signature
+    // https://groups.google.com/forum/#!msg/mongodb-user/7YxevdAPcdY/vHwydGIkAQAJ
+    // getMongoOps().getCollection(collectionName).distinct(fieldName, query.getQueryObject(),
+    // String.class);
+
+    final MongoCollection<Document> collection = getMongoOps().getCollection(collectionName);
+    if (query != null) {
+      return toList(collection.distinct(fieldName, query.getQueryObject(), resultClass));
+    } else {
+      return toList(collection.distinct(fieldName, resultClass));
+    }
+  }
+
+  protected <V> List<V> toList(final DistinctIterable<V> result) {
+    final List<V> list = new ArrayList<V>();
+    final Iterator<V> it = result.iterator();
+    while (it.hasNext()) {
+      list.add(it.next());
+    }
+    return list;
+  }
+
   protected void checkIntegrityKey(final String idToCheck) {
-    getEntityKeyValidator().checkIntegrityKey(idToCheck);
+    getResourceKeyValidator().checkIntegrityKey(idToCheck);
   }
 
   protected void doAfterUpdateMulti(final Collection<String> objectIds, final String[] params, final Object[] values) {
@@ -440,20 +490,6 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
     // To override by subclasses
   }
 
-  private Collection<T> removeFromCollectionIfAlreadyExists(final Collection<T> entities) {
-    final Collection<T> entitiesFiltered = new ArrayList<T>();
-    if (!CollectionUtils.isEmpty(entities)) {
-      for (final T doc : entities) {
-        // Si el doc no tiene id o bien no se encuentra, significa que no existe en el sistema
-        if (!StringUtils.hasText(doc.getId()) || find(doc) == null) {
-          entitiesFiltered.add(doc);
-        }
-      }
-    }
-
-    return entitiesFiltered;
-  }
-
   public MongoOperations getMongoOps() {
     return mongoOps;
   }
@@ -462,12 +498,12 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
     return context;
   }
 
-  protected EntityKeyValidator getEntityKeyValidator() {
-    return entityKeyValidator;
+  protected ResourceKeyValidator getResourceKeyValidator() {
+    return resourceKeyValidator;
   }
 
-  protected void setEntityKeyValidator(final EntityKeyValidator entityKeyValidator) {
-    this.entityKeyValidator = entityKeyValidator;
+  protected void setResourceKeyValidator(final ResourceKeyValidator resourceKeyValidator) {
+    this.resourceKeyValidator = resourceKeyValidator;
   }
 
   protected ResourceNotFoundExceptionBuilder getResourceNotFoundExceptionBuilder() {

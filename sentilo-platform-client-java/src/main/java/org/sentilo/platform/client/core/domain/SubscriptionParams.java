@@ -28,31 +28,33 @@
  */
 package org.sentilo.platform.client.core.domain;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class SubscriptionParams {
 
   /**
    * URL of the remote service where to send the notification
    */
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private String endpoint;
 
   /**
    * Secret used to build the HMAC-SHA signature header for every notification.
    */
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private String secretCallbackKey;
 
   /**
    * Maximum number of allowed retries if the remote server doesn't responds with a 2xx HTTP code .
    */
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+  @JsonInclude(value = Include.NON_DEFAULT)
   private long maxRetries;
 
   /** Delay base factor between each retry in minutes. */
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_DEFAULT)
+  @JsonInclude(value = Include.NON_DEFAULT)
   private long retryDelay;
 
   public SubscriptionParams() {

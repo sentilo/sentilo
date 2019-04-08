@@ -3,14 +3,15 @@ package org.sentilo.web.catalog.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class StatusDTO {
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+  @JsonInclude(value = Include.NON_EMPTY)
   private List<StatusItemDTO> items;
 
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(value = Include.NON_NULL)
   private Boolean isPlatformRunningProperly;
 
   public StatusDTO() {

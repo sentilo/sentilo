@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sentilo.common.domain.CatalogAlert;
+import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.Alert;
 import org.sentilo.platform.common.domain.Sensor;
@@ -74,34 +75,61 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * (non-Javadoc)
    *
    * @see
-   * org.sentilo.platform.common.service.ResourceService#registerSensorIfNeedBe(java.lang.String,
-   * java.lang.String, java.lang.String)
+   * org.sentilo.platform.common.service.ResourceService#registerGhostSensorIfNeedBe(org.sentilo.
+   * platform.common.domain.Sensor)
    */
-  public Long registerSensorIfNeedBe(final String providerId, final String sensorId, final SensorState state, final boolean update) {
-    Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+  public Long registerGhostSensorIfNeedBe(final Sensor sensor) {
+    if (!sensor.exists()) {
+      final CatalogSensor catalogSensor = new CatalogSensor();
+      catalogSensor.setProvider(sensor.getProvider());
+      catalogSensor.setSensor(sensor.getSensor());
+      catalogSensor.setState(SensorState.ghost);
+
+      final Long sid = registerSensorIfNeedBe(catalogSensor, false);
+
+      sensor.setSid(sid);
+      sensor.setState(SensorState.ghost);
+    }
+
+    return sensor.getSid();
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.platform.common.service.ResourceService#registerSensorIfNeedBe(org.sentilo.common.
+   * domain.CatalogSensor, boolean)
+   */
+  public Long registerSensorIfNeedBe(final CatalogSensor sensor, final boolean update) {
+
+    Long sid = jedisSequenceUtils.getSid(sensor.getProvider(), sensor.getSensor());
     // Sensor must be registered into Redis if its sid doesn't exist or if update is true
     if (sid == null || update) {
 
       if (sid == null) {
-        final Long pid = jedisSequenceUtils.getPid(providerId);
-        sid = jedisSequenceUtils.setSid(providerId, sensorId);
+        final Long pid = jedisSequenceUtils.getPid(sensor.getProvider());
+        sid = jedisSequenceUtils.setSid(sensor.getProvider(), sensor.getSensor());
 
         // To quickly get the sensors list from a provider, a reverse lookup key is defined
         jedisTemplate.sAdd(keysBuilder.getProviderSensorsKey(pid), sid.toString());
 
         // And finally, a new reverse lookup key is defined to quickly get the internal sid of a
         // sensor from the pair <providerId,sensorId>, so that sensor's data could be stored
-        jedisTemplate.set(keysBuilder.getReverseSensorKey(providerId, sensorId), sid.toString());
+        jedisTemplate.set(keysBuilder.getReverseSensorKey(sensor.getProvider(), sensor.getSensor()), sid.toString());
       }
 
-      // Store a hash with key sid:{sid} and fields provider, sensor and state
+      // Store a hash with key sid:{sid} and fields provider, sensor, state and ttl
       final Map<String, String> fields = new HashMap<String, String>();
-      fields.put(PROVIDER, providerId);
-      fields.put(SENSOR, sensorId);
-      fields.put(STATE, state.name());
+      fields.put(PROVIDER, sensor.getProvider());
+      fields.put(SENSOR, sensor.getSensor());
+      fields.put(STATE, sensor.getState().name());
+      fields.put(TTL, catalogSensorTtlToRedisTtl(sensor.getTtl()));
+
       jedisTemplate.hmSet(keysBuilder.getSensorKey(sid), fields);
 
-      LOGGER.debug("Saved in Redis sensor [{}]  with sid [{}] and state [{}], belonging to provider [{}]", sensorId, sid, state.name(), providerId);
+      LOGGER.debug("Saved in Redis sensor [{}]  with sid [{}] and state [{}], belonging to provider [{}]", sensor.getSensor(), sid,
+          sensor.getState().name(), sensor.getProvider());
     }
 
     return sid;
@@ -149,6 +177,17 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
   /*
    * (non-Javadoc)
    *
+   * @see org.sentilo.platform.common.service.ResourceService#getSensor(java.lang.String,
+   * java.lang.String)
+   */
+  public Sensor getSensor(final String providerId, final String sensorId) {
+    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+    return sid != null ? getSensor(sid) : new Sensor(providerId, sensorId);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
    * @see org.sentilo.platform.common.service.ResourceService#getSensor(java.lang.Long)
    */
   public Sensor getSensor(final Long sid) {
@@ -158,7 +197,8 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       final String sensorId = infoSid.get(SENSOR);
       final String providerId = infoSid.get(PROVIDER);
       final String state = infoSid.get(STATE);
-      sensor = new Sensor(sensorId, providerId, state);
+      final String ttl = infoSid.get(TTL);
+      sensor = new Sensor(sid, providerId, sensorId, state, ttl);
     }
     return sensor;
   }
@@ -286,15 +326,9 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * java.lang.String)
    */
   public SensorState getSensorState(final String providerId, final String sensorId) {
-    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
-    SensorState sensorState = null;
+    final Sensor sensor = getSensor(providerId, sensorId);
 
-    if (sid != null) {
-      final Sensor sensor = getSensor(sid);
-      sensorState = StringUtils.hasText(sensor.getState()) ? SensorState.valueOf(sensor.getState()) : null;
-    }
-
-    return sensorState;
+    return sensor.getState();
   }
 
   /*

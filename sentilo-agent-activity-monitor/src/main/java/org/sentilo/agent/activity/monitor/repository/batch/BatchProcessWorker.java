@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -41,6 +41,7 @@ import org.sentilo.common.rest.RequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 public class BatchProcessWorker implements Callable<BatchProcessResult> {
 
@@ -54,6 +55,7 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
   private int numRetries;
   private final String indexName;
   private final int numMaxRetries;
+  private final String esVersion;
   private final StringMessageConverter converter = new DefaultStringMessageConverter();
 
   public BatchProcessWorker(final BatchProcessContext batchUpdateContext) {
@@ -61,11 +63,13 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     restClient = batchUpdateContext.getRestClient();
     numMaxRetries = batchUpdateContext.getNumMaxRetries();
     callback = batchUpdateContext.getCallback();
+    esVersion = batchUpdateContext.getEsVersion();
 
     final String suffixIndexName =
         System.getProperty("elasticsearch.index.name") == null ? DEFAULT_INDEX_NAME : System.getProperty("elasticsearch.index.name");
     final String indexMathDatePattern = System.getProperty("elasticsearch.index.date.pattern") == null ? DEFAULT_INDEX_MATH_DATE_PATTERN
         : System.getProperty("elasticsearch.index.date.pattern");
+
     // indexName will be dynamic and depends on the current day. Its final name is derived from a
     // dath-math-expression
     indexName = "<" + suffixIndexName + "-" + indexMathDatePattern + ">";
@@ -130,8 +134,16 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
   private String buildBody(final List<EventMessage> eventsToProcess) {
     final StringBuilder sb = new StringBuilder();
 
+    // If elasticsearch version is <= 2.x, mapping type is determined by the event type (data, alarm
+    // or
+    // order), but mapping type is always _doc
+    // https://www.elastic.co/guide/en/elasticsearch/reference/6.0/breaking-changes-6.0.html
+    // The ability to have multiple mapping types per index has been removed in 6.0
+    final boolean customEventMapping = StringUtils.hasText(esVersion) && esVersion.startsWith("2");
+
     for (final EventMessage event : eventsToProcess) {
-      sb.append("{ \"index\" : { \"_index\" : \"" + indexName + "\", \"_type\" : \"" + event.getType().toLowerCase() + "\" }}");
+      final String mappingType = customEventMapping ? event.getType().toLowerCase() : "_doc";
+      sb.append("{ \"index\" : { \"_index\" : \"" + indexName + "\", \"_type\" : \"" + mappingType + "\" }}");
       sb.append("\n");
       sb.append(converter.marshal(event));
       sb.append("\n");

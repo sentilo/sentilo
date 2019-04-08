@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,7 +40,7 @@ public class SentiloStatusController extends CatalogBaseController {
     return statusPageDisabled() ? Constants.VIEW_STATE_DISABLED : Constants.VIEW_STATE_ENABLED;
   }
 
-  @RequestMapping(value = "/json", method = RequestMethod.GET)
+  @RequestMapping(value = "/json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public StatusDTO getPlatformStatus() {
     final StatusDTO sentiloStatus = new StatusDTO();

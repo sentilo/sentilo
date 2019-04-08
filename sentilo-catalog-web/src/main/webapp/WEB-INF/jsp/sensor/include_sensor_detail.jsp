@@ -115,7 +115,13 @@
 									<span class="label label-info"><c:out value="${sensor.substateDesc}"/> </span>
 								</div>
 							</div>
-						</c:if>												
+						</c:if>		
+						<div class="row-fluid">
+							<div class="span4">
+								<strong><spring:message code="sensor.ttl" /> </strong>
+							</div>
+							<div class="span8">${sensor.ttl}</div>
+						</div>										
 				</div>
 			</div>
 		</div>
@@ -124,7 +130,7 @@
 			<div class="span12">
 				<div class="control-group  pull-right">
 					<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-					<c:if test="${showAdminControls}">
+					<c:if test="${showAdminControls and not sensor.federatedResource}">
 					<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
 					</c:if>
 				</div>
@@ -142,7 +148,7 @@
 				<div class="span12">
 					<div class="control-group  pull-right">
 						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-						<c:if test="${showAdminControls}">
+						<c:if test="${showAdminControls and not sensor.federatedResource}">
 						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
 						</c:if>
 					</div>
@@ -160,7 +166,7 @@
 				<div class="span12">
 					<div class="control-group  pull-right">
 						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-						<c:if test="${showAdminControls}">
+						<c:if test="${showAdminControls and not sensor.federatedResource}">
 						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
 						</c:if>
 					</div>
@@ -177,7 +183,7 @@
 				<div class="span12">
 					<div class="control-group  pull-right">
 						<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-						<c:if test="${showAdminControls}">
+						<c:if test="${showAdminControls and not sensor.federatedResource}">
 						<a href="${editSensorLink}" class="btn btn-primary"> <spring:message code="sensor.edit.title" /> </a>
 						</c:if>
 					</div>

@@ -15,17 +15,33 @@
 
 $(document).ready(function() {
 	
-	$("#chartNavigateLeft").click(function() {
-		chartNavigateLeft(ajaxActivity);
-	});
-
-	$("#chartNavigateRight").click(function() {
-		chartNavigateRight(ajaxActivity);
-	});
-
-	$("#chartNavigateRefresh").click(function() {
-		chartNavigateRefresh(ajaxActivity);
-	});
+	window.messages = {
+		boolValues: {
+			falseValue: '<spring:message code="false"/>',
+			trueValue: '<spring:message code="true"/>'
+		},
+		chart: {
+			iniDate: '<spring:message code="universalMap.details.sensor.chart.iniDate"/>',
+			endDate: '<spring:message code="universalMap.details.sensor.chart.endDate"/>'
+		},
+		players: {
+			timestamp: '<spring:message code="universalMap.details.players.timestamp"/>',
+			filename: '<spring:message code="universalMap.details.players.filename"/>',
+			ellapsed: '<spring:message code="universalMap.details.players.ellapsed"/>',
+			download: '<spring:message code="universalMap.details.players.download"/>'
+		},
+		json: {
+			timestamp: '<spring:message code="universalMap.details.json.timestamp"/>',
+			expandAll: '<spring:message code="universalMap.details.json.expandAll"/>',
+			collapseAll: '<spring:message code="universalMap.details.json.collapseAll"/>',
+			expandLevels: '<spring:message code="universalMap.details.json.expandLevels"/>'
+		},
+		statistics: {
+			observations: '<spring:message code="stats.events.data"/>',
+			orders: '<spring:message code="stats.events.orders"/>',
+			alarms: '<spring:message code="stats.events.alarms"/>'
+		}
+	};
 	
 	initUrls('${statsLink}', '${activityLink}');
 	
@@ -42,9 +58,6 @@ $(document).ready(function() {
 			 '<spring:message code="stats.accounts.providers"/>',
 			 '<spring:message code="stats.accounts.applications"/>');
 	
-	initTimes('${theFuture}');
-	initChartControls();
-	initializeChart();
 	ajaxStats();
 	ajaxActivity();
 	setInterval(ajaxStats, refreshStatsMS);
@@ -134,10 +147,8 @@ $(document).ready(function() {
 								</div>
 								<div id="activityAccordionCollapse" class="accordion-body collapse in">
 									<div class="accordion-inner">
-										<div id="placeholder" style="width: 100%; height: 150px; margin: 0 auto; padding: 0px; position: relative;"></div>
-										<p id="choices"></p>
-										<hr />
-										<%@ include file="/WEB-INF/jsp/common/include_chart_controls.jsp" %>
+										<div id="placeholder"></div>
+										<div id="chart-controls"></div>
 									</div>
 								</div>
 							</div>

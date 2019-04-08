@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -33,6 +33,7 @@ import org.sentilo.web.catalog.domain.TenantPermission;
 
 public abstract class Constants {
 
+  public static final String MODEL_ACTIVE_SUBSCRIPTIONS = "activeSubscriptions";
   public static final String MODEL_ALERTS = "alerts";
   public static final String MODEL_ALERT = "alert";
   public static final String MODEL_ALERT_NOTIFICATION_TYPES = "alertNotificationTypes";
@@ -73,6 +74,7 @@ public abstract class Constants {
   public static final String MODEL_USERS = "users";
   public static final String MODEL_USER = "user";
   public static final String MODEL_USER_ROLES = "roles";
+  public static final String MODEL_USER_PASSWORD = "password";
   public static final String MODEL_ENERGY_TYPES = "energyTypes";
   public static final String MODEL_CONNECTIVITY_TYPES = "connectivityTypes";
   public static final String MODEL_MAP_TYPE = "mapType";
@@ -92,7 +94,8 @@ public abstract class Constants {
   public static final String MODEL_TENANT_VISUAL_CONFIGURATION_DTO = "tenantVisualConfiguration";
   public static final String MODEL_MAX_SYSTEM_DATE_MILLIS = "maxSystemDateMilllis";
   public static final String MODEL_IS_MULTITENANT_ENABLED = "multitenantIsEnabled";
-
+  public static final String MODEL_FEDERATION = "federationConfig";
+  public static final String MODEL_CURRENT_REQUEST_MAPPING = "currentRequestMapping";
   public static final String MODEL_DATE_UPDATED = "dateUpdated";
 
   public static final String VIEW_ERROR_ACCESS_NOT_ALLOWED = "accessNotAllowed";
@@ -107,11 +110,11 @@ public abstract class Constants {
 
   public static final String VIEW_PUBLIC_COMPONENT_MAP = "component/public/component_map";
   public static final String VIEW_PUBLIC_COMPONENT_DETAIL = "component/public/component_detail";
-  public static final String VIEW_PUBLIC_COMPONENT_LIST = "component/public/component_list";
 
   public static final String VIEW_USER_LIST = "user/user_list";
   public static final String VIEW_NEW_USER = "user/user_new";
   public static final String VIEW_USER_DETAIL = "user/user_detail";
+  public static final String VIEW_USER_PASSWORD = "user/user_password";
 
   public static final String VIEW_LOGIN = "login";
   public static final String VIEW_LOGIN_DENIED = "login_denied";
@@ -148,6 +151,10 @@ public abstract class Constants {
   public static final String VIEW_ALERT_RULE_DETAIL = "alertRule/alertRule_detail";
   public static final String VIEW_NEW_ALERT_RULE = "alertRule/alertRule_new";
 
+  public static final String VIEW_FEDERATION_LIST = "federation/federation_list";
+  public static final String VIEW_NEW_FEDERATION = "federation/federation_new";
+  public static final String VIEW_FEDERATION_DETAIL = "federation/federation_detail";
+
   public static final String VIEW_STATS = "stats/stats";
 
   public static final String VIEW_STATE_ENABLED = "state/state_detail";
@@ -155,6 +162,8 @@ public abstract class Constants {
 
   public static final String VIEW_PROVIDER_DOCUMENT_FILES_LIST = "provider/provider_documents_list";
   public static final String VIEW_PROVIDER_ADD_DOCUMENT_FILE = "provider/provider_documents_add";
+
+  public static final String VIEW_ACTIVE_SUBSCRIPTIONS_LIST = "activesubscriptions/active_subscriptions_list";
 
   public static final String MODE_EDIT = "edit";
   public static final String MODE_CREATE = "create";
@@ -165,6 +174,8 @@ public abstract class Constants {
 
   public static final String VALIDATION_ENTITY_NAME_REGEXP = "[0-9a-zA-Z-_]+";
   public static final String VALIDATION_FILENAME_REGEXP = "[0-9a-zA-Z-_.]+";
+  public static final String VALIDATION_USER_NAME_REGEXP = "[0-9a-zA-Z-_.@]+";
+  public static final String VALIDATION_FEDERATION_ID_REGEXP = "[0-9a-zA-Z-]+";
 
   public static final String VALIDATION_SUCCESS = "SUCCESS";
   public static final String VALIDATION_FAIL = "FAIL";
@@ -196,6 +207,8 @@ public abstract class Constants {
   public static final String MENU_COMPONENT_MAP = "/componentMap";
   public static final String MENU_ALERT_RULE = "/alertRule";
   public static final String MENU_TENANT = "/tenant";
+  public static final String MENU_FEDERATION = "/federation";
+  public static final String MENU_ACTIVE_SUBSCRIPTIONS = "/activesubscriptions";
 
   public static final Permission.Type CATALOG_PERMISSION_TYPE = Permission.Type.ADMIN;
   public static final TenantPermission.Type CATALOG_TENANT_PERMISSION_TYPE = TenantPermission.Type.WRITE;
@@ -213,9 +226,6 @@ public abstract class Constants {
 
   public static final String ASC = "asc";
   public static final String DESC = "desc";
-
-  public static final String ENERGY_TYPES_KEY = "energy.types.list";
-  public static final String CONNECTIVITY_TYPES_KEY = "connectivity.types.list";
 
   // Excel view constants
   public static final String NAME_PROP = "name";
@@ -293,6 +303,17 @@ public abstract class Constants {
   public static final String MAPPARAMS_CENTER_PROP = "center";
   public static final String MAPPARAMS_BGCOLOR_PROP = "bgColor";
   public static final String PERMISSION_PROP = "permission";
+  public static final String ENTITY_ID_PROP = "entityId";
+  public static final String SUBSCRIPTION_TYPE_PROP = "subscriptionType";
+  public static final String PROVIDER_PROP = "provider";
+  public static final String SENSOR_PROP = "sensor";
+  public static final String ENDPOINT_PROP = "endpoint";
+  public static final String MAX_RETRIES_PROP = "maxRetries";
+  public static final String RETRY_DELAY_PROP = "retryDelay";
+  public static final String APP_CLIENT_NAME_PROP = "app_client.name";
+  public static final String APP_CLIENT_TOKEN_PROP = "app_client.token";
+  public static final String FEDERATION_SERVER_API_ENDPOINT_PROP = "api_endpoint";
+  public static final String FEDERATION_SERVER_LAST_SYNC_PROP = "lastSync";
 
   public static final String MESSAGE_KEYS_PREFIX = "keysPrefix";
   public static final String LIST_COLUMN_NAMES = "listColumnNames";
@@ -302,8 +323,8 @@ public abstract class Constants {
 
   public static final String SYNC_FIELD = "synchronized";
 
-  // Default charts graphincs values
-  public static final Integer DEFAULT_CHART_OBS_NUMBER = 10;
+  // Default number of points to display in charts
+  public static final Integer DEFAULT_CHART_POINTS_NUMBER = 10;
 
   // Default catalog TimeZone
   public static final String DEFAULT_TIME_ZONE = "UTC";
@@ -312,6 +333,25 @@ public abstract class Constants {
   public static final String HIDDEN_TOKEN_STR = "**************";
 
   public static final String NOT_BLANK_ERROR = "NotBlank";
+
+  public static final String BATCH_USER = "@Batch User@";
+
+  // Security error codes
+  public static final String AUTH_BAD_CREDENTIALS_CODE = "001";
+  public static final String AUTH_LOCKED_ACCOUNT_CODE = "002";
+  public static final String AUTH_DISABLED_ACCOUNT_CODE = "003";
+  public static final String AUTH_NO_MULTITENANT_ACCESS_CODE = "004";
+  public static final String AUTH_ACCESS_NOT_ALLOWED_CODE = "005";
+
+  // Config parameters keys
+  public static final String CATALOG_MASTER_APP_ID = "catalog.app.id";
+  public static final String PLATFORM_DEFAULT_TTL_KEY = "redis.expire.data.seconds";
+  public static final String ENERGY_TYPES_KEY = "energy.types.list";
+  public static final String CONNECTIVITY_TYPES_KEY = "connectivity.types.list";
+
+  // S3 Services
+  public static final String S3_SIGNING_REGION = "eu-west-3";
+  public static final long S3_LINK_DEFAULT_TTL = 3600000; // 10 minutes
 
   private Constants() {
     // this prevents even the native class from calling this ctor as well :

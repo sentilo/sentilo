@@ -7,7 +7,7 @@
 <c:set var="applicationTable" value="applicationTable"/>
 
 <spring:url value="/admin/application/delete" var="deleteURL" />
-<spring:url value="/admin/application/" var="detailPrefix" />
+<spring:url value="/admin/application/" var="applicationDetailPrefix" />
 <spring:url value="/admin/application/new" var="newApplicationURL" />
 <spring:url value="/admin/application/list/json" var="sAjaxSource" />
 <spring:url value="/admin/application/list/excel?tableName=${applicationTable}" var="excelSource" />
@@ -15,7 +15,7 @@
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 <script type="text/javascript">
 $(document).ready(function() {		
-	var table =	makeTableAsync('${applicationTable}', '${sAjaxSource}');		
+	var table =	makeTableAsync('${applicationTable}', '${sAjaxSource}', '${applicationDetailPrefix}');		
 });
 </script>
 

@@ -64,7 +64,7 @@ public class NotificationRetryJob {
   @PreDestroy
   public void shutdown() {
     if (retryNotificationsEnabled) {
-      LOGGER.info("Initializing NotificationRetryJob orderly shutdown");
+      LOGGER.info("Initializing NotificationRetryJob shutdown");
       workersManager.shutdown();
       LOGGER.info("Shutdown finished");
     }

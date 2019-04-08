@@ -20,7 +20,7 @@
 		var firstColumnRenderDelegate = function (data, type, row) {
 			return '<input type="checkbox" name="selectedIds" class="selectedIds" value="' + data +'"/>';
 		}; 
-		var table =	makeTableAsync('${tenantFromPermissionsTable}', '${sAjaxSource}', false, firstColumnRenderDelegate);
+		var table =	makeTableAsync('${tenantFromPermissionsTable}', '${sAjaxSource}', null, firstColumnRenderDelegate);
 	});
 </script>
 

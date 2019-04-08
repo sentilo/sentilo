@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -30,6 +30,7 @@ package org.sentilo.common.utils;
 
 public final class SentiloConstants {
 
+  public static final String SENTILO_FEDERATION_ENABLED_PROP_KEY = "sentilo.federation.enabled";
   public static final String SENTILO_STATE_PAGE_ENABLED_PROP_KEY = "sentilo.state_page.enabled";
   public static final String SENTILO_MULTITENANT_PROP_KEY = "sentilo.multitenant";
   public static final String SENTILO_MULTITENANT_INFER_PROP_KEY = "sentilo.multitenant.infer";
@@ -42,8 +43,8 @@ public final class SentiloConstants {
   public static final String SLASH = "/";
 
   public static final String IDENTITY_KEY_HEADER = "IDENTITY_KEY";
-  public static final String HMAC_HEADER = "Sentilo-Content-Hmac";
-  public static final String DATE_HEADER = "Sentilo-Date";
+  public static final String HMAC_HEADER = "X-Sentilo-Content-Hmac";
+  public static final String DATE_HEADER = "X-Sentilo-Date";
 
   public static final String SENTILO_INTERNAL_TOKEN = "#@#";
 
@@ -92,6 +93,11 @@ public final class SentiloConstants {
 
   // Cross timestamp pattern
   public static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
+
+  // Config module constants
+  public static final String GLOBAL_CONFIG_LIST_KEY = "sentilo:components:config:registry";
+  public static final String CONFIG_SENSITIVE_KEY_PREFIX = "(*)";
+  public static final String CONFIG_SENSITIVE_VALUE_MASK = "[***PROTECTED***]";
 
   private SentiloConstants() {
     // this prevents even the native class from calling this ctor as well :

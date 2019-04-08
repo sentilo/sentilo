@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -40,18 +40,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.sentilo.common.domain.QueryFilterParams;
 import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.DataInputMessage;
 import org.sentilo.platform.common.domain.Observation;
+import org.sentilo.platform.common.domain.Sensor;
 import org.sentilo.platform.common.exception.EventRejectedException;
 import org.sentilo.platform.common.security.RequesterContext;
 import org.sentilo.platform.common.security.RequesterContextHolder;
@@ -65,6 +71,8 @@ import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import com.google.common.collect.ImmutableMap;
 
 public class DataServiceImplTest {
 
@@ -82,6 +90,8 @@ public class DataServiceImplTest {
   private RequesterContext requesterContext;
   @Mock
   private ResourceOwnerContext resourceOwnerContext;
+  @Mock
+  private QueryFilterParams queryFilterParams;
 
   @Before
   public void setUp() {
@@ -93,20 +103,21 @@ public class DataServiceImplTest {
   @Test
   public void setObservations() {
     final String provider = "prov1";
-    final String sensor = "sensor1";
-    final List<Observation> observations = buildObservations(provider, sensor);
+    final String sensor1 = "sensor1";
+    final List<Observation> observations = buildObservations(provider, sensor1);
     when(inputMessage.getObservations()).thenReturn(observations);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor))).thenReturn(new Long(1));
-    when(resourceService.getSensorState(eq(provider), eq(sensor))).thenReturn(SensorState.online);
+    // when(jedisSequenceUtils.getSid(eq(provider), eq(sensor1))).thenReturn(new Long(1));
+    when(resourceService.getSensor(eq(provider), eq(sensor1))).thenReturn(new Sensor(1L, provider, sensor1, SensorState.online.name(), "2"));
     when(jedisSequenceUtils.getSdid()).thenReturn(new Long(10));
 
-    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor);
+    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor1);
 
     service.setObservations(inputMessage);
 
     // Para cada observacion se pasara una vez por los metodos indicados
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensor);
+    verify(resourceService, times(observations.size())).getSensor(eq(provider), eq(sensor1));
+    verify(jedisSequenceUtils, times(0)).getSid(provider, sensor1);
     verify(jedisSequenceUtils, times(observations.size())).getSdid();
     verify(jedisTemplate, times(observations.size())).hmSet(eq("sdid:10"), anyMapOf(String.class, String.class));
     verify(jedisTemplate, times(observations.size())).zAdd(eq("sid:1:observations"), anyDouble(), eq("10"));
@@ -115,22 +126,46 @@ public class DataServiceImplTest {
 
   @Test
   public void setObservationsFromGhostSensor() {
+    final Long sid = 1L;
     final String provider = "prov1";
-    final String sensor = "sensor1";
-    final List<Observation> observations = buildObservations(provider, sensor);
-    when(inputMessage.getObservations()).thenReturn(observations);
-    when(resourceService.getSensorState(eq(provider), eq(sensor))).thenReturn(SensorState.ghost);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor))).thenReturn(1L);
-    when(jedisSequenceUtils.getSdid()).thenReturn(new Long(10));
-    ReflectionTestUtils.setField(service, "rejectUnknownSensors", false);
+    final String sensorId = "sensor1";
+    final Sensor sensor = new Sensor(provider, sensorId);
 
-    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor);
-    final Topic ghostAlarmTopic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, provider, sensor);
+    final List<Observation> observations = buildObservations(provider, sensorId);
+    ReflectionTestUtils.setField(service, "rejectUnknownSensors", false);
+    when(inputMessage.getObservations()).thenReturn(observations);
+    when(resourceService.getSensor(eq(provider), eq(sensorId))).then(new Answer<Sensor>() {
+
+      @Override
+      public Sensor answer(final InvocationOnMock invocation) throws Throwable {
+        // Clean ghost parameters from previous calls to emulate new sensor instance
+        sensor.setState(null);
+        sensor.setSid(null);
+        return sensor;
+      }
+
+    });
+    when(jedisSequenceUtils.getSid(eq(provider), eq(sensorId))).thenReturn(sid);
+    when(jedisSequenceUtils.getSdid()).thenReturn(new Long(10));
+    when(resourceService.registerGhostSensorIfNeedBe(sensor)).then(new Answer<Long>() {
+
+      @Override
+      public Long answer(final InvocationOnMock invocation) throws Throwable {
+        final Long sid = jedisSequenceUtils.getSid(sensor.getProvider(), sensor.getSensor());
+        sensor.setState(SensorState.ghost);
+        sensor.setSid(sid);
+        return sid;
+      }
+
+    });
+
+    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensorId);
+    final Topic ghostAlarmTopic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, provider, sensorId);
 
     service.setObservations(inputMessage);
 
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensor);
+    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensorId);
     verify(jedisSequenceUtils, times(observations.size())).getSdid();
     verify(jedisTemplate, times(observations.size())).hmSet(eq("sdid:10"), anyMapOf(String.class, String.class));
     verify(jedisTemplate, times(observations.size())).zAdd(eq("sid:1:observations"), anyDouble(), eq("10"));
@@ -138,62 +173,81 @@ public class DataServiceImplTest {
     verify(jedisTemplate, times(1)).publish(eq(ghostAlarmTopic.getTopic()), anyString());
   }
 
-  @Test(expected = EventRejectedException.class)
+  @Test
   public void setObservationsFromUnknownSensors() {
+    boolean dataRejected = false;
     final String provider = "prov1";
     final String sensor = "sensor1";
+    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor);
     final List<Observation> observations = buildObservations(provider, sensor);
     when(inputMessage.getObservations()).thenReturn(observations);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor))).thenReturn(null);
-    when(resourceService.getSensorState(eq(provider), eq(sensor))).thenReturn(null);
+    when(resourceService.getSensor(eq(provider), eq(sensor))).thenReturn(new Sensor(provider, sensor));
 
-    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor);
+    try {
+      service.setObservations(inputMessage);
+    } catch (final EventRejectedException ere) {
+      dataRejected = true;
+    }
 
-    service.setObservations(inputMessage);
-
+    Assert.assertTrue(dataRejected);
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensor);
+    verify(jedisSequenceUtils, times(0)).getSid(provider, sensor);
     verify(jedisSequenceUtils, times(0)).getSdid();
-    verify(jedisTemplate, times(observations.size())).publish(eq(topic.getTopic()), anyString());
+    verify(jedisTemplate, times(0)).publish(eq(topic.getTopic()), anyString());
   }
 
-  @Test(expected = EventRejectedException.class)
+  @Test
   public void setObservationsFromDisabledSensors() {
+    boolean dataRejected = false;
+    final Long sid = 1L;
     final String provider = "prov1";
-    final String sensor = "sensor1";
-    final List<Observation> observations = buildObservations(provider, sensor);
+    final String sensorId = "sensor1";
+    final Sensor sensor = new Sensor(sid, provider, sensorId, SensorState.offline.name(), "10");
+    final List<Observation> observations = buildObservations(provider, sensorId);
+
     when(inputMessage.getObservations()).thenReturn(observations);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor))).thenReturn(1L);
-    when(resourceService.getSensorState(eq(provider), eq(sensor))).thenReturn(SensorState.offline);
+    when(jedisSequenceUtils.getSid(eq(provider), eq(sensorId))).thenReturn(sid);
+    when(resourceService.getSensor(eq(provider), eq(sensorId))).thenReturn(sensor);
 
-    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor);
+    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensorId);
 
-    service.setObservations(inputMessage);
+    try {
+      service.setObservations(inputMessage);
+    } catch (final EventRejectedException ere) {
+      dataRejected = true;
+    }
 
+    Assert.assertTrue(dataRejected);
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensor);
+    verify(jedisSequenceUtils, times(0)).getSid(provider, sensorId);
     verify(jedisSequenceUtils, times(0)).getSdid();
-    verify(jedisTemplate, times(observations.size())).publish(eq(topic.getTopic()), anyString());
+    verify(jedisTemplate, times(0)).publish(eq(topic.getTopic()), anyString());
   }
 
-  @Test(expected = EventRejectedException.class)
+  @Test
   public void setObservationsFromPartiallyUnknownSensors() {
+    boolean dataRejected = false;
     final String provider = "prov1";
-    final String sensor = "sensor1";
+    final String sensor1 = "sensor1";
     final String sensor2 = "sensor2";
-    final List<Observation> observations = buildObservations(provider, sensor);
+    final List<Observation> observations = buildObservations(provider, sensor1, sensor2);
     when(inputMessage.getObservations()).thenReturn(observations);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor))).thenReturn(null);
+    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor1))).thenReturn(null);
     when(jedisSequenceUtils.getSid(eq(provider), eq(sensor2))).thenReturn(2L);
-    when(resourceService.getSensorState(eq(provider), eq(sensor))).thenReturn(null);
-    when(resourceService.getSensorState(eq(provider), eq(sensor2))).thenReturn(SensorState.offline);
+    when(resourceService.getSensor(eq(provider), eq(sensor1))).thenReturn(new Sensor(provider, sensor1));
+    when(resourceService.getSensor(eq(provider), eq(sensor2))).thenReturn(new Sensor(2L, provider, sensor1, SensorState.online.name(), "2"));
 
-    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor);
+    final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor2);
 
-    service.setObservations(inputMessage);
+    try {
+      service.setObservations(inputMessage);
+    } catch (final EventRejectedException ere) {
+      dataRejected = true;
+    }
 
+    Assert.assertTrue(dataRejected);
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensor);
+    verify(jedisSequenceUtils, times(0)).getSid(provider, sensor1);
     verify(jedisSequenceUtils, times(observations.size() / 2)).getSdid();
     verify(jedisTemplate, times(observations.size() / 2)).publish(eq(topic.getTopic()), anyString());
   }
@@ -283,23 +337,96 @@ public class DataServiceImplTest {
   public void getLastObservationsFromProviderAndSensor() {
     final String provider = "prov1";
     final String sensor = "sensor1";
-    final Set<String> sdids = buildSdids();
+    final Set<String> sdids = new HashSet<String>(Arrays.asList("121", "122"));
+    final Set<String> sids = new HashSet<String>(Arrays.asList("1"));
+    final int limit = 2;
 
     when(inputMessage.getSensorId()).thenReturn(sensor);
     when(inputMessage.getProviderId()).thenReturn(provider);
-    when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(buildSids());
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
-    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSdids());
+    when(inputMessage.hasQueryFilters()).thenReturn(true);
+    when(inputMessage.getQueryFilters()).thenReturn(queryFilterParams);
+    when(queryFilterParams.getLimit()).thenReturn(limit);
+    when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(sids);
+    when(jedisSequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
+    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids);
+    when(jedisTemplate.hGetAll("sdid:121")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(jedisTemplate.hGetAll("sdid:122")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(resourceService.getSensor(1l)).thenReturn(new Sensor(provider, sensor));
 
     service.getLastObservations(inputMessage);
 
-    verify(inputMessage).getSensorId();
+    verify(inputMessage, times(limit)).getSensorId();
     verify(inputMessage, times(2)).getProviderId();
-    verify(jedisTemplate, times(2)).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
-    verify(jedisTemplate, times(2 * sdids.size())).hGetAll(anyString());
+    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
+    verify(jedisTemplate, times(limit)).hGetAll(anyString());
   }
 
   @Test
+  public void getLastObservationsFromProviderAndSensorWithExpiredData() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
+    final Set<String> sdids_1 = new HashSet<String>(Arrays.asList("121", "122", "123"));
+    final Set<String> sdids_2 = new HashSet<String>(Arrays.asList("123", "124", "125"));
+    final Set<String> sids = new HashSet<String>(Arrays.asList("1"));
+    final int limit = 2;
+
+    when(inputMessage.getSensorId()).thenReturn(sensor);
+    when(inputMessage.getProviderId()).thenReturn(provider);
+    when(inputMessage.hasQueryFilters()).thenReturn(true);
+    when(inputMessage.getQueryFilters()).thenReturn(queryFilterParams);
+    when(queryFilterParams.getLimit()).thenReturn(limit);
+    when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(sids);
+    when(jedisSequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
+    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids_1);
+    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1))).thenReturn(sdids_2);
+    when(jedisTemplate.hGetAll("sdid:122")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(jedisTemplate.hGetAll("sdid:124")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(resourceService.getSensor(1l)).thenReturn(new Sensor(provider, sensor));
+
+    service.getLastObservations(inputMessage);
+
+    verify(inputMessage, times(limit)).getSensorId();
+    verify(inputMessage, times(2)).getProviderId();
+    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
+    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1));
+    verify(jedisTemplate, times(4)).hGetAll(anyString());
+  }
+
+  @Test
+  public void getLastObservationsFromProviderAndSensorWithExpiredDataAndReturningLess() {
+    final String provider = "prov1";
+    final String sensor = "sensor1";
+    final Set<String> sdids_1 = new HashSet<String>(Arrays.asList("121", "122", "123", "124"));
+    final Set<String> sdids_2 = new HashSet<String>(Arrays.asList("124", "125", "126", "127"));
+    final Set<String> sdids_3 = new HashSet<String>(Arrays.asList("127"));
+    final Set<String> sids = new HashSet<String>(Arrays.asList("1"));
+    final int limit = 3;
+
+    when(inputMessage.getSensorId()).thenReturn(sensor);
+    when(inputMessage.getProviderId()).thenReturn(provider);
+    when(inputMessage.hasQueryFilters()).thenReturn(true);
+    when(inputMessage.getQueryFilters()).thenReturn(queryFilterParams);
+    when(queryFilterParams.getLimit()).thenReturn(limit);
+    when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(sids);
+    when(jedisSequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
+    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids_1);
+    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1))).thenReturn(sdids_2);
+    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(2 * limit), eq(limit + 1))).thenReturn(sdids_3);
+    when(jedisTemplate.hGetAll("sdid:126")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(jedisTemplate.hGetAll("sdid:127")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(resourceService.getSensor(1l)).thenReturn(new Sensor(provider, sensor));
+
+    service.getLastObservations(inputMessage);
+
+    verify(inputMessage, times(2)).getSensorId();
+    verify(inputMessage, times(2)).getProviderId();
+    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
+    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1));
+    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(2 * limit), eq(limit + 1));
+    verify(jedisTemplate, times(7)).hGetAll(anyString());
+  }
+
+  // @Test
   public void getLastObservationsFromProvider() {
     final String provider = "prov1";
     final Set<String> sdids = buildSdids();

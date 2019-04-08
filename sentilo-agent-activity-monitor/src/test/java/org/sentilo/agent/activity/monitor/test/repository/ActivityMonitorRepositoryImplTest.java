@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -30,7 +30,7 @@ package org.sentilo.agent.activity.monitor.test.repository;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +53,7 @@ import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessMonitor;
 import org.sentilo.agent.activity.monitor.repository.impl.ActivityMonitorRepositoryImpl;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.rest.RESTClient;
+import org.sentilo.common.rest.RequestContext;
 import org.sentilo.common.test.AbstractBaseTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,10 @@ public class ActivityMonitorRepositoryImplTest extends AbstractBaseTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
 
+    final String versionResponse =
+        "{\"name\": \"node-a\",\"cluster_name\": \"elastic\", \"version\": {\"number\": \"2.3.1\"},\"tagline\": \"You Know, for Search\"}";
+    when(restClient.get(eq(new RequestContext("/")))).thenReturn(versionResponse);
+
     repository.init();
   }
 
@@ -107,6 +112,7 @@ public class ActivityMonitorRepositoryImplTest extends AbstractBaseTest {
     ReflectionTestUtils.setField(newRepository, "batchSize", Integer.valueOf(3));
     ReflectionTestUtils.setField(newRepository, "numMaxWorkers", Integer.valueOf(5));
     ReflectionTestUtils.setField(newRepository, "numMaxRetries", Integer.valueOf(1));
+    ReflectionTestUtils.setField(newRepository, "restClient", restClient);
     newRepository.init();
 
     Assert.assertTrue(3 == (Integer) ReflectionTestUtils.getField(newRepository, "batchSize"));
@@ -144,7 +150,7 @@ public class ActivityMonitorRepositoryImplTest extends AbstractBaseTest {
     repository.flush();
 
     verify(logger, times(2 * 2)).info(anyString());
-    verify(logger).info(anyString(), anyVararg());
+    // verify(logger).info(anyString(), anyVararg());
   }
 
 }

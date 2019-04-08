@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -43,11 +43,12 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.ErrorHandler;
 
 /**
  * The goal of this class is to validate that the connection used by the subscription is valid. To
- * achieve this, when the process starts, an auxiliary subscription to a topic named
- * /MONITOR/{sentilo.process.name}_TOPIC is created.
+ * achieve this, an auxiliary subscription to a topic named /MONITOR/{sentilo.process.name}_TOPIC is
+ * created when the process starts.
  *
  * Then, periodically a ping message is published on this topic and an additional process verifies
  * that this message arrives to the process. If no data is received into some sort of delay this
@@ -57,7 +58,6 @@ import org.springframework.scheduling.annotation.Scheduled;
  * This validation is complementary with the native control provided by
  * {@link RedisMessageListenerContainer#handleSubscriptionException}
  */
-
 public abstract class RedisSubscriptionMonitor implements SmartLifecycle, MessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RedisSubscriptionMonitor.class);
@@ -88,10 +88,15 @@ public abstract class RedisSubscriptionMonitor implements SmartLifecycle, Messag
 
   private final Lock lock = new ReentrantLock();
 
+  private ErrorHandler redisMonitorErrorHandler = new RedisLoggingErrorHandler();
+
   public abstract String getProcessName();
 
   @Override
   public void start() {
+    // Set a custom ErrorHandler to listenerContainer for customize message output
+    listenerContainer.setErrorHandler(redisMonitorErrorHandler);
+
     if (listenerContainer.isActive() && listenerContainer.isRunning()) {
       processName = getProcessName();
       monitorListener = this;
@@ -216,5 +221,14 @@ public abstract class RedisSubscriptionMonitor implements SmartLifecycle, Messag
 
   private String buildMonitorChannelName(final String processName) {
     return "/MONITOR/" + processName.toUpperCase() + "_TOPIC";
+  }
+
+  private static class RedisLoggingErrorHandler implements ErrorHandler {
+
+    @Override
+    public void handleError(final Throwable throwable) {
+      LOGGER.warn("An error has occurred while attempting to communicate with Redis {}", throwable.getMessage(), throwable);
+    }
+
   }
 }

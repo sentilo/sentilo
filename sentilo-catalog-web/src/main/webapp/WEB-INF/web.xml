@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
-	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-	id="WebApp_ID" version="2.5">
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd" 	
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd"
+	id="WebApp_ID" version="3.1">
+	
 	<display-name>sentilo-catalog</display-name>
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
@@ -64,7 +66,14 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	
-	<!--  Multitenant filters must be the first ones to apply in the chain filter -->
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+	    <dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+	
+	<!--  Multitenant filters must be the seconds to apply in the chain filter, next to the characterEncodingFilter and before the springSecurityFilterChain -->
 	<!-- 
 	<filter-mapping>
 		<filter-name>tenantInterceptorFilter</filter-name>
@@ -85,13 +94,7 @@
 		<dispatcher>REQUEST</dispatcher>
 	    <dispatcher>FORWARD</dispatcher>
 	</filter-mapping>
-	
-	<filter-mapping>
-		<filter-name>characterEncodingFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-		<dispatcher>REQUEST</dispatcher>
-	    <dispatcher>FORWARD</dispatcher>
-	</filter-mapping>
+		
 	<servlet-mapping>
 		<servlet-name>catalog</servlet-name>
 		<url-pattern>/</url-pattern>

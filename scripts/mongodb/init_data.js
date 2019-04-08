@@ -5,7 +5,7 @@ db.application.insert({ "_id" : "sentilo-catalog", "_class" : "org.sentilo.web.c
 // Insert users
 print("Load users");
 db.user.insert({ "_id" : "admin", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "1234", "name" : "Administrador", "description" : "", "email" : "sentilo@sentilo.org", "createdAt" : new ISODate(), "active" : true, "roles" : [ "ADMIN"] });
-db.user.insert({ "_id" : "platform_user", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "sentilo", "passwordRepeat" : "sentilo", "name" : "Platform user", "description" : "PubSub platform user. Do not remove  it!.", "email" : "sentilo@sentilo.org", "createdAt" : new ISODate(), "active" : true, "roles" : [ "PLATFORM" ] });
+db.user.insert({ "_id" : "platform_user", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "sentilo", "name" : "Platform user", "description" : "PubSub platform user. Do not remove  it!.", "email" : "sentilo@sentilo.org", "createdAt" : new ISODate(), "active" : true, "roles" : [ "PLATFORM" ] });
 
 // Insert permissions
 print("Load permissions");
@@ -17,4 +17,4 @@ db.tenant.insert({ "_id" : "sentilo", "_class" : "org.sentilo.web.catalog.domain
 
 // Create a default super admin user 
 print("Load default super-admin user");
-db.user.insert({ "_id" : "sadmin", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "change_it", "passwordRepeat" : "change_it", "name" : "SuperAdmin user", "description" : "SuperAdmin user.", "email" : "fill_in@your.mail", "createdAt" : new ISODate(), "active" : true, "roles" : [  "SUPER_ADMIN" ] });
+db.user.insert({ "_id" : "sadmin", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "change_it", "name" : "SuperAdmin user", "description" : "SuperAdmin user.", "email" : "fill_in@your.mail", "createdAt" : new ISODate(), "active" : true, "roles" : [  "SUPER_ADMIN" ] });

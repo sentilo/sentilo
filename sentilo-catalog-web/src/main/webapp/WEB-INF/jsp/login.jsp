@@ -5,23 +5,20 @@
 <div class="container-fluid">
 	<div class="content">
 		<%@include file="/WEB-INF/jsp/common/include_background_logo.jsp"%>
-		<div class="row">
-			<div class="span3">&nbsp;</div>
-			<div class="span6" style="text-align: center; margin: 0 auto;">
-
-
+		<div class="row-fluid">
+			<div style="text-align: center; margin: 0 auto;">
 				<spring:url value="/j_spring_security_check" var="springSecurityCheck" />
-				<form action="${springSecurityCheck}" method="post" class="form-horizontal">
+				<form action="${springSecurityCheck}" method="post">
 					<fieldset>
 						<legend>
 							<spring:message code="login.instructions" />
 						</legend>
-						<c:if test="${not empty param.error}">
+						<c:if test="${not empty param.error and not empty _CUSTOM_AUTH_ERROR_CODE}">
 							<div class="alert alert-error">
 								<button type="button" class="close" data-dismiss="alert">&times;</button>
-								<spring:message code="login.error" />
+								<spring:message code="${_CUSTOM_AUTH_ERROR_CODE}"/>															
 							</div>
-						</c:if>
+						</c:if>												
 						<div class="control-group">
 							<label for="j_username" class="control-label"> <spring:message code="login.username" /> </label>
 							<div class="controls">
@@ -41,10 +38,12 @@
 								</button>
 							</div>
 						</div>
+						<input type="hidden"
+							   name="${_csrf.parameterName}"
+							   value="${_csrf.token}"/>
 					</fieldset>
 				</form>
-			</div>
-			<div class="span3">&nbsp;</div>
+			</div>			
 		</div>
 	</div>
 </div>

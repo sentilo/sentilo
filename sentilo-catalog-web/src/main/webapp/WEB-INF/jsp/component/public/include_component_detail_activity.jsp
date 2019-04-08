@@ -23,14 +23,13 @@
 									   onclick="selectSensor({ 
 												'id': '${sensor.id}', 
 												'sensorId': '${sensor.sensorId}', 
-												'label': '${fn:replace(sensor.type,search,replace)} (${sensor.unit})', 
+												'label': '${fn:replace(sensor.type,search,replace)}', 
 												'dataType': '${sensor.dataType}',
-												'visualConfiguration': {
-													'chartVisibleObservationsNumber': '${sensor.visualConfiguration.chartVisibleObservationsNumber}'
-												}
+												'unit':'${sensor.unit}'
 											}); 
-											chartNavigateRefresh();
-											retrieveChartPanel();"
+											retrieveChartPanel();
+											stopAudioPlayer();
+											stopVideoPlayer();"
 									data-toggle="pill">${sensor.sensorId} (${sensor.type})</a>
 								</li>
 								</c:forEach>
@@ -56,23 +55,21 @@
 						<div class="tab-pane active" id="activity">
 							<div class="row-fluid">
 								<div class="span12">
-									<div id="activity_placeholder" style="width: 100%; height: 150px; margin: 0 auto; padding: 0px; position: relative; overflow-y: auto;"></div>
+									<div id="activity_placeholder" style="width: 100%; height: 250px; margin: 0 auto; padding: 0px; position: relative; overflow-y: auto;"></div>
 								</div>
 							</div>
-							<hr />
-							<%@ include file="/WEB-INF/jsp/common/include_chart_controls.jsp" %>
 						</div>
 						<div class="tab-pane" id="alarms" style="overflow-y: auto;">
 							<div class="row-fluid">
 								<div class="span12">
-									<div id="alarms_placeholder" style="width: 100%; height: 150px; margin: 0 auto; padding: 0px; position: relative; overflow-y: auto;"></div>
+									<div id="alarms_placeholder" style="width: 100%; height: 250px; margin: 0 auto; padding: 0px; position: relative; overflow-y: auto;"></div>
 								</div>
 							</div>							
 						</div>
 						<div class="tab-pane" id="orders" style="overflow-y: auto;">
 							<div class="row-fluid">
 								<div class="span12">
-									<div id="orders_placeholder" style="width: 100%; height: 150px; margin: 0 auto; padding: 0px; position: relative; overflow-y: auto;"></div>
+									<div id="orders_placeholder" style="width: 100%; height: 250px; margin: 0 auto; padding: 0px; position: relative; overflow-y: auto;"></div>
 								</div>
 							</div>
 						</div>							

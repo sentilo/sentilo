@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:url value="/admin/sensor/" var="detailPrefix" />
+<spring:url value="/admin/sensor/" var="sensorDetailPrefix" />
 
 <%@include file="/WEB-INF/jsp/common/include_script_tables.jsp"%>
 
@@ -16,7 +16,7 @@ $(document).ready(function() {
 		}; 
 	}
 	
-	var tableSensor =  makeTableAsync('${sensorTable}', '${sensorsAjaxSource}', linkToDetail,firstColumnRenderDelegate);
+	var tableSensor =  makeTableAsync('${sensorTable}', '${sensorsAjaxSource}', '${sensorDetailPrefix}', firstColumnRenderDelegate);
 	
 });
 </script>

@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -37,9 +37,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
+import org.sentilo.web.catalog.domain.FederatedResource;
 import org.sentilo.web.catalog.dto.DataTablesDTO;
 import org.sentilo.web.catalog.dto.LastSearchParamsDTO;
 import org.sentilo.web.catalog.format.datetime.LocalDateFormatter;
@@ -50,7 +50,6 @@ import org.sentilo.web.catalog.search.builder.Column;
 import org.sentilo.web.catalog.search.builder.DefaultSearchFilterBuilderImpl;
 import org.sentilo.web.catalog.search.builder.SearchFilterBuilder;
 import org.sentilo.web.catalog.search.builder.SearchFilterUtils;
-import org.sentilo.web.catalog.security.SentiloRedirectStrategy;
 import org.sentilo.web.catalog.security.service.CatalogUserDetailsService;
 import org.sentilo.web.catalog.service.CrudService;
 import org.sentilo.web.catalog.utils.CatalogUtils;
@@ -62,6 +61,7 @@ import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
@@ -72,6 +72,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Base controller for search use cases.
@@ -87,8 +89,6 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
    * Map with key = name of the Table list and value = Object with the parameters of the last search
    */
   private static final String LAST_SEARCH_PARAMS_MAP = "lastSearchParamsMap";
-
-  protected SentiloRedirectStrategy redirectStrategy = new SentiloRedirectStrategy();
 
   @Autowired
   protected CatalogUserDetailsService userDetailsService;
@@ -122,20 +122,20 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
   @RequestMapping(value = {"/", "/list"}, method = RequestMethod.GET)
   @PreAuthorize("@accessControlHandler.checkAccess(this, 'LIST')")
   public String emptyList(final Model model, final HttpServletRequest request, @RequestParam final String nameTableRecover,
-      @RequestParam(required = false) final String fromBack) {
+      @RequestParam(required = false) final String sfbr) {
 
-    final LastSearchParamsDTO lastSearchParamsDTO = getLastSearch(request, nameTableRecover);
-    if (lastSearchParamsDTO != null) {
-      // lastSearchParamsMap must be cleaned when the user selects any option from the menu (last
-      // search filter only must be conserved when the user navigates into the list and come back
-      // to it after leaving any register detail). Parameter fromBack.
-      // In case fromBack parameter is null, it means the user has selected an option from the menu,
-      // otherwise the lastSearchParamsMap must be recovered and iterated for get the
-      // nameTableRecover
-      // object and pass it to the view
-      if (!StringUtils.hasText(fromBack)) {
-        lastSearchParamsDTO.clean();
-      }
+    // lastSearch state must be cleaned when the user selects any option from the menu (last
+    // search filter only must be conserved when the user navigates into the list and come back
+    // to it after leaving any register detail). Parameter sfbr indicates this case.
+
+    // In case sfbr parameter is null, it means the user has selected any option from the
+    // menu. Otherwise the lastSearchParamsMap should be recovered and iterated for get the
+    // nameTableRecover object and pass it to the view
+
+    if (!StringUtils.hasText(sfbr)) {
+      clearLastSearch(request);
+    } else {
+      final LastSearchParamsDTO lastSearchParamsDTO = getLastSearch(request, nameTableRecover);
       model.addAttribute(LAST_SEARCH_PARAMS, lastSearchParamsDTO);
     }
 
@@ -144,7 +144,7 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
     return getNameOfViewToReturn(LIST_ACTION);
   }
 
-  @RequestMapping("/list/json")
+  @RequestMapping(value = "/list/json", produces = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("@accessControlHandler.checkAccess(this, 'LIST')")
   @ResponseBody
   public DataTablesDTO getPageList(final Model model, final HttpServletRequest request, final Pageable pageable, @RequestParam final Integer sEcho,
@@ -229,6 +229,11 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
     if (TenantContextHolder.hasContext() && !isSuperAdminUser) {
       checkResourceOwner(resource, rowMetadata);
     }
+    checkIsFederated(resource, rowMetadata);
+  }
+
+  protected void addHideCbMetadata(final Map<String, String> rowMetadata) {
+    rowMetadata.put("hideCheckbox", Boolean.TRUE.toString());
   }
 
   /**
@@ -240,7 +245,19 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
    */
   private void checkResourceOwner(final T resource, final Map<String, String> rowMetadata) {
     if (!TenantUtils.isCurrentTenantResource(resource)) {
-      rowMetadata.put("hideCheckbox", Boolean.TRUE.toString());
+      addHideCbMetadata(rowMetadata);
+    }
+  }
+
+  /**
+   * Only the not federated resources must render the first column as a checkbox.
+   *
+   * @param resource
+   * @param rowMetadata
+   */
+  private void checkIsFederated(final T resource, final Map<String, String> rowMetadata) {
+    if (resource instanceof FederatedResource && ((FederatedResource) resource).getFederatedResource()) {
+      addHideCbMetadata(rowMetadata);
     }
   }
 
@@ -314,6 +331,10 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
     return lastSearchParamsDTO;
   }
 
+  private void clearLastSearch(final HttpServletRequest request) {
+    request.getSession().removeAttribute(LAST_SEARCH_PARAMS_MAP);
+  }
+
   private SearchFilterResult<T> getResultList(final HttpServletRequest request, final Pageable pageable, final String search) {
     final SearchFilter filter =
         getSearchFilterBuilder().buildSearchFilter(request, pageable, CatalogUtils.decodeAjaxParam(search), userDetailsService);
@@ -324,7 +345,7 @@ public abstract class SearchController<T extends CatalogDocument> extends Catalo
   private SearchFilterResult<T> getExcelExport(final HttpServletRequest request, final HttpServletResponse response, final String tableName)
       throws IOException {
     final LastSearchParamsDTO lastSearchParamsDTO = getLastSearch(request, tableName);
-    final Pageable pageable = new PageRequest(0, Integer.MAX_VALUE, SearchFilterUtils.getSort(request, lastSearchParamsDTO));
+    final Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, SearchFilterUtils.getSort(request, lastSearchParamsDTO));
     return getResultList(request, pageable, lastSearchParamsDTO.getWordToSearch());
   }
 

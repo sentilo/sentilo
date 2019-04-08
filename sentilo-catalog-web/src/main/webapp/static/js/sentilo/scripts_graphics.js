@@ -1,3 +1,8 @@
+var isAdmin = false;
+$(document).ready(function() {
+	isAdmin = $("body").hasClass("sntl-admin");
+});
+
 var data = [];
 var xAxisLabels = [];
 var from = null;
@@ -5,348 +10,193 @@ var to = null;
 var oldToList = [];
 var theFuture = null;
 
-// Control ids
-var chartNavigateLeftControlId = "chartNavigateLeft";
-var chartNavigateRefreshControlId = "chartNavigateRefresh";
-var chartNavigateRightControlId = "chartNavigateRight";
 
-// Navigation data object
-// Holds start & end dates, and total items number
-var navData = {
-	startDate: null,
-	endDate: null,
-	startTime: null,
-	endTime: null,
-	numItems: 0
-};
-
-var initChartControls = function() {
-	$("#"+chartNavigateRightControlId).prop('disabled', true);
-}
-
-var yAxisMinMaxOptions = {
-	min: NaN,
-	max: NaN
-}
-
-/*
- * Display plot tooltips
- */
-
-var showTooltip = function(x, y, color, contents) {
-	$('<div id="tooltip" class="tooltip top in"><div class="tooltip-arrow"></div><div class="tooltip-inner">' + contents + '</div></div>').appendTo("body");
-	$("#tooltip").css({ top: y - 40, left: (x - $("#tooltip").width() / 2 - 4) });
-};
-
-$.fn.UseTooltip = function () {
-	 var previousPoint = null;
-	 $(this).bind("plothover", function (event, pos, item) {
-	 	if (item) {
-	 		if (previousPoint != item.dataIndex) {
-	 			previousPoint = item.dataIndex;
-				$("#tooltip").remove();
-	 			var x = item.datapoint[0];
-	 			var y = item.datapoint[1];
-	 			showTooltip(item.pageX, item.pageY, item.series.color,
-	 			"<strong>" + y + "</strong>");
-	 		}
-	 	} else {
-	 		$("#tooltip").remove();
-	 		previousPoint = null;
-	 	}
-	});
-};
-
-
-/*
- * Chart xaxis options
- */
-var xAxisLabelGenerator = function(x) {
-	return xAxisLabels[x];
-};
-
-var xaxisOptions = {
-	tickFormatter: xAxisLabelGenerator
-};
-
-/*
- * Chart yaxis options
+/**
+ * Makes link chart
  */
  
-var yAxisLabelGenerator = function(y) {
-	return y == 0 ? 'false' : 'true'; 
-};
-
-var yaxisOptions = {
-	min: 0,
-	max: 1,
-	tickSize: 1,
-	tickFormatter: yAxisLabelGenerator
-};
-
-/*
- * Chart legend options
- */
-var legendOptions = {
-	show: true,
-    position: 'nw'
-};
-
-/*
- * Chart grid options 
- */
-var gridOptions = {
-	hoverable: true, 
-	clickable: true, 
-	tickColor: '#eee',
-	borderWidth: 0
-};
-
-/**
- * Common chart initialization
- */
-var initializeChart = function(placeholder) {
-	$(placeholder).empty();
-	data = [];
-	xAxisLabels = [];
-};
-
-var initNavData = function() {
-	navData.startDate = null;
-	navData.endDate = null;
-	navData.startTime = null;
-	navData.endTime = null;
-	navData.numItems = 0;
+var audioLinkObjects = [];
+function makeAudioLinkChartLine(id, ph, data) {
 	
-	initYAxisMinMaxValues();
-};
-
-var initYAxisMinMaxValues = function() {
-	yAxisMinMaxOptions.min = NaN;
-	yAxisMinMaxOptions.max = NaN;
-};
-
-
-var updateYAxisMinMaxValues = function(currentValue) {
-	var theValue = Number(currentValue);
-	if (theValue) {		
-		if (isNaN(yAxisMinMaxOptions.max) || theValue > yAxisMinMaxOptions.max) {
-			yAxisMinMaxOptions.max = theValue;
-		}				
-		if (isNaN(yAxisMinMaxOptions.min) || theValue < yAxisMinMaxOptions.min) {
-			yAxisMinMaxOptions.min = theValue;
-		}
-	}
-};
-
-/*
- *
- * Makes number chart.
- */
-var makeNumberChart = function(placeholder, url, label, callback) {
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">AUDIO</span>&nbsp;' + 
+		' 	<span class="link"><a id="audio-link-'+id + '" class="audio-link" href="#" onclick="loadAudioPlayer(audioLinkObjects['+id+'].value, audioLinkObjects['+id+'].formattedValue, audioLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
+		'</div>';
 	
-	jsonGET(url, [], function(dto) {
-
-		initNavData();
-		initializeChart(placeholder);
-		
-		$.each(dto.events, function(key, val) {
-			data.push([key, val.value]);
-			xAxisLabels.push(formatGraphTimestamp(val.timestamp));
-			updateYAxisMinMaxValues(val.value);
-		});
-		
-		// Load graph data indexes
-		navData.startTime = dto.fromTime;
-		navData.startDate = dto.fromTimestamp;
-		navData.endTime = dto.toTime;
-		navData.endDate = dto.toTimestamp;
-		navData.numItems = dto.size;
-		
-		updateChartControlsStatus();
-		
-		var options = {
-			legend: legendOptions,
-			grid: gridOptions,
-			xaxis: xaxisOptions,
-			yaxis: {
-				min: Math.floor(0.80 * yAxisMinMaxOptions.min),
-				max: Math.ceil(1.20 * yAxisMinMaxOptions.max)
-			}			
-		};
-		
-		$.plot(placeholder, [{
-			color: '#2FABE9',
-			label: label,
-			data: data,
-			lines: {
-				show: true,
-				lineWidth: 3,
-				fill: true,
-				fillColor: {
-					colors: [ { opacity: 0.08 }, { opacity: 0.1 } ] 
-				}
-			},
-			points: {
-				show: true
-			},
-			shadowSize: 2
-		}], options);
-		
-		$(placeholder).UseTooltip();
-		 
-		// if callback exist execute it
-		callback && callback(navData);
-	});
+	ph.append(html);
+	
+	audioLinkObjects[id] = {
+		value: data.value,
+		formattedValue: data.formattedValue,
+		timestamp: data.timestamp
+	};
+	
 };
 
-
-/**
- * Makes boolean chart.
- */
-var makeBooleanChart = function(placeholder, url, label, callback) {
+var videoLinkObjects = [];
+function makeVideoLinkChartLine(id, ph, data) {
 	
-	jsonGET(url, [], function(dto) {
-		
-		initNavData();
-		initializeChart(placeholder);
-		
-		$.each(dto.events, function(key, val) {
-			if (val.value == 'true') {
-				data.push([key, 1]);
-			} else {
-				data.push([key, 0]);
-			}
-			xAxisLabels.push(formatGraphTimestamp(val.timestamp));
-		});
-		
-		// Load graph data indexes
-		navData.startTime = dto.fromTime;
-		navData.startDate = dto.fromTimestamp;
-		navData.endTime = dto.toTime;
-		navData.endDate = dto.toTimestamp;
-		navData.numItems = dto.size;
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">VIDEO</span>&nbsp;' + 
+		' 	<span class="link"><a id="video-link-'+id + '" class="video-link" href="#" onclick="loadVideoPlayer(videoLinkObjects['+id+'].value, videoLinkObjects['+id+'].formattedValue, videoLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
+		'</div>';
 	
-		updateChartControlsStatus();
-		
-		var options = {
-			legend: legendOptions,
-			grid: gridOptions,
-			xaxis: xaxisOptions,
-	        yaxis: yaxisOptions
-		};
+	ph.append(html);
 	
-		$.plot(placeholder, [{
-			color: "#2FABE9",
-			data: data,
-			label: label,
-			bars: {
-				show: true,
-				align: 'center',
-				barWidth: 0.5,
-				fill: true,
-				fillColor: {
-					colors: [ { opacity: 0.08 }, { opacity: 0.1 } ] 
-				}
-			}
-		}], options);
-		
-		// if callback exist execute it
-		callback && callback(navData);
-	});
+	videoLinkObjects[id] = {
+		value: data.value,
+		formattedValue: data.formattedValue,
+		timestamp: data.timestamp
+	};
+	
 };
 
-/**
- * Makes text chart
- */
- 
-var makeTextChartLine = function(ph, timestamp, text, label) {
-	ph.append('<div class="activity_text_element"><span class="label label-info">' + formatTimestamp(timestamp) + '</span>&nbsp;' + label + ':&nbsp;' + text + '</div>');
+var imageLinkObjects = [];
+function makeImageLinkChartLine(id, ph, data) {
+	
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">IMAGE</span>&nbsp;' + 
+		' 	<span class="link"><a id="image-link-'+id + '" class="image-link" href="#" onclick="loadImage(imageLinkObjects['+id+'].value, imageLinkObjects['+id+'].formattedValue, imageLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
+		'</div>';
+	
+	ph.append(html);
+	
+	imageLinkObjects[id] = {
+		value: data.value,
+		formattedValue: data.formattedValue,
+		timestamp: data.timestamp
+	};
+	
 };
 
-var makeTextChart = function(placeholder, url, label, callback) {
+var fileLinkObjects = [];
+function makeFileLinkChartLine (id, ph, data) {
+	
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">FILE</span>&nbsp;' + 
+		' 	<span class="link"><a id="file-link-'+id + '" class="file-link" href="#" onclick="loadFile(fileLinkObjects['+id+'].value, fileLinkObjects['+id+'].formattedValue, fileLinkObjects['+id+'].filename, fileLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
+		'</div>';
+	
+	ph.append(html);
+	
+	fileLinkObjects[id] = {
+		value: data.value,
+		formattedValue: data.formattedValue,
+		filename: data.value.substring(data.value.lastIndexOf('/')+1),
+		timestamp: data.timestamp	
+	};
+};
+
+function makeLinkChartLine(id, ph, data) {
+	
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">LINK</span>&nbsp;' + 
+		' 	<span class="link"><a id="link-'+id + '" class="link" href="'+data.value+'" target="_blank">' + data.value + '</a></span>' +
+		'</div>';
+	
+	ph.append(html);
+
+};
+
+function makeLinkChart(placeholder, url, linkType, callback) {
 
 	var ph = $(placeholder);
 
 	jsonGET(url, [], function(dto) {
 		
-		initNavData();
-		initializeChart(placeholder);
+		$(placeholder).empty();		
 		
-		$.each(dto.events, function(key, val) {	
-			makeTextChartLine(ph, val.timestamp, val.value, label);
+		$.each(dto.events, function(key, val) {
+			if (linkType === 'AUDIO_LINK') {
+				makeAudioLinkChartLine(key, ph, val);	
+			} else if (linkType === 'VIDEO_LINK') {
+				makeVideoLinkChartLine(key, ph, val);	
+			} else if (linkType === 'IMAGE_LINK') {
+				makeImageLinkChartLine(key, ph, val);	
+			} else if (linkType === 'FILE_LINK') {
+				makeFileLinkChartLine(key, ph, val);	
+			} else if (linkType === 'LINK') {
+				makeLinkChartLine(key, ph, val);	
+			} 
 		});
 		
-		// Load graph data indexes
-		navData.startTime = dto.fromTime;
-		navData.startDate = dto.fromTimestamp;
-		navData.endTime = dto.toTime;
-		navData.endDate = dto.toTimestamp;
-		navData.numItems = dto.size;
-		
-		updateChartControlsStatus();
-		
 		// if callback exist execute it
-		callback && callback(navData);
+		callback && callback();
 	});
 };
 
-function createChartUrl(url, from, to, limit)  {
-	var newUrl = addParamToUrl(url, 'limit', limit);
-	newUrl = addParamToUrl(newUrl, 'to', to);
+
+/**
+ * Makes text chart
+ */
+ 
+function makeTextChartLine(ph, timestamp, text, label) {
+	
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">TEXT</span>&nbsp;' + 
+		' 	<span class="text">' + text + '</span>' +
+		'</div>';
+	
+	ph.append(html);
+	
+};
+
+var jsonLinkObjects = [];
+function makeJsonChartLine (id, ph, valuePh, timestamp, text, label) {
+	
+	var html = 
+		'<div class="activity_text_element">' +
+		'	<span class="label label-info">' + formatTimestamp(timestamp) + '</span>&nbsp;' +
+		'  	<span class="label label-success">JSON</span>&nbsp;' + 
+		' 	<span class="link"><a href="#" onclick="showJson(\''+valuePh+'\', jsonLinkObjects['+id+'].value);">' + text + '</a></span>' +
+		'</div>';
+	
+	ph.append(html);
+	
+	jsonLinkObjects[id] = {
+		value: text,
+		timestamp: timestamp	
+	};
+	
+};
+
+function makeTextChart (placeholder, valuePlaceholder, url, label, callback) {
+
+	var ph = $(placeholder);
+
+	jsonGET(url, [], function(dto) {
+		
+		$(placeholder).empty();
+		
+		$.each(dto.events, function(key, val) {	
+			if (label === 'JSON') {
+				makeJsonChartLine(key, ph, valuePlaceholder, val.timestamp, val.value, label);
+			} else {
+				makeTextChartLine(ph, val.timestamp, val.value, label);	
+			}
+		});
+				
+		// if callback exist execute it
+		callback && callback();
+	});
+};
+
+function createChartUrl(url, from, to)  {
+	//var newUrl = addParamToUrl(url, 'limit', limit);
+	var newUrl = addParamToUrl(url, 'to', to);
 	newUrl = addParamToUrl(newUrl, 'from', from);
 	return newUrl;
 }
  
-function chartNavigateLeft(callback) {
-
-	$("#"+chartNavigateRightControlId).prop('disabled', false);
-	
-	if (navData && navData.startTime) {
-		var lastTo = oldToList[oldToList.length-1];
-		if (to && to !== lastTo) {
-			// Add latest to for back navigation
-			oldToList.push(to);
-		} else if (to && to === lastTo) {
-			$("#"+chartNavigateLeftControlId).prop('disabled', true);
-		}
-		to = navData.startTime;
-	}
-	
-	// Do some callback
-	callback && callback();
-}
-
-function chartNavigateRight(callback) {
-	
-	$("#"+chartNavigateLeftControlId).prop('disabled', false);
-	
-	if (oldToList && oldToList.length > 0) {
-		to = oldToList.pop();
-	} else {
-		to = theFuture;
-		$("#"+chartNavigateRightControlId).prop('disabled', true);
-	}
-	
-	// Do some callback
-	callback && callback();
-}
-
-function chartNavigateRefresh(callback) {
-	
-	from = null;
-	to = theFuture;
-	oldToList = [];
-	
-	$("#"+chartNavigateLeftControlId).prop('disabled', false);
-	$("#"+chartNavigateRightControlId).prop('disabled', true);
-	
-	// Do some callback
-	callback && callback();
-}
-
-var updateChartControlsStatus = function () {
-	if (navData.startTime === navData.endTime) {
-		$("#"+chartNavigateLeftControlId).prop('disabled', true);
-	}	
-}

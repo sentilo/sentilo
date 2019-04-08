@@ -4,20 +4,6 @@
 <%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp"%>
 
 <c:set var="theFuture" value="${maxSystemDateMillis}" />
-<c:choose>
-	<c:when test="${not empty sensor.visualConfiguration.chartVisibleObservationsNumber}">
-		<!-- The sensor config -->
-		<c:set var="chartObservationsNumber" value="${sensor.visualConfiguration.chartVisibleObservationsNumber}" />
-	</c:when>
-	<c:when test="${not empty visualConfiguration.chartVisibleObservationsNumber}">
-		<!-- The tenant config -->
-		<c:set var="chartObservationsNumber" value="${visualConfiguration.chartVisibleObservationsNumber}" />
-	</c:when>
-	<c:otherwise>
-		<!-- The default value -->
-		<c:set var="chartObservationsNumber" value="10" />
-	</c:otherwise>
-</c:choose>
 
 <spring:url value="/admin/sensor/lastObs/${sensor.id}/" var="lastObservationsRESTURL" />
 <spring:url value="/static/js/sentilo/sensor_data.js" var="sensorDataJS" />
@@ -27,36 +13,47 @@
 
 $(document).ready(function() {
 	
+	var sensorId = '${sensor.sensorId}';
+	var sensorType = '${sensor.type}';
 	var dataType = '${sensor.dataType}';
 	var value = '${sensorLastObservation.value}';
-	var sensorUnit = '${sensor.unit}';
-	var limit = ${chartObservationsNumber};
+	var formattedValue = '${sensorLastObservation.formattedValue}';
+	var timestamp = '${sensorLastObservation.timestamp}';
+	var sensorUnit = '${sensor.unit}';	
 	var lastObsUrl = '${lastObservationsRESTURL}';
-	var theFuture = '${theFuture}';
 	
 	initSensorDataVariables(
+		sensorType,
 		dataType, 
-		sensorUnit, 
-		limit, 
-		lastObsUrl, 
-		theFuture
+		sensorUnit, 		
+		lastObsUrl
 	);
 	
-	$("#chartNavigateLeft").click(function() {
-		chartNavigateLeft(retrieveChartPanel);
-	});
+	window.messages = {
+		boolValues: {
+			falseValue: '<spring:message code="false"/>',
+			trueValue: '<spring:message code="true"/>'
+		},
+		chart: {
+			iniDate: '<spring:message code="universalMap.details.sensor.chart.iniDate"/>',
+			endDate: '<spring:message code="universalMap.details.sensor.chart.endDate"/>'
+		},
+		players: {
+			timestamp: '<spring:message code="universalMap.details.players.timestamp"/>',
+			filename: '<spring:message code="universalMap.details.players.filename"/>',
+			ellapsed: '<spring:message code="universalMap.details.players.ellapsed"/>',
+			download: '<spring:message code="universalMap.details.players.download"/>'
+		},
+		json: {
+			timestamp: '<spring:message code="universalMap.details.json.timestamp"/>',
+			expandAll: '<spring:message code="universalMap.details.json.expandAll"/>',
+			collapseAll: '<spring:message code="universalMap.details.json.collapseAll"/>',
+			expandLevels: '<spring:message code="universalMap.details.json.expandLevels"/>'
+		}
+	};
 	
-	$("#chartNavigateRight").click(function() {
-		chartNavigateRight(retrieveChartPanel);
-	});
-	
-	$("#chartNavigateRefresh").click(function() {
-		chartNavigateRefresh(retrieveChartPanel);
-	});
-	
-	initChartControls();
 	retrieveChartPanel();
-	printLastSensorObservationValue(dataType, value);
+	printLastSensorObservationValue(sensorId, dataType, value, formattedValue, timestamp);
 	
 });
 
@@ -75,34 +72,34 @@ $(document).ready(function() {
 					<div class="accordion-inner">
 						<div class="container-fluid">
 							<div class="row-fluid">
-								<div class="span4">
+								<div class="span3">
 									<strong><spring:message code="sensor.observation.timestamp" /> </strong>
 								</div>
-								<div class="span8">
+								<div class="span9" id="current-obs-timestamp">
 									<c:if test="${not empty sensorLastObservation}">
 										${fn:replace(sensorLastObservation.timestamp,'T', ' ')} 										
 									</c:if>
 								</div>
 							</div>
 							<div class="row-fluid">
-								<div class="span4">
+								<div class="span3">
 									<strong><spring:message code="sensor.dataType" /> </strong>
 								</div>
-								<div class="span8">
+								<div class="span9">
 									<span class="label label-info"><spring:message code="sensor.dataType.${sensor.dataType}" /> </span>
 								</div>
 							</div>
 							<div class="row-fluid">
-								<div class="span4">
+								<div class="span3">
 									<strong><spring:message code="sensor.unit" /> </strong>
 								</div>
-								<div class="span8">${sensor.unit}</div>
+								<div class="span9">${sensor.unit}</div>
 							</div>
 							<div class="row-fluid">
-								<div class="span4">
+								<div class="span3">
 									<strong><spring:message code="sensor.observation.value" /> </strong>
 								</div>
-								<div id="sensorLastObsValue" class="span8"></div>
+								<div id="sensorLastObsValue" class="span9"></div>
 							</div>
 							
 						</div>
@@ -132,9 +129,7 @@ $(document).ready(function() {
 				</div>
 				<div id="activityAccordionCollapse" class="accordion-body collapse in">
 					<div class="accordion-inner">
-						<div class="observation-graph" id="plot"></div>
-						<hr />
-						<%@ include file="/WEB-INF/jsp/common/include_chart_controls.jsp" %>
+						<div id="plot" class="observation-graph"></div>
 					</div>
 				</div>
 			</div>

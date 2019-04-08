@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -45,10 +45,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.domain.CatalogAlert;
-import org.sentilo.common.domain.CatalogProvider;
+import org.sentilo.common.domain.CatalogEntity;
 import org.sentilo.common.domain.CatalogSensor;
-import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.AdminInputMessage;
+import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.impl.AdminServiceImpl;
@@ -69,7 +69,7 @@ public class AdminServiceImplTest {
   private AdminServiceImpl service;
 
   @Mock
-  private CatalogProvider catalogProvider;
+  private CatalogEntity catalogProvider;
   @Mock
   private CatalogSensor catalogSensor;
   @Mock
@@ -78,7 +78,7 @@ public class AdminServiceImplTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    when(catalogProvider.getProvider()).thenReturn(PROVIDER_ID);
+    when(catalogProvider.getEntityId()).thenReturn(PROVIDER_ID);
     when(catalogSensor.getProvider()).thenReturn(PROVIDER_ID);
     when(catalogSensor.getSensor()).thenReturn(SENSOR_ID);
     when(catalogAlert.getId()).thenReturn(ALERT_ID);
@@ -87,7 +87,7 @@ public class AdminServiceImplTest {
 
   @Test
   public void deleteProviders() {
-    final List<CatalogProvider> providers = buildMockList(catalogProvider, 10);
+    final List<CatalogEntity> providers = buildMockList(catalogProvider, 10);
     when(message.getProviders()).thenReturn(providers);
 
     service.delete(message);
@@ -95,12 +95,24 @@ public class AdminServiceImplTest {
     verify(message, times(2)).getProviders();
     verify(message, times(0)).getSensors();
     verify(resourceService, times(providers.size())).removeProvider(anyString());
+    verify(subscribeService, times(providers.size())).remove(any(Subscription.class));
+  }
+
+  @Test
+  public void deleteApplications() {
+    final List<CatalogEntity> applications = buildMockList(catalogProvider, 10);
+    when(message.getApplications()).thenReturn(applications);
+
+    service.delete(message);
+
+    verify(message, times(2)).getApplications();
+    verify(subscribeService, times(applications.size())).remove(any(Subscription.class));
   }
 
   @Test
   public void deleteSensors() {
     final List<CatalogSensor> sensors = buildMockList(catalogSensor, 10);
-    when(message.getProviders()).thenReturn(Collections.<CatalogProvider>emptyList());
+    when(message.getProviders()).thenReturn(Collections.<CatalogEntity>emptyList());
     when(message.getSensors()).thenReturn(sensors);
 
     service.delete(message);
@@ -134,7 +146,7 @@ public class AdminServiceImplTest {
 
     verify(message, times(2)).getSensors();
     verify(resourceService, times(sensors.size())).registerProviderIfNeedBe(anyString());
-    verify(resourceService, times(sensors.size())).registerSensorIfNeedBe(anyString(), anyString(), any(SensorState.class), eq(Boolean.TRUE));
+    verify(resourceService, times(sensors.size())).registerSensorIfNeedBe(any(CatalogSensor.class), eq(Boolean.TRUE));
   }
 
   @Test

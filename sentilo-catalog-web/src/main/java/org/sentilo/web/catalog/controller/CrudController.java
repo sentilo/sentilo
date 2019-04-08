@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -35,18 +35,14 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.exception.BusinessValidationException;
 import org.sentilo.web.catalog.exception.CatalogException;
-import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.ModelUtils;
-import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,6 +96,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   public String newResource(final HttpServletRequest request, final Model model) {
     doBeforeNewResource(request, model);
     model.addAttribute(getEntityModelKey(), buildNewEntity(null));
+    doAfterNewResource(model);
     ModelUtils.setCreateMode(model);
     return getNameOfViewToReturn(NEW_ACTION);
   }
@@ -109,6 +106,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
   public String editResource(@PathVariable final String id, final HttpServletRequest request, final Model model) {
     doBeforeEditResource(id, model);
     addResourceToModel(id, model);
+    doAfterEditResource(model);
     ModelUtils.setEditMode(model);
     return getNameOfViewToReturn(NEW_ACTION);
   }
@@ -153,6 +151,9 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     addConfirmationMessageToModel(RESOURCE_CREATED, redirectAttributes);
     doAfterCreateResource(resource, redirectAttributes, model);
 
+    // After create a new resource, resources list is show in its initial state
+    redirectAttributes.addAttribute("sfbr", "false");
+
     return redirectToList(model, request, redirectAttributes);
   }
 
@@ -172,7 +173,7 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     addConfirmationMessageToModel(RESOURCE_EDITED, redirectAttributes);
     doAfterUpdateResource(resource, redirectAttributes, model);
 
-    return redirectToList(model, request, redirectAttributes);
+    return redirect(model, request, redirectAttributes);
   }
 
   protected Class<? extends CatalogDocument> getRowClass() {
@@ -185,15 +186,6 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
       resources.add(buildNewEntity(id));
     }
     return resources;
-  }
-
-  protected String redirectToList(final Model model, final HttpServletRequest request, final RedirectAttributes redirectAttributes) {
-    final String currentTable = "Table";
-    final String fromBack = "true";
-    // After update a resource, the resource list must be displayed keeping the list's state
-    final String tableName = model.asMap().get(Constants.MODEL_ACTIVE_MENU).toString();
-
-    return getRedirectToListUrl(request, tableName.substring(1) + currentTable, fromBack);
   }
 
   protected void doBeforeNewResource(final HttpServletRequest request, final Model model) {
@@ -236,22 +228,12 @@ public abstract class CrudController<T extends CatalogDocument> extends SearchCo
     // To override by subclasses.
   }
 
-  private String getRedirectToListUrl(final HttpServletRequest request, final String nameTableRecover, final String fromBack) {
-    // postPath follows the expression /admin/{resource}/*** and redirect url will be something like
-    // /admin/{resource}/list?
-    final String postPath = request.getServletPath();
-    final String[] tokens = postPath.split("/");
-
-    final StringBuilder sb = new StringBuilder("/");
-    if (TenantContextHolder.hasContext() && StringUtils.hasText(TenantUtils.getCurrentTenant())) {
-      sb.append(TenantUtils.getCurrentTenant());
-      sb.append("/");
-    }
-
-    sb.append(tokens[1] + "/" + tokens[2] + "/list?nameTableRecover=" + nameTableRecover + "&fromBack=" + fromBack);
-
-    final String redirectUrl = redirectStrategy.buildRedirectUrl(request, sb.toString());
-
-    return "redirect:" + redirectUrl;
+  protected void doAfterNewResource(final Model model) {
+    // To override by subclasses.
   }
+
+  protected void doAfterEditResource(final Model model) {
+    // To override by subclasses.
+  }
+
 }

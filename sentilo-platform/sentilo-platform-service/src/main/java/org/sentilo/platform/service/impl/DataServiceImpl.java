@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -65,6 +65,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+
 @Service
 public class DataServiceImpl extends AbstractPlatformServiceImpl implements DataService {
 
@@ -93,8 +96,9 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
 
     for (final Observation observation : observations) {
       try {
-        checkTargetResourceState(observation);
-        setObservation(observation);
+        final Sensor sensor = getSensorMetadata(observation.getProvider(), observation.getSensor());
+        checkTargetResourceState(sensor, observation);
+        setObservation(sensor, observation);
       } catch (final ResourceNotFoundException rnfe) {
         rejectedContext.rejectEvent(observation.getSensor(), rnfe.getMessage());
         LOGGER.warn("Observation [{}] has been rejected because sensor [{}], belonging to provider [{}], doesn't exist on Sentilo.",
@@ -191,9 +195,8 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     LOGGER.debug("Removed last observation from sensor [{}] belonging to provider [{}]", sensorId, providerId);
   }
 
-  private void setObservation(final Observation data) throws ResourceNotFoundException {
-    registerProviderAndSensorIfNeedBe(data);
-    registerSensorData(data);
+  private void setObservation(final Sensor sensor, final Observation data) {
+    registerSensorData(sensor, data);
     publishSensorData(data);
   }
 
@@ -202,31 +205,61 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     final Long from = QueryFilterParamsUtils.getFrom(message);
     final Integer limit = QueryFilterParamsUtils.getLimit(message);
 
-    // La sentencia a utilizar en Redis es:
-    // ZREVRANGEBYSCORE sid:{sid}:observations to from LIMIT 0 limit
+    // Because sensor events may each have a different expire time, and is likely to have some
+    // entries
+    // already expired (i.e. the associated sdid:{sdid} entry is expired),
+    // the process read from the ZSET more than limit entries (limit + 1) : it improves the
+    // performance
+    // to return the limit observations requested by the
+    // client because additional reads are made only if exists these additional entries.
 
-    final Set<String> sdids = jedisTemplate.zRevRangeByScore(keysBuilder.getSensorObservationsKey(sid), to, from, 0, limit);
-    List<Observation> observations = null;
+    final List<Observation> observations = new ArrayList<Observation>();
+    boolean readMore = true;
+    // To evict a situation of no return if database is inconsistent (f.e. many of the entries in
+    // ZSETs
+    // are related with data already expired), we limit the maximum number
+    // of iterations
+    final int MAX_ITERATIONS = 10;
+    int iteration = 1;
 
-    if (!CollectionUtils.isEmpty(sdids)) {
-      observations = getObservations(sdids);
+    while (readMore) {
+      final int offset = (iteration - 1) * limit;
+      final int count = limit + 1;
+      // Redis call is: ZREVRANGEBYSCORE sid:{sid}:observations to from LIMIT 0 limit
+      final Set<String> sdids = jedisTemplate.zRevRangeByScore(keysBuilder.getSensorObservationsKey(sid), to, from, offset, count);
+
+      // As count=limit+1 and client only request limit elements, sdids set is subset to contain a
+      // maximum
+      // of limit elements
+      if (!CollectionUtils.isEmpty(sdids)) {
+        final Set<String> sdidsToEval = sdids.size() < count ? sdids : ImmutableSet.copyOf(Iterables.limit(sdids, limit));
+        addObservations(sdidsToEval, observations, limit);
+      }
+
+      readMore = observations.size() < limit && !CollectionUtils.isEmpty(sdids) && sdids.size() > limit && iteration < MAX_ITERATIONS;
+      iteration++;
     }
 
     return observations;
   }
 
-  private List<Observation> getObservations(final Set<String> sdids) {
-    final List<Observation> observations = new ArrayList<Observation>();
+  private void addObservations(final Set<String> sdids, final List<Observation> observations, final Integer limit) {
     final Iterator<String> it = sdids.iterator();
 
-    while (it.hasNext()) {
+    while (it.hasNext() && observations.size() < limit) {
       final Long sdid = Long.parseLong(it.next());
       final Observation observation = getObservation(sdid);
       if (observation != null) {
+        // Añadir llamada a un ThreadMonitor que se encargue de eliminar las entradas invalidas de
+        // los ZSETs
+        // en background. Este Thread tendra una
+        // cola en la cual irán añadiendo elementos a borrar (key y field) u periodicamente la ira
+        // borrando.
+        // Esto evitará tener que ir repitiendo
+        // la lectura de elementos inconsistentes
         observations.add(observation);
       }
     }
-    return observations;
   }
 
   private Observation getObservation(final Long sdid) {
@@ -270,25 +303,25 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
   /**
    * Checks if the sensor exists in Redis and if it is enabled. Otherwise throws an exception.
    */
-  private void checkTargetResourceState(final Observation data) throws ResourceNotFoundException, ResourceOfflineException {
-    final SensorState sensorState = resourceService.getSensorState(data.getProvider(), data.getSensor());
-    final boolean existsSensor = sensorState != null && !sensorState.equals(SensorState.ghost);
+  private void checkTargetResourceState(final Sensor sensor, final Observation data) throws ResourceNotFoundException, ResourceOfflineException {
+    final boolean existsSensor = sensor.getState() != null && !SensorState.ghost.equals(sensor.getState());
 
     if (!existsSensor && rejectUnknownSensors) {
       throw new ResourceNotFoundException(data.getSensor(), "Sensor");
     } else if (!existsSensor) {
       publishGhostSensorAlarm(data);
-    } else if (SensorState.offline.equals(sensorState)) {
+    } else if (SensorState.offline.equals(sensor.getState())) {
       throw new ResourceOfflineException(data.getSensor(), "Sensor");
     }
   }
 
-  private void registerSensorData(final Observation data) {
-    final Long sid = jedisSequenceUtils.getSid(data.getProvider(), data.getSensor());
-
+  private void registerSensorData(final Sensor sensor, final Observation data) {
+    // final Long sid = jedisSequenceUtils.getSid(data.getProvider(), data.getSensor());
+    final Long sid = sensor.getSid();
     final Long sdid = jedisSequenceUtils.getSdid();
     final Long timestamp = data.getTimestamp();
     final String location = StringUtils.hasText(data.getLocation()) ? data.getLocation() : "";
+
     // Guardamos una hash de clave sdid:{sdid} y valores sid, data (aleatorio), timestamp y
     // location.
     final String obsKey = keysBuilder.getObservationKey(sdid);
@@ -299,9 +332,10 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     fields.put(LOCATION, location);
     jedisTemplate.hmSet(obsKey, fields);
 
-    // if expireSeconds is defined and !=0, set the expire time to key
-    if (expireSeconds != 0) {
-      jedisTemplate.expire(obsKey, expireSeconds);
+    // if expired time in seconds (ttl) is defined and !=0, set the expire time to the key
+    final int ttl = ttlToExpiredTime(sensor.getTtl());
+    if (ttl != 0) {
+      jedisTemplate.expire(obsKey, ttl);
     }
 
     // Y definimos una reverse lookup key con la cual recuperar rapidamente las observaciones de un
@@ -338,13 +372,17 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     }
   }
 
-  private void registerProviderAndSensorIfNeedBe(final Observation data) {
-    // Save both the provider and the sensor in Redis only if rejectUnknownSensors is false. By
-    // default, sensor state is marked as ghost
-    if (!rejectUnknownSensors) {
-      resourceService.registerProviderIfNeedBe(data.getProvider());
-      resourceService.registerSensorIfNeedBe(data.getProvider(), data.getSensor(), SensorState.ghost, false);
+  private Sensor getSensorMetadata(final String provider, final String sensorId) {
+    final Sensor sensor = resourceService.getSensor(provider, sensorId);
+
+    if (!rejectUnknownSensors && !sensor.exists()) {
+      // Save both the provider and the sensor in Redis only if rejectUnknownSensors is false. By
+      // default, in this context, if sensor doesn't exist, it is created as a ghost sensor
+      resourceService.registerProviderIfNeedBe(sensor.getProvider());
+      resourceService.registerGhostSensorIfNeedBe(sensor);
     }
+
+    return sensor;
   }
 
 }

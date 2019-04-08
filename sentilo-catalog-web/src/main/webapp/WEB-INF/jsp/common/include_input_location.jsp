@@ -367,6 +367,9 @@ $(document).ready(function() {
 	<label for="locationaddress" class="control-label"> <spring:message code="location.address" /> </label>
 	<div class="controls">
 		<input type="text" id="locationaddress"/>
+		<a id="locate" class="btn">
+			<i class="connecta-icon-location">&nbsp;&nbsp;&nbsp;</i>
+		</a>
 	</div>
 </div>
 
@@ -390,16 +393,16 @@ $(document).ready(function() {
 	</div>	
 </div>
 
- <div class="control-group">
+<div class="control-group">
     <label for="locations" class="control-label"> <spring:message code="location.locations.list"/></label>
     <div class="controls">
     	<form:hidden path="location" />
     	<select id="locations" size="4" class="input-large" style="width:310px" onchange="highlight(this.selectedIndex)" ondblclick="jumpToLocation()"></select>
     	<span class="text-error"><form:errors path="location" /></span>
     </div>
- </div>
+</div>
  
- <div class="control-group">
+<div class="control-group">
     <div class="controls">
     	<input type="button" value="<spring:message code="location.button.delete"/>" class="btn" onclick="deleteLocation()"/>
       	<input type="button" value="<spring:message code="location.button.delete.all"/>" class="btn" onclick="deleteAllLocations()"/>
@@ -408,16 +411,7 @@ $(document).ready(function() {
 
 <!-- Map block -->
 <div class="control-group">
-	<div class="controls">
-		<div id="map_controls" class="hide">
-			<form class="form-inline row-fluid">
-				<button id="locate" class="btn" type="button" onclick="">
-					<i class="connecta-icon-location">&nbsp;&nbsp;&nbsp;</i>
-				</button>
-			</form>
-		</div>
-
+    <div class="controls">
 		<div id="input_location_map_canvas" class="input_location_map" style="width: 100%;">Map placeholder</div>
 	</div>
 </div>
-

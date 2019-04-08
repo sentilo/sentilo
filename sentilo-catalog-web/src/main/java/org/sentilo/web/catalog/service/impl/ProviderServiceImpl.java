@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -43,19 +43,16 @@ import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.PermissionService;
 import org.sentilo.web.catalog.service.ProviderService;
 import org.sentilo.web.catalog.service.TenantPermissionService;
-import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.utils.IdentityKeyGenerator;
 import org.sentilo.web.catalog.utils.TenantUtils;
-import org.sentilo.web.catalog.validator.EntityKeyValidator;
+import org.sentilo.web.catalog.validator.ResourceKeyValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 @Service
-public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>implements ProviderService {
+public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> implements ProviderService {
 
   @Autowired
   private ProviderRepository repository;
@@ -68,7 +65,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
 
   @Autowired
   @Qualifier("appsAndProvidersKeyValidator")
-  private EntityKeyValidator customEntityValidator;
+  private ResourceKeyValidator customResourceKeyValidator;
 
   public ProviderServiceImpl() {
     super(Provider.class);
@@ -76,7 +73,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
 
   @Override
   protected void doAfterInit() {
-    setEntityKeyValidator(customEntityValidator);
+    setResourceKeyValidator(customResourceKeyValidator);
     super.doAfterInit();
   }
 
@@ -162,13 +159,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
    */
   @Override
   public void deleteFromTenant(final String tenantId) {
-    final SearchFilter filter = new SearchFilter();
-    filter.addAndParam("tenantId", tenantId);
-    final Query query = buildQuery(filter);
-    final List<Provider> providers = getMongoOps().find(query, Provider.class);
-    if (!CollectionUtils.isEmpty(providers)) {
-      delete(providers);
-    }
+    deleteRelatedResources("tenantId", tenantId);
   }
 
   /*
@@ -186,32 +177,42 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
   /*
    * (non-Javadoc)
    *
+   * @see org.sentilo.web.catalog.service.ProviderService#deleteFederatedResources(java.lang.String)
+   */
+  public void deleteFederatedResources(final String federatedConfigId) {
+    deleteRelatedResources("federatedServiceId", federatedConfigId);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
    * @see
    * org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doBeforeCreate(org.sentilo
    * .web.catalog.domain.CatalogDocument)
    */
   @Override
   protected void doBeforeCreate(final Provider provider) {
-    // id is a mandatory field filled in on screen. But name isn't a mandatory field, so if user
-    // doesn't filled in it, it mandatory but name no
-    // El identificador se informa por pantalla (es obligatorio). El nombre, en caso de no estar
-    // informado, se rellena con el valor del identificador.
-    if (!StringUtils.hasText(provider.getName())) {
-      provider.setName(provider.getId());
-    }
-
-    if (TenantContextHolder.isEnabled()) {
-      // In a multitenant instance, to allow different tenants to have entities with the same id,
-      // the proposed entity id filled in by user is modified by prepending the tenant id
-      final String newId = provider.getTenantId() + Constants.MULTITENANT_ENTITY_ID_PREPEND_TOKEN + provider.getId();
-      provider.setId(newId);
-    }
-
     checkIntegrityKey(provider.getId());
 
-    provider.setToken(IdentityKeyGenerator.generateNewToken(provider.getId()));
+    // Default value of field name equals to id value if field name is empty (it isn't mandatory
+    // that
+    // user filled in it)
+    provider.setDefaultValues();
 
     permissionService.createRelated(provider);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.impl.AbstractBaseCrudServiceImpl#doAfterCreate(java.util.
+   * Collection)
+   */
+  @Override
+  protected void doAfterCreate(final Collection<Provider> providers) {
+    for (final Provider provider : providers) {
+      permissionService.createRelated(provider);
+    }
   }
 
   /*
@@ -236,6 +237,16 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider>im
   protected void doAfterDelete(final Collection<Provider> providers) {
     for (final Provider provider : providers) {
       deleteRelatedResources(provider);
+    }
+  }
+
+  private void deleteRelatedResources(final String fieldName, final String fieldValue) {
+    final SearchFilter filter = new SearchFilter();
+    filter.addAndParam(fieldName, fieldValue);
+    final Query query = buildQuery(filter);
+    final List<Provider> providers = getMongoOps().find(query, Provider.class);
+    if (!CollectionUtils.isEmpty(providers)) {
+      delete(providers);
     }
   }
 

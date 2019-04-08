@@ -39,18 +39,18 @@ public class UserConfigContextImpl implements UserConfigContext {
 
   private final TimeZone userTimeZone;
 
-  private final Integer userChartNumObs;
+  private final Integer userChartPointsNum;
 
   public UserConfigContextImpl() {
     userDatePattern = SentiloConstants.TIMESTAMP_PATTERN;
     userTimeZone = TimeZone.getTimeZone(Constants.DEFAULT_TIME_ZONE);
-    userChartNumObs = Constants.DEFAULT_CHART_OBS_NUMBER;
+    userChartPointsNum = Constants.DEFAULT_CHART_POINTS_NUMBER;
   }
 
-  public UserConfigContextImpl(final TimeZone timeZone, final String datePattern, final Integer chartNumObs) {
+  public UserConfigContextImpl(final TimeZone timeZone, final String datePattern, final Integer userChartPointsNum) {
     userTimeZone = timeZone;
     userDatePattern = datePattern;
-    userChartNumObs = chartNumObs;
+    this.userChartPointsNum = userChartPointsNum;
   }
 
   @Override
@@ -64,8 +64,8 @@ public class UserConfigContextImpl implements UserConfigContext {
   }
 
   @Override
-  public Integer getUserChartNumObs() {
-    return userChartNumObs;
+  public Integer getChartVisiblePointsNumber() {
+    return userChartPointsNum;
   }
 
   @Override
@@ -75,7 +75,7 @@ public class UserConfigContextImpl implements UserConfigContext {
     sb.append(this.getClass().getName() + " [ ");
     sb.append("userDatePattern: " + userDatePattern + "|");
     sb.append("userTimeZone: " + userTimeZone.getID() + "|");
-    sb.append("userChartNumObs: " + userChartNumObs);
+    sb.append("userChartNumObs: " + userChartPointsNum);
     sb.append(" ]");
 
     return sb.toString();

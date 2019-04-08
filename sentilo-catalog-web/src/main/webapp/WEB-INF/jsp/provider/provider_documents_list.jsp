@@ -9,7 +9,7 @@
 <spring:url value="/admin/documents/new?entityId=${provider.id}" var="addDocumentUrl" />
 <spring:url value="/admin/documents/delete?entityId=${provider.id}" var="deleteDocumentsURL" />
 
-<spring:url value="/admin/documents/doc/" var="detailPrefix" />
+<spring:url value="/admin/documents/doc/" var="documentDetailPrefix" />
 <spring:url value="/admin/provider/list?nameTableRecover=providerTable&fromBack=true" var="backURL" />
 
 <spring:message code="document.file.remove.sure" var="deleteDocumentConfirmMessage" />
@@ -18,7 +18,7 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
-		var tableProvider =	makeTableAsync('${documentsTable}', '${sAjaxSource}', true);
+		var tableProvider =	makeTableAsync('${documentsTable}', '${sAjaxSource}', '${documentDetailPrefix}');
 	});
 </script>
 

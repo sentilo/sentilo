@@ -2,9 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context" xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 
 	<import resource="classpath:spring/platform-server-properties-context.xml" />
@@ -13,8 +13,10 @@
 	<context:annotation-config />
 	<context:component-scan base-package="org.sentilo.platform.server.handler.impl" />
 	<context:component-scan base-package="org.sentilo.platform.server.auth.impl" />
+	<context:component-scan base-package="org.sentilo.platform.server.config" />
+	<context:component-scan base-package="org.sentilo.common.config" />
 
-	<bean id="listener" class="org.sentilo.platform.server.http.RequestListenerThread" p:port="${port}"
+	<bean id="listener" class="org.sentilo.platform.server.http.RequestListenerThread" p:port="${port}" p:socketTcpBacklog="${socket.tcp.backlog}"
 		p:socketBufferSize="${socket.buffer.size}" p:socketMillisecondsTimeout="${socket.timeout.milliseconds}"
 		p:staleConnectionCheck="${stale.connection.check}" p:tcpNoDelay="${tcp.nodelay}" p:originServer="${origin.server}"
 		p:registeredURLs="${urls.registered}" />
@@ -23,9 +25,19 @@
 		p:maxCapacity="${thread.pool.capacity.max}" p:shutdownSecondsTimeout="${thread.pool.shutdown.timeout.seconds}"
 		p:queueSize="${thread.pool.queue.size}" p:groupId="${thread.pool.group.id}" p:groupName="${thread.pool.group.name}" />
 
+
+    <!--
+      The tag annotation-driven enables support for @Scheduled and @Async method annotations:  
+        - executor reference is provided for handling those tasks that correspond to methods with the @Async annotation, 
+        - and the scheduler reference is provided for managing those methods annotated with @Scheduled.
+     -->
 	<task:annotation-driven scheduler="platformScheduler" executor="platformExecutor"/>
-	<task:scheduler id="platformScheduler" pool-size="15" />		
-	<!--  Same pool config as threadPool: one asynchronous thread by request thread -->
+	
+	<!-- This code defines a new ScheduledThreadPoolExecutor with a fixed pool of 15 threads, each one dedicated exclusively to run scheduled tasks -->
+	<task:scheduler id="platformScheduler" pool-size="15" />
+	<!--  executor pool size is equal to threadPool size because platform @Async method is directly associated with each HTTP request 
+	      See CounterServiceImpl.save
+	-->	      
 	<task:executor id="platformExecutor" pool-size="${thread.pool.capacity.initial}-${thread.pool.capacity.max}" queue-capacity="${thread.pool.queue.size}" keep-alive="120"/>
 
 </beans>

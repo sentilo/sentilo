@@ -6,6 +6,7 @@
 <c:set var="sensorTable"  value="providerDetailSensorTable" />
 
 <spring:eval  var="showAdminControls" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', provider)"/>
+<spring:eval  var="showActiveSubscriptionsTab" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', provider)"/>
 <spring:eval  var="showDocsTab" expression="T(org.sentilo.web.catalog.security.SecurityUtils).showAdminControls('READ', provider)"/>
 
 <spring:url value="/admin/provider/${provider.id}/edit" var="editProviderLink" />
@@ -40,8 +41,10 @@
 								</a></li>
 								<li class="${tab3Class}"><a href="#tab3" data-toggle="tab"><spring:message code="provider.components" />
 								</a></li>
+								<c:if test="${showActiveSubscriptionsTab}">
 								<li class="${tab4Class}"><a href="#tab4" data-toggle="tab"><spring:message code="subscriptions.active.tab.label" />
-								 </a></li>
+								</a></li>
+								</c:if>
 								<c:if test="${showDocsTab}">
 								<li class="${tab5Class}"><a href="#tab5" data-toggle="tab"><spring:message code="provider.docs" /> </a></li>
 								</c:if>
@@ -114,7 +117,7 @@
 										<div class="span12">
 											<div class="control-group pull-right">
 												<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
-												<c:if test="${showAdminControls}">
+												<c:if test="${showAdminControls and not provider.federatedResource}">
 												<a href="${editProviderLink }" class="btn btn-primary"> <spring:message code="provider.edit.title" /> </a>
 												</c:if>
 											</div>
@@ -133,12 +136,14 @@
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 									</div>
 								</div>
+								<c:if test="${showActiveSubscriptionsTab}">
 								<div class="${tab4PaneClass}" id="tab4">
 									<jsp:include page="/WEB-INF/jsp/common/include_subscriptions.jsp" />
 									<div class="control-group pull-right">
 										<%@include file="/WEB-INF/jsp/common/include_input_back.jsp"%>
 									</div>
 								</div>
+								</c:if>
 								<c:if test="${showDocsTab}">
 									<div class="${tab5PaneClass}" id="tab5">
 										<jsp:include page="/WEB-INF/jsp/provider/provider_documents_list.jsp" />

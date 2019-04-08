@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -59,6 +59,7 @@ import org.sentilo.web.catalog.validator.ApiValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,13 +100,13 @@ public class ApiController {
   @Autowired
   private ApiValidator validator;
 
-  @RequestMapping(value = "/entities/permissions", method = RequestMethod.GET)
+  @RequestMapping(value = "/entities/permissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public Permissions getPermissions() {
     return permissionService.retrievePermissions();
   }
 
-  @RequestMapping(value = "/entities/metadata", method = RequestMethod.GET)
+  @RequestMapping(value = "/entities/metadata", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public EntitiesMetadataDTO getEntitiesMetadata() {
     LOGGER.debug("Catalog API: get entities metadata");
@@ -116,7 +117,7 @@ public class ApiController {
     return entitiesMetadata;
   }
 
-  @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.POST)
+  @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public CatalogResponseMessage registerSensors(@RequestBody final CatalogInputMessage message, @PathVariable final String providerId) {
     LOGGER.debug("Catalog API: register sensors");
@@ -167,7 +168,7 @@ public class ApiController {
     return new CatalogResponseMessage();
   }
 
-  @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.PUT)
+  @RequestMapping(value = "/provider/{providerId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public CatalogResponseMessage updateComponentOrSensors(@RequestBody final CatalogInputMessage message, @PathVariable final String providerId) {
     LOGGER.debug("Catalog API: update sensors or components");
@@ -220,7 +221,7 @@ public class ApiController {
     return new CatalogResponseMessage();
   }
 
-  @RequestMapping(value = "/authorized/provider/{entityId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/authorized/provider/{entityId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public CatalogResponseMessage getAuthorizedProviders(@PathVariable final String entityId,
       @RequestParam(required = false) final Map<String, String> parameters) {
@@ -248,7 +249,7 @@ public class ApiController {
     return new CatalogResponseMessage(authorizedProviders);
   }
 
-  @RequestMapping(value = "/delete/provider/{providerId}", method = RequestMethod.PUT)
+  @RequestMapping(value = "/delete/provider/{providerId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public CatalogResponseMessage deleteProviderChilds(@RequestBody(required = false) final CatalogDeleteInputMessage message,
       @PathVariable final String providerId) {
@@ -282,7 +283,7 @@ public class ApiController {
     return new CatalogResponseMessage();
   }
 
-  @RequestMapping(value = "/location", method = RequestMethod.PUT)
+  @RequestMapping(value = "/location", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public CatalogResponseMessage updateMobileComponentsLocation(@RequestBody final CatalogInputMessage message) {
     LOGGER.debug("Catalog API: updating mobile component locations");

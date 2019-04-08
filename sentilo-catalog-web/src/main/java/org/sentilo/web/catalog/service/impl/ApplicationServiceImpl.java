@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -37,11 +37,10 @@ import org.sentilo.web.catalog.repository.ApplicationRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.ApplicationService;
 import org.sentilo.web.catalog.service.PermissionService;
-import org.sentilo.web.catalog.service.TenantPermissionService;
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.utils.IdentityKeyGenerator;
 import org.sentilo.web.catalog.utils.TenantUtils;
-import org.sentilo.web.catalog.validator.EntityKeyValidator;
+import org.sentilo.web.catalog.validator.ResourceKeyValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.query.Query;
@@ -49,7 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
-public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Application>implements ApplicationService {
+public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Application> implements ApplicationService {
 
   @Autowired
   private ApplicationRepository repository;
@@ -58,11 +57,8 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
   private PermissionService permissionService;
 
   @Autowired
-  private TenantPermissionService tenantPermissionService;
-
-  @Autowired
   @Qualifier("appsAndProvidersKeyValidator")
-  private EntityKeyValidator customEntityValidator;
+  private ResourceKeyValidator customResourceKeyValidator;
 
   public ApplicationServiceImpl() {
     super(Application.class);
@@ -70,7 +66,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
 
   @Override
   protected void doAfterInit() {
-    setEntityKeyValidator(customEntityValidator);
+    setResourceKeyValidator(customResourceKeyValidator);
     super.doAfterInit();
   }
 
@@ -162,8 +158,7 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
    * web.catalog.domain.CatalogDocument)
    */
   protected void doAfterDelete(final Application application) {
-    permissionService.deleteRelated(application);
-    tenantPermissionService.deleteRelatedEntity(application);
+    deleteRelated(application);
   }
 
   /*
@@ -174,8 +169,12 @@ public class ApplicationServiceImpl extends AbstractBaseCrudServiceImpl<Applicat
    */
   protected void doAfterDelete(final Collection<Application> applications) {
     for (final Application application : applications) {
-      permissionService.deleteRelated(application);
+      deleteRelated(application);
     }
+  }
+
+  private void deleteRelated(final Application application) {
+    permissionService.deleteRelated(application);
   }
 
 }

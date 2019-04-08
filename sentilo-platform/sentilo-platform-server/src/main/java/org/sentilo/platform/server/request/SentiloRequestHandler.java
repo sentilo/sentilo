@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -40,6 +40,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
+import org.sentilo.common.enums.HttpHeader;
 import org.sentilo.common.exception.PlatformAccessException;
 import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
@@ -52,7 +53,6 @@ import org.sentilo.platform.server.converter.PlatformJsonMessageConverter;
 import org.sentilo.platform.server.dto.ErrorMessage;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
-import org.sentilo.platform.server.http.HttpHeader;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class SentiloRequestHandler implements HttpRequestHandler {
   public void handle(final HttpRequest httpRequest, final HttpResponse httpResponse, final HttpContext httpContext) {
 
     try {
-      final SentiloRequest request = SentiloRequest.build(httpRequest);
+      final SentiloRequest request = SentiloRequest.build(httpRequest, httpContext);
       final SentiloResponse response = SentiloResponse.build(httpResponse);
       debug(request);
       request.checkCredentialIntegrity(authenticationService);
@@ -144,7 +144,7 @@ public class SentiloRequestHandler implements HttpRequestHandler {
   }
 
   private void debug(final SentiloRequest request) {
-    LOGGER.info("New http {} request: {}", request.getMethod(), request.getUri());
+    LOGGER.info("[remote_addr={}] ->  New http {} request: {}", request.getRemoteClientAddress(), request.getMethod(), request.getUri());
     LOGGER.debug("Content-Type: {}", request.getContentType());
 
   }
@@ -169,4 +169,5 @@ public class SentiloRequestHandler implements HttpRequestHandler {
     }
 
   }
+
 }

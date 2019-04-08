@@ -36,6 +36,6 @@ public interface UserConfigContext {
 
   String getUserDatePattern();
 
-  Integer getUserChartNumObs();
+  Integer getChartVisiblePointsNumber();
 
 }

@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -92,7 +92,7 @@ public class AdminParserTest {
     final Statistics stats = new Statistics(events, performance);
 
     final SentiloResponse response = SentiloResponse.build(new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_0, 200, "")));
-    parser.writeStatsResponse(response, stats);
+    parser.writeResponse(response, stats);
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ((ByteArrayEntity) response.getHttpResponse().getEntity()).writeTo(baos);
@@ -141,7 +141,7 @@ public class AdminParserTest {
 
   @Test
   public void parseDeleteProvidersRequest() throws Exception {
-    final String json = "{\"providers\":[{\"provider\":\"PRV001\"},{\"provider\":\"PRV002\"}]}";
+    final String json = "{\"providers\":[{\"entityId\":\"PRV001\"},{\"entityId\":\"PRV002\"}]}";
 
     when(sentiloRequest.getBody()).thenReturn(json);
     when(sentiloRequest.getResourcePart(0)).thenReturn(AdminType.delete.name());
@@ -151,6 +151,20 @@ public class AdminParserTest {
     assertNotNull(message.getProviders());
     assertNull(message.getSensors());
     assertEquals(2, message.getProviders().size());
+  }
+
+  @Test
+  public void parseDeleteApplicationsRequest() throws Exception {
+    final String json = "{\"applications\":[{\"entityId\":\"APP001\"},{\"entityId\":\"APP002\"}]}";
+
+    when(sentiloRequest.getBody()).thenReturn(json);
+    when(sentiloRequest.getResourcePart(0)).thenReturn(AdminType.delete.name());
+
+    final AdminInputMessage message = parser.parsePostPutRequest(sentiloRequest);
+
+    assertNotNull(message.getApplications());
+    assertNull(message.getSensors());
+    assertEquals(2, message.getApplications().size());
   }
 
   @Test
@@ -182,7 +196,7 @@ public class AdminParserTest {
     metrics.setActivity(globalActivity);
 
     final SentiloResponse response = SentiloResponse.build(new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_0, 200, "")));
-    parser.writeMetricsResponse(response, metrics);
+    parser.writeResponse(response, metrics);
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ((ByteArrayEntity) response.getHttpResponse().getEntity()).writeTo(baos);
@@ -207,7 +221,7 @@ public class AdminParserTest {
     metrics.setPerformance(globalPerformance);
 
     final SentiloResponse response = SentiloResponse.build(new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_0, 200, "")));
-    parser.writeMetricsResponse(response, metrics);
+    parser.writeResponse(response, metrics);
 
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ((ByteArrayEntity) response.getHttpResponse().getEntity()).writeTo(baos);

@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -57,6 +57,8 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
   public static final String CREATED_COLUMN = "createdAt";
   public static final String CREATED_BY_COLUMN = "createdBy";
   public static final String TYPE_COLUMN = "type";
+  public static final String ENTITY_ID_COLUMN = "entityId";
+  public static final String ENTITY_TYPE_COLUMN = "entityType";
   public static final String SENSORID_COLUMN = "sensorId";
   public static final String PROVIDERID_COLUMN = "providerId";
   public static final String MOBILE_COLUMN = "mobile";
@@ -64,6 +66,8 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
   public static final String EMAIL_COLUMN = "email";
   public static final String TARGET_COLUMN = "target";
   public static final String ENDPOINT_COLUMN = "endpoint";
+  public static final String MAX_RETRIES_COLUMN = "maxRetries";
+  public static final String RETRY_DELAY_COLUMN = "retryDelay";
   public static final String PROVIDER_COLUMN = "provider";
   public static final String PROVIDER_ID_COLUMN = "providerId";
   public static final String SENSOR_COLUMN = "sensor";
@@ -79,6 +83,9 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
   public static final String CONTENT_TYPE_COLUMN = "contentType";
   public static final String ACTIVE_COLUMN = "active";
   public static final String TRIGGER_COLUMN = "trigger";
+  public static final String SUBSCRIPTION_TYPE_COLUMN = "subscriptionType";
+  public static final String APP_CLIENT_COLUMN = "appClientName";
+  public static final String LAST_SYNC_COLUMN = "lastSyncTime";
 
   static final Map<String, Object> ACCESS_DICTIONARY = new HashMap<String, Object>();
   static final Map<String, Object> ACTIVE_DICTIONARY = new HashMap<String, Object>();
@@ -219,9 +226,11 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
     registerSensorTypesDataTableColumns();
     registerComponentTypesDataTableColumns();
     registerSubscriptionsDataTableColumns();
+    registerActiveSubscriptionsDataTableColumns();
     registerTenantDataTableColumns();
     registerTenantGrantsDataTableColumns();
     registerProviderDocumentFilesDataTableColumns();
+    registerFederationConfigDataTableColumns();
   }
 
   private void registerAlertDataTableColumns() {
@@ -342,13 +351,30 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
 
   private void registerSubscriptionsDataTableColumns() {
     final List<Column> columns = new ArrayList<Column>();
-    columns.add(new Column(TYPE_COLUMN));
+    columns.add(new Column(SUBSCRIPTION_TYPE_COLUMN));
     columns.add(new Column(PROVIDER_COLUMN));
     columns.add(new Column(SENSOR_COLUMN));
     columns.add(new Column(ALARM_COLUMN));
     columns.add(new Column(ENDPOINT_COLUMN));
+    columns.add(new Column(MAX_RETRIES_COLUMN));
+    columns.add(new Column(RETRY_DELAY_COLUMN));
 
     SearchFilterUtils.addListColumns("subscriptions", columns);
+  }
+
+  private void registerActiveSubscriptionsDataTableColumns() {
+    final List<Column> columns = new ArrayList<Column>();
+
+    columns.add(new Column(ENTITY_ID_COLUMN, true, true));
+    columns.add(new Column(ENTITY_TYPE_COLUMN, true, true));
+    columns.add(new Column(SUBSCRIPTION_TYPE_COLUMN, true, true));
+    columns.add(new Column(PROVIDER_COLUMN, true, true));
+    columns.add(new Column(SENSOR_COLUMN, true, true));
+    columns.add(new Column(ENDPOINT_COLUMN, true, true));
+    columns.add(new Column(MAX_RETRIES_COLUMN, true, true));
+    columns.add(new Column(RETRY_DELAY_COLUMN, true, true));
+
+    SearchFilterUtils.addListColumns("activesubscriptions", columns);
   }
 
   private void registerTenantDataTableColumns() {
@@ -381,6 +407,17 @@ public class DefaultSearchFilterBuilderImpl implements SearchFilterBuilder {
     columns.add(new Column(CREATED_COLUMN, true, true));
 
     SearchFilterUtils.addListColumns("documents", columns);
+  }
+
+  private void registerFederationConfigDataTableColumns() {
+    final List<Column> columns = new ArrayList<Column>();
+    columns.add(new Column(ID_COLUMN, true, true));
+    columns.add(new Column(NAME_COLUMN, true, true));
+    columns.add(new Column(APP_CLIENT_COLUMN, true, true));
+    columns.add(new Column(LAST_SYNC_COLUMN, true, true));
+    columns.add(new Column(CREATED_COLUMN, true, true));
+
+    SearchFilterUtils.addListColumns("federation", columns);
   }
 
 }

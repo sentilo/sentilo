@@ -3,61 +3,62 @@
 
 
 <included>  
-  <contextName>platform</contextName>
-  <property name="sentilo.log.file.name" value="sentilo-platform"/>
+  <contextName>api-server</contextName>
+  <property name="sentilo.log.file.name" value="sentilo-api-server"/>
   <property name="sentilo.log.dir" value="${sentilo.log.dir:-/var/log/sentilo}"/>
-  
+
+	
   <appender name="MONITOR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover and compression of rollover files -->
-			<fileNamePattern>${sentilo.log.dir}/monitor-sentilo-platform-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-redis-monitor-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
 			<!-- Limits log file size up to a maximum of 10MB -->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>10MB</maxFileSize>
+				<maxFileSize>${sentilo.log.redis.monitor.max_size:-100}MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
 
-			<!-- keep 30 days' worth of history -->
-			<maxHistory>30</maxHistory>
+			<!-- keep 10 days' worth of history by default -->
+			<maxHistory>${sentilo.log.redis.monitor.max_history:-10}</maxHistory>	
 		</rollingPolicy>
 
 		<encoder>
-			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%n</pattern>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%n</pattern>
 		</encoder>
-	</appender>		
-	
-	<appender name="REQUESTS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  </appender>
+    
+  <appender name="REQUESTS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover and compression of rollover files -->
-			<fileNamePattern>${sentilo.log.dir}/requests-sentilo-platform-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
-			<!-- Limits log file size up to a maximum of 10MB -->
+			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-requests-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<!-- Limits log file size up to a maximum of 200MB -->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>200MB</maxFileSize>
+				<maxFileSize>${sentilo.log.requests.max_size:-200}MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
 
-			<!-- keep 30 days' worth of history -->
-			<maxHistory>30</maxHistory>
+			<!-- keep 10 days' worth of history by default -->
+			<maxHistory>${sentilo.log.requests.max_history:-10}</maxHistory>			
 		</rollingPolicy>
 
 		<encoder>
-			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%n</pattern>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%n</pattern>
 		</encoder>
 	</appender>
-
-	<logger name="org.sentilo.platform.service.listener.ConnectionMonitorListener" level="DEBUG" additivity="false">
-		<appender-ref ref="MONITOR_FILE" />
-	</logger>
-
-	<logger name="org.springframework.data.redis.listener" level="DEBUG" additivity="false">
-		<appender-ref ref="MONITOR_FILE" />
-	</logger>
 	
-	<logger name="org.apache.http.wire" level="${sentilo.request.wire.level:-WARN}" additivity="false">		  
+	<logger name="org.sentilo.common.listener.RedisSubscriptionMonitor" level="${sentilo.log.redis.monitor.level:-DEBUG}" additivity="false">
+		<appender-ref ref="MONITOR_FILE" />
+	</logger>
+
+	<logger name="org.springframework.data.redis.listener" level="${sentilo.log.redis.monitor.level:-DEBUG}" additivity="false">
+		<appender-ref ref="MONITOR_FILE" />
+	</logger>
+
+	<logger name="org.apache.http.wire" level="${sentilo.log.requests.wire.level:-WARN}" additivity="false">		  
 		  <appender-ref ref="REQUESTS_FILE" />
 	</logger>
 	
-	<logger name="org.apache.http.headers" level="${sentilo.request.headers.level:-WARN}" additivity="false">		  
+	<logger name="org.apache.http.headers" level="${sentilo.log.requests.headers.level:-WARN}" additivity="false">		  
 		  <appender-ref ref="REQUESTS_FILE" />
 	</logger>
 	  

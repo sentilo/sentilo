@@ -21,17 +21,17 @@
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover and compression of rollover files -->
 			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
-			<!-- Limits log file size up to a maximum of 10MB -->
+			<!-- Limits log file size up to a maximum of 100MB by default-->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>10MB</maxFileSize>
+				<maxFileSize>${sentilo.log.max_size:-100}MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
 
-			<!-- keep 30 days' worth of history -->
-			<maxHistory>30</maxHistory>
+			<!-- keep 10 days' worth of history by default -->
+			<maxHistory>${sentilo.log.max_history:-10}</maxHistory>
 		</rollingPolicy>
 
 		<encoder>
-			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%xException{25}%n</pattern>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%xException{25}%n</pattern>
 		</encoder>
 	</appender>	
 
@@ -40,13 +40,13 @@
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover and compression of rollover files -->
 			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-error-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
-			<!-- Limits log file size up to a maximum of 10MB -->
+			<!-- Limits log file size up to a maximum of 100MB by default-->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>10MB</maxFileSize>
+				<maxFileSize>${sentilo.log.error.max_size:-100}MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
 
-			<!-- keep 30 days' worth of history -->
-			<maxHistory>30</maxHistory>
+			<!-- keep 30 days' worth of history by default -->
+			<maxHistory>${sentilo.log.error.max_history:-30}</maxHistory>
 		</rollingPolicy>
 
 		<encoder>
@@ -80,7 +80,7 @@
 	</logger>
 
 	<root level="WARN">
-		<appender-ref ref="ASYNCSTDOUT" />
+		<appender-ref ref="ASYNCSTDOUT" />		
 		<appender-ref ref="ASYNCFILE" />
 	</root>
 

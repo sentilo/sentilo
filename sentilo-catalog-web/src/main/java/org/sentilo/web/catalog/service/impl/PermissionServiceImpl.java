@@ -1,28 +1,28 @@
 /*
  * Sentilo
- * 
+ *
  * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
  * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
  * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
  *
- * 
+ *
  * This program is licensed and may be used, modified and redistributed under the terms of the
  * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
  * as they are approved by the European Commission.
- * 
+ *
  * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
  * General Public License as published by the Free Software Foundation; either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied.
- * 
+ *
  * See the licenses for the specific language governing permissions, limitations and more details.
- * 
+ *
  * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
  * if not, you may find them at:
- * 
+ *
  * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
  * https://www.gnu.org/licenses/lgpl.txt
  */
@@ -30,6 +30,7 @@ package org.sentilo.web.catalog.service.impl;
 
 import java.util.List;
 
+import org.sentilo.common.config.SentiloArtifactConfigService;
 import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.Permissions;
@@ -38,19 +39,18 @@ import org.sentilo.web.catalog.repository.PermissionRepository;
 import org.sentilo.web.catalog.search.SearchFilter;
 import org.sentilo.web.catalog.service.PermissionService;
 import org.sentilo.web.catalog.utils.Constants;
-import org.sentilo.web.catalog.validator.DefaultEntityKeyValidatorImpl;
+import org.sentilo.web.catalog.validator.DefaultResourceKeyValidatorImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permission>implements PermissionService {
+public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permission> implements PermissionService {
 
   @Autowired
   private PermissionRepository repository;
 
-  @Value("${catalog.app.id}")
-  private String catalogApplicationId;
+  @Autowired
+  private SentiloArtifactConfigService configService;
 
   public PermissionServiceImpl() {
     super(Permission.class);
@@ -58,7 +58,7 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
 
   @Override
   protected void doAfterInit() {
-    setEntityKeyValidator(new DefaultEntityKeyValidatorImpl(getRepository(),
+    setResourceKeyValidator(new DefaultResourceKeyValidatorImpl(getRepository(),
         new CompoundDuplicateKeyExceptionBuilder("error.permission.duplicate.key", Constants.PERMISSION_TOKEN_SPLITTER)));
     super.doAfterInit();
   }
@@ -127,15 +127,24 @@ public class PermissionServiceImpl extends AbstractBaseCrudServiceImpl<Permissio
   }
 
   private void createCatalogPermission(final CatalogDocument entity) {
-    create(buildCatalogPermissionFor(entity));
+    final Permission permission = buildCatalogPermissionFor(entity);
+    createIfNotExist(permission);
   }
 
   private void createOwnPermission(final CatalogDocument entity) {
-    create(new Permission(entity.getId()));
+    final Permission permission = new Permission(entity.getId());
+    createIfNotExist(permission);
+  }
+
+  private void createIfNotExist(final Permission permission) {
+    if (!exists(permission.getId())) {
+      create(permission);
+    }
   }
 
   private Permission buildCatalogPermissionFor(final CatalogDocument entity) {
-    return new Permission(catalogApplicationId, entity.getId(), Constants.CATALOG_PERMISSION_TYPE);
+    final String catalogMasterAppId = configService.getConfigValue(Constants.CATALOG_MASTER_APP_ID);
+    return new Permission(catalogMasterAppId, entity.getId(), Constants.CATALOG_PERMISSION_TYPE);
   }
 
 }
