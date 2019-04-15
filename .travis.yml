@@ -6,6 +6,21 @@ language: java
 jdk:
   - oraclejdk8
 
+  
+## export GPG details
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+
+install:
+    mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+
+## Build and release to maven central
+script:
+    mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Possrh
+
+  
+  
 ## Get the project version  
 before_deploy:
   - "mvn help:evaluate -N -Dexpression=project.version|grep -v '\\['"
