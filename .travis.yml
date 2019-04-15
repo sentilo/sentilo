@@ -12,7 +12,7 @@ after_success:
 before_deploy:
   - "mvn help:evaluate -N -Dexpression=project.version|grep -v '\\['"
   - "export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\\[')"
-  - "export TRAVIS_TAG=$project_version"
+  - "export TRAVIS_TAG=v$project_version"
 cache:
   directories:
     - ~/.m2/repository
@@ -24,7 +24,7 @@ deploy:
     - "$TRAVIS_BUILD_DIR/**/target/sentilo-*-$project_version.jar"
     - "$TRAVIS_BUILD_DIR/**/target/sentilo-*.war"
     - "$TRAVIS_BUILD_DIR/sentilo-platform/**/target/sentilo-*-$project_version.jar"
-  name: $project_version
+  name: v$project_version
   overwrite: true
   provider: releases
   skip_cleanup: true
