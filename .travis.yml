@@ -11,10 +11,10 @@ cache:
 deploy: 
   api_key: 
     secure: bHTo3rdrHyB6cpbOU2wRKKkePHbfkkzH4o9pQ4fi/M7uurWzQoBjIkZ8Z46chjyqt0Gwse9hy8Vum6cnDCjmWo4E3bW4sGdjnnxnF+voG0BKVI8kodKuXTbCyUv0eC0fUIUEYITt95LJqeq3jxFMjKkPEQRpvtgJhDOV02ST9xk=
-  file: 
-    - sentilo-*/target/sentilo-*-$project_version.jar
-    - sentilo-platform/sentilo-*/target/sentilo-*-$project_version.jar
   file_glob: true
+  file: 
+    - sentilo-*/target/sentilo-*-$project_version.jar    
+    - sentilo-platform/sentilo-*/target/sentilo-*-$project_version.jar    
   name: $project_version
   overwrite: true
   provider: releases
