@@ -18,6 +18,7 @@
         <properties>
           <gpg.executable>${env.GPG_EXECUTABLE}</gpg.executable>
           <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+		  <sentiloReleasesMavenRepoUrl>https://oss.sonatype.org/service/local/staging/deploy/maven2/</sentiloReleasesMavenRepoUrl>
         </properties>
       </profile>
     </profiles>
