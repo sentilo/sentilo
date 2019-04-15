@@ -261,6 +261,7 @@
 		        <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
 		    </configuration>
 		</plugin>
+		<!--
 		<plugin>
 		    <groupId>org.apache.maven.plugins</groupId>
 		    <artifactId>maven-gpg-plugin</artifactId>
@@ -281,6 +282,22 @@
 		        </execution>
 		    </executions>
 		</plugin>			            
+		-->
+		
+		<plugin>
+		  <groupid>org.apache.maven.plugins</groupid>
+		  <artifactid>maven-gpg-plugin</artifactid>
+		  <version>1.6</version>
+		  <executions>
+			  <execution>
+				  <id>sign-artifacts</id>
+				  <phase>verify</phase>
+				  <goals>
+					  <goal>sign</goal>
+				  </goals>
+			  </execution>
+		  </executions>
+	    </plugin>
 	</plugins>
 	</build>
    
