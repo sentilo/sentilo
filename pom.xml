@@ -263,8 +263,8 @@
 		</plugin>
 		
 		<plugin>
-		  <groupid>org.apache.maven.plugins</groupid>
-		  <artifactid>maven-gpg-plugin</artifactid>
+		  <groupId>org.apache.maven.plugins</groupId>
+		  <artifactId>maven-gpg-plugin</artifactId>
 		  <version>1.6</version>
 		  <executions>
 			  <execution>
