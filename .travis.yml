@@ -5,39 +5,33 @@ sudo: false
 language: java
 jdk:
   - oraclejdk8
-  
-after_deploy:
-  - "mvn clean cobertura:cobertura coveralls:cobertura"
 
+## Get the project version  
 before_deploy:
   - "mvn help:evaluate -N -Dexpression=project.version|grep -v '\\['"
   - "export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\\[')"
   - "export TRAVIS_TAG=v$project_version"
+
 cache:
   directories:
     - ~/.m2/repository
+
+## Create release in GitHub	
 deploy:
   api_key:
-    secure: bHTo3rdrHyB6cpbOU2wRKKkePHbfkkzH4o9pQ4fi/M7uurWzQoBjIkZ8Z46chjyqt0Gwse9hy8Vum6cnDCjmWo4E3bW4sGdjnnxnF+voG0BKVI8kodKuXTbCyUv0eC0fUIUEYITt95LJqeq3jxFMjKkPEQRpvtgJhDOV02ST9xk=    
+    secure: $GITHUB_API_KEY    
+  file_glob: true  
   file: 
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-activity-monitor/target/sentilo-agent-activity-monitor-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-alert/target/sentilo-agent-alert-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-common/target/sentilo-agent-common-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-federation/target/sentilo-agent-federation-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-historian/target/sentilo-agent-historian-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-kafka/target/sentilo-agent-kafka-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-location-updater/target/sentilo-agent-location-updater-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-agent-relational/target/sentilo-agent-relational-$project_version.jar"    
-    - "$TRAVIS_BUILD_DIR/sentilo-catalog-web/target/sentilo-catalog-web.war"
-    - "$TRAVIS_BUILD_DIR/sentilo-common/target/sentilo-common-$project_version.jar"		
-    - "$TRAVIS_BUILD_DIR/sentilo-platform-client-java/target/sentilo-platform-client-java-$project_version.jar"			
-    - "$TRAVIS_BUILD_DIR/sentilo-platform/sentilo-platform-common/target/sentilo-platform-common-$project_version.jar"
-    - "$TRAVIS_BUILD_DIR/sentilo-platform/sentilo-platform-server/target/sentilo-platform-server-$project_version.jar"	
-    - "$TRAVIS_BUILD_DIR/sentilo-platform/sentilo-platform-service/target/sentilo-platform-service-$project_version.jar"	
+    - "$TRAVIS_BUILD_DIR/**/target/sentilo-*-$project_version.jar"    
+    - "$TRAVIS_BUILD_DIR/**/target/sentilo-*.war"        
+    - "$TRAVIS_BUILD_DIR/sentilo-platform/**/target/sentilo-*-$project_version.jar"    
   name: v$project_version
   overwrite: true
   provider: releases
-  skip_cleanup: true
-  draft: true
+  skip_cleanup: true  
   on:
     repo: sentilo/sentilo
+
+## Run Cobertura job	
+after_deploy:
+  - "mvn clean cobertura:cobertura coveralls:cobertura"	
