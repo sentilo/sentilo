@@ -83,27 +83,7 @@
 	<module>./sentilo-agent-kafka</module>		
   </modules>
 	
-  <profiles>
-  		<profile>
-  			<id>jdk 1.6</id>
-		    <activation>
-		      <jdk>1.6</jdk>
-		    </activation>
-		    <properties>
-			    <maven.compiler.source>1.6</maven.compiler.source>
-		    	<maven.compiler.target>1.6</maven.compiler.target>		
-	  		</properties>	
-		</profile>
-		<profile>
-  			<id>jdk 1.7</id>
-		    <activation>
-		      <jdk>1.7</jdk>
-		    </activation>
-		    <properties>
-			    <maven.compiler.source>1.7</maven.compiler.source>
-		    	<maven.compiler.target>1.7</maven.compiler.target>		
-	  		</properties>	
-		</profile>
+  <profiles>  		
 		<profile>
 			<id>jdk 1.8+</id>
 		    <activation>
@@ -155,6 +135,53 @@
 		        <gpg.executable>${gpg2.executable}</gpg.executable>
 		        <gpg.passphrase>${gpg2.passphrase}</gpg.passphrase>
 		    </properties>
+		    <build>
+		    	<plugins>
+		    		<plugin>
+					    <groupId>org.apache.maven.plugins</groupId>
+					    <artifactId>maven-javadoc-plugin</artifactId>
+					    <version>2.9.1</version>
+					    <configuration>
+					    	<failOnError>false</failOnError>
+					    </configuration>
+					    <executions>
+					        <execution>
+					            <id>attach-javadocs</id>
+					            <goals>
+					                <goal>jar</goal>
+					            </goals>
+					        </execution>
+					    </executions>
+					</plugin>
+					<plugin>
+					    <groupId>org.sonatype.plugins</groupId>
+					    <artifactId>nexus-staging-maven-plugin</artifactId>
+					    <version>1.6.7</version>
+					    <extensions>true</extensions>
+					    <configuration>
+					        <serverId>ossrh</serverId>
+					        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+					        <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
+					    </configuration>
+					</plugin>
+					
+					<plugin>
+					  <groupId>org.apache.maven.plugins</groupId>
+					  <artifactId>maven-gpg-plugin</artifactId>
+					  <version>1.6</version>
+					  <executions>
+						  <execution>
+							  <id>sign-artifacts</id>
+							  <phase>verify</phase>
+							  <goals>
+								  <goal>sign</goal>
+							  </goals>
+						  </execution>
+					  </executions>
+				    </plugin>
+		    	</plugins>
+		    </build>
 		</profile>	   
   </profiles>        
     
@@ -233,49 +260,7 @@
 		        </instrumentation>
 	        </configuration>
 	      </plugin>		
-	      <plugin>
-		    <groupId>org.apache.maven.plugins</groupId>
-		    <artifactId>maven-javadoc-plugin</artifactId>
-		    <version>2.9.1</version>
-		    <configuration>
-		    	<failOnError>false</failOnError>
-		    </configuration>
-		    <executions>
-		        <execution>
-		            <id>attach-javadocs</id>
-		            <goals>
-		                <goal>jar</goal>
-		            </goals>
-		        </execution>
-		    </executions>
-		</plugin>
-		<plugin>
-		    <groupId>org.sonatype.plugins</groupId>
-		    <artifactId>nexus-staging-maven-plugin</artifactId>
-		    <version>1.6.7</version>
-		    <extensions>true</extensions>
-		    <configuration>
-		        <serverId>ossrh</serverId>
-		        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-		        <autoReleaseAfterClose>true</autoReleaseAfterClose>
-		        <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
-		    </configuration>
-		</plugin>
-		
-		<plugin>
-		  <groupId>org.apache.maven.plugins</groupId>
-		  <artifactId>maven-gpg-plugin</artifactId>
-		  <version>1.6</version>
-		  <executions>
-			  <execution>
-				  <id>sign-artifacts</id>
-				  <phase>verify</phase>
-				  <goals>
-					  <goal>sign</goal>
-				  </goals>
-			  </execution>
-		  </executions>
-	    </plugin>
+	      
 	</plugins>
 	</build>
    
@@ -343,9 +328,7 @@
 			</dependency>			
 			<dependency>
 				<groupId>org.mongodb</groupId>
-				<artifactId>mongo-java-driver</artifactId>
-				<!-- version>2.11.3</version-->
-				<!-- version>2.14.3</version--> 
+				<artifactId>mongo-java-driver</artifactId>				
 				<version>${mongo.driver.version}</version>
 			</dependency>
 			<dependency>
@@ -389,7 +372,5 @@
 				<version>${org.springframework.version}</version>
 			</dependency>
 		</dependencies>
-	</dependencyManagement>
-	
-		
+	</dependencyManagement>	
 </project>
