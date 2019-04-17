@@ -14,11 +14,6 @@ before_install:
 
 install:
     mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
-
-## Build and release to maven central
-script:
-    mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Possrh
-
   
   
 ## Get the project version  
@@ -46,7 +41,11 @@ deploy:
   skip_cleanup: true  
   on:
     repo: sentilo/sentilo
+    tags: true
 
-## Run Cobertura job	
+## Finally, after deploy sucess,  run Cobertura job	and deploy artifacts to Nexus
 after_deploy:
   - "mvn clean cobertura:cobertura coveralls:cobertura"	
+## Build and release to maven central
+  - "mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Possrh"
+  
