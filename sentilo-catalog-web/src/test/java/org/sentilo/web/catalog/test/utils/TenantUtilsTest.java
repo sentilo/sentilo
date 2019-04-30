@@ -28,20 +28,27 @@
  */
 package org.sentilo.web.catalog.test.utils;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.context.TenantContextImpl;
+import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Sensor;
 import org.sentilo.web.catalog.domain.SensorType;
 import org.sentilo.web.catalog.domain.Tenant;
+import org.sentilo.web.catalog.domain.User;
 import org.sentilo.web.catalog.utils.TenantUtils;
 
 public class TenantUtilsTest {
@@ -100,4 +107,51 @@ public class TenantUtilsTest {
     Assert.assertTrue(TenantUtils.isCurrentTenantResource(tenantResource));
   }
 
+  @Test
+  public void initTenantFields() {  
+    final Set<String> tenantsAuth = new HashSet<String>();
+    final Set<String> tenantsListVisible = new HashSet<String>();
+    when(tenantResource.getTenantsAuth()).thenReturn(tenantsAuth);
+    when(tenantResource.getTenantsListVisible()).thenReturn(tenantsListVisible);
+    
+    TenantUtils.initTenantFields(tenantResource, mockTenant);
+    
+    verify(tenantResource).setTenantId(mockTenant);    
+    Assert.assertTrue(tenantsAuth.contains(mockTenant));
+    Assert.assertTrue(tenantsListVisible.contains(mockTenant));
+  }
+  
+  @Test
+  public void initComponentTenantFields() {    
+    final Component component = Mockito.mock(Component.class);
+    final Set<String> tenantsAuth = new HashSet<String>();
+    final Set<String> tenantsListVisible = new HashSet<String>();
+    final Set<String> tenantsMapVisible = new HashSet<String>();
+    when(component.getTenantsAuth()).thenReturn(tenantsAuth);
+    when(component.getTenantsListVisible()).thenReturn(tenantsListVisible);
+    when(component.getTenantsMapVisible()).thenReturn(tenantsMapVisible);
+        
+    TenantUtils.initTenantFields(component, mockTenant);
+    
+    verify(component).setTenantId(mockTenant);    
+    Assert.assertTrue(tenantsAuth.contains(mockTenant));
+    Assert.assertTrue(tenantsListVisible.contains(mockTenant));
+    Assert.assertTrue(tenantsMapVisible.contains(mockTenant));
+  }
+  
+  @Test
+  public void initUserTenantFields_whenUserIsSuperAdmin() {    
+    final User user = Mockito.mock(User.class);
+    final Set<String> tenantsAuth = new HashSet<String>();
+    final Set<String> tenantsListVisible = new HashSet<String>();
+    when(user.getTenantsAuth()).thenReturn(tenantsAuth);
+    when(user.getTenantsListVisible()).thenReturn(tenantsListVisible);
+    when(user.getTenantId()).thenReturn(mockTenant);
+    
+    TenantUtils.initTenantFields(user, null);
+    
+    Assert.assertEquals(mockTenant, user.getTenantId());
+    Assert.assertTrue(tenantsAuth.contains(mockTenant));
+    Assert.assertTrue(tenantsListVisible.contains(mockTenant));    
+  }
 }

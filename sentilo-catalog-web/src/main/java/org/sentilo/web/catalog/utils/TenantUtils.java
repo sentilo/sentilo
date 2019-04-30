@@ -34,6 +34,7 @@ import org.sentilo.web.catalog.domain.CatalogDocument;
 import org.sentilo.web.catalog.domain.Component;
 import org.sentilo.web.catalog.domain.Tenant;
 import org.sentilo.web.catalog.domain.TenantResource;
+import org.sentilo.web.catalog.domain.User;
 import org.springframework.util.StringUtils;
 
 public abstract class TenantUtils extends CatalogUtils {
@@ -113,6 +114,11 @@ public abstract class TenantUtils extends CatalogUtils {
       if (targetResource instanceof Component) {
         ((Component) targetResource).getTenantsMapVisible().add(tenantIdOwner);
       }
+    }else if(targetResource instanceof User) {
+      // This case occurs when a super admin user creates a new user
+      final String resourceTenant =  targetResource.getTenantId();
+      targetResource.getTenantsAuth().add(resourceTenant);
+      targetResource.getTenantsListVisible().add(resourceTenant);
     }
   }
 
