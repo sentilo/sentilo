@@ -28,7 +28,6 @@
  */
 package org.sentilo.agent.kafka.service.impl;
 
-import org.sentilo.agent.common.exception.IncompleteCatalogDataException;
 import org.sentilo.agent.kafka.domain.CatalogAdditionalFields;
 import org.sentilo.agent.kafka.service.CatalogService;
 import org.sentilo.common.cache.LRUCache;
@@ -42,6 +41,8 @@ import org.springframework.stereotype.Component;;
 @Component
 public class CatalogServiceImpl implements CatalogService {
 
+  private static final String UNKNOWN_TYPE = "unknown_type";
+  
   @Autowired
   private MongoOperations mongoOperations;
 
@@ -61,7 +62,7 @@ public class CatalogServiceImpl implements CatalogService {
       if (f != null) {
         sensorTypesCache.put(cacheKey, f.getType());
       } else {
-        throw new IncompleteCatalogDataException();
+        sensorTypesCache.put(cacheKey, UNKNOWN_TYPE);
       }
 
     }

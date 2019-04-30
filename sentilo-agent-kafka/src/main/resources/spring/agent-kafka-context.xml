@@ -39,7 +39,9 @@
 		                    <entry key="bootstrap.servers" value="${kafka.bootstrap.servers}" />
 		                    <entry key="key.serializer" value="org.apache.kafka.common.serialization.StringSerializer" />
 		                    <entry key="value.serializer" value="org.apache.kafka.common.serialization.StringSerializer" />
-		                    <entry key="max.block.ms" value="${kafka.request.timeout.ms}" />
+		                    <entry key="request.timeout.ms" value="${kafka.request.timeout.ms}" />
+		                    <entry key="linger.ms" value="${kafka.linger.ms}" />
+		                    <entry key="batch.size" value="${kafka.batch.size}" />
 		                </map>
 		            </constructor-arg>
 		        </bean>
