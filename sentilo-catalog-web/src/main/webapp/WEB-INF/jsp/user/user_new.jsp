@@ -133,8 +133,7 @@
                                             <c:if test="${mode == 'create' or showAdminControls }">
 												<form:select path="roles" multiple="false">
 													<form:option value="ADMIN" label="ADMIN" />
-													<form:option value="USER" label="USER" />
-													<form:option value="PLATFORM" label="PLATFORM" />
+													<form:option value="USER" label="USER" />													
 													<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
 													<form:option value="SUPER_ADMIN" label="SUPER-ADMIN" />
 													</security:authorize>
@@ -144,8 +143,7 @@
                                             <c:if test="${mode == 'edit' and not showAdminControls }">
 												<form:select path="roles" multiple="false" disabled="true">
 													<form:option value="ADMIN" label="ADMIN" />
-													<form:option value="USER" label="USER" />
-													<form:option value="PLATFORM" label="PLATFORM" />
+													<form:option value="USER" label="USER" />													
 													<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">
 														<form:option value="SUPER_ADMIN" label="SUPER-ADMIN" />
 													</security:authorize>
