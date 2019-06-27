@@ -53,7 +53,7 @@
 		<org.springframework.version>5.0.8.RELEASE</org.springframework.version>			
 		<org.springframework.data.mongodb.version>2.0.9.RELEASE</org.springframework.data.mongodb.version>
 		<org.springframework.data.redis.version>2.0.9.RELEASE</org.springframework.data.redis.version>				
-		<jedis.version>2.9.0</jedis.version>
+		<jedis.version>2.10.2</jedis.version>
 		<mongo.driver.version>3.8.0</mongo.driver.version>	
 		<commons.codec.version>1.7</commons.codec.version>
 		<httpclient.version>4.5.3</httpclient.version>		
