@@ -9,8 +9,8 @@ the following infraestructure:
 
 -  Four virtual machines, two for the front-ends and another two for the
    back-end
--  All of them use as operating system Ubuntu server LTS 12.04
--  The real time database server(Redis) works with 16 GB of memory and
+-  All of them use as operating system Ubuntu server LTS 16.04
+-  The real time database server(Redis) works with 32 GB of memory and
    36 GB of hard disk
 -  The other three servers works with 4 GB of memory and 16 GB of hard
    disk
@@ -24,7 +24,7 @@ I successfully published an observation, but I cannot see the data in catalog.
 ------------------------------------------------------------------------------
 
 Check that the Catalog and Sentilo API Server are in the same timezone,
-for example in UTC. Make sure the sentilo-server script has the
+for example in UTC. Make sure the sentilo-server is executed with the
 following VM option:
 
 ::
