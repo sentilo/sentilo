@@ -34,19 +34,17 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.agent.kafka.repository.KafkaAgentRepository;
 import org.sentilo.agent.kafka.service.CatalogService;
+import org.sentilo.agent.kafka.service.KafkaAgentService;
 import org.sentilo.agent.kafka.service.impl.KafkaAgentServiceImpl;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.enums.EventType;
 
 public class KafkaServiceImplTest {
 
-  @InjectMocks
-  private KafkaAgentServiceImpl service;
   @Mock
   private CatalogService catalogService;
   @Mock
@@ -54,9 +52,12 @@ public class KafkaServiceImplTest {
   @Mock
   private KafkaAgentRepository repository;
 
+  private KafkaAgentService service;
+
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    this.service = new KafkaAgentServiceImpl(catalogService,repository);
   }
 
   @Test

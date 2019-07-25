@@ -46,10 +46,15 @@ public class KafkaAgentServiceImpl implements KafkaAgentService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaAgentServiceImpl.class);
 
+  private final CatalogService catalogService;
+
+  private final KafkaAgentRepository repository;
+
   @Autowired
-  private CatalogService catalogService;
-  @Autowired
-  private KafkaAgentRepository repository;
+  public KafkaAgentServiceImpl(final CatalogService catalogService, final KafkaAgentRepository repository){
+    this.catalogService = catalogService;
+    this.repository = repository;
+  }
 
   /*
    * (non-Javadoc)
