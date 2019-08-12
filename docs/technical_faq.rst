@@ -9,8 +9,8 @@ the following infraestructure:
 
 -  Four virtual machines, two for the front-ends and another two for the
    back-end
--  All of them use as operating system Ubuntu server LTS 12.04
--  The real time database server(Redis) works with 16 GB of memory and
+-  All of them use as operating system Ubuntu server LTS 16.04
+-  The real time database server(Redis) works with 32 GB of memory and
    36 GB of hard disk
 -  The other three servers works with 4 GB of memory and 16 GB of hard
    disk
@@ -24,7 +24,7 @@ I successfully published an observation, but I cannot see the data in catalog.
 ------------------------------------------------------------------------------
 
 Check that the Catalog and Sentilo API Server are in the same timezone,
-for example in UTC. Make sure the sentilo-server script has the
+for example in UTC. Make sure the sentilo-server is executed with the
 following VM option:
 
 ::
@@ -43,8 +43,7 @@ Recently Google changed it policy regarding Maps key. Please go to
 https://developers.google.com/maps/documentation/javascript/get-api-key
 and create one.
 
-If you are using the last release of Sentilo(1.6) you can define the API
-key inside the catalog-config.properties configuration file:
+You can define the API key inside the sentilo/sentilo-catalog-web/src/main/resources/properties/catalog-config.properties configuration file:
 
 .. code:: properties
 
@@ -53,11 +52,19 @@ key inside the catalog-config.properties configuration file:
 
 --------------
 
+Remember you'll have to recompile sentilo-catalog-web redeploy the sentilo-catalog-web.war after that.
+
+
 I created a provider and immediately after that, an observation using the new provider’s token is rejected with 401 “Invalid credential”
 ----------------------------------------------------------------------------------------------------------------------------------------
 
 The providers are activated in a background job that runs every 5
 minutes. Please wait a moment :-)
+
+Another possible reason is that the Sentilo API server started before the Catalog application (probably deployed on your Tomcat).
+At startup, the API server performs a call to /sentilo-catalog-web/api/entities/permissions in order to mirror the permissions stored in MongoDB with Redis.
+If this call fails because the sentilo-catalog-web is not deployed yet, the permissions are not correctly created.
+To resolve the issue, reboot your Sentilo and ensure that the API server starts always after the sentilo-catalog-web is fully deployed.
 
 --------------
 

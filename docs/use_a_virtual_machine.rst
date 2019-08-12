@@ -5,7 +5,7 @@ A Sentilo sample instance is available for testing purposes distributed
 as a Open Virtual Appliance file
 (`OVA <https://en.wikipedia.org/wiki/Open_Virtualization_Format>`__).
 
-The appliance contains the **1.7.0 Sentilo release**.
+The appliance contains the **1.8.0 Sentilo release**.
 
 Components installed:
 
@@ -15,23 +15,11 @@ Components installed:
 -  Sentilo Alert Agent
 -  Sentilo Location Updater Agent
 
-Two different distribution files are available:
-
 -  One designed for **Virtual Box**, available
-   `here <http://www.sentilo.io/wordpress/?wpfb_dl=24>`__. It has been
-   tested using version **5.0.24**.
--  The second one, built for **ESXI** systems, available
-   `here <http://www.sentilo.io/wordpress/?wpfb_dl=25>`__. It has been
-   tested using **VMPlayer 12.5.5** and **ESXI 6.0**.
+   `here <http://www.sentilo.io/wordpress/download/appliance/view(6).html>`__. It has been
+   tested using version **5.0.40**.
 
-Please, keep in mind some important facts:
-
--  The virtual machine credentials are **sentilo/sentilo**.
--  You should config the network type as **“Bridged Adapter”.**
--  When stopping the virtual machine, it should be done in a organized
-   way, in a Virtual Box environment you have to do this using the
-   option **“Shutdown ACPI”**. You could also do this from the command
-   line executing **“sudo shutdown -h now”**
+The virtual machine credentials are **sentilo/sentilo**.
 
 After the virtual machine is started, all the sentilo services are
 launched automatically. The IP of the virtual machine is assigned
