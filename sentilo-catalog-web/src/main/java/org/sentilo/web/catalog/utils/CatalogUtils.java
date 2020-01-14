@@ -208,4 +208,13 @@ public abstract class CatalogUtils extends SentiloUtils {
 
     return tokens.length > 0 && "static".equals(tokens[1]);
   }
+
+  public static <T> String arrayToString(final T[] values) {
+    final StringBuilder sb = new StringBuilder();
+    if (!arrayIsEmpty(values)) {
+      sb.append(collectionToString(Arrays.asList(values)));
+    }
+
+    return sb.toString();
+  }
 }

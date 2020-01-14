@@ -2,6 +2,7 @@ package org.sentilo.web.catalog.test.config;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import java.util.Properties;
@@ -16,6 +17,7 @@ import org.sentilo.common.config.SentiloArtifactConfigRepository;
 import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.web.catalog.config.CatalogConfigServiceImpl;
 import org.sentilo.web.catalog.service.PlatformService;
+import org.springframework.core.env.Environment;
 
 public class CatalogConfigServiceImplTest extends AbstractBaseTest {
 
@@ -35,6 +37,9 @@ public class CatalogConfigServiceImplTest extends AbstractBaseTest {
   @Mock
   private SentiloArtifactConfigRepository repository;
 
+  @Mock
+  private Environment environment;
+
   @Before
   public void setUp() throws Exception {
     System.setProperty(SPRING_PROFILES_ACTIVE_PARAM, "test");
@@ -49,6 +54,8 @@ public class CatalogConfigServiceImplTest extends AbstractBaseTest {
 
   @Test
   public void getArtifactConfig() {
+    final String[] activeProfiles = {"test"};
+    when(environment.getActiveProfiles()).thenReturn(activeProfiles);
     final Map<String, Object> config = configService.getArtifactConfig();
     Assert.assertEquals(System.getProperty(USER_TIMEZONE_PARAM, "-"), config.get(USER_TIMEZONE_PARAM));
     Assert.assertEquals(System.getProperty(FILE_ENCODING_PARAM, "-"), config.get(FILE_ENCODING_PARAM));
