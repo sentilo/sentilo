@@ -2,10 +2,6 @@ table {
 	border-collapse: collapse;
 }
 
-table, th, td {
-	border: 1px solid black;
-}
-
 th {
 	text-align: center;
 	background-color: #F3F3F3;
