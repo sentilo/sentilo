@@ -16,7 +16,7 @@
 	<properties>		
 		<hibernate.version>3.2.1.ga</hibernate.version>				
 		<oracle.jdbc.driver.version>11.2.0.1.0</oracle.jdbc.driver.version>			
-		<mysql.jdbc.driver.version>5.1.15</mysql.jdbc.driver.version>
+		<mysql.jdbc.driver.version>8.0.16</mysql.jdbc.driver.version>
 		<tomcat.jdbc.version>7.0.47</tomcat.jdbc.version>
 	</properties>
 		  	
