@@ -39,7 +39,7 @@ Publish an Observation
 
 In order to publish an observation, we’ll use Sentilo’s HTTP REST API.
 For that you can use the curl program of some more graphical tool such
-as `Postman <https://getpostman.com>`__:
+as `Postman <https://postman.com>`__:
 
 ::
 
