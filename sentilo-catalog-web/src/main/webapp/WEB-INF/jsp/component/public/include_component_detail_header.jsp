@@ -1,26 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
 
 <spring:url value="/static/img/icons" var="iconsPath" />
 
-
-
 <script type="text/javascript">
-
-function createComponentHeader(latitude, longitude, target) {
-	var geo = new google.maps.Geocoder();
-	var componentDescription = '${component.description}';
-	geo.geocode({
-			'latLng' : new google.maps.LatLng(latitude, longitude)
-		},
-		function (results, status) {
-			if (status == google.maps.GeocoderStatus.OK && results[0]) {
-				$(target).html(componentDescription + ' / ' + results[0].formatted_address);
-			}
-		}
-	);
-}
 
 function returnToComponentMap(){
 	var componentMapUrl = '${componentMap}';
@@ -49,14 +34,13 @@ function returnToComponentMap(){
 
 $(document).ready(function() {	
 	var latitude = ${component.location.centroid[1]};
-	var longitude = ${component.location.centroid[0]} 	
-	createComponentHeader(latitude, longitude, '#componentHeader');			
+	var longitude = ${component.location.centroid[0]} 		
+	createComponentHeader(latitude, longitude, '#componentHeader');	
 });
 
 </script>
 
 
-<%@include file="/WEB-INF/jsp/common/messages.jsp"%>
 
 <c:if test="${btnclose ne 'off'}">	
 	<div class="pull-right">			

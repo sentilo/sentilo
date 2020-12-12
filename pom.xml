@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sentilo</groupId>
   <artifactId>sentilo-parent-pom</artifactId>
-  <version>1.8.0</version>
+  <version>1.9.0</version>
   <packaging>pom</packaging>
   
   <name>sentilo-parent-pom</name>
@@ -55,17 +55,17 @@
 		<org.springframework.data.redis.version>2.0.9.RELEASE</org.springframework.data.redis.version>				
 		<jedis.version>2.10.2</jedis.version>
 		<mongo.driver.version>3.8.0</mongo.driver.version>	
-		<commons.codec.version>1.7</commons.codec.version>
-		<httpclient.version>4.5.3</httpclient.version>		
-		<jackson.version>2.9.6</jackson.version>
-		<junit.version>4.12</junit.version>		
+		<commons.codec.version>1.7</commons.codec.version>		
+		<httpclient.version>4.5.6</httpclient.version>		
+		<jackson.version>2.9.6</jackson.version>		
+		<junit.version>4.13</junit.version>		
 		<mockito.version>1.10.8</mockito.version>
 		<powermock.version>1.6.1</powermock.version>		
 		<org.springframework.security.version>5.0.7.RELEASE</org.springframework.security.version>
 		<validation.api.version>2.0.1.Final</validation.api.version>
 		<hibernate.validator.version>6.0.11.Final</hibernate.validator.version>
 		<tomcat.server.version>8.5.32</tomcat.server.version>
-		<platform.version>1.8.0</platform.version>							
+		<platform.version>1.9.0</platform.version>							
   </properties>
   
   <modules>
@@ -80,7 +80,8 @@
 	<module>./sentilo-agent-activity-monitor</module>
 	<module>./sentilo-agent-historian</module>
 	<module>./sentilo-agent-federation</module>
-	<module>./sentilo-agent-kafka</module>		
+	<module>./sentilo-agent-kafka</module>
+	<module>./sentilo-agent-metrics-monitor</module>
   </modules>
 	
   <profiles>  		
@@ -199,13 +200,16 @@
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-surefire-plugin</artifactId>
-			<version>2.19.1</version>			
+			<version>2.22.2</version>			
 			<configuration>				    			    			   			    
 				<argLine>${surefireArgLine}</argLine>
 				<!--  Works on JVM >1.7 -->
 				<argLine>-Duser.timezone=UTC</argLine>
 				<!-- End comment -->
+				<!--  Fork Options and Parallel Test Execution JUnit 4.12  -->
 			    <reuseForks>true</reuseForks>
+			    <forkCount>2C</forkCount>			    
+			    <!-- End fork && parallel execution -->
 				<includes>
 					<include>**/*Test.java</include>
 				</includes>

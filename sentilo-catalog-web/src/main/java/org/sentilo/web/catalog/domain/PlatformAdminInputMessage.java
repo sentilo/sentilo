@@ -35,6 +35,7 @@ import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogEntity;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformInputMessage;
+import org.sentilo.common.metrics.SentiloArtifactMetrics;
 import org.sentilo.web.catalog.converter.PlatformConverter;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.springframework.util.CollectionUtils;
@@ -58,6 +59,9 @@ public class PlatformAdminInputMessage implements PlatformInputMessage {
 
   @JsonInclude(value = Include.NON_EMPTY)
   private Map<String, Map<String, Object>> artifactsConfig;
+
+  @JsonInclude(value = Include.NON_EMPTY)
+  private Collection<SentiloArtifactMetrics> artifactsMetrics;
 
   public PlatformAdminInputMessage() {
     super();
@@ -117,5 +121,13 @@ public class PlatformAdminInputMessage implements PlatformInputMessage {
 
   public void setArtifactsConfig(final Map<String, Map<String, Object>> artifactsConfig) {
     this.artifactsConfig = artifactsConfig;
+  }
+
+  public Collection<SentiloArtifactMetrics> getArtifactsMetrics() {
+    return artifactsMetrics;
+  }
+
+  public void setArtifactsMetrics(final Collection<SentiloArtifactMetrics> artifactsMetrics) {
+    this.artifactsMetrics = artifactsMetrics;
   }
 }

@@ -1,0 +1,232 @@
+{
+	"index_patterns": "metrics-sentilo*",
+	"settings": {
+		"number_of_shards": 2
+	},
+	"mappings": {
+		"properties": {
+			"name": {
+				"type": "keyword"
+			},
+			"timestamp": {
+				"type": "date"
+			},
+			"state": {
+				"type": "keyword"
+			},
+			"metrics": {
+				"type": "object",
+				"properties": {
+					"cpu": {
+						"type": "object",
+						"properties": {
+							"number": {
+								"type": "integer"
+							},
+							"system_load": {
+								"type": "float"
+							},
+							"process_load": {
+								"type": "float"
+							}
+						}
+					},
+					"system_memory": {
+						"type": "object",
+						"properties": {
+							"total": {
+								"type": "long"
+							},
+							"used": {
+								"type": "long"
+							},
+							"free": {
+								"type": "long"
+							}
+						}
+					},
+					"file_systems": {
+						"type": "nested",
+						"properties": {
+							"path": {
+								"type": "keyword"
+							},
+							"total": {
+								"type": "long"
+							},
+							"usable": {
+								"type": "long"
+							},
+							"free": {
+								"type": "long"
+							}
+						}
+					},
+					"process_memory": {
+						"type": "object",
+						"properties": {
+							"non_heap": {
+								"type": "object",
+								"properties": {
+									"init": {
+										"type": "long"
+									},
+									"committed": {
+										"type": "long"
+									},
+									"max": {
+										"type": "long"
+									},
+									"used": {
+										"type": "long"
+									}
+								}
+							},
+							"heap": {
+								"type": "object",
+								"properties": {
+									"init": {
+										"type": "long"
+									},
+									"committed": {
+										"type": "long"
+									},
+									"max": {
+										"type": "long"
+									},
+									"used": {
+										"type": "long"
+									}
+								}
+							}
+						}
+					},
+					"threads": {
+						"type": "object",
+						"properties": {
+							"total": {
+								"type": "long"
+							},
+							"started": {
+								"type": "long"
+							},
+							"daemon": {
+								"type": "long"
+							}
+						}
+					},
+					"relational_server_state": {
+						"type": "keyword"
+					},
+					"data_sources": {
+						"type": "nested",
+						"properties": {
+							"size": {
+								"type": "long"
+							},
+							"idle": {
+								"type": "long"
+							},
+							"wait_count": {
+								"type": "long"
+							},
+							"name": {
+								"type": "keyword"
+							},
+							"active": {
+								"type": "long"
+							},
+							"max_active": {
+								"type": "long"
+							},
+							"min_idle": {
+								"type": "long"
+							}
+						}
+					},
+					"requests": {
+						"type": "nested",
+						"properties": {
+							"instance": {
+								"type": "keyword"
+							},
+							"requests": {
+								"type": "object",
+								"properties": {
+									"data": {
+										"type": "object",
+										"properties": {
+											"total": {
+												"type": "long"
+											},
+											"get": {
+												"type": "long"
+											},
+											"put": {
+												"type": "long"
+											},
+											"push": {
+												"type": "long"
+											}
+										}
+									},
+									"alarm": {
+										"type": "object",
+										"properties": {
+											"total": {
+												"type": "long"
+											},
+											"get": {
+												"type": "long"
+											},
+											"put": {
+												"type": "long"
+											},
+											"push": {
+												"type": "long"
+											}
+										}
+									},
+									"global": {
+										"type": "object",
+										"properties": {
+											"total": {
+												"type": "long"
+											},
+											"get": {
+												"type": "long"
+											},
+											"put": {
+												"type": "long"
+											},
+											"push": {
+												"type": "long"
+											}
+										}
+									},
+									"order": {
+										"type": "object",
+										"properties": {
+											"total": {
+												"type": "long"
+											},
+											"get": {
+												"type": "long"
+											},
+											"put": {
+												"type": "long"
+											},
+											"push": {
+												"type": "long"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

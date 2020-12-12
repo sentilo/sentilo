@@ -1,5 +1,3 @@
-// Before execute postman script you should replace default values (extracted from the init_test_data.js file)  
-// with the ones that you want to use to execute it (api_url, api_port, provider and provider_token)
 {
   "id": "b9b73b6c-9bb8-7808-cba5-44d95b6144a0",
   "name": "Sentilo API environment config ",

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:annotation-config />
+
+	<import resource="classpath:spring/monitor-properties-context.xml" />
+	<import resource="classpath:spring/monitor-pubsub-context.xml" />
+
+	<context:component-scan base-package="org.sentilo.agent.metrics.monitor" />
+	<context:component-scan base-package="org.sentilo.agent.common.listener" />
+	<context:component-scan base-package="org.sentilo.agent.common.service" />
+	<context:component-scan base-package="org.sentilo.agent.common.repository" />
+	<context:component-scan base-package="org.sentilo.agent.common.scheduler" />
+	<context:component-scan base-package="org.sentilo.agent.common.config" />
+	<context:component-scan base-package="org.sentilo.common.config" />
+
+	<bean id="restClient" class="org.sentilo.common.rest.impl.RESTClientImpl" p:host="${elasticsearch.url}" />
+
+	<task:annotation-driven scheduler="platformScheduler" />
+	<task:scheduler id="platformScheduler" pool-size="5" />
+</beans>

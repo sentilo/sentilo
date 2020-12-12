@@ -87,37 +87,46 @@ public class CounterServiceImpl extends AbstractMetricsServiceImpl implements Co
     final boolean isMaster = MonitorConstants.MASTER_COUNTERS_KEY.equals(counterKey);
     final String tenant = isMaster ? null : counterKey.split(PubSubConstants.REDIS_KEY_TOKEN)[2];
     final Long totalRequests = getHashValueAsLong(countersHash, MonitorConstants.TOTAL_REQUESTS_FIELD);
-    final Long totalObs = addHashValues(countersHash, EventType.DATA);
-    final Long totalOrders = addHashValues(countersHash, EventType.ORDER);
-    final Long totalAlarms = addHashValues(countersHash, EventType.ALARM);
+    final Long totalObs = totalEventRequests(countersHash, EventType.DATA);
+    final Long totalOrders = totalEventRequests(countersHash, EventType.ORDER);
+    final Long totalAlarms = totalEventRequests(countersHash, EventType.ALARM);
 
     final Long totalGetRequests = getHashValueAsLong(countersHash, buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, RequestType.GET));
     final Long totalPutRequests = getHashValueAsLong(countersHash, buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, RequestType.PUT));
+    final Long totalPushRequests = getHashValueAsLong(countersHash, buildHashField(MonitorConstants.TOTAL_REQUESTS_FIELD, RequestType.PUSH));
     final Long totalGetObs = getHashValueAsLong(countersHash, buildHashField(EventType.DATA, RequestType.GET));
     final Long totalPutObs = getHashValueAsLong(countersHash, buildHashField(EventType.DATA, RequestType.PUT));
+    final Long totalPushObs = getHashValueAsLong(countersHash, buildHashField(EventType.DATA, RequestType.PUSH));
     final Long totalGetOrders = getHashValueAsLong(countersHash, buildHashField(EventType.ORDER, RequestType.GET));
     final Long totalPutOrders = getHashValueAsLong(countersHash, buildHashField(EventType.ORDER, RequestType.PUT));
+    final Long totalPushOrders = getHashValueAsLong(countersHash, buildHashField(EventType.ORDER, RequestType.PUSH));
     final Long totalGetAlarms = getHashValueAsLong(countersHash, buildHashField(EventType.ALARM, RequestType.GET));
     final Long totalPutAlarms = getHashValueAsLong(countersHash, buildHashField(EventType.ALARM, RequestType.PUT));
+    final Long totalPushAlarms = getHashValueAsLong(countersHash, buildHashField(EventType.ALARM, RequestType.PUSH));
 
     final PlatformActivity platformActivity = new PlatformActivity(tenant, System.currentTimeMillis(), isMaster);
     platformActivity.setTotalAlarms(totalAlarms);
     platformActivity.setTotalGetAlarms(totalGetAlarms);
     platformActivity.setTotalPutAlarms(totalPutAlarms);
+    platformActivity.setTotalPushAlarms(totalPushAlarms);
     platformActivity.setTotalOrders(totalOrders);
     platformActivity.setTotalGetOrders(totalGetOrders);
     platformActivity.setTotalPutOrders(totalPutOrders);
+    platformActivity.setTotalPushOrders(totalPushOrders);
     platformActivity.setTotalObs(totalObs);
     platformActivity.setTotalGetObs(totalGetObs);
     platformActivity.setTotalPutObs(totalPutObs);
+    platformActivity.setTotalPushObs(totalPushObs);
     platformActivity.setTotalRequests(totalRequests);
     platformActivity.setTotalGetRequests(totalGetRequests);
     platformActivity.setTotalPutRequests(totalPutRequests);
+    platformActivity.setTotalPushRequests(totalPushRequests);
 
     return platformActivity;
   }
 
-  private Long addHashValues(final Map<Object, Object> hash, final EventType eventType) {
+  private Long totalEventRequests(final Map<Object, Object> hash, final EventType eventType) {
+    // total requests of type eventType equals to GET requests plus PUT requests
     final Long value1 = getHashValueAsLong(hash, buildHashField(eventType, RequestType.GET));
     final Long value2 = getHashValueAsLong(hash, buildHashField(eventType, RequestType.PUT));
 

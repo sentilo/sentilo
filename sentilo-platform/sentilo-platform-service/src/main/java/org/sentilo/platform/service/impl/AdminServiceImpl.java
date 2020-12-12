@@ -36,6 +36,9 @@ import org.sentilo.common.domain.CatalogEntity;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
+import org.sentilo.common.metrics.SentiloArtifactMetrics;
+import org.sentilo.common.metrics.SentiloArtifactsMetricsMessage;
+import org.sentilo.common.metrics.repository.SentiloArtifactMetricsRepository;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
@@ -70,6 +73,9 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
   @Autowired
   private SentiloArtifactConfigRepository configRepository;
 
+  @Autowired
+  private SentiloArtifactMetricsRepository metricsRepository;
+
   @Override
   public Statistics getStatistics() {
     return null;
@@ -98,12 +104,9 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
   @Override
   public void delete(final AdminInputMessage message) {
     // This method must remove everything stored in Redis related to sensors, providers,
-    // applications or
-    // alerts.
+    // applications or alerts.
     // Data, such as observations, orders and alarms, does not need be removed at this step because
-    // them
-    // have
-    // a ttl associated with and Redis will automatically deleted them.
+    // them have a ttl associated with and Redis will automatically deleted them when it is reached.
 
     // Furthermore, these data will be orphaned so them cannot be retrieved with the API REST.
     if (!CollectionUtils.isEmpty(message.getApplications())) {
@@ -139,11 +142,28 @@ public class AdminServiceImpl extends AbstractPlatformServiceImpl implements Adm
   }
 
   @Override
+  public void saveArtifactsMetrics(final AdminInputMessage message) {
+    if (!CollectionUtils.isEmpty(message.getArtifactsMetrics())) {
+      for (final SentiloArtifactMetrics artifactMetrics : message.getArtifactsMetrics()) {
+        metricsRepository.saveArtifactMetrics(artifactMetrics);
+      }
+    }
+  }
+
+  @Override
   public PlatformConfigMessage getPlatformConfig() {
     final PlatformConfigMessage configMessage = new PlatformConfigMessage();
     configMessage.setGlobalConfig(configRepository.readGlobalConfig());
 
     return configMessage;
+  }
+
+  @Override
+  public SentiloArtifactsMetricsMessage getSentiloArtifactsMetrics() {
+    final SentiloArtifactsMetricsMessage metricsMessage = new SentiloArtifactsMetricsMessage();
+    metricsMessage.setArtifactsMetrics(metricsRepository.getArtifactsMetrics());
+
+    return metricsMessage;
   }
 
   private void deleteApplications(final List<CatalogEntity> applications) {

@@ -39,7 +39,7 @@ var initComponentDetailVariables = function(url, dataUrl, ordersUrl, alarmsUrl, 
  */
 
 var makeAlarmLine = function(ph, alarm) {
-	ph.append('<div class="activity_text_element"><span class="label label-important">' + formatTimestamp(alarm.timestamp) + '</span>&nbsp;' + alarm.message + '</div>');
+	ph.append('<div class="activity_text_element"><span class="label label-important">' + alarm.timestamp + '</span>&nbsp;' + alarm.message + '</div>');
 };
  
 var retrieveAlarms = function(placeholder, url) {
@@ -57,7 +57,7 @@ var retrieveAlarms = function(placeholder, url) {
  * Updates orders panel
  */
 var makeOrderLine = function(ph, order) {
-	ph.append('<div class="activity_text_element"><span class="label label-success">' + formatTimestamp(order.timestamp) + '</span>&nbsp;' + order.order + '</div>');
+	ph.append('<div class="activity_text_element"><span class="label label-success">' + order.timestamp + '</span>&nbsp;' + order.order + '</div>');
 };
  
 var retrieveOrders = function(placeholder, url) {
@@ -270,7 +270,7 @@ var addLastSensorObservationToPanel = function(panel, data) {
 		var stats = $('<div id="componentLastObsValue" class="stats"></div>');
 		var date = '<br/> <spring:message code="component.sensor.observation.lastupdated"/> <br/>';
 		if (data.found) {
-			date = date + formatTimestamp(data.timestamp);
+			date = date + data.timestamp;
 			if (data.dataType == 'BOOLEAN') {
 				data.value = eval(data.value) ? messages.boolValues.trueValue.toUpperCase() : messages.boolValues.falseValue.toUpperCase();
 				stats.html(data.value + ' ' + data.unit);

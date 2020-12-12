@@ -30,6 +30,7 @@ package org.sentilo.platform.server;
 
 import org.sentilo.common.hook.SentiloShutdownHook;
 import org.sentilo.platform.server.http.RequestListenerThread;
+import org.sentilo.platform.server.http.SentiloMonitorServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -59,5 +60,9 @@ public final class SentiloServer {
     final RequestListenerThread t = (RequestListenerThread) ctx.getBean("listener");
     t.setDaemon(false);
     t.start();
+
+    final SentiloMonitorServer monitorServer = (SentiloMonitorServer) ctx.getBean("monitorServer");
+    // monitorServer.setDaemon(false);
+    monitorServer.run();
   }
 }

@@ -60,13 +60,15 @@ public class EntitiesMetadataDTO {
 
   public void addAllApplications(final List<Application> applications) {
     for (final Application app : applications) {
-      entitiesMetadata.add(new EntityMetadataDTO(app.getId(), app.getToken(), app.getTenantId(), app.isRestHttps()));
+      entitiesMetadata.add(
+          new EntityMetadataDTO(app.getId(), app.getToken(), app.getTenantId(), app.isRestHttps(), app.getApiInputQuota(), app.getApiOutputQuota()));
     }
   }
 
   public void addAllProviders(final List<Provider> providers) {
     for (final Provider provider : providers) {
-      entitiesMetadata.add(new EntityMetadataDTO(provider.getId(), provider.getToken(), provider.getTenantId(), provider.isRestHttps()));
+      entitiesMetadata.add(new EntityMetadataDTO(provider.getId(), provider.getToken(), provider.getTenantId(), provider.isRestHttps(),
+          provider.getApiInputQuota(), provider.getApiOutputQuota()));
     }
   }
 

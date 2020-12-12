@@ -31,15 +31,21 @@ package org.sentilo.platform.service.notification;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.sentilo.common.enums.HttpHeader;
 import org.sentilo.common.rest.RequestContext;
 import org.sentilo.common.rest.impl.RESTClientImpl;
 import org.sentilo.platform.common.domain.NotificationParams;
+import org.sentilo.platform.common.ratelimiter.QuotaContext;
+import org.sentilo.platform.common.ratelimiter.QuotaContextHolder;
+import org.sentilo.platform.common.ratelimiter.service.RateLimiterService;
+import org.sentilo.platform.common.service.InternalAlarmService;
 import org.sentilo.platform.service.monitor.CounterContext;
 import org.sentilo.platform.service.monitor.CounterEvent;
 import org.sentilo.platform.service.monitor.RequestType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -53,10 +59,17 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
   private NotificationRetryRepository repository;
 
   @Autowired
+  private InternalAlarmService internalAlarmService;
+
+  @Autowired
   private ApplicationContext context;
 
   @Value("${api.retry.notifications:true}")
   private boolean retryNotificationsEnabled = true;
+
+  @Autowired
+  @Qualifier("outboundRateLimiting")
+  private RateLimiterService rateLimitingService;
 
   private Map<String, RESTClientImpl> restClients = new HashMap<String, RESTClientImpl>();
 
@@ -68,7 +81,37 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
   @Override
   public void pushNotification(final NotificationRetryEvent notificationRetryEvent) {
     final NotificationDeliveryContext notificationContext = notificationRetryEvent.getNotificationDeliveryContext();
+    boolean successProcess = false;
+
+    try {
+      // TODO: What happens with relays and with delay between them when quota is exceeded? Should
+      // apply same values?
+      successProcess = isAllowed(notificationContext.getEntity()) && sent(notificationRetryEvent);
+    } catch (final Exception e) {
+      successProcess = false;
+    } finally {
+      if (!successProcess && retryNotificationsEnabled) {
+        saveForFurtherRetryAttempt(notificationRetryEvent);
+      }
+      QuotaContextHolder.clearContext();
+    }
+  }
+
+  public boolean isAllowed(final String entity) {
+    final boolean allowed = rateLimitingService.allow(entity);
+    if (!allowed) {
+      final QuotaContext qc = QuotaContextHolder.getContext(QuotaContext.Type.ENTITY);
+      LOGGER.warn("Entity [{}] has exceeded its outbound quota limit [{} items/hour] !", entity, qc.getLimit());
+      internalAlarmService.publishOutboundRateLimiterAlarm(entity, qc);
+    }
+
+    return allowed;
+  }
+
+  protected boolean sent(final NotificationRetryEvent notificationRetryEvent) {
+    final NotificationDeliveryContext notificationContext = notificationRetryEvent.getNotificationDeliveryContext();
     final NotificationParams notificationParams = notificationContext.getNotificationParams();
+    boolean sentOk = true;
 
     try {
       final RESTClientImpl restClient = getRestClient(notificationContext.getEntity());
@@ -77,23 +120,36 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
       rc.setHost(notificationParams.getEndpoint());
       rc.setSecretKey(notificationParams.getSecretCallbackKey());
 
+      // Add additional headers
+      addAdditionalHeaders(rc);
+
       restClient.post(rc);
 
       publishPushCounterEvent(notificationContext);
     } catch (final Exception e) {
+      sentOk = false;
       LOGGER.warn("Error sending push notification {} to {}. Number of retries: {} ", notificationRetryEvent.getMessage(),
           notificationContext.getNotificationParams().getEndpoint(), notificationRetryEvent.getRetryCount());
-
-      if (retryNotificationsEnabled) {
-        saveForFurtherRetryAttempt(notificationRetryEvent);
-      }
     }
 
+    return sentOk;
+  }
+
+  private void addAdditionalHeaders(final RequestContext rc) {
+    // Add Rate Limiter headers
+    if (QuotaContextHolder.hasEntityContext()) {
+      final QuotaContext qc = QuotaContextHolder.getContext(QuotaContext.Type.ENTITY);
+      rc.addHeader(HttpHeader.X_RL_OUTPUT_LIMIT.name(), Long.toString(qc.getLimit()));
+      rc.addHeader(HttpHeader.X_RL_OUTPUT_REMAINING.name(), Long.toString(qc.getRemaining()));
+      rc.addHeader(HttpHeader.X_RL_OUTPUT_RESET.name(), Long.toString(qc.getMinutesToReset()));
+    }
   }
 
   /**
    * If {@link NotificationParams#getMaxRetries()} is greater than
    * {@link NotificationRetryEvent#getRetryCount()}, saves the message in a queue for further retry
+   * 
+   * @param notificationRetryEvent
    */
   protected boolean saveForFurtherRetryAttempt(final NotificationRetryEvent notificationRetryEvent) {
     final long maxRetries = notificationRetryEvent.getNotificationDeliveryContext().getNotificationParams().getMaxRetries();

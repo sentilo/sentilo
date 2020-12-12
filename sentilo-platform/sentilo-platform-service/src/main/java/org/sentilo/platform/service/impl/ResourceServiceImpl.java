@@ -58,13 +58,13 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * String )
    */
   public Long registerProviderIfNeedBe(final String providerId) {
-    Long pid = jedisSequenceUtils.getPid(providerId);
+    Long pid = sequenceUtils.getPid(providerId);
     // Provider must be registered into Redis if its pid doesn't exist
     if (pid == null) {
-      pid = jedisSequenceUtils.setPid(providerId);
-      jedisTemplate.set(keysBuilder.getProviderKey(pid), providerId);
+      pid = sequenceUtils.setPid(providerId);
+      sRedisTemplate.set(keysBuilder.getProviderKey(pid), providerId);
       // Reverse lookup key for quickly get the {pid} from a provider with identifier providerId
-      jedisTemplate.set(keysBuilder.getReverseProviderKey(providerId), pid.toString());
+      sRedisTemplate.set(keysBuilder.getReverseProviderKey(providerId), pid.toString());
       LOGGER.debug("Registered in Redis provider {} with pid {}", providerId, pid);
     }
 
@@ -103,20 +103,20 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public Long registerSensorIfNeedBe(final CatalogSensor sensor, final boolean update) {
 
-    Long sid = jedisSequenceUtils.getSid(sensor.getProvider(), sensor.getSensor());
+    Long sid = sequenceUtils.getSid(sensor.getProvider(), sensor.getSensor());
     // Sensor must be registered into Redis if its sid doesn't exist or if update is true
     if (sid == null || update) {
 
       if (sid == null) {
-        final Long pid = jedisSequenceUtils.getPid(sensor.getProvider());
-        sid = jedisSequenceUtils.setSid(sensor.getProvider(), sensor.getSensor());
+        final Long pid = sequenceUtils.getPid(sensor.getProvider());
+        sid = sequenceUtils.setSid(sensor.getProvider(), sensor.getSensor());
 
         // To quickly get the sensors list from a provider, a reverse lookup key is defined
-        jedisTemplate.sAdd(keysBuilder.getProviderSensorsKey(pid), sid.toString());
+        sRedisTemplate.sAdd(keysBuilder.getProviderSensorsKey(pid), sid.toString());
 
         // And finally, a new reverse lookup key is defined to quickly get the internal sid of a
         // sensor from the pair <providerId,sensorId>, so that sensor's data could be stored
-        jedisTemplate.set(keysBuilder.getReverseSensorKey(sensor.getProvider(), sensor.getSensor()), sid.toString());
+        sRedisTemplate.set(keysBuilder.getReverseSensorKey(sensor.getProvider(), sensor.getSensor()), sid.toString());
       }
 
       // Store a hash with key sid:{sid} and fields provider, sensor, state and ttl
@@ -126,7 +126,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       fields.put(STATE, sensor.getState().name());
       fields.put(TTL, catalogSensorTtlToRedisTtl(sensor.getTtl()));
 
-      jedisTemplate.hmSet(keysBuilder.getSensorKey(sid), fields);
+      sRedisTemplate.hmSet(keysBuilder.getSensorKey(sid), fields);
 
       LOGGER.debug("Saved in Redis sensor [{}]  with sid [{}] and state [{}], belonging to provider [{}]", sensor.getSensor(), sid,
           sensor.getState().name(), sensor.getProvider());
@@ -142,7 +142,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * org.sentilo.platform.common.service.ResourceService#getSensorsFromProvider(java.lang.String)
    */
   public Set<String> getSensorsFromProvider(final String providerId) {
-    final Long pid = jedisSequenceUtils.getPid(providerId);
+    final Long pid = sequenceUtils.getPid(providerId);
 
     return getSensorsFromProvider(pid);
 
@@ -162,7 +162,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
     }
 
     if (StringUtils.hasText(sensorId)) {
-      final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+      final Long sid = sequenceUtils.getSid(providerId, sensorId);
       if (sid != null) {
         sids = new HashSet<String>();
         sids.add(sid.toString());
@@ -181,7 +181,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * java.lang.String)
    */
   public Sensor getSensor(final String providerId, final String sensorId) {
-    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+    final Long sid = sequenceUtils.getSid(providerId, sensorId);
     return sid != null ? getSensor(sid) : new Sensor(providerId, sensorId);
   }
 
@@ -192,7 +192,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public Sensor getSensor(final Long sid) {
     Sensor sensor = null;
-    final Map<String, String> infoSid = jedisTemplate.hGetAll(keysBuilder.getSensorKey(sid));
+    final Map<String, String> infoSid = sRedisTemplate.hGetAll(keysBuilder.getSensorKey(sid));
     if (!CollectionUtils.isEmpty(infoSid)) {
       final String sensorId = infoSid.get(SENSOR);
       final String providerId = infoSid.get(PROVIDER);
@@ -210,7 +210,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public Alert getAlert(final Long aid) {
     Alert alert = null;
-    final Map<String, String> infoAid = jedisTemplate.hGetAll(keysBuilder.getAlertKey(aid));
+    final Map<String, String> infoAid = sRedisTemplate.hGetAll(keysBuilder.getAlertKey(aid));
     if (!CollectionUtils.isEmpty(infoAid)) {
       final String alertId = infoAid.get(ALERT);
       final String entity = infoAid.get(ENTITY);
@@ -228,14 +228,14 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * domain.CatalogAlert, boolean)
    */
   public Long registerAlertIfNeedBe(final CatalogAlert alert, final boolean update) {
-    Long aid = jedisSequenceUtils.getAid(alert.getId());
+    Long aid = sequenceUtils.getAid(alert.getId());
     if (aid == null || update) {
       if (aid == null) {
-        aid = jedisSequenceUtils.setAid(alert.getId());
+        aid = sequenceUtils.setAid(alert.getId());
 
         // A reverse lookup key is defined for quickly get the {aid} from an alert with identifier
         // alertId
-        jedisTemplate.set(keysBuilder.getReverseAlertKey(alert.getId()), aid.toString());
+        sRedisTemplate.set(keysBuilder.getReverseAlertKey(alert.getId()), aid.toString());
       }
 
       // Store a hash with key aid:{aid} and fields alert, entity and active
@@ -243,7 +243,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       fields.put(ALERT, alert.getId());
       fields.put(ENTITY, alert.getEntity());
       fields.put(ACTIVE, alert.getActive());
-      jedisTemplate.hmSet(keysBuilder.getAlertKey(aid), fields);
+      sRedisTemplate.hmSet(keysBuilder.getAlertKey(aid), fields);
 
       LOGGER.debug("Registered in Redis alert [{}] with aid [{}] and active flag to [{}]", alert.getId(), aid, alert.getActive());
     }
@@ -258,12 +258,12 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public void removeProvider(final String providerId) {
     LOGGER.debug("Deleting in Redis provider {} ", providerId);
-    final Long pid = jedisSequenceUtils.getPid(providerId);
+    final Long pid = sequenceUtils.getPid(providerId);
     if (pid != null) {
       // Remove key pid:{pid}
-      jedisTemplate.del(keysBuilder.getProviderKey(pid));
+      sRedisTemplate.del(keysBuilder.getProviderKey(pid));
       // Remove key provider:{providerId}:pid
-      jedisTemplate.del(keysBuilder.getReverseProviderKey(providerId));
+      sRedisTemplate.del(keysBuilder.getReverseProviderKey(providerId));
 
       // Remove every sensor related to the provider.
       final Set<String> sids = getSensorsFromProvider(pid);
@@ -274,10 +274,10 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
       }
 
       // Remove key pid:{pid}:sensors
-      jedisTemplate.del(keysBuilder.getProviderSensorsKey(pid));
+      sRedisTemplate.del(keysBuilder.getProviderSensorsKey(pid));
 
       // Finally, remove {pid} from internal cache
-      jedisSequenceUtils.removePid(providerId);
+      sequenceUtils.removePid(providerId);
     }
 
     LOGGER.debug("Provider [{}] deleted", providerId);
@@ -291,7 +291,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public void removeSensor(final String sensorId, final String providerId) {
     LOGGER.debug("Deleting in Redis sensor [{}] belonging to  provider {}", sensorId, providerId);
-    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+    final Long sid = sequenceUtils.getSid(providerId, sensorId);
     if (sid != null) {
       removeSensor(sid, providerId, true);
     }
@@ -307,12 +307,12 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    */
   public void removeAlert(final CatalogAlert alert) {
     LOGGER.debug("Deleting in Redis alert [{}] belonging to entity {}", alert.getId(), alert.getEntity());
-    final Long aid = jedisSequenceUtils.getAid(alert.getId());
+    final Long aid = sequenceUtils.getAid(alert.getId());
     if (aid != null) {
-      jedisTemplate.del(keysBuilder.getReverseAlertKey(alert.getId()));
-      jedisTemplate.del(keysBuilder.getAlertKey(aid));
+      sRedisTemplate.del(keysBuilder.getReverseAlertKey(alert.getId()));
+      sRedisTemplate.del(keysBuilder.getAlertKey(aid));
       // Finally, remove {aid} from the internal cache
-      jedisSequenceUtils.removeAid(alert.getId());
+      sequenceUtils.removeAid(alert.getId());
     }
 
     LOGGER.debug("Alert [{}], belonging to entity [{}], deleted.", alert.getId(), alert.getEntity());
@@ -337,7 +337,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * @see org.sentilo.platform.common.service.ResourceService#isAlertDisabled(java.lang.String)
    */
   public boolean isAlertDisabled(final String alertId) {
-    final Long aid = jedisSequenceUtils.getAid(alertId);
+    final Long aid = sequenceUtils.getAid(alertId);
     boolean alertDisabled = false;
 
     if (aid != null) {
@@ -354,7 +354,7 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
    * @see org.sentilo.platform.common.service.ResourceService#existsAlert(java.lang.String)
    */
   public boolean existsAlert(final String alertId) {
-    final Long aid = jedisSequenceUtils.getAid(alertId);
+    final Long aid = sequenceUtils.getAid(alertId);
 
     return aid != null;
   }
@@ -363,36 +363,36 @@ public class ResourceServiceImpl extends AbstractPlatformServiceImpl implements 
 
     if (sid != null) {
       // Remove key sensor:{providerId}:{sensorId}:sid
-      final String sensorId = jedisTemplate.hGet(keysBuilder.getSensorKey(sid), "sensor");
-      jedisTemplate.del(keysBuilder.getReverseSensorKey(providerId, sensorId));
+      final String sensorId = sRedisTemplate.hGet(keysBuilder.getSensorKey(sid), "sensor");
+      sRedisTemplate.del(keysBuilder.getReverseSensorKey(providerId, sensorId));
 
       // Remove key sid:{sid}:observations
-      jedisTemplate.del(keysBuilder.getSensorObservationsKey(sid));
+      sRedisTemplate.del(keysBuilder.getSensorObservationsKey(sid));
 
       // Remove key sid:{sid}:orders
-      jedisTemplate.del(keysBuilder.getSensorOrdersKey(sid));
+      sRedisTemplate.del(keysBuilder.getSensorOrdersKey(sid));
 
       // Remove key sid:{sid}
-      jedisTemplate.del(keysBuilder.getSensorKey(sid));
+      sRedisTemplate.del(keysBuilder.getSensorKey(sid));
       if (removeFromProviderList) {
         // Only if removeFromProviderList is true, i.e., method is invoked to remove only sensor
         // identified by sid,
         // also remove reference to sensor in the list defined by key
         // keysBuilder.getProviderSensorsKey(pid)
 
-        final Long pid = jedisSequenceUtils.getPid(providerId);
-        jedisTemplate.sRem(keysBuilder.getProviderSensorsKey(pid), sid.toString());
+        final Long pid = sequenceUtils.getPid(providerId);
+        sRedisTemplate.sRem(keysBuilder.getProviderSensorsKey(pid), sid.toString());
       }
 
       // Finally, remove {sid} from the internal cache
-      jedisSequenceUtils.removeSid(providerId, sensorId);
+      sequenceUtils.removeSid(providerId, sensorId);
     }
   }
 
   private Set<String> getSensorsFromProvider(final Long pid) {
     // Si no hay identificador interno del proveedor, entonces este no esta registrado en Redis y
     // por lo tanto no tiene ningun sensor asociado
-    return pid == null ? Collections.<String>emptySet() : jedisTemplate.sMembers(keysBuilder.getProviderSensorsKey(pid));
+    return pid == null ? Collections.<String>emptySet() : sRedisTemplate.sMembers(keysBuilder.getProviderSensorsKey(pid));
   }
 
 }

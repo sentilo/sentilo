@@ -104,12 +104,17 @@ public abstract class PublishMessageUtils {
   }
 
   private static void setCustomsFields(final EventMessage event) {
-    if (!StringUtils.hasText(event.getPublisher())) {
-      event.setPublisher(RequesterContextHolder.getContext().getEntityId());
+    if (RequesterContextHolder.hasContext()) {
+      if (!StringUtils.hasText(event.getPublisher())) {
+        event.setPublisher(RequesterContextHolder.getContext().getEntityId());
+      }
+
+      event.setPublishedAt(RequesterContextHolder.getContext().getRequestTimestamp());
+      event.setPublisherTenant(RequesterContextHolder.getContext().getTenantId());
     }
 
-    event.setPublishedAt(RequesterContextHolder.getContext().getRequestTimestamp());
-    event.setPublisherTenant(RequesterContextHolder.getContext().getTenantId());
-    event.setTenant(ResourceOwnerContextHolder.getContext().getTenantId());
+    if (ResourceOwnerContextHolder.hasContext()) {
+      event.setTenant(ResourceOwnerContextHolder.getContext().getTenantId());
+    }
   }
 }

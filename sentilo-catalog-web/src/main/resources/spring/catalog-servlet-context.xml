@@ -61,6 +61,7 @@
 		<!-- Get user specific configurations -->
 		<beans:bean id="userConfigInterceptor" class="org.sentilo.web.catalog.interceptor.UserConfigInterceptor" />
 		<beans:bean id="breadCrumbInterceptor" class="org.sentilo.web.catalog.interceptor.BreadcrumbInterceptor" />
+		<beans:bean id="metricsInterceptor" class="org.sentilo.web.catalog.interceptor.MetricsInterceptor" />
 	</interceptors>
 
 	<!-- selects a static view for rendering without the need for an explicit controller -->	

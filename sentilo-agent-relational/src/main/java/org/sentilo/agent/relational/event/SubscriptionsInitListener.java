@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.sentilo.agent.common.listener.AbstractSubscriptionsInitListener;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.utils.Utils;
 import org.sentilo.agent.relational.listener.MessageListenerImpl;
 import org.sentilo.agent.relational.service.DataTrackService;
@@ -62,6 +63,9 @@ public class SubscriptionsInitListener extends AbstractSubscriptionsInitListener
 
   @Autowired
   private DataTrackService dataTrackService;
+
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
 
   public void subscribe() {
     // Este proceso lee las subscripciones definidas en el fichero subscription.properties y las
@@ -120,7 +124,7 @@ public class SubscriptionsInitListener extends AbstractSubscriptionsInitListener
     while (dsKeys.hasNext()) {
       final String dsName = dsKeys.next();
       final List<String> dsSubscriptions = dsGroup.get(dsName);
-      final MessageListener messageListener = new MessageListenerImpl(dsName, dataTrackService);
+      final MessageListener messageListener = createMessageListener(dsName);
       for (final String dsSubscription : dsSubscriptions) {
         registerSubscription(messageListener, Utils.buildTopic(dsSubscription));
       }
@@ -138,5 +142,11 @@ public class SubscriptionsInitListener extends AbstractSubscriptionsInitListener
       final List<String> dsSubscriptions = dsGroup.get(dataSourceName);
       dsSubscriptions.add(subscription);
     }
+  }
+
+  private MessageListenerImpl createMessageListener(final String dsName) {
+    final MessageListenerImpl aux = new MessageListenerImpl(dsName, dataTrackService);
+    aux.setMetricsCounters(metricsCounters);
+    return aux;
   }
 }

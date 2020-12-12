@@ -54,9 +54,12 @@ public class SentiloHttpRequestTask implements Runnable {
   public void run() {
     try {
       httpService.handleRequest(conn, context);
-    } catch (final Exception t) {
-      LOGGER.error("Error while handling request: {}", t.getMessage(), t);
+    } catch (final Exception e) {
+      LOGGER.error("Error while handling request: {}", e.getMessage(), e);
     } finally {
+      // This disable persistent connections from clients because always close them.
+      // If persistent connections (i.e. connections with keep-alive header) are no closed
+      // some clients get a Connection Timeout error while read response.
       closeConnection();
     }
   }
@@ -64,7 +67,8 @@ public class SentiloHttpRequestTask implements Runnable {
   private void closeConnection() {
     try {
       if (conn != null) {
-        conn.shutdown();
+        // Close connection gracefully to evict Connection reset errors in client side
+        conn.close();
       }
     } catch (final IOException unmanaged) {
     }

@@ -29,6 +29,7 @@
 package org.sentilo.platform.server.handler;
 
 import org.apache.http.HttpStatus;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.exception.PlatformException;
 import org.sentilo.platform.common.security.ResourceOwnerContext;
 import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
@@ -53,10 +54,9 @@ public abstract class AbstractHandler {
   @Autowired
   private EntityMetadataRepository entityMetadataRepository;
 
+  // TODO: rename this property to something like "api.sentilo.master.application.id"
   @Value("${catalog.id}")
   protected String catalogId;
-
-  private static final String DEFAULT_CATALOG_ID = "sentilo-catalog";
 
   public abstract void onDelete(SentiloRequest request, SentiloResponse response);
 
@@ -130,7 +130,7 @@ public abstract class AbstractHandler {
 
   protected String getCatalogId() {
     // Default value is sentilo-catalog
-    return StringUtils.hasText(catalogId) ? catalogId : DEFAULT_CATALOG_ID;
+    return StringUtils.hasText(catalogId) ? catalogId : SentiloConstants.DEFAULT_CATALOG_ID;
   }
 
   protected void debug(final SentiloRequest request) {

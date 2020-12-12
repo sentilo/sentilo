@@ -1,9 +1,6 @@
 Architecture
 ============
 
-Sentilo platform
-----------------
-
 Sentilo is a platform aimed to isolate and communicate the applications
 that are developed to exploit the information generated from the ground
 by the layer of sensors deployed across to collect and broadcast this
@@ -47,9 +44,9 @@ Please, check this out fore more
 RealTime storage
 ^^^^^^^^^^^^^^^^
 
-Primary repository where the platform stores all the information
+Redis is the primary repository where the platform stores all the information
 received. It is configured to do periodic backups in the file system. It
-is also the Publish/Subscrive engine.
+is also the Publish/Subscribe engine.
 
 REST API
 ^^^^^^^^
@@ -77,7 +74,7 @@ Agents are Java processes that expand the core functionality of the
 platform through a Plug & Play system using the Redis publish and
 subscribe mechanism.
 
-Sentilo currently provides several `agents <./integrations.html#agents>`__:
+Sentilo currently provides several `agents <./integrations.html#agents>`__, for example:
 
 -  **Relational database agent**: used to export historical data to a
    relational database.
@@ -87,6 +84,8 @@ Sentilo currently provides several `agents <./integrations.html#agents>`__:
 -  **Activity Monitor Agent**: used for upload the events to
    Elasticsearch.
 -  **Historian Agent**: used for upload the events to OpenTSDB.
+
+See the complete list here: `Sentilo Agents <./integrations.html#agents>`__
 
 Authentication Token
 ^^^^^^^^^^^^^^^^^^^^
@@ -114,7 +113,7 @@ Please, check this out fore more `info <./api_docs/security.hml>`__.
 Notification mechanism
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Sentilo provides two mechanisms for nofitying events:
+Sentilo provides two mechanisms for notifying events:
 
 -  If the client is capable of having an opened socket, the platform
    will send a notification to this socket every time an event is
@@ -142,7 +141,7 @@ Alert
 Sentilo allows to manage sensor-level internal alerts, aimed to control
 the validity of the data received. The set of conditional operators
 available are: **>, >=, <, <=, =, any change, variation, frozen**. When
-the value received from a sensor doesn’t met any of the conditions
+the value received from a sensor doesn't met any of the conditions
 defined, the alert agent publishes an event (alarm) notifying it. These
 alerts are defined through the `console <./catalog_and_maps.html>`__.
 There are also external alerts which can be defined and triggered
@@ -172,7 +171,7 @@ into two layers:
 Transport Layer
 '''''''''''''''
 
-Tthe transport layer is designed following the Thread Pool pattern and
+The transport layer is designed following the Thread Pool pattern and
 is implemented with Apache HttpCore library.
 
 The following diagram shows the main flow for a request within this
@@ -215,7 +214,7 @@ Service Layer
 
 The design of this layer has the main premise of minimizing the request
 processing time, so all the main job is held in memory(Redis). Redis
-stores data in a memory database but also has the posibility of disk
+stores data in a memory database but also has the possibility of disk
 storage to ensure the durability of the data.
 
 The following diagram shows the main flow for a request within this
@@ -248,9 +247,9 @@ layer:
 
 -  Redis is responsible for sending the published information to
    ListenerMessageContainer event, who is responsible for managing the
-   subscription in Redis as a client for any type of event. \**(*)*\*
+   subscription in Redis as a client for any type of event.
 -  The container notifies the event to each subscription associated with
-   it sending a request, via HttpCallback \**(*)*\*
+   it sending a request, via :literal:`HttpCallback`
 
 The platform registers a task that runs periodically who is responsible
 for credentials & permissions synchronization, stored in memory in

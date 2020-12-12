@@ -34,16 +34,21 @@ public class EntityMetadataDTO {
   private String token;
   private String tenantId;
   private boolean restHttps;
+  private int apiInputQuota;
+  private int apiOutputQuota;
 
   protected EntityMetadataDTO(final String entity, final String token) {
     this.entity = entity;
     this.token = token;
   }
 
-  public EntityMetadataDTO(final String entity, final String token, final String tenantId, final boolean restHttps) {
+  public EntityMetadataDTO(final String entity, final String token, final String tenantId, final boolean restHttps, final int apiInputQuota,
+      final int apiOutputQuota) {
     this(entity, token);
     this.tenantId = tenantId;
     this.restHttps = restHttps;
+    this.apiInputQuota = apiInputQuota;
+    this.apiOutputQuota = apiOutputQuota;
   }
 
   @Override
@@ -95,4 +100,21 @@ public class EntityMetadataDTO {
   public void setRestHttps(final boolean restHttps) {
     this.restHttps = restHttps;
   }
+
+  public int getApiInputQuota() {
+    return apiInputQuota;
+  }
+
+  public void setApiInputQuota(final int apiInputQuota) {
+    this.apiInputQuota = apiInputQuota;
+  }
+
+  public int getApiOutputQuota() {
+    return apiOutputQuota;
+  }
+
+  public void setApiOutputQuota(final int apiOutputQuota) {
+    this.apiOutputQuota = apiOutputQuota;
+  }
+
 }

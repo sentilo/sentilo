@@ -195,8 +195,7 @@ public class ProviderServiceImpl extends AbstractBaseCrudServiceImpl<Provider> i
     checkIntegrityKey(provider.getId());
 
     // Default value of field name equals to id value if field name is empty (it isn't mandatory
-    // that
-    // user filled in it)
+    // that user filled in it)
     provider.setDefaultValues();
 
     permissionService.createRelated(provider);

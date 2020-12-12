@@ -28,10 +28,11 @@
  */
 package org.sentilo.web.catalog.utils;
 
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.web.catalog.domain.Permission;
 import org.sentilo.web.catalog.domain.TenantPermission;
 
-public abstract class Constants {
+public abstract class Constants extends SentiloConstants {
 
   public static final String MODEL_ACTIVE_SUBSCRIPTIONS = "activeSubscriptions";
   public static final String MODEL_ALERTS = "alerts";
@@ -160,6 +161,8 @@ public abstract class Constants {
   public static final String VIEW_STATE_ENABLED = "state/state_detail";
   public static final String VIEW_STATE_DISABLED = "state/state_disabled";
 
+  public static final String VIEW_METRICS = "metrics/metrics";
+
   public static final String VIEW_PROVIDER_DOCUMENT_FILES_LIST = "provider/provider_documents_list";
   public static final String VIEW_PROVIDER_ADD_DOCUMENT_FILE = "provider/provider_documents_add";
 
@@ -209,6 +212,7 @@ public abstract class Constants {
   public static final String MENU_TENANT = "/tenant";
   public static final String MENU_FEDERATION = "/federation";
   public static final String MENU_ACTIVE_SUBSCRIPTIONS = "/activesubscriptions";
+  public static final String MENU_METRICS = "/metrics";
 
   public static final Permission.Type CATALOG_PERMISSION_TYPE = Permission.Type.ADMIN;
   public static final TenantPermission.Type CATALOG_TENANT_PERMISSION_TYPE = TenantPermission.Type.WRITE;
@@ -218,11 +222,6 @@ public abstract class Constants {
   public static final String DEFAULT_KEY_TOKEN_SPLITTER = ".";
   public static final String PERMISSION_TOKEN_SPLITTER = "@";
   public static final String MULTITENANT_ENTITY_ID_PREPEND_TOKEN = "@";
-
-  public static final String COMMA_TOKEN_SPLITTER = ",";
-
-  public static final String LOCATION_TOKEN_SPLITTER = COMMA_TOKEN_SPLITTER;
-  public static final String LOCATION_TOKEN_DIVIDER = " ";
 
   public static final String ASC = "asc";
   public static final String DESC = "desc";
@@ -353,7 +352,7 @@ public abstract class Constants {
   public static final String S3_SIGNING_REGION = "eu-west-3";
   public static final long S3_LINK_DEFAULT_TTL = 3600000; // 10 minutes
 
-  private Constants() {
+  protected Constants() {
     // this prevents even the native class from calling this ctor as well :
     throw new AssertionError();
   }

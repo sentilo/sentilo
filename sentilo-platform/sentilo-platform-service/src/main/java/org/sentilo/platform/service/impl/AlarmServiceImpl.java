@@ -132,7 +132,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     // 2. Si este no es null, recuperar las alarmas asociadas a esta alerta que cumplen el criterio
     // de busqueda
     final List<Alarm> messages = new ArrayList<Alarm>();
-    final Long aid = jedisSequenceUtils.getAid(message.getAlertId());
+    final Long aid = sequenceUtils.getAid(message.getAlertId());
     if (aid != null) {
       messages.addAll(getLastAlarms(aid, message));
     }
@@ -142,7 +142,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
 
   private String getOwnerFromCache(final String alertId) {
     if (alertsOwners.get(alertId) == null) {
-      final Long aid = jedisSequenceUtils.getAid(alertId);
+      final Long aid = sequenceUtils.getAid(alertId);
       final Alert alert = resourceService.getAlert(aid);
       if (alert != null) {
         alertsOwners.put(alertId, alert.getEntity());
@@ -165,8 +165,8 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   }
 
   private Long registerAlarmMessage(final AlarmInputMessage message) {
-    final Long aid = jedisSequenceUtils.getAid(message.getAlertId());
-    final Long amid = jedisSequenceUtils.getAmid();
+    final Long aid = sequenceUtils.getAid(message.getAlertId());
+    final Long amid = sequenceUtils.getAmid();
     final Long timestamp = System.currentTimeMillis();
     final String alarmKey = keysBuilder.getAlarmKey(amid);
 
@@ -180,18 +180,18 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
       fields.put(ALERT_TYPE, message.getAlertType());
     }
 
-    jedisTemplate.hmSet(alarmKey, fields);
+    sRedisTemplate.hmSet(alarmKey, fields);
 
     // if expireSeconds is defined and !=0, set the expire time to key
     if (expireSeconds != 0) {
-      jedisTemplate.expire(alarmKey, expireSeconds);
+      sRedisTemplate.expire(alarmKey, expireSeconds);
     }
 
     // Finalmente, definimos una reverse lookup key con la cual recuperar rapidamente las alarmas de
     // una alerta
     // A continuacion, añadimos el amid al Sorted Set alert:{aid}:messages. La puntuacion, o score,
     // que se asocia a cada elemento del Set es el timestamp del mensaje.
-    jedisTemplate.zAdd(keysBuilder.getAlertAlarmsKey(aid), timestamp, amid.toString());
+    sRedisTemplate.zAdd(keysBuilder.getAlertAlarmsKey(aid), timestamp, amid.toString());
 
     LOGGER.debug("Registered in Redis alarm [{}] from alert [{}]", amid, message.getAlertId());
 
@@ -201,7 +201,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
   private void publish(final AlarmInputMessage message) {
     LOGGER.debug("Publish alarm event message [{}] associated with alert [{}]", message.getMessage(), message.getAlertId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, message.getAlertId());
-    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
+    sRedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
   }
 
   private List<Alarm> getLastAlarms(final Long aid, final AlarmInputMessage message) {
@@ -212,7 +212,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     // La sentencia a utilizar en Redis es:
     // ZREVRANGEBYSCORE aid:{aid}:alarms to from LIMIT 0 limit
 
-    final Set<String> amids = jedisTemplate.zRevRangeByScore(keysBuilder.getAlertAlarmsKey(aid), to, from, 0, limit);
+    final Set<String> amids = sRedisTemplate.zRevRangeByScore(keysBuilder.getAlertAlarmsKey(aid), to, from, 0, limit);
     return !CollectionUtils.isEmpty(amids) ? getAlarms(amids, message.getAlertId()) : Collections.<Alarm>emptyList();
   }
 
@@ -236,7 +236,7 @@ public class AlarmServiceImpl extends AbstractPlatformServiceImpl implements Ala
     String ts = null;
     String sender = null;
 
-    final Map<String, String> infoSoid = jedisTemplate.hGetAll(keysBuilder.getAlarmKey(amid));
+    final Map<String, String> infoSoid = sRedisTemplate.hGetAll(keysBuilder.getAlarmKey(amid));
     if (!CollectionUtils.isEmpty(infoSoid)) {
       message = infoSoid.get(MESSAGE);
       ts = infoSoid.get(TIMESTAMP);

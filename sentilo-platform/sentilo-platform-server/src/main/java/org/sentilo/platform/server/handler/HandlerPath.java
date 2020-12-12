@@ -29,7 +29,7 @@
 package org.sentilo.platform.server.handler;
 
 public enum HandlerPath {
-  ALARM("/alarm"), CATALOG("/catalog"), DATA("/data"), ORDER("/order"), SUBSCRIBE("/subscribe"), ADMIN("/admin"), CATALOG_ALERT("/catalog/alert");
+  ALARM("/alarm"), CATALOG("/catalog"), DATA("/data"), ORDER("/order"), SUBSCRIBE("/subscribe"), ADMIN("/admin"), CATALOG_ALERT("/catalog/alert"), MONITOR("/monitor");
 
   private String path;
 

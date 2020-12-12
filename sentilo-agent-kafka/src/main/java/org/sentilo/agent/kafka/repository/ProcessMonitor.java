@@ -31,6 +31,7 @@ package org.sentilo.agent.kafka.repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.sentilo.common.domain.EventMessage;
 import org.slf4j.Logger;
@@ -52,16 +53,23 @@ public class ProcessMonitor implements ProcessCallback {
   @Autowired
   private PendingEventsRepository pendingEventRepository;
 
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
+
   @Override
   public void notifyProcessIsDone(final ProcessResult result) {
     numTasksProcessed++;
+
     if (result.getPendingEvent() != null) {
       numTasksKo++;
       final List<EventMessage> pendingEvents = new ArrayList<EventMessage>();
       pendingEvents.add(result.getPendingEvent());
       pendingEventRepository.storePendingEvents(pendingEvents);
+      metricsCounters.isRemoteServerConnectionOk(false);
     } else {
       numTasksOk++;
+      metricsCounters.incrementOutputEvents(1);
+      metricsCounters.isRemoteServerConnectionOk(true);
     }
   }
 

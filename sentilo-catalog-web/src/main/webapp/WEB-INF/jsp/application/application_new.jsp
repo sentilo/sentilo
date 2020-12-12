@@ -2,6 +2,10 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
+<spring:message code="entity.api.rest_https.tooltip" var="apiRestHttpsTooltip"/>
+<spring:message code="entity.api.input_quota.tooltip" var="apiInputQuotaTooltip"/>
+<spring:message code="entity.api.output_quota.tooltip" var="apiOutputQuotaTooltip"/>
+
 <c:if test="${mode == 'edit' }">
 	<spring:url value="/admin/application/${application.id}/edit" var="actionURL" />
 	<spring:message code="application.edit.title" var="pageTitle" />
@@ -82,10 +86,28 @@
 								<spring:message code="application.restHttps" />
 							</form:label>
 							<div class="controls">
-								<form:checkbox path="restHttps" />
+								<form:checkbox path="restHttps" tooltip="${apiRestHttpsTooltip}"/>
 								<form:errors path="restHttps" cssClass="text-error" htmlEscape="false" />
 							</div>
 						</div>
+						<div class="control-group">
+							<form:label path="apiInputQuota" class="control-label">
+								<spring:message code="entity.apiInputQuota" />
+							</form:label>
+							<div class="controls">
+								<form:input path="apiInputQuota" tooltip="${apiInputQuotaTooltip}"/>								
+								<form:errors path="apiInputQuota" cssClass="text-error" htmlEscape="false" />
+							</div>
+						</div>
+						<div class="control-group">
+							<form:label path="apiOutputQuota" class="control-label">
+								<spring:message code="entity.apiOutputQuota" />
+							</form:label>
+							<div class="controls">
+								<form:input path="apiOutputQuota" tooltip="${apiOutputQuotaTooltip}"/>
+								<form:errors path="apiOutputQuota" cssClass="text-error" htmlEscape="false" />
+							</div>
+						</div>						
 						<div class="control-group">
 							<form:label path="email" class="control-label">
 								<spring:message code="application.email" />

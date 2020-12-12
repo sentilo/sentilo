@@ -29,6 +29,8 @@
 package org.sentilo.agent.alert.test.service;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +41,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.agent.alert.domain.InternalAlert;
 import org.sentilo.agent.alert.service.impl.PublishServiceImpl;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.common.enums.AlertTriggerType;
+import org.sentilo.common.exception.RESTClientException;
 import org.sentilo.platform.client.core.PlatformClientOperations;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
 import org.sentilo.platform.client.core.service.AlarmServiceOperations;
@@ -58,6 +62,9 @@ public class PublishServiceImplTest {
 
   @Mock
   private AlarmServiceOperations operations;
+
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   @InjectMocks
   private PublishServiceImpl publishService;
@@ -80,6 +87,21 @@ public class PublishServiceImplTest {
     publishService.publishAlarm(alert, message);
 
     verify(operations).publish(any(AlarmInputMessage.class));
+    verify(metricsCounters).isRemoteServerConnectionOk(true);
+    verify(metricsCounters).incrementOutputEvents(1);
+  }
+
+  @Test(expected = RESTClientException.class)
+  public void exception_when_publicsAlarm() {
+    doThrow(RESTClientException.class).when(operations).publish(any(AlarmInputMessage.class));
+
+    final String message = "mock message";
+
+    publishService.publishAlarm(alert, message);
+
+    verify(operations).publish(any(AlarmInputMessage.class));
+    verify(metricsCounters).isRemoteServerConnectionOk(false);
+    verify(metricsCounters, times(0)).incrementOutputEvents(1);
   }
 
   @Test
@@ -89,5 +111,7 @@ public class PublishServiceImplTest {
     publishService.publishFrozenAlarm(alert);
 
     verify(operations).publish(any(AlarmInputMessage.class));
+    verify(metricsCounters).isRemoteServerConnectionOk(true);
+    verify(metricsCounters).incrementOutputEvents(1);
   }
 }

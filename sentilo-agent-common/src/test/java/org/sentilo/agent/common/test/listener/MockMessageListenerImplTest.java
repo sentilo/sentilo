@@ -37,8 +37,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.sentilo.agent.common.listener.MockMessageListenerImpl;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.common.domain.EventMessage;
 import org.springframework.data.redis.connection.Message;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class MockMessageListenerImplTest {
 
@@ -48,9 +50,13 @@ public class MockMessageListenerImplTest {
   @Mock
   private Message message;
 
+  @Mock
+  private AgentMetricsCounter metricsCounters;
+
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
+    ReflectionTestUtils.setField(listener, "metricsCounters", metricsCounters);
   }
 
   @Test

@@ -49,9 +49,10 @@ import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.enums.SensorState;
 import org.sentilo.platform.common.domain.Sensor;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
+import org.sentilo.platform.service.dao.SentiloRedisTemplate;
+import org.sentilo.platform.service.dao.SentiloSequenceUtils;
 import org.sentilo.platform.service.impl.ResourceServiceImpl;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.CollectionUtils;
 
 public class ResourceServiceImplTest {
@@ -63,43 +64,46 @@ public class ResourceServiceImplTest {
   private static final Long SID = new Long(1);
   private static final Long AID = new Long(1);
 
+  private final int platformExpireTime = 60 * 60;
+
   @Mock
   private CatalogAlert catalogAlert;
   @Mock
-  private JedisTemplate<String, String> jedisTemplate;
+  private SentiloRedisTemplate sRedisTemplate;
   @Mock
-  private JedisSequenceUtils jedisSequenceUtils;
+  private SentiloSequenceUtils sequenceUtils;
   @InjectMocks
   private ResourceServiceImpl service;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    ReflectionTestUtils.setField(service, "expireSeconds", platformExpireTime);
   }
 
   @Test
   public void registerNewProvider() {
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(null);
-    when(jedisSequenceUtils.setPid(PROVIDER_ID)).thenReturn(PID);
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(null);
+    when(sequenceUtils.setPid(PROVIDER_ID)).thenReturn(PID);
 
     service.registerProviderIfNeedBe(PROVIDER_ID);
 
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisSequenceUtils).setPid(PROVIDER_ID);
-    verify(jedisTemplate).set(service.getKeysBuilder().getProviderKey(PID), PROVIDER_ID);
-    verify(jedisTemplate).set(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID), PID.toString());
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sequenceUtils).setPid(PROVIDER_ID);
+    verify(sRedisTemplate).set(service.getKeysBuilder().getProviderKey(PID), PROVIDER_ID);
+    verify(sRedisTemplate).set(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID), PID.toString());
   }
 
   @Test
   public void registerProviderThatAlreadeadyExists() {
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
 
     service.registerProviderIfNeedBe(PROVIDER_ID);
 
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisSequenceUtils, times(0)).setPid(PROVIDER_ID);
-    verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getProviderKey(PID), PROVIDER_ID);
-    verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID), PID.toString());
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sequenceUtils, times(0)).setPid(PROVIDER_ID);
+    verify(sRedisTemplate, times(0)).set(service.getKeysBuilder().getProviderKey(PID), PROVIDER_ID);
+    verify(sRedisTemplate, times(0)).set(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID), PID.toString());
   }
 
   @Test
@@ -116,18 +120,18 @@ public class ResourceServiceImplTest {
     fields.put("state", "online");
     fields.put("ttl", Integer.toString(5 * 60));
 
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
-    when(jedisSequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(sequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
     service.registerSensorIfNeedBe(sensor, false);
 
-    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisSequenceUtils).setSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
-    verify(jedisTemplate).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
-    verify(jedisTemplate).set(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sequenceUtils).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(sRedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
+    verify(sRedisTemplate).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(sRedisTemplate).set(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
   }
 
   @Test
@@ -136,16 +140,16 @@ public class ResourceServiceImplTest {
     sensor.setProvider(PROVIDER_ID);
     sensor.setSensor(SENSOR_ID);
     sensor.setState(SensorState.online);
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
     service.registerSensorIfNeedBe(sensor, false);
 
-    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
-    verify(jedisSequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisTemplate, times(0)).hmSet(anyString(), anyMapOf(String.class, String.class));
-    verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
-    verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils, times(0)).getPid(PROVIDER_ID);
+    verify(sequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(sRedisTemplate, times(0)).hmSet(anyString(), anyMapOf(String.class, String.class));
+    verify(sRedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(sRedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
   }
 
   @Test
@@ -162,16 +166,41 @@ public class ResourceServiceImplTest {
     fields.put("state", "online");
     fields.put("ttl", Integer.toString(30 * 60));
 
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
     service.registerSensorIfNeedBe(sensor, true);
 
-    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisSequenceUtils, times(0)).getPid(PROVIDER_ID);
-    verify(jedisSequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
-    verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
-    verify(jedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils, times(0)).getPid(PROVIDER_ID);
+    verify(sequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(sRedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
+    verify(sRedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(sRedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+  }
+
+  @Test
+  public void updateSensorWithoutTTL() {
+    final CatalogSensor sensor = new CatalogSensor();
+    sensor.setProvider(PROVIDER_ID);
+    sensor.setSensor(SENSOR_ID);
+    sensor.setState(SensorState.online);
+
+    final Map<String, String> fields = new HashMap<String, String>();
+    fields.put("provider", PROVIDER_ID);
+    fields.put("sensor", SENSOR_ID);
+    fields.put("state", "online");
+    fields.put("ttl", Integer.toString(platformExpireTime));
+
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+
+    service.registerSensorIfNeedBe(sensor, true);
+
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils, times(0)).getPid(PROVIDER_ID);
+    verify(sequenceUtils, times(0)).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(sRedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
+    verify(sRedisTemplate, times(0)).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(sRedisTemplate, times(0)).sAdd(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
   }
 
   @Test
@@ -181,44 +210,44 @@ public class ResourceServiceImplTest {
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
     fields.put("state", SensorState.ghost.name());
-    fields.put("ttl", "0");
+    fields.put("ttl", Integer.toString(platformExpireTime));
 
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
-    when(jedisSequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(null);
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(sequenceUtils.setSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
     service.registerGhostSensorIfNeedBe(sensor);
 
-    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisSequenceUtils).setSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
-    verify(jedisTemplate).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
-    verify(jedisTemplate).set(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sequenceUtils).setSid(PROVIDER_ID, SENSOR_ID);
+    verify(sRedisTemplate).hmSet(service.getKeysBuilder().getSensorKey(SID), fields);
+    verify(sRedisTemplate).sAdd(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(sRedisTemplate).set(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID), SID.toString());
     Assert.assertEquals(SID, sensor.getSid());
     Assert.assertEquals(SensorState.ghost, sensor.getState());
   }
 
   @Test
   public void getSensorsFromProvider() {
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
-    when(jedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(sRedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
 
     final Set<String> members = service.getSensorsFromProvider(PROVIDER_ID);
 
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisTemplate).sMembers(service.getKeysBuilder().getProviderSensorsKey(PID));
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sRedisTemplate).sMembers(service.getKeysBuilder().getProviderSensorsKey(PID));
     Assert.assertNotNull(members);
   }
 
   @Test
   public void getSensorsFromNotRegisteredProvider() {
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(null);
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(null);
 
     final Set<String> members = service.getSensorsFromProvider(PROVIDER_ID);
 
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisTemplate, times(0)).sMembers(anyString());
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sRedisTemplate, times(0)).sMembers(anyString());
     Assert.assertTrue(CollectionUtils.isEmpty(members));
   }
 
@@ -228,11 +257,11 @@ public class ResourceServiceImplTest {
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
 
-    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields);
+    when(sRedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields);
 
     final Sensor sensor = service.getSensor(SID);
 
-    verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
+    verify(sRedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
     Assert.assertEquals(PROVIDER_ID, sensor.getProvider());
     Assert.assertEquals(SENSOR_ID, sensor.getSensor());
   }
@@ -243,72 +272,72 @@ public class ResourceServiceImplTest {
     fields.put("provider", PROVIDER_ID);
     fields.put("sensor", SENSOR_ID);
 
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
-    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sRedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields);
 
     final Sensor sensor = service.getSensor(PROVIDER_ID, SENSOR_ID);
 
-    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sRedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
     Assert.assertEquals(PROVIDER_ID, sensor.getProvider());
     Assert.assertEquals(SENSOR_ID, sensor.getSensor());
   }
 
   @Test
   public void getNotRegisteredSensor() {
-    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(Collections.<String, String>emptyMap());
+    when(sRedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(Collections.<String, String>emptyMap());
 
     final Sensor sensor = service.getSensor(SID);
 
-    verify(jedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
+    verify(sRedisTemplate).hGetAll(service.getKeysBuilder().getSensorKey(SID));
     Assert.assertNull(sensor);
   }
 
   @Test
   public void removeProvider() {
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
-    when(jedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(sRedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
 
     service.removeProvider(PROVIDER_ID);
 
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisTemplate).del(service.getKeysBuilder().getProviderKey(PID));
-    verify(jedisTemplate).del(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID));
-    verify(jedisSequenceUtils).removePid(PROVIDER_ID);
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sRedisTemplate).del(service.getKeysBuilder().getProviderKey(PID));
+    verify(sRedisTemplate).del(service.getKeysBuilder().getReverseProviderKey(PROVIDER_ID));
+    verify(sequenceUtils).removePid(PROVIDER_ID);
 
   }
 
   @Test
   public void removeSensor() {
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
-    when(jedisSequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
-    when(jedisTemplate.hGet(service.getKeysBuilder().getSensorKey(SID), "sensor")).thenReturn(SENSOR_ID);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sequenceUtils.getPid(PROVIDER_ID)).thenReturn(PID);
+    when(sRedisTemplate.hGet(service.getKeysBuilder().getSensorKey(SID), "sensor")).thenReturn(SENSOR_ID);
 
-    when(jedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
+    when(sRedisTemplate.sMembers(service.getKeysBuilder().getProviderSensorsKey(PID))).thenReturn(Collections.<String>emptySet());
 
     service.removeSensor(SENSOR_ID, PROVIDER_ID);
 
-    verify(jedisSequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
-    verify(jedisSequenceUtils).getPid(PROVIDER_ID);
-    verify(jedisTemplate).del(service.getKeysBuilder().getSensorKey(SID));
-    verify(jedisTemplate).sRem(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
-    verify(jedisTemplate).del(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID));
-    verify(jedisTemplate).del(service.getKeysBuilder().getSensorObservationsKey(SID));
-    verify(jedisTemplate).del(service.getKeysBuilder().getSensorOrdersKey(SID));
-    verify(jedisSequenceUtils).removeSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils).getSid(PROVIDER_ID, SENSOR_ID);
+    verify(sequenceUtils).getPid(PROVIDER_ID);
+    verify(sRedisTemplate).del(service.getKeysBuilder().getSensorKey(SID));
+    verify(sRedisTemplate).sRem(service.getKeysBuilder().getProviderSensorsKey(PID), SID.toString());
+    verify(sRedisTemplate).del(service.getKeysBuilder().getReverseSensorKey(PROVIDER_ID, SENSOR_ID));
+    verify(sRedisTemplate).del(service.getKeysBuilder().getSensorObservationsKey(SID));
+    verify(sRedisTemplate).del(service.getKeysBuilder().getSensorOrdersKey(SID));
+    verify(sequenceUtils).removeSid(PROVIDER_ID, SENSOR_ID);
   }
 
   @Test
   public void removeAlert() {
     when(catalogAlert.getId()).thenReturn(ALERT_ID);
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
 
     service.removeAlert(catalogAlert);
 
-    verify(jedisSequenceUtils).getAid(ALERT_ID);
-    verify(jedisTemplate).del(service.getKeysBuilder().getAlertKey(AID));
-    verify(jedisTemplate).del(service.getKeysBuilder().getReverseAlertKey(ALERT_ID));
-    verify(jedisSequenceUtils).removeAid(ALERT_ID);
+    verify(sequenceUtils).getAid(ALERT_ID);
+    verify(sRedisTemplate).del(service.getKeysBuilder().getAlertKey(AID));
+    verify(sRedisTemplate).del(service.getKeysBuilder().getReverseAlertKey(ALERT_ID));
+    verify(sequenceUtils).removeAid(ALERT_ID);
   }
 
   @Test
@@ -321,15 +350,15 @@ public class ResourceServiceImplTest {
     when(catalogAlert.getId()).thenReturn(ALERT_ID);
     when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
     when(catalogAlert.getActive()).thenReturn(Boolean.TRUE.toString());
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(null);
-    when(jedisSequenceUtils.setAid(ALERT_ID)).thenReturn(AID);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(null);
+    when(sequenceUtils.setAid(ALERT_ID)).thenReturn(AID);
 
     service.registerAlertIfNeedBe(catalogAlert, false);
 
-    verify(jedisSequenceUtils).getAid(ALERT_ID);
-    verify(jedisSequenceUtils).setAid(ALERT_ID);
-    verify(jedisTemplate).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
-    verify(jedisTemplate).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
+    verify(sequenceUtils).getAid(ALERT_ID);
+    verify(sequenceUtils).setAid(ALERT_ID);
+    verify(sRedisTemplate).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
+    verify(sRedisTemplate).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
   }
 
   @Test
@@ -342,14 +371,14 @@ public class ResourceServiceImplTest {
     when(catalogAlert.getId()).thenReturn(ALERT_ID);
     when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
     when(catalogAlert.getActive()).thenReturn(Boolean.TRUE.toString());
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
 
     service.registerAlertIfNeedBe(catalogAlert, false);
 
-    verify(jedisSequenceUtils).getAid(ALERT_ID);
-    verify(jedisSequenceUtils, times(0)).setAid(ALERT_ID);
-    verify(jedisTemplate, times(0)).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
-    verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
+    verify(sequenceUtils).getAid(ALERT_ID);
+    verify(sequenceUtils, times(0)).setAid(ALERT_ID);
+    verify(sRedisTemplate, times(0)).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
+    verify(sRedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
   }
 
   @Test
@@ -362,14 +391,14 @@ public class ResourceServiceImplTest {
     when(catalogAlert.getId()).thenReturn(ALERT_ID);
     when(catalogAlert.getEntity()).thenReturn(PROVIDER_ID);
     when(catalogAlert.getActive()).thenReturn(Boolean.TRUE.toString());
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
 
     service.registerAlertIfNeedBe(catalogAlert, true);
 
-    verify(jedisSequenceUtils).getAid(ALERT_ID);
-    verify(jedisSequenceUtils, times(0)).setAid(ALERT_ID);
-    verify(jedisTemplate).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
-    verify(jedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
+    verify(sequenceUtils).getAid(ALERT_ID);
+    verify(sequenceUtils, times(0)).setAid(ALERT_ID);
+    verify(sRedisTemplate).hmSet(service.getKeysBuilder().getAlertKey(AID), fields);
+    verify(sRedisTemplate, times(0)).set(service.getKeysBuilder().getReverseAlertKey(ALERT_ID), AID.toString());
   }
 
   @SuppressWarnings("unchecked")
@@ -387,8 +416,8 @@ public class ResourceServiceImplTest {
     final Map<String, String> fields4 = new HashMap<String, String>(fields);
     fields4.put("state", SensorState.ghost.name());
 
-    when(jedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields, fields2, fields3, fields4);
-    when(jedisSequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
+    when(sRedisTemplate.hGetAll(service.getKeysBuilder().getSensorKey(SID))).thenReturn(fields, fields2, fields3, fields4);
+    when(sequenceUtils.getSid(PROVIDER_ID, SENSOR_ID)).thenReturn(SID);
 
     final SensorState sensorState = service.getSensorState(PROVIDER_ID, SENSOR_ID);
     final SensorState sensorState2 = service.getSensorState(PROVIDER_ID, SENSOR_ID);
@@ -414,8 +443,8 @@ public class ResourceServiceImplTest {
     final Map<String, String> fields3 = new HashMap<String, String>(fields);
     fields3.put("active", "false");
 
-    when(jedisTemplate.hGetAll(service.getKeysBuilder().getAlertKey(AID))).thenReturn(fields, fields2, fields3);
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
+    when(sRedisTemplate.hGetAll(service.getKeysBuilder().getAlertKey(AID))).thenReturn(fields, fields2, fields3);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(AID);
 
     final boolean disabled = service.isAlertDisabled(ALERT_ID);
     final boolean disabled2 = service.isAlertDisabled(ALERT_ID);
@@ -428,7 +457,7 @@ public class ResourceServiceImplTest {
 
   @Test
   public void existAlert() {
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(AID, (Long) null);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(AID, (Long) null);
 
     final boolean exist = service.existsAlert(ALERT_ID);
     final boolean exist2 = service.existsAlert(ALERT_ID);

@@ -161,7 +161,7 @@ Notifications to untrusted HTTPS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In case that remote endpoint uses a self-signed certificate, add the
-following configuration in the config.properties of the
+following configuration in the :literal:`config.properties` of the
 sentilo-platform-server:
 
 ::

@@ -17,8 +17,10 @@
 	<context:component-scan base-package="org.sentilo.agent.location.listener" />
 	<context:component-scan base-package="org.sentilo.agent.location.event" />
 	<context:component-scan base-package="org.sentilo.agent.location.batch" />	
+	<context:component-scan base-package="org.sentilo.agent.location.metrics" />
 	<context:component-scan base-package="org.sentilo.agent.common.config" />
 	<context:component-scan base-package="org.sentilo.common.config" />
+	<context:component-scan base-package="org.sentilo.common.metrics" /> 
 	
 	<task:scheduler id="locationAgentScheduler" />
 	<task:annotation-driven scheduler="locationAgentScheduler" />

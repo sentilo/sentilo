@@ -1,10 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<spring:message code="sure.delete" var="deleteConfirmMessage" />
-<spring:message code="sure.unassign" var="unassignConfirmMessage" />
-<spring:message code="select.one" var="selectOneErrorMessage" />
-<spring:message code="ok" var="okButtonLabel" />
+<%@ include file="/WEB-INF/jsp/common/include_common_messages.jsp"%>
+
 
 <script type="text/javascript">
 
@@ -12,11 +10,11 @@ function openDetail(url) {
 	window.location.href = url;
 };
 
-function deleteSelected(formName, deleteConfirmMessage) {
-	if(deleteConfirmMessage){
-		confirmFormSubmission(formName, deleteConfirmMessage);
+function deleteSelected(formName, customDeleteConfirmMessage) {
+	if(customDeleteConfirmMessage){
+		confirmFormSubmission(formName, customDeleteConfirmMessage);
 	}else{
-		confirmFormSubmission(formName, '${deleteConfirmMessage}');
+		confirmFormSubmission(formName, deleteConfirmMsg);
 	}
 };
 
@@ -52,7 +50,7 @@ function changeSensorsState(formName, confirmMessage, changeStateUrl){
 }
 
 function unassignSelected(formName) {
-	confirmFormSubmission(formName, '${unassignConfirmMessage}');	
+	confirmFormSubmission(formName, unassignConfirmMsg);	
 };
 
 function confirmFormSubmission(formName, message, formActionUrl, childrenHiddenFields) {
@@ -73,8 +71,8 @@ function confirmFormSubmission(formName, message, formActionUrl, childrenHiddenF
 			}
 		});
 	} else {
-		bootbox.dialog('${selectOneErrorMessage}', [{
-			'label' : '${okButtonLabel}',
+		bootbox.dialog(selectOneErrorMsg, [{
+			'label' : okButtonLabelMsg,
 			'class' : 'btn-danger'
 		}]);
 	}
@@ -140,10 +138,6 @@ function formatGraphTimestamp(timestamp) {
 function addLeadingZeroes(text) {
 	return ('0' + text).slice(-2);
 }  
-
-function formatTimestamp(timestamp) {
-	return timestamp.replace('T', ' ');
-};
 
 function isValidDecimalNumber(number) {
 	 return (/^([0-9])*[.]?[0-9]*$/.test(number));
@@ -229,6 +223,7 @@ var jsonPrettyPrint = {
 <spring:url value="/static/js/chartist.min.js" var="chartistJS" />
 <spring:url value="/static/js/sentilo/chartist.js" var="sentiloChartistJS" />
 <spring:url value="/static/js/sentilo/media_players.js" var="mediaPlayersJS" />
+<spring:eval expression="@catalogConfigProperties.getProperty('catalog.map.provider')" var="provider_map" />
 
 <script type="text/javascript" src="${jqueryJS}"></script>
 <script type="text/javascript" src="${bootstrapJS}"></script>
@@ -245,6 +240,7 @@ var jsonPrettyPrint = {
 <script type="text/javascript" src="${chartistPluginTooltipJS}"></script>
 <script type="text/javascript" src="${sentiloChartistJS}"></script>
 <script type="text/javascript" src="${mediaPlayersJS}"></script>
+
 
 <c:if test="${not empty currentRequestMapping}">
 	<c:choose>

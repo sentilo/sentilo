@@ -3,10 +3,10 @@ Setup
 
 This guide describes how to: **download, configure, compile and install
 the last version of Sentilo in your own runtime environment**. Moreover,
-it details which are the infraestructure elements necessary for running
+it details which are the infrastructure elements necessary for running
 Sentilo and how should be their default configuration settings. It’s
-assumed you have the skils to configure and install the necessary
-sofware base(Operating System, Maven,JDK, Mongo DB, Redis, etc).
+assumed you have the skills to configure and install the necessary
+software base(Operating System, Maven,JDK, Mongo DB, Redis, etc).
 
 The main topics are:
 
@@ -14,7 +14,7 @@ The main topics are:
    installed before download the code.
 -  **Download and build**: explains the steps to obtain the Sentilo
    code, to adapt it and how to build the platform artifacts.
--  **Platform infraestructure**: describes the mandatory infraestructure
+-  **Platform infrastructure**: describes the mandatory infrastructure
    components for running Sentilo and its default configuration
    settings.
 -  **Deploy the artifacts**: describes the necessary steps to deploy all
@@ -71,7 +71,7 @@ settings that are defined), we distribute a script named
 command line.
 
 This script compiles the code and build the artifacts from scratch, but
-it doesn’t deploy them in the excution environments. This process must
+it doesn't deploy them in the execution environments. This process must
 be done manually by different reasons, for example:
 
 -  The deployment environment could be distributed in different servers.
@@ -96,7 +96,7 @@ how to do it by using the M2E plugin.
 your Eclipse environment.
 
 After modifying the code, to compile and build the artifacts, our
-recommendation is to use the abovementioned\* buildSentilo\* script.
+recommendation is to use the above mentioned\* buildSentilo\* script.
 
 Platform infrastructure
 -----------------------
@@ -145,7 +145,7 @@ machine and listening in the following ports:
 -  openTSDB: 4242
 
 All these settings can be found in the subdirectory
-**/src/main/resources/properties** of each platform’s module.
+:literal:`/src/main/resources/properties` of each platform’s module.
 
 Redis settings
 ~~~~~~~~~~~~~~
@@ -237,14 +237,23 @@ command from the directory where the file is located:
    recommend to change them before installing Sentilo in a production
    environment.
 
-If you change default values in the *init_data.js* and load them to
-MongoDB, you will have to modify the following properties before compiling
-and building Sentilo,
+If you change default values in the :literal:`/sentilo/scripts/mongodb/init_data.js` file and load them to
+MongoDB, you will have to modify the following properties before compiling and building Sentilo. So, following
+JS code from *init_data.js* :
+
+.. code:: javascript
+   db.application.insert({ "_id" : "sentilo-catalog", "_class" : "org.sentilo.web.catalog.domain.Application", "name" : "sentilo-catalog", "token" : "c956c302086a042dd0426b4e62652273e05a6ce74d0b77f8b5602e0811025066", "description" : "Catalog application", "email" : "sentilo@sentilo.org", "createdAt" : new ISODate(), "authorizedProviders" : [ ] });
+   db.user.insert({ "_id" : "platform_user", "_class" : "org.sentilo.web.catalog.domain.User", "password" : "sentilo", "name" : "Platform user", "description" : "PubSub platform user. Do not remove  it!.", "email" : "sentilo@sentilo.org", "createdAt" : new ISODate(), "active" : true, "roles" : [ "PLATFORM" ] });
+
+Corresponds with:
 
 .. code:: properties
 
    rest.client.identity.key=c956c302086a042dd0426b4e62652273e05a6ce74d0b77f8b5602e0811025066
    catalog.rest.credentials=platform_user:sentilo
+
+, being *rest.client.identity.key* the token of a *sentilo-catalog* application, and *catalog.rest.credentials* value
+is a combination of user *platform_user* and it's password.
 
 These properties are in following files:
 
@@ -267,8 +276,7 @@ These data is defined in the file:
 
    ./scripts/mongodb/init_test_data.js
 
-and, as pointed aout above, you should run the following command to load
-it:
+and, as pointed above, you should run the following command to load it:
 
 ::
 
@@ -350,8 +358,8 @@ code:
    -Duser.timezone=UTC
 
 
-Subscription/publication platform settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+API server (Subscription/publication) settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sentilo default settings consider subscription/publication server
 (a.k.a. *PubSub* server) will be listening on 127.0.0.1:8081
@@ -410,10 +418,10 @@ You will find the WAR artifact at the following subdirectory:
 
    ./sentilo-catalog-web/target/sentilo-catalog-web.war
 
-Installing subscription/publication server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing API server (subscription/publication)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After build Sentilo, to install the PubSub server, you need to follow
+After build Sentilo, to install the API (pub/sub) server, you need to follow
 the following steps:
 
 a. Into the directory
@@ -558,17 +566,17 @@ You will find more information about this feature in the
 Enable anonymous access to REST API
 -----------------------------------
 
-By default, anonymous access to REST API is disabled which means that
+By default, anonymous access to REST API is disabled, e.g.
 all requests to REST API must be identified with the
 `identity_key <./api_docs/security.html>`__ header.
 
-From version 1.5, we provide a new feature that allows anonymous access
-to REST API but only for read *authorized* data of your Sentilo instance
-(here *authorized* means that you should configure your Catalog to
-define which data could be accessed anonymously from REST requests).
+Enabling anonymous access to the REST API means that only
+*authorized* data of your Sentilo instance can be accessed.
+Access to authorized data is described below.
 
-In order to enable anonymous access you should modify the following
-properties:
+In order to enable anonymous access you should modify the file
+sentilo-platform/sentilo-platform-server/src/main/resources/properties/config.properties:
+
 
 .. code:: properties
 
@@ -576,17 +584,11 @@ properties:
    enableAnonymousAccess=false
    anonymousAppClientId=
 
-configured in the following file:
 
-::
-
-   sentilo-platform/sentilo-platform-server/src/main/resources/properties/config.properties
-
-This configuration has not mystery: if anonymous access is enabled
-(*enableAnonymousAccess=true*) then all anonymous requests to REST API
-are internally considered as is they have been performed by the
-application client identified by the *anonymousAppClientId* property
-value (this application client should exists into your Sentilo Catalog),
+If anonymous access is enabled (*enableAnonymousAccess=true*),
+then all anonymous requests to REST API are internally considered as is they have
+been performed by the application client identified by the *anonymousAppClientId* property
+value (this application client should exist into your Sentilo Catalog),
 and therefore these requests will have the same data restrictions as the
 requests performed by this client application.
 

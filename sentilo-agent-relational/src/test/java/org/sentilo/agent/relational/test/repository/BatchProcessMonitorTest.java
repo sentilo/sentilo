@@ -50,6 +50,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.sentilo.agent.relational.repository.batch.BatchProcessMonitor;
 import org.sentilo.agent.relational.repository.batch.BatchProcessResult;
@@ -68,6 +69,9 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
 
   @Mock
   private BatchProcessResult result;
+
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   @InjectMocks
   private BatchProcessMonitor monitor;
@@ -106,6 +110,7 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
     monitor.notifyBatchUpdateIsDone(result);
 
     verify(pendingEventRepository).storePendingEvents(anyListOf(EventMessage.class));
+    verify(metricsCounters).incrementOutputEvents(0);
     Assert.assertTrue(1 == (Long) ReflectionTestUtils.getField(monitor, "numTasksProcessed"));
     Assert.assertTrue(1 == (Long) ReflectionTestUtils.getField(monitor, "numTasksKo"));
     Assert.assertTrue(10 == (Long) ReflectionTestUtils.getField(monitor, "numPendingElements"));
@@ -119,6 +124,7 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
     monitor.notifyBatchUpdateIsDone(result);
 
     verify(pendingEventRepository, times(0)).storePendingEvents(anyListOf(EventMessage.class));
+    verify(metricsCounters).incrementOutputEvents(10);
     Assert.assertTrue(1 == (Long) ReflectionTestUtils.getField(monitor, "numTasksProcessed"));
     Assert.assertTrue(0 == (Long) ReflectionTestUtils.getField(monitor, "numTasksKo"));
     Assert.assertTrue(0 == (Long) ReflectionTestUtils.getField(monitor, "numPendingElements"));

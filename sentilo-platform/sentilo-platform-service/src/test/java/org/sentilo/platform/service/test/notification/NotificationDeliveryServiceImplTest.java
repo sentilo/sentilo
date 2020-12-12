@@ -29,6 +29,7 @@
 package org.sentilo.platform.service.test.notification;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -45,6 +46,7 @@ import org.sentilo.common.exception.RESTClientException;
 import org.sentilo.common.rest.RequestContext;
 import org.sentilo.common.rest.impl.RESTClientImpl;
 import org.sentilo.platform.common.domain.NotificationParams;
+import org.sentilo.platform.common.ratelimiter.service.RateLimiterService;
 import org.sentilo.platform.service.monitor.CounterEvent;
 import org.sentilo.platform.service.notification.NotificationDeliveryContext;
 import org.sentilo.platform.service.notification.NotificationDeliveryServiceImpl;
@@ -75,6 +77,9 @@ public class NotificationDeliveryServiceImplTest {
   @Mock
   private RESTClientImpl restClient;
 
+  @Mock
+  private RateLimiterService rateLimitingService;
+
   private final String mockMessage =
       "{\"message\":\"27\",\"timestamp\":\"29/03/2017T13:33:58\",\"topic\":\"/data/testApp_provider/testSensor\",\"type\":\"DATA\","
           + "\"sensor\":\"testSensor\",\"provider\":\"testApp_provider\",\"time\":1490794438933,\"publisher\":\"testApp_provider\","
@@ -87,6 +92,7 @@ public class NotificationDeliveryServiceImplTest {
     when(notificationContext.getEntity()).thenReturn(ENTITY);
     when(context.getBean("pushRestClient", RESTClientImpl.class)).thenReturn(restClient);
     when(params.getMaxRetries()).thenReturn(3l);
+    when(rateLimitingService.allow(anyString())).thenReturn(true);
   }
 
   @Test
@@ -110,7 +116,8 @@ public class NotificationDeliveryServiceImplTest {
 
   @Test
   public void pushTwoNotEqualsNotifications() {
-    when(notificationContext.getEntity()).thenReturn(ENTITY).thenReturn(ENTITY + "-");
+    // Each call to pushNotification internally calls two times to notificationContext.getEntity()
+    when(notificationContext.getEntity()).thenReturn(ENTITY, ENTITY, ENTITY + "-", ENTITY + "-");
     service.pushNotification(mockMessage, notificationContext);
     service.pushNotification(mockMessage, notificationContext);
 

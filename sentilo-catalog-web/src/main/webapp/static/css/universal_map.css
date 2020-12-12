@@ -77,13 +77,12 @@
 	padding-top: 15px;
 	text-align: right;
 	text-overflow: ellipsis;
-	display: inline;
+	display: inline-block;
 	color: #333;
 }
 
 .sensor-unit {
 	padding-left: 4px;
-	display: inline !important;
 }
 
 .sensor-id, .sensor-type {

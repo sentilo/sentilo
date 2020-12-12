@@ -28,6 +28,7 @@
  */
 package org.sentilo.agent.historian.repository.batch;
 
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,15 +50,22 @@ public class BatchProcessMonitor implements BatchProcessCallback {
   @Autowired
   private PendingEventsRepository pendingEventRepository;
 
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
+
   @Override
   public void notifyBatchProcessIsDone(final BatchProcessResult result) {
     numTasksProcessed++;
+    metricsCounters.incrementOutputEvents(result.getNumElementsProcessed());
+
     if (!CollectionUtils.isEmpty(result.getPendingEvents())) {
       numTasksKo++;
       numLostElements += result.getNumElementsToProcess() - result.getNumElementsProcessed();
       pendingEventRepository.storePendingEvents(result.getPendingEvents());
+      metricsCounters.isRemoteServerConnectionOk(false);
     } else {
       numTasksOk++;
+      metricsCounters.isRemoteServerConnectionOk(true);
     }
   }
 

@@ -1,7 +1,7 @@
 Services
 ========
 
-Index of differents services.
+Index of different services.
 
 .. toctree::
    :maxdepth: 1

@@ -75,6 +75,16 @@ public class PendingEventsRepositoryImpl implements PendingEventsRepository {
     }
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.sentilo.agent.common.repository.PendingEventsRepository#pendingQueueSize()
+   */
+  public long pendingQueueSize() {
+    final String queueKey = Utils.getPendingEventQueueName();
+    return redisTemplate.opsForSet().size(queueKey);
+  }
+
   private String[] buildMembersValues(final List<? extends EventMessage> pendingEvents) {
     final String[] members = new String[pendingEvents.size()];
     int i = 0;

@@ -203,10 +203,10 @@ public class AdminParserTest {
 
     final String expected =
         "{\"activity\":[{\"totalRequests\":1135,\"totalPutRequests\":807,\"totalGetRequests\":328,\"totalPushRequests\":0,\"totalObs\":1000,"
-            + "\"totalPutObs\":700,\"totalGetObs\":300,\"totalOrders\":125,\"totalPutOrders\":100,\"totalGetOrders\":25,\"totalAlarms\":10,"
-            + "\"totalPutAlarms\":7,\"totalGetAlarms\":3,\"timestamp\":1447164322214,\"isMaster\":true},{\"tenant\":\"mockTenant\",\"totalRequests\":1135,"
-            + "\"totalPutRequests\":807,\"totalGetRequests\":328,\"totalPushRequests\":0,\"totalObs\":1000,\"totalPutObs\":700,\"totalGetObs\":300,"
-            + "\"totalOrders\":125,\"totalPutOrders\":100,\"totalGetOrders\":25,\"totalAlarms\":10,\"totalPutAlarms\":7,\"totalGetAlarms\":3,"
+            + "\"totalPushObs\":0,\"totalPutObs\":700,\"totalGetObs\":300,\"totalOrders\":125,\"totalPushOrders\":0,\"totalPutOrders\":100,\"totalGetOrders\":25,\"totalAlarms\":10,"
+            + "\"totalPushAlarms\":0,\"totalPutAlarms\":7,\"totalGetAlarms\":3,\"timestamp\":1447164322214,\"isMaster\":true},{\"tenant\":\"mockTenant\",\"totalRequests\":1135,"
+            + "\"totalPutRequests\":807,\"totalGetRequests\":328,\"totalPushRequests\":0,\"totalObs\":1000,\"totalPushObs\":0,\"totalPutObs\":700,\"totalGetObs\":300,"
+            + "\"totalOrders\":125,\"totalPushOrders\":0,\"totalPutOrders\":100,\"totalGetOrders\":25,\"totalAlarms\":10,\"totalPushAlarms\":0,\"totalPutAlarms\":7,\"totalGetAlarms\":3,"
             + "\"timestamp\":1447164322214,\"isMaster\":false}]}";
 
     assertEquals(expected, baos.toString());

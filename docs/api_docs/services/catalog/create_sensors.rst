@@ -189,7 +189,7 @@ request (componentType, componentDesc and location).
 Adding several sensors
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In case it is necessary to add a serie of sensors, the request will be
+In case it is necessary to add a set of sensors, the request will be
 very similar to the previous one, modifying the message body:
 
 ::
@@ -224,7 +224,7 @@ in the body message
 In this case, instead of registering a single sensor, there will be
 added two new sensors associated with the component named METEO-1. If
 the component does not yet exist in the system, will be registered with
-the properties especified in the request (type and localtzació).
+the properties specified in the request (type and location).
 
 Adding one sensor with additional info
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -33,6 +33,7 @@ import java.util.List;
 import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.common.enums.HttpMethod;
+import org.sentilo.common.metrics.SentiloArtifactsMetricsMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
@@ -69,7 +70,6 @@ public class AdminHandler extends AbstractHandler {
   @Override
   public void onDelete(final SentiloRequest request, final SentiloResponse response) {
     throw new MethodNotAllowedException(HttpMethod.DELETE);
-
   }
 
   @Override
@@ -109,6 +109,10 @@ public class AdminHandler extends AbstractHandler {
         final PlatformConfigMessage config = adminService.getPlatformConfig();
         parser.writeResponse(response, config);
         break;
+      case metrics:
+        final SentiloArtifactsMetricsMessage artifactsMetrics = adminService.getSentiloArtifactsMetrics();
+        parser.writeResponse(response, artifactsMetrics);
+        break;
       case ping:
         break;
       default:
@@ -137,7 +141,6 @@ public class AdminHandler extends AbstractHandler {
   }
 
   protected void processOnPostOrPutRequest(final SentiloRequest request, final SentiloResponse response) {
-
     validateResourceNumberParts(request, 1, 1);
     validateApiAdminInvoke(request.getEntitySource());
     final AdminInputMessage inputMessage = parser.parsePostPutRequest(request);
@@ -154,6 +157,9 @@ public class AdminHandler extends AbstractHandler {
         break;
       case config:
         adminService.saveArtifactConfig(inputMessage);
+        break;
+      case metrics:
+        adminService.saveArtifactsMetrics(inputMessage);
         break;
       case save:
         adminService.save(inputMessage);

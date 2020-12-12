@@ -41,4 +41,11 @@ public interface PendingEventsRepository {
    */
   void storePendingEvents(final List<EventMessage> pendingEvents);
 
+  /**
+   * Returns the number of pending events
+   * 
+   * @return Number of pending events
+   */
+  long pendingQueueSize();
+
 }

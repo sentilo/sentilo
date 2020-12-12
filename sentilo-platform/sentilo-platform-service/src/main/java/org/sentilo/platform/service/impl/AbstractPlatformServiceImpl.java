@@ -28,9 +28,9 @@
  */
 package org.sentilo.platform.service.impl;
 
-import org.sentilo.platform.service.dao.JedisKeysBuilder;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
+import org.sentilo.platform.service.dao.SentiloKeysBuilder;
+import org.sentilo.platform.service.dao.SentiloRedisTemplate;
+import org.sentilo.platform.service.dao.SentiloSequenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
@@ -54,18 +54,18 @@ public abstract class AbstractPlatformServiceImpl {
   protected static final String ENTITY = "entity";
   protected static final String ACTIVE = "active";
 
-  protected JedisKeysBuilder keysBuilder = new JedisKeysBuilder();
+  protected SentiloKeysBuilder keysBuilder = new SentiloKeysBuilder();
 
   @Autowired
-  protected JedisSequenceUtils jedisSequenceUtils;
+  protected SentiloSequenceUtils sequenceUtils;
 
   @Autowired
-  protected JedisTemplate<String, String> jedisTemplate;
+  protected SentiloRedisTemplate sRedisTemplate;
 
   @Value("${redis.expire.data.seconds}")
   protected int expireSeconds;
 
-  public JedisKeysBuilder getKeysBuilder() {
+  public SentiloKeysBuilder getKeysBuilder() {
     return keysBuilder;
   }
 
@@ -79,7 +79,7 @@ public abstract class AbstractPlatformServiceImpl {
   }
 
   private Integer getExpiredTime(final Integer sensorSecondsTtl) {
-    return (sensorSecondsTtl != null && sensorSecondsTtl > 0) ? sensorSecondsTtl : expireSeconds;
+    return sensorSecondsTtl != null ? sensorSecondsTtl : expireSeconds;
   }
 
 }

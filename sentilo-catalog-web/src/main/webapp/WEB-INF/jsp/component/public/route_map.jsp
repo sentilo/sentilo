@@ -2,7 +2,8 @@
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
 
-<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
+<spring:eval expression="@catalogConfigProperties.getProperty('catalog.map.provider')" var="provider_map" />
+<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp" %>
 
 <spring:url value="/component/map/" var="componentMapUrl"/>
 <spring:url value="/static/img/icons/" var="iconsPath" />
@@ -15,25 +16,27 @@
 showRoutes = true;
 minRouteZoomLevel = defaultZoomLevel;
 
-$(document).ready(function() {	
-	<c:choose>
-		<c:when test="${not empty param.lat}">
-		var centerLatValue = parseToFloat('<c:out value="${param.lat}" />'); 
-		var centerLngValue = parseToFloat('<c:out value="${param.lng}" />'); 
-		var zoomValue = parseToInteger('<c:out value="${param.zoom}" />');			
-		var filterValue = '<c:out value="${param.filter}" />';	
-		var centerValue = (centerLatValue && centerLngValue ? [centerLatValue, centerLngValue]:null);
+$(document).ready(function() {
+	const centerLatValue = parseToFloat('<c:out value="${param.lat}" />');
+	const centerLngValue = parseToFloat('<c:out value="${param.lng}" />');
+	const zoomValue = parseToInteger('<c:out value="${param.zoom}" />');
+	const filterValue = '<c:out value="${param.filter}" />';
+	const centerValue = (centerLatValue && centerLngValue ? [centerLatValue, centerLngValue]:null);
+	const selector = "#map_canvas_1";
+	const mapProviderValue = '${provider_map}';
+
+	const mapProperties = {
+		selector: selector,
+		provider: mapProviderValue,
+		center: centerValue,
+		zoom: zoomValue
+	};
+
+	initializeComponentMap(mapProperties);
 			
-			initializeComponentMap("#map_canvas_1", centerValue, zoomValue);
-			
-			if(filterValue){
-				$('#componentDropdown li#'+filterValue+' a').click();
-			}	
-		</c:when>
-		<c:otherwise>
-			initializeComponentMap("#map_canvas_1");
-		</c:otherwise>
-	</c:choose>		
+	if(filterValue){
+		$('#componentDropdown li#'+filterValue+' a').click();
+	}
 	
 	var mapOptions = {
 		modalTarget: null, 

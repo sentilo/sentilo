@@ -1,3 +1,31 @@
+/*
+ * Sentilo
+ * 
+ * Original version 1.4 Copyright (C) 2013 Institut Municipal d’Informàtica, Ajuntament de
+ * Barcelona. Modified by Opentrends adding support for multitenant deployments and SaaS.
+ * Modifications on version 1.5 Copyright (C) 2015 Opentrends Solucions i Sistemes, S.L.
+ *
+ * 
+ * This program is licensed and may be used, modified and redistributed under the terms of the
+ * European Public License (EUPL), either version 1.1 or (at your option) any later version as soon
+ * as they are approved by the European Commission.
+ * 
+ * Alternatively, you may redistribute and/or modify this program under the terms of the GNU Lesser
+ * General Public License as published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * 
+ * See the licenses for the specific language governing permissions, limitations and more details.
+ * 
+ * You should have received a copy of the EUPL1.1 and the LGPLv3 licenses along with this program;
+ * if not, you may find them at:
+ * 
+ * https://joinup.ec.europa.eu/software/page/eupl/licence-eupl http://www.gnu.org/licenses/ and
+ * https://www.gnu.org/licenses/lgpl.txt
+ */
 package org.sentilo.agent.historian.test.repository;
 
 import static org.mockito.Matchers.anyListOf;
@@ -21,6 +49,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.sentilo.agent.historian.repository.batch.BatchProcessMonitor;
 import org.sentilo.agent.historian.repository.batch.BatchProcessResult;
@@ -43,6 +72,9 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
   @Mock
   private BatchProcessResult result;
 
+  @Mock
+  private AgentMetricsCounter metricsCounters;
+
   private static Logger logger;
 
   @BeforeClass
@@ -60,11 +92,14 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
 
   @Test
   public void notifyOkBatchProcessIsDone() {
+    final int elementsProcessed = 10;
+    when(result.getNumElementsProcessed()).thenReturn(elementsProcessed);
     when(result.getPendingEvents()).thenReturn(Collections.<EventMessage>emptyList());
 
     batchProcessMonitor.notifyBatchProcessIsDone(result);
 
     verify(pendingEventRepository, times(0)).storePendingEvents(anyListOf(EventMessage.class));
+    verify(metricsCounters).incrementOutputEvents(elementsProcessed);
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksKo"), new Long(0));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksOk"), new Long(1));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksProcessed"), new Long(1));
@@ -78,6 +113,7 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
     batchProcessMonitor.notifyBatchProcessIsDone(result);
 
     verify(pendingEventRepository).storePendingEvents(pendingEvents);
+    verify(metricsCounters).incrementOutputEvents(0);
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksKo"), new Long(1));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksOk"), new Long(0));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksProcessed"), new Long(1));

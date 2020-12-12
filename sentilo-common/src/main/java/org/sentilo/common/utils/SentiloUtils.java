@@ -91,4 +91,38 @@ public abstract class SentiloUtils {
     return result;
   }
 
+  public static boolean isDouble(final String value) {
+    boolean isDouble = true;
+    try {
+      Double.parseDouble(value);
+    } catch (final NumberFormatException nfe) {
+      isDouble = false;
+    }
+
+    return isDouble;
+  }
+
+  public static boolean isValidLocationFormat(final String location) {
+    boolean valid = true;
+    if (SentiloUtils.stringIsNotEmptyOrNull(location)) {
+      final String[] coordinatesList = location.split(SentiloConstants.LOCATION_TOKEN_SPLITTER);
+      for (int i = 0; i < coordinatesList.length && valid; i++) {
+        valid = validateCoordinatesFormat(coordinatesList[i]);
+      }
+    }
+
+    return valid;
+  }
+
+  private static boolean validateCoordinatesFormat(final String coordinates) {
+    boolean areValidCoordinates = true;
+    final String coordinatesTrimmed = coordinates.trim();
+    final String[] coordinatesTokens = coordinatesTrimmed.split(SentiloConstants.LOCATION_TOKEN_DIVIDER);
+    if (coordinatesTokens.length != 2 || !isDouble(coordinatesTokens[0].trim()) || !isDouble(coordinatesTokens[1].trim())) {
+      // Coordinates must match the expression [doubleAsString doubleAsString]
+      areValidCoordinates = false;
+    }
+    return areValidCoordinates;
+  }
+
 }

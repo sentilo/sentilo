@@ -50,6 +50,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessMonitor;
 import org.sentilo.agent.activity.monitor.repository.batch.BatchProcessResult;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.test.AbstractBaseTest;
@@ -70,6 +71,9 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
   @Mock
   private BatchProcessResult result;
 
+  @Mock
+  private AgentMetricsCounter metricsCounters;
+
   private static Logger logger;
 
   @BeforeClass
@@ -87,11 +91,14 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
 
   @Test
   public void notifyOkBatchProcessIsDone() {
+    final int elementsProcessed = 10;
+    when(result.getNumElementsProcessed()).thenReturn(elementsProcessed);
     when(result.getPendingEvents()).thenReturn(Collections.<EventMessage>emptyList());
 
     batchProcessMonitor.notifyBatchProcessIsDone(result);
 
     verify(pendingEventRepository, times(0)).storePendingEvents(anyListOf(EventMessage.class));
+    verify(metricsCounters).incrementOutputEvents(elementsProcessed);
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksKo"), new Long(0));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksOk"), new Long(1));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksProcessed"), new Long(1));
@@ -105,6 +112,7 @@ public class BatchProcessMonitorTest extends AbstractBaseTest {
     batchProcessMonitor.notifyBatchProcessIsDone(result);
 
     verify(pendingEventRepository).storePendingEvents(pendingEvents);
+    verify(metricsCounters).incrementOutputEvents(0);
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksKo"), new Long(1));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksOk"), new Long(0));
     Assert.assertEquals(ReflectionTestUtils.getField(batchProcessMonitor, "numTasksProcessed"), new Long(1));

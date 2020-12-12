@@ -35,6 +35,7 @@ import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogEntity;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.PlatformInputMessage;
+import org.sentilo.common.metrics.SentiloArtifactMetrics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -42,7 +43,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class AdminInputMessage implements PlatformInputMessage {
 
   public static enum AdminType {
-    stats, subscriptions, delete, save, activity, performance, config, ping
+    stats, subscriptions, delete, save, activity, performance, config, metrics, ping, rl_input_status
   };
 
   private String entity;
@@ -62,6 +63,9 @@ public class AdminInputMessage implements PlatformInputMessage {
 
   @JsonInclude(value = Include.NON_EMPTY)
   private Map<String, Map<String, Object>> artifactsConfig;
+
+  @JsonInclude(value = Include.NON_EMPTY)
+  private List<SentiloArtifactMetrics> artifactsMetrics;
 
   public AdminInputMessage() {
     super();
@@ -127,4 +131,13 @@ public class AdminInputMessage implements PlatformInputMessage {
   public void setArtifactsConfig(final Map<String, Map<String, Object>> artifactsConfig) {
     this.artifactsConfig = artifactsConfig;
   }
+
+  public List<SentiloArtifactMetrics> getArtifactsMetrics() {
+    return artifactsMetrics;
+  }
+
+  public void setArtifactsMetrics(final List<SentiloArtifactMetrics> artifactsMetrics) {
+    this.artifactsMetrics = artifactsMetrics;
+  }
+
 }

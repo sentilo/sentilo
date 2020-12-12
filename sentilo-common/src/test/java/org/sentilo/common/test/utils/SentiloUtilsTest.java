@@ -109,4 +109,20 @@ public class SentiloUtilsTest {
     assertFalse(SentiloUtils.areEquals("a", "a "));
 
   }
+
+  @Test
+  public void isValidLocationFormat() {
+    final String location = "1.123456 4.435678";
+    final String location2 = "1.123456 4.435678, 1.123424 4.435689";
+    final String location3 = "1.123456 4.435678, 2.34567, 1.123424 4.435689";
+    final String location4 = "1.123456 4.435678, 1.abc3424 4.435689";
+    final String location5 = ",41.613624,2.291772,";
+
+    assertTrue(SentiloUtils.isValidLocationFormat(location));
+    assertTrue(SentiloUtils.isValidLocationFormat(location2));
+    assertFalse(SentiloUtils.isValidLocationFormat(location3));
+    assertFalse(SentiloUtils.isValidLocationFormat(location4));
+    assertFalse(SentiloUtils.isValidLocationFormat(location5));
+
+  }
 }

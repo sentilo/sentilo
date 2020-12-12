@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.location.parser.CatalogMessageConverter;
 import org.sentilo.common.batch.BatchProcess;
 import org.sentilo.common.domain.CatalogInputMessage;
@@ -59,6 +60,9 @@ public class ComponentLocationUpdater implements AsyncCatalogResourceUpdater, Ba
 
   @Autowired
   private RESTClient restClient;
+
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
 
   /**
    * Set with the current updates awaiting to be sent to the Catalog
@@ -93,13 +97,10 @@ public class ComponentLocationUpdater implements AsyncCatalogResourceUpdater, Ba
   @Scheduled(initialDelay = 30000, fixedDelay = 15000)
   public void process() {
     final List<SensorLocationElement> sortedListToUpdate = cloneAndSortLocations();
-
     LOGGER.debug("Start process to update {} locations.", sortedListToUpdate.size());
-
     if (!CollectionUtils.isEmpty(sortedListToUpdate)) {
       sendBatchUpdate(sortedListToUpdate);
     }
-
     LOGGER.debug("Process finished. Locations that has not been updated: {}", oldUpdatesAwaiting.size());
   }
 
@@ -132,12 +133,15 @@ public class ComponentLocationUpdater implements AsyncCatalogResourceUpdater, Ba
       // Locations sent to the catalog are ordered by timestamp
       restClient.put(new RequestContext(path, body));
       oldUpdatesAwaiting.clear();
+      metricsCounters.incrementOutputEvents(listToUpdate.size());
+      metricsCounters.isRemoteServerConnectionOk(true);
     } catch (final RESTClientException ex) {
       // If update fails, save all resources to update in the oldUpdatesAwaiting list to be
       // forwarded at the next update call.
       LOGGER.warn("Components location update process has failed. It will be retried later", ex);
       oldUpdatesAwaiting.clear();
       oldUpdatesAwaiting.addAll(listToUpdate);
+      metricsCounters.isRemoteServerConnectionOk(false);
     }
   }
 

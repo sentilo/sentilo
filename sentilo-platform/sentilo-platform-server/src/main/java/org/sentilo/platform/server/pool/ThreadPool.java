@@ -78,6 +78,22 @@ public class ThreadPool {
     threadPool.submit(task);
   }
 
+  public void shutdownControlled() {
+    if (threadPool != null) {
+      try {
+        threadPool.awaitTermination(shutdownSecondsTimeout, TimeUnit.SECONDS);
+      } catch (final InterruptedException ex) {
+        threadPool.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  public long getCurrentTasks() {
+    // Return number of queued tasks more number of running tasks
+    return threadPool.getQueue().size() + threadPool.getActiveCount();
+  }
+
   public void shutdown() {
     if (threadPool != null) {
       threadPool.shutdown();
@@ -90,6 +106,10 @@ public class ThreadPool {
         Thread.currentThread().interrupt();
       }
     }
+  }
+
+  public ThreadPoolExecutor getThreadPoolExecutor() {
+    return threadPool;
   }
 
   public int getInitialCapacity() {

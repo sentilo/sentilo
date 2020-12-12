@@ -44,16 +44,20 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.common.config.SentiloArtifactConfigRepository;
 import org.sentilo.common.domain.CatalogAlert;
 import org.sentilo.common.domain.CatalogEntity;
 import org.sentilo.common.domain.CatalogSensor;
+import org.sentilo.common.metrics.SentiloArtifactMetrics;
+import org.sentilo.common.metrics.repository.SentiloArtifactMetricsRepository;
+import org.sentilo.common.test.AbstractBaseTest;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Subscription;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.common.service.SubscribeService;
 import org.sentilo.platform.service.impl.AdminServiceImpl;
 
-public class AdminServiceImplTest {
+public class AdminServiceImplTest extends AbstractBaseTest {
 
   private static final String PROVIDER_ID = "provider1";
   private static final String SENSOR_ID = "sensor1";
@@ -65,15 +69,18 @@ public class AdminServiceImplTest {
   private AdminInputMessage message;
   @Mock
   private SubscribeService subscribeService;
-  @InjectMocks
-  private AdminServiceImpl service;
-
   @Mock
   private CatalogEntity catalogProvider;
   @Mock
   private CatalogSensor catalogSensor;
   @Mock
   private CatalogAlert catalogAlert;
+  @Mock
+  private SentiloArtifactConfigRepository configRepository;
+  @Mock
+  private SentiloArtifactMetricsRepository metricsRepository;
+  @InjectMocks
+  private AdminServiceImpl service;
 
   @Before
   public void setUp() {
@@ -158,6 +165,30 @@ public class AdminServiceImplTest {
 
     verify(message, times(2)).getAlerts();
     verify(resourceService, times(alerts.size())).registerAlertIfNeedBe(any(CatalogAlert.class), eq(Boolean.TRUE));
+  }
+
+  @Test
+  public void getPlatformConfig() {
+    service.getPlatformConfig();
+
+    verify(configRepository).readGlobalConfig();
+  }
+
+  @Test
+  public void getSentiloArtifactsMetrics() {
+    service.getSentiloArtifactsMetrics();
+
+    verify(metricsRepository).getArtifactsMetrics();
+  }
+
+  @Test
+  public void saveArtifactsMetrics() throws Exception {
+    final List<SentiloArtifactMetrics> artifactsMetrics = generateRandomList(SentiloArtifactMetrics.class);
+    when(message.getArtifactsMetrics()).thenReturn(artifactsMetrics);
+
+    service.saveArtifactsMetrics(message);
+
+    verify(metricsRepository, times(artifactsMetrics.size())).saveArtifactMetrics(any(SentiloArtifactMetrics.class));
   }
 
   private <T> List<T> buildMockList(final T mockObject, final long total) {

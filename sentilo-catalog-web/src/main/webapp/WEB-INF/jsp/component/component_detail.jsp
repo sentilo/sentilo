@@ -19,15 +19,22 @@
 
 
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
-<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
+<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp" %>
 
 <spring:message code="sure.delete.component" var="deleteComponentConfirmMessage" />
 
 <c:if test="${component.staticComponent}">
 	<script type="text/javascript">	
 	$(document).ready(function() {
-		var componentPath = '${component.location}';
-		initializeMap('${component.location.centroid[1]}','${component.location.centroid[0]}', componentPath.split(','), '${componentIcon}');
+		const componentPath = '${component.location}';
+		const mapOptions = {
+			latitude: '${component.location.centroid[1]}',
+			longitude: '${component.location.centroid[0]}',
+			coordinates: componentPath.split(','),
+			icon: '${componentIcon}',
+			provider: '${provider_map}'
+		}
+		initializeMap(mapOptions);
 	});
 	</script>
 </c:if>

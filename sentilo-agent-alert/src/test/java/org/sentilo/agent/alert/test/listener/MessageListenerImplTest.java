@@ -40,6 +40,7 @@ import org.mockito.MockitoAnnotations;
 import org.sentilo.agent.alert.domain.InternalAlert;
 import org.sentilo.agent.alert.listener.MessageListenerImpl;
 import org.sentilo.agent.alert.service.PublishService;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.common.enums.AlertTriggerType;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -54,6 +55,8 @@ public class MessageListenerImplTest {
   @Mock
   private PublishService publishService;
   @Mock
+  private AgentMetricsCounter metricsCounters;
+  @Mock
   private Message message;
 
   @Before
@@ -62,6 +65,7 @@ public class MessageListenerImplTest {
     serializer = new StringRedisSerializer();
     messageListener = new MessageListenerImpl("test");
     ReflectionTestUtils.setField(messageListener, "publishService", publishService);
+    ReflectionTestUtils.setField(messageListener, "metricsCounters", metricsCounters);
 
     final InternalAlert alert1 = new InternalAlert("alertGT");
     alert1.setTrigger(AlertTriggerType.GT);

@@ -52,6 +52,10 @@ public final class ResourceOwnerContextHolder {
     contextHolder.set(context);
   }
 
+  public static boolean hasContext() {
+    return getContext() != null;
+  }
+
   public static void clearContext() {
     contextHolder.remove();
   }

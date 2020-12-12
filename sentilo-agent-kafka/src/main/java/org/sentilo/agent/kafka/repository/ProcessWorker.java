@@ -40,11 +40,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.util.concurrent.ListenableFuture;
 
-/**
- *
- * @author kcech
- *
- */
 public class ProcessWorker implements Callable<ProcessResult> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ProcessWorker.class);

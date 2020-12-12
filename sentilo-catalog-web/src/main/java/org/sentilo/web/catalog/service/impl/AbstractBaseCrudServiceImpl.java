@@ -63,6 +63,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.mapping.event.BeforeConvertEvent;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -154,8 +155,15 @@ public abstract class AbstractBaseCrudServiceImpl<T extends CatalogDocument> ext
   public Collection<T> insertAll(final Collection<T> entities) throws MongoException, DataAccessException {
 
     if (!CollectionUtils.isEmpty(entities)) {
+      final String collectionName = getMongoOps().getCollectionName(type);
       final BulkOperations bulkInsertOperation = getMongoOps().bulkOps(BulkMode.UNORDERED, this.type);
       for (final T entity : entities) {
+        // Bulk operations are executed directly in MongoDB server so resource listeners registered
+        // in the application are not invoked
+        // (i.e. ComponentventListener or SensorEventListener).
+        // To force these listeners execution a new BeforeConvertEvent is published to simulate the
+        // same context defined in MongoTemplate#doSave/doInsert
+        context.publishEvent(new BeforeConvertEvent<T>(entity, collectionName));
         bulkInsertOperation.insert(entity);
       }
 

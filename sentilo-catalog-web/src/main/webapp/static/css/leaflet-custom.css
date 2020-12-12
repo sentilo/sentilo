@@ -1,0 +1,49 @@
+/* Sentilo18.css **/
+.leaflet-popup-content p {
+    margin: 0;
+}
+.infobox-header-name p {
+    line-height: 20px;
+}
+
+.infobox.countC {
+    min-width: 401px;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    line-height: 0;
+}
+.leaflet-popup-content-wrapper {
+    background: none;
+    color: transparent;
+    box-shadow: none;
+}
+
+.leaflet-popup-tip {
+    width: 0;
+    height: 0;
+}
+
+.marker-cluster {
+    position: absolute;
+    top: -11px;
+    left: -11px;
+    color: #ffffff;
+    font-size: 11px;
+    font-family: Arial,sans-serif;
+    font-weight: bold;
+    font-style: normal;
+    text-decoration: none;
+    text-align: center;
+    width: 56px;
+    line-height:56px;
+}
+
+#map_controls {
+    z-index: 410;
+}
+
+.hero-unit {
+    z-index: 405;
+}

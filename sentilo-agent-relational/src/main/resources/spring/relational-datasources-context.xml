@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd  		
+  		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+		
+	<beans profile="dev">
+		<!--  Map with the multiple databases where data could be persisted -->				
+		<util:map id="dataSources">
+			<entry key="sentiloDs" value-ref="sentiloDs" />
+		</util:map>
+
+		<bean id="sentiloDs" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+			<property name="driverClassName" value="${sentiloDs.jdbc.driverClassName}" />
+			<property name="url" value="${sentiloDs.url}" />
+			<property name="username" value="${sentiloDs.username}" />
+			<property name="password" value="${sentiloDs.password}" />
+			<property name="minIdle" value="1" />
+			<property name="maxActive" value="10" />
+			<property name="testOnBorrow" value="true" />
+			<property name="testWhileIdle" value="true" />
+			<property name="timeBetweenEvictionRunsMillis" value="10000" />
+			<property name="validationInterval" value="30000" />
+			<property name="validationQuery" value="${sentiloDs.validationQuery}" />
+		</bean>
+	</beans>
+</beans>

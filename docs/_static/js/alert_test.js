@@ -1,0 +1,1 @@
+$("header").html('<div style="width:100%;height:50px;font-size:2em;color:red;margin-top:20px">THIS IS A TEST VERSION. PLEASE VISIT <a href="https://sentilo.readthedocs.io/">https://sentilo.readthedocs.io/</a></div>')

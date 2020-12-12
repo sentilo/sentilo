@@ -111,4 +111,10 @@ public class FederationConfigController extends CrudController<FederationConfig>
     filter.addAndParam("active", Boolean.TRUE);
   }
 
+  @Override
+  protected void doBeforeUpdateResource(final FederationConfig resource, final Model model) {
+    super.doBeforeUpdateResource(resource, model);
+    // As active field isn't shown in edit view, its value is set again to true before update.
+    resource.setActive(true);
+  }
 }

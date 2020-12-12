@@ -55,8 +55,8 @@ import org.sentilo.platform.common.security.RequesterContextHolder;
 import org.sentilo.platform.common.security.ResourceOwnerContext;
 import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
+import org.sentilo.platform.service.dao.SentiloRedisTemplate;
+import org.sentilo.platform.service.dao.SentiloSequenceUtils;
 import org.sentilo.platform.service.impl.OrderServiceImpl;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
@@ -66,9 +66,9 @@ public class OrderServiceImplTest {
   @Mock
   private OrderInputMessage message;
   @Mock
-  private JedisTemplate<String, String> jedisTemplate;
+  private SentiloRedisTemplate sRedisTemplate;
   @Mock
-  private JedisSequenceUtils jedisSequenceUtils;
+  private SentiloSequenceUtils sequenceUtils;
   @Mock
   private ResourceService resourceService;
   @Mock
@@ -93,14 +93,14 @@ public class OrderServiceImplTest {
     when(message.getProviderId()).thenReturn("prov1");
     when(message.getSensorId()).thenReturn("sensor1");
     when(message.getOrder()).thenReturn("stop restart");
-    when(jedisSequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(1L);
+    when(sequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(1L);
     when(resourceService.getSensorState(eq("prov1"), eq("sensor1"))).thenReturn(SensorState.online);
 
     final String channel = ChannelUtils.buildTopic(PubSubChannelPrefix.order, message.getProviderId(), message.getSensorId()).getTopic();
 
     service.setOrder(message);
 
-    verify(jedisTemplate).publish(eq(channel), anyString());
+    verify(sRedisTemplate).publish(eq(channel), anyString());
   }
 
   @Test(expected = EventRejectedException.class)
@@ -108,12 +108,12 @@ public class OrderServiceImplTest {
     when(message.getProviderId()).thenReturn("prov1");
     when(message.getSensorId()).thenReturn("sensor1");
     when(message.getOrder()).thenReturn("stop restart");
-    when(jedisSequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(null);
+    when(sequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(null);
     when(resourceService.getSensorState(eq("prov1"), eq("sensor1"))).thenReturn(null);
 
     service.setOrder(message);
 
-    verify(jedisTemplate, times(0)).publish(anyString(), anyString());
+    verify(sRedisTemplate, times(0)).publish(anyString(), anyString());
   }
 
   @Test(expected = EventRejectedException.class)
@@ -121,12 +121,12 @@ public class OrderServiceImplTest {
     when(message.getProviderId()).thenReturn("prov1");
     when(message.getSensorId()).thenReturn("sensor1");
     when(message.getOrder()).thenReturn("stop restart");
-    when(jedisSequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(1L);
+    when(sequenceUtils.getSid(eq("prov1"), eq("sensor1"))).thenReturn(1L);
     when(resourceService.getSensorState(eq("prov1"), eq("sensor1"))).thenReturn(SensorState.offline);
 
     service.setOrder(message);
 
-    verify(jedisTemplate, times(0)).publish(anyString(), anyString());
+    verify(sRedisTemplate, times(0)).publish(anyString(), anyString());
   }
 
   @Test
@@ -141,15 +141,15 @@ public class OrderServiceImplTest {
     when(resourceService.getSensor(anyLong())).thenReturn(sensor);
     when(sensor.getProvider()).thenReturn(providerId);
     when(sensor.getSensor()).thenReturn(sensorId);
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(1L);
-    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSoids());
+    when(sequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(1L);
+    when(sRedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSoids());
 
     service.getLastOrders(message);
 
     verify(message).getSensorId();
     verify(message, times(2)).getProviderId();
-    verify(jedisTemplate, times(2)).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
-    verify(jedisTemplate, times(2 * soids.size())).hGetAll(anyString());
+    verify(sRedisTemplate, times(2)).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
+    verify(sRedisTemplate, times(2 * soids.size())).hGetAll(anyString());
   }
 
   @Test
@@ -158,16 +158,16 @@ public class OrderServiceImplTest {
     final Set<String> sdids = buildSoids();
 
     when(message.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getPid(notNull(String.class))).thenReturn(1L);
+    when(sequenceUtils.getPid(notNull(String.class))).thenReturn(1L);
     when(resourceService.getSensorsToInspect(provider, null)).thenReturn(buildSids());
-    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSoids());
+    when(sRedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSoids());
 
     service.getLastOrders(message);
 
     verify(message).getSensorId();
     verify(message, times(2)).getProviderId();
-    verify(jedisTemplate, times(1 * sdids.size())).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
-    verify(jedisTemplate, times(2 * sdids.size())).hGetAll(anyString());
+    verify(sRedisTemplate, times(1 * sdids.size())).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
+    verify(sRedisTemplate, times(2 * sdids.size())).hGetAll(anyString());
   }
 
   private Set<String> buildSoids() {

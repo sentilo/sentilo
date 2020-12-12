@@ -30,6 +30,7 @@ package org.sentilo.web.catalog.test.controller;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Locale;
@@ -41,6 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.web.catalog.controller.admin.SensorController;
 import org.sentilo.web.catalog.domain.Sensor;
@@ -63,6 +65,7 @@ public class SensorControllerTest {
   private static final int TTL_MIN = 5;
   private static final Object CREATE_SENSOR = "redirect:/admin/sensor/list?nameTableRecover=sensorTable&sfbr=false";
   private static final String SENSOR_CREATE_PATH = "/admin/sensor/create";
+  private static final String SENSOR_UPDATE_PATH = "/admin/sensor/save";
 
   private RedirectAttributesModelMap redirectAttributes;
   private BindingAwareModelMap model;
@@ -116,7 +119,7 @@ public class SensorControllerTest {
 
   @Test
   public void createSensor() {
-    final Sensor sensor = newSensor();
+    final Sensor sensor = buildSensor();
 
     when(result.hasErrors()).thenReturn(false);
     when(sensorService.create(sensor)).thenReturn(sensor);
@@ -126,7 +129,23 @@ public class SensorControllerTest {
     Assert.assertEquals(CREATE_SENSOR, view);
   }
 
-  private Sensor newSensor() {
+  @Test
+  public void doBeforeUpdate() {
+    final Sensor oldSensor = Mockito.mock(Sensor.class);
+    final Sensor sensor = buildSensor();
+    when(result.hasErrors()).thenReturn(false);
+    when(platformService.getPlatformTtl()).thenReturn(3600);
+    when(sensorService.find(sensor)).thenReturn(oldSensor);
+    when(request.getServletPath()).thenReturn(SENSOR_UPDATE_PATH);
+
+    controller.updateResource(sensor, result, SENSOR_NAME, model, redirectAttributes, request);
+
+    verify(sensorService).find(sensor);
+    verify(oldSensor).getAdditionalInfo();
+
+  }
+
+  private Sensor buildSensor() {
     final Sensor sensor = new Sensor();
     sensor.setId(SENSOR_NAME);
     sensor.setProviderId(PROVIDER_ID);

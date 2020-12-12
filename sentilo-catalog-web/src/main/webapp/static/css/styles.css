@@ -1,4 +1,13 @@
 
+#bgHomeScreen {
+	position: fixed;
+    height: 100%;
+    z-index: 404;
+    width: 100%;
+    opacity: 0.75;
+    background-color: #0088ff;		
+}
+
 #detailComponentId {
 	color: #999999;
 	font-size: 18px;
@@ -259,6 +268,7 @@ navbar .nav > li > a {
  	background-position: 0px 0px;
  	display: block;
  	height: 50px;
+	margin-left: 10px;
  }
 
 ul.nav li.dropdown>ul.dropdown-menu {

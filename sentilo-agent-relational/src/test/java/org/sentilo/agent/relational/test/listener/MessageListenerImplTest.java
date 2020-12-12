@@ -46,6 +46,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.utils.Constants;
 import org.sentilo.agent.relational.domain.Alarm;
 import org.sentilo.agent.relational.domain.Observation;
@@ -75,6 +76,8 @@ public class MessageListenerImplTest extends AbstractBaseTest {
   private DataTrackService dataTrackService;
   @Mock
   private Message message;
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   private ArgumentCaptor<Order> order;
   private ArgumentCaptor<Observation> observation;
@@ -102,12 +105,12 @@ public class MessageListenerImplTest extends AbstractBaseTest {
     order = ArgumentCaptor.forClass(Order.class);
     observation = ArgumentCaptor.forClass(Observation.class);
     alarm = ArgumentCaptor.forClass(Alarm.class);
+    listener = new MessageListenerImpl(dsName, dataTrackService);
+    ReflectionTestUtils.setField(listener, "metricsCounters", metricsCounters);
   }
 
   @Test
   public void onDataMessage() {
-    listener = new MessageListenerImpl(dsName, dataTrackService);
-
     final String channel = "/data/provider1/sensor1";
     final String value = eventConverter.marshal(buildDataEventMessage());
     final String pattern = Constants.DATA;
@@ -127,8 +130,6 @@ public class MessageListenerImplTest extends AbstractBaseTest {
 
   @Test
   public void onOrderMessage() {
-    listener = new MessageListenerImpl(dsName, dataTrackService);
-
     final String channel = "/order/provider1/sensor1";
     final String value = eventConverter.marshal(buildOrderEventMessage());
     final String pattern = Constants.ORDER;
@@ -147,8 +148,6 @@ public class MessageListenerImplTest extends AbstractBaseTest {
 
   @Test
   public void onAlarmMessage() {
-    listener = new MessageListenerImpl(dsName, dataTrackService);
-
     final String channel = "/alarm/alarm1";
     final String value = eventConverter.marshal(buildAlarmEventMessage());
     final String pattern = Constants.ALARM;
@@ -166,8 +165,6 @@ public class MessageListenerImplTest extends AbstractBaseTest {
 
   @Test
   public void validateEventMessage() {
-    listener = new MessageListenerImpl(dsName, dataTrackService);
-
     final String channel = "/alarm/alarm1";
     final String value = eventConverter.marshal(buildFakeAlarmEventMessage());
     final String pattern = Constants.ALARM;
@@ -183,8 +180,6 @@ public class MessageListenerImplTest extends AbstractBaseTest {
 
   @Test
   public void dataAccessException() {
-    listener = new MessageListenerImpl(dsName, dataTrackService);
-
     final String channel = "/alarm/alarm1";
     final String value = eventConverter.marshal(buildAlarmEventMessage());
     final String pattern = Constants.ALARM;

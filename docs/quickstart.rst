@@ -1,18 +1,18 @@
 Quickstart
 ==========
 
-Prequisites
+Perquisites
 -----------
 
-After checking the `Sentilo Setup <./setup.html>`__. No need to setup any
-agents or other optional components such as Elasticsearch or OpenTSDB.
-
 You should have 4 components up & running:
-
 -  Redis Server
 -  MongoDB
 -  Sentilo API, running at http://127.0.0.1:8081
 -  Sentilo Catalog, running at http://127.0.0.1:8080/sentilo-catalog-web
+
+The installation covered by the section  `Sentilo Setup <./setup.html>`__.
+( No need to setup any agents or other optional components such as Elasticsearch or OpenTSDB).
+Alternatively, you can use our `VM  <./use_a_virtual_machine.html>`__.
 
 Create a Provider, Component and a Sensor
 -----------------------------------------
@@ -21,7 +21,7 @@ In order to create a publication of sensor data, we have to create first
 the Provider, Component and a Sensor.
 
 We’ll do that from the catalog application as superuser, using the
-admin/admin credentials.
+admin/1234 credentials.
 
 A provider is an entity that manages devices (sensors). We’ll have to
 create one from the menu “Providers” -> “New Provider”

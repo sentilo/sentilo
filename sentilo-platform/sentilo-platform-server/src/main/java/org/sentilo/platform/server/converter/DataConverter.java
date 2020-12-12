@@ -179,7 +179,7 @@ public class DataConverter extends PlatformJsonMessageConverter {
       final String timestamp = message.getTimestamp();
       final String location = StringUtils.hasText(message.getLocation()) ? message.getLocation() : globalLocation;
 
-      final Observation observation = new Observation(providerId, sensorId, value, parseTimestamp(timestamp), location);
+      final Observation observation = new Observation(providerId, sensorId, value, parseTimestamp(timestamp), parseLocation(location));
       observations.add(observation);
     }
 

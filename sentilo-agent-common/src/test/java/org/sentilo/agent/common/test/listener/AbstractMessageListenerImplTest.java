@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.agent.common.listener.AbstractMessageListenerImpl;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
 import org.springframework.data.redis.connection.Message;
@@ -53,6 +54,8 @@ public class AbstractMessageListenerImplTest {
   private Message message;
   @Mock
   private EventMessage eventMessage;
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   private AbstractMessageListenerImpl listener;
 
@@ -69,6 +72,7 @@ public class AbstractMessageListenerImplTest {
 
     ReflectionTestUtils.setField(listener, "eventConverter", eventConverter);
     ReflectionTestUtils.setField(listener, "serializer", serializer);
+    ReflectionTestUtils.setField(listener, "metricsCounters", metricsCounters);
   }
 
   @Test
@@ -94,7 +98,7 @@ public class AbstractMessageListenerImplTest {
     verify(serializer).deserialize(value.getBytes());
     verify(serializer).deserialize(topic.getBytes());
     verify(eventConverter).unmarshal(value, EventMessage.class);
-
+    verify(metricsCounters).incrementInputEvents(1);
   }
 
 }

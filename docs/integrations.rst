@@ -10,7 +10,7 @@ Plug & Play: they are recognized by the system and started automatically
 to be up and running.
 
 Every agent is a process that acts as a subscriber for the
-publish/subcribe platform. These processes will subscribe directly to
+publish/subscribe platform. These processes will subscribe directly to
 Redis as a independent clients. This subscription will provide the input
 data to do the underlying business logic (store in a relational
 database, process alarms, generate statistics, …)
@@ -136,9 +136,9 @@ this page.
 **Configuration**
 
 Activity Monitor Agent is configured with a set of .properties files in
-*sentilo/sentilo-agent-activity-monitor/src/main/resources/properties*.
+:literal:`sentilo/sentilo-agent-activity-monitor/src/main/resources/properties`.
 
-**subsription.properties**
+**subscription.properties**
 
 +-----------------------+-----------------------+-----------------------------------------+
 | Property              | Description           | Comments                                |
@@ -155,7 +155,7 @@ Activity Monitor Agent is configured with a set of .properties files in
 |                       |                       |    /data/PROVIDER1/*, /data/PROVIDER2/* |
 |                       |                       |                                         |
 |                       |                       |                                         |
-|                       |                       | Subsribe only to data of 2 providers    |
+|                       |                       | Subscribe only to data of 2 providers    |
 |                       |                       |                                         |
 +-----------------------+-----------------------+-----------------------------------------+
 
@@ -219,14 +219,14 @@ use a scalable solution for time series such as
 
 OpenTSDB installs of top of HBase and HDFS. Exposes a HTTP REST API and
 can be used from `Grafana <http://grafana.org/>`__ as one of it’s
-datasources.
+data sources.
 
 **Configuration**
 
 Historian Agent is configured with a set of .properties files in
-sentilo/sentilo-agent-historian/src/main/resources/properties.
+:literal:`sentilo/sentilo-agent-historian/src/main/resources/properties`.
 
-**subsription.properties**
+**subscription.properties**
 
 +-----------------------+-----------------------+---------------------------------------+
 | Property              | Description           | Comments                              |
@@ -242,7 +242,7 @@ sentilo/sentilo-agent-historian/src/main/resources/properties.
 |                       |                       |                                       |
 |                       |                       | /data/PROVIDER1/*,/data/PROVIDER2/*   |
 |                       |                       |                                       |
-|                       |                       | Subsribes only to                     |
+|                       |                       | Subscribes only to                     |
 |                       |                       | data of 2 providers                   |
 |                       |                       |                                       |
 +-----------------------+-----------------------+---------------------------------------+
@@ -291,7 +291,7 @@ Sentilo has been successfully used in with these versions:
 
 
 Federation agent
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 **Description**
 
@@ -301,7 +301,7 @@ The agent is installed at the side of the receiving instance:
 
 .. image:: _static/images/integrations/sentilo_federation.png
 
-The administrator of the emmitting Sentilo instance only needs to create a new application and provide the token the
+The administrator of the emitting Sentilo instance only needs to create a new application and provide the token the
 administrator of the receiving instance.
 As with any Sentilo application, the administrator is in control of which provider's data are readable by the remote federation agent.
 
@@ -309,14 +309,14 @@ Providers, components and sensors are created automatically in the catalog of th
 The agent uses its application token to query the emitting catalog API to obtain remote objects, and uses the local catalog
 application id to replicate the locally.
 
-The federation agent creates subsriptions on data it has permission. It creates a HTTP endpoint and tells the emitting instance
+The federation agent creates subscriptions on data it has permission. It creates a HTTP endpoint and tells the emitting instance
 to forward the events to this endpoint URL.
 
 
 **Configuration**
 
 Federation Agent's configuration is in file
-sentilo/sentilo-agent-federation/src/main/resources/properties/application.properties.
+:literal:`sentilo/sentilo-agent-federation/src/main/resources/properties/application.properties`.
 
 +---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
 | Property                                    | Default Value                         | Description                                                                                              |
@@ -341,9 +341,9 @@ sentilo/sentilo-agent-federation/src/main/resources/properties/application.prope
 +---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
 | federation.subscription.secret.key.callback | secret-callback-key-change-it         | HMAC secret used for incoming subscription.                                                              |
 +---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| federation.subscription.max.retries         | 3                                     | Number of retries used for subcription                                                                   |
+| federation.subscription.max.retries         | 3                                     | Number of retries used for subscription                                                                   |
 +---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| federation.subscription.max.delay           | 5                                     | Delay used for subcription                                                                               |
+| federation.subscription.max.delay           | 5                                     | Delay used for subscription                                                                               |
 +---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
 
 Further configuration of the agent is available in the "Federation services" menu.
@@ -361,7 +361,7 @@ The "Client application token" input is the token created in the emitting Sentil
 
 
 Kafka agent
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~
 
 **Description**
 
@@ -408,13 +408,46 @@ The Kafka agent publishes Sentilo events to Kafka.
 Sentilo has been successfully used in with these versions:
 
 -  Kafka 0.11.0
+-  Kafka 0.10.2
 
+
+Metrics Monitor Agent
+~~~~~~~~~~~~~~~~~~~~~
+
+The agent persists internal Sentilo metrics, such as memory usage or number of threads and persists them in Elasticsearch.
+
+Elasticsearch template definition for this agent is located in
+:literal:`/sentilo-agent-metrics-monitor/src/main/resources/elasticsearch`.
+The template name is *sentilo-metrics* and the index pattern created by the agent is *sentilo-metrics**.
+
+The configuration :literal:`/sentilo/sentilo-agent-metrics-monitor/src/main/resources/properties/monitor-config.properties`
+and it's same as for the `Activity Monitor Agent`_. Example configuration:
+
+..
+
+    # Endpoint for elasticsearch
+    elasticsearch.url=http://localhost:9200
+
+    # Properties to configure the index process
+    batch.size=1
+    batch.workers.size=3
+    batch.max.retries=1
+
+
+The difference with the Activity Monitor agent is the Redis topic in :literal:`subscription.properties`:
+
+..
+
+    batch.max.retries=/metrics/*
+
+
+Clients
+-------
 
 Node-red
---------
+~~~~~~~~
 
-`Node-RED <https://nodered.org>`__ offers a fast integration and
-prototyping ecosystem for Sentilo.
+`Node-RED <https://nodered.org>`__ is a visual programming platform ideal for non-complex integrations and prototyping.
 
 Sentilo plugin is available in Node-RED's marketplace. Simply search for "sentilo" in Palette configuration:
 
@@ -428,18 +461,70 @@ Now, you should be able to use Sentilo from Node-RED. For example:
 
 .. image:: _static/images/integrations/sentilo-nodered2.png
 
-There a independent documentation on how to use Sentilo nodes.
+The package contains documentation on how to use Sentilo nodes.
+More info at the `Sentilo library page at Node-RED website  https://flows.nodered.org/node/node-red-contrib-sentilo`__.
 
+
+
+NodeJS
+~~~~~~
+.. image:: _static/images/integrations/node-js.png
+   :height: 140px
+   :target: https://github.com/sentilo/sentilo-client-nodejs
+
+We provide a `Node.js <https://nodejs.org/es/>`__ client library that facilitate access to the Sentilo API. The library is no yet a npm package,
+but you can still use easily. Lastest version of this library is tested with Node 10 and 12.
+
+More information is in this repository: https://github.com/sentilo/sentilo-client-nodejs
+
+There is also a `tutorial <./tutorials/raspberrypi_tutorial.html>`__ on how to use this library with Raspberry Pi and GPIO with javascript.
+
+
+
+
+Java Client
+~~~~~~~~~~~
+.. image:: _static/images/integrations/java_logo.jpg
+   :width: 202px
+   :height: 113px
+
+Sentilo platform includes a Maven artifact :literal:`sentilo-platform-client-java`.
+Its source code is `here <https://github.com/sentilo/sentilo/tree/master/sentilo-platform-client-java>`__.
+This library is used internally by Sentilo and its agents.
+
+You can check the tutorial of `how to create creating sample web application /tutorials/java_client_tutorial.html`__.
+The example uses Spring MVC and can be deployed on a Tomcat.
+The code of this tutorial is available at https://github.com/sentilo/sentilo-client-sample-java .
+
+Regardless of the example, the library can be used in any Java application.
+Its dependencies are tiny and is framework-agnostic.
+
+
+Arduino
+~~~~~~~
+.. image:: _static/images/integrations/arduino.png
+   :width: 340px
+   :height: 230px
+   :target: https://github.com/sentilo/sentilo-client-arduino
+
+Arduino client HTTP Request library is available here: https://github.com/sentilo/sentilo-client-arduino
+
+There's also `a tutorial on Arduino with Sentilo </tutorials/arduino_tutorial.html>`__.
+The source code for the tutorial is available here: https://github.com/sentilo/sentilo-client-arduino
+
+
+Cloud
+-----
 
 AWS S3
-------
+~~~~~~
 
 The `AWS S3 <https://aws.amazon.com/s3/>`__ can be used together with Sentilo, if your solution needs
 to upload files such as audio snippets, images or files in general.
 
 Sensor can publish links to multimedia files. If these links are always public, catalog will preview them without any additional configuration.
 
-If these media links are private and managed by S3, catalog needs these properties in the file catalog-config.properties:
+If these media links are private and managed by S3, catalog needs these properties in the file :literal:`catalog-config.properties`:
 
 +--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Property                 | Default Value    | Description                                                                                                                                                                                                                                                           |
@@ -450,9 +535,9 @@ If these media links are private and managed by S3, catalog needs these properti
 +--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | s3.url.ttl               | 3600000          | Catalog will create a pre-signed URL for the links using this TTL in seconds                                                                                                                                                                                          |
 +--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| s3.aws.access.key.id     | connecta-catalog | Catalog will autheticate with this credential. Has to be equal as catalog.app.id. Obviously, this credential has to exist in s3 and has to in all ACLs of all buckets used by providers. Otherwise, Catalog would not have right create the pre-signed URL.           |
+| s3.aws.access.key.id     | connecta-catalog | Catalog will authenticate with this credential. Has to be equal as catalog.app.id. Obviously, this credential has to exist in s3 and has to in all ACLs of all buckets used by providers. Otherwise, Catalog would not have right create the pre-signed URL.           |
 +--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| s3.aws.secret.access.key | empty            | Catalog will autheticate with this token.                                                                                                                                                                                                                             |
+| s3.aws.secret.access.key | empty            | Catalog will authenticate with this token.                                                                                                                                                                                                                             |
 +--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 .. note::
@@ -470,3 +555,4 @@ In the end, you will be able to visualize private links in S3, for example:
 
 
 `see more <./services/subscription/subscription.html>`__
+

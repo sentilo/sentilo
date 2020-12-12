@@ -28,6 +28,7 @@
  */
 package org.sentilo.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,12 +42,15 @@ public class PlatformActivity {
   private long totalGetRequests;
   private long totalPushRequests;
   private long totalObs;
+  private long totalPushObs;
   private long totalPutObs;
   private long totalGetObs;
   private long totalOrders;
+  private long totalPushOrders;
   private long totalPutOrders;
   private long totalGetOrders;
   private long totalAlarms;
+  private long totalPushAlarms;
   private long totalPutAlarms;
   private long totalGetAlarms;
   private long timestamp;
@@ -61,6 +65,27 @@ public class PlatformActivity {
     this.tenant = tenant;
     this.timestamp = timestamp;
     this.isMaster = isMaster;
+  }
+
+  @JsonIgnore
+  public String getName() {
+    return isMaster ? "sentilo" : tenant;
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final PlatformActivity other = (PlatformActivity) obj;
+
+    return getName().equals(other.getName()) && getTimestamp() == other.getTimestamp();
   }
 
   public String getTenant() {
@@ -191,6 +216,30 @@ public class PlatformActivity {
 
   public void setTotalGetAlarms(final long totalGetAlarms) {
     this.totalGetAlarms = totalGetAlarms;
+  }
+
+  public long getTotalPushObs() {
+    return totalPushObs;
+  }
+
+  public void setTotalPushObs(final long totalPushObs) {
+    this.totalPushObs = totalPushObs;
+  }
+
+  public long getTotalPushOrders() {
+    return totalPushOrders;
+  }
+
+  public void setTotalPushOrders(final long totalPushOrders) {
+    this.totalPushOrders = totalPushOrders;
+  }
+
+  public long getTotalPushAlarms() {
+    return totalPushAlarms;
+  }
+
+  public void setTotalPushAlarms(final long totalPushAlarms) {
+    this.totalPushAlarms = totalPushAlarms;
   }
 
 }

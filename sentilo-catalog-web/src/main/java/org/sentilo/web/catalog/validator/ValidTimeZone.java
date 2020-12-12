@@ -40,7 +40,7 @@ import javax.validation.Payload;
 
 /**
  * Validate that the annotated string represents a supported TimeZone id, i.e. annotated string is
- * equals to an available time zone returned by {@link TimeZone#getAvailableIDs()}.
+ * equal to an available time zone returned by {@link TimeZone#getAvailableIDs()}.
  */
 @Documented
 @Constraint(validatedBy = TimeZoneValidator.class)

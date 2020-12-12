@@ -108,21 +108,21 @@ public class TenantUtilsTest {
   }
 
   @Test
-  public void initTenantFields() {  
+  public void initTenantFields() {
     final Set<String> tenantsAuth = new HashSet<String>();
     final Set<String> tenantsListVisible = new HashSet<String>();
     when(tenantResource.getTenantsAuth()).thenReturn(tenantsAuth);
     when(tenantResource.getTenantsListVisible()).thenReturn(tenantsListVisible);
-    
+
     TenantUtils.initTenantFields(tenantResource, mockTenant);
-    
-    verify(tenantResource).setTenantId(mockTenant);    
+
+    verify(tenantResource).setTenantId(mockTenant);
     Assert.assertTrue(tenantsAuth.contains(mockTenant));
     Assert.assertTrue(tenantsListVisible.contains(mockTenant));
   }
-  
+
   @Test
-  public void initComponentTenantFields() {    
+  public void initComponentTenantFields() {
     final Component component = Mockito.mock(Component.class);
     final Set<String> tenantsAuth = new HashSet<String>();
     final Set<String> tenantsListVisible = new HashSet<String>();
@@ -130,28 +130,28 @@ public class TenantUtilsTest {
     when(component.getTenantsAuth()).thenReturn(tenantsAuth);
     when(component.getTenantsListVisible()).thenReturn(tenantsListVisible);
     when(component.getTenantsMapVisible()).thenReturn(tenantsMapVisible);
-        
+
     TenantUtils.initTenantFields(component, mockTenant);
-    
-    verify(component).setTenantId(mockTenant);    
+
+    verify(component).setTenantId(mockTenant);
     Assert.assertTrue(tenantsAuth.contains(mockTenant));
     Assert.assertTrue(tenantsListVisible.contains(mockTenant));
     Assert.assertTrue(tenantsMapVisible.contains(mockTenant));
   }
-  
+
   @Test
-  public void initUserTenantFields_whenUserIsSuperAdmin() {    
+  public void initUserTenantFields_whenUserIsSuperAdmin() {
     final User user = Mockito.mock(User.class);
     final Set<String> tenantsAuth = new HashSet<String>();
     final Set<String> tenantsListVisible = new HashSet<String>();
     when(user.getTenantsAuth()).thenReturn(tenantsAuth);
     when(user.getTenantsListVisible()).thenReturn(tenantsListVisible);
     when(user.getTenantId()).thenReturn(mockTenant);
-    
+
     TenantUtils.initTenantFields(user, null);
-    
+
     Assert.assertEquals(mockTenant, user.getTenantId());
     Assert.assertTrue(tenantsAuth.contains(mockTenant));
-    Assert.assertTrue(tenantsListVisible.contains(mockTenant));    
+    Assert.assertTrue(tenantsListVisible.contains(mockTenant));
   }
 }

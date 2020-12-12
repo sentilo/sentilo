@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
+import org.sentilo.common.metrics.SentiloArtifactsMetricsMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.Statistics;
 import org.sentilo.platform.common.domain.Subscription;
@@ -40,11 +41,11 @@ public interface AdminService {
 
   Statistics getStatistics();
 
-  List<Subscription> getSubscriptions(String entityId);
+  List<Subscription> getSubscriptions(final String entityId);
 
-  void delete(AdminInputMessage message);
+  void delete(final AdminInputMessage message);
 
-  void save(AdminInputMessage message);
+  void save(final AdminInputMessage message);
 
   PlatformMetricsMessage getPerformance();
 
@@ -52,5 +53,9 @@ public interface AdminService {
 
   PlatformConfigMessage getPlatformConfig();
 
-  void saveArtifactConfig(AdminInputMessage message);
+  void saveArtifactConfig(final AdminInputMessage message);
+
+  SentiloArtifactsMetricsMessage getSentiloArtifactsMetrics();
+
+  void saveArtifactsMetrics(final AdminInputMessage message);
 }

@@ -75,6 +75,7 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     indexName = "<" + suffixIndexName + "-" + indexMathDatePattern + ">";
   }
 
+  @Override
   public BatchProcessResult call() {
     LOGGER.debug("Init batch process. Event elements that should be indexed in elasticsearch:  {} ", initialEventsToProcess.size());
 
@@ -101,7 +102,7 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
 
   private BatchProcessResponse callBulkApi(final List<EventMessage> eventsToProcess) {
     numRetries++;
-    LOGGER.debug("Num of attempt: {}", numRetries);
+    LOGGER.debug("Num of attempt: {}. Num of events to be indexed: {}", numRetries, eventsToProcess.size());
     BatchProcessResponse response = null;
     try {
       final RequestContext rc = new RequestContext("/_bulk", buildBody(eventsToProcess));
@@ -135,15 +136,22 @@ public class BatchProcessWorker implements Callable<BatchProcessResult> {
     final StringBuilder sb = new StringBuilder();
 
     // If elasticsearch version is <= 2.x, mapping type is determined by the event type (data, alarm
-    // or
-    // order), but mapping type is always _doc
+    // or order), but mapping type is always _doc
     // https://www.elastic.co/guide/en/elasticsearch/reference/6.0/breaking-changes-6.0.html
     // The ability to have multiple mapping types per index has been removed in 6.0
-    final boolean customEventMapping = StringUtils.hasText(esVersion) && esVersion.startsWith("2");
+    // https://www.elastic.co/guide/en/elasticsearch/reference/7.0/removal-of-types.html
+    // Since 7.0 mappings types are deprecated
+    final boolean addTypeAttribute =
+        StringUtils.hasText(esVersion) && (esVersion.startsWith("2.") || esVersion.startsWith("5.") || esVersion.startsWith("6."));
+    final boolean customEventMapping = addTypeAttribute && esVersion.startsWith("2.");
 
     for (final EventMessage event : eventsToProcess) {
-      final String mappingType = customEventMapping ? event.getType().toLowerCase() : "_doc";
-      sb.append("{ \"index\" : { \"_index\" : \"" + indexName + "\", \"_type\" : \"" + mappingType + "\" }}");
+      if (addTypeAttribute) {
+        final String mappingType = customEventMapping ? event.getType().toLowerCase() : "_doc";
+        sb.append("{ \"index\" : { \"_index\" : \"" + indexName + "\", \"_type\" : \"" + mappingType + "\" }}");
+      } else {
+        sb.append("{ \"index\" : { \"_index\" : \"" + indexName + "\" }}");
+      }
       sb.append("\n");
       sb.append(converter.marshal(event));
       sb.append("\n");

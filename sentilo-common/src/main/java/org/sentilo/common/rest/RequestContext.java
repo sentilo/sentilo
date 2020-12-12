@@ -28,6 +28,9 @@
  */
 package org.sentilo.common.rest;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.common.base.Objects;
 
 public class RequestContext {
@@ -37,6 +40,7 @@ public class RequestContext {
   private String identityToken;
   private String secretKey;
 
+  private Map<String, String> headers;
   private RequestParameters parameters;
   private String body;
 
@@ -122,5 +126,21 @@ public class RequestContext {
 
   public void setIdentityToken(final String identityToken) {
     this.identityToken = identityToken;
+  }
+
+  public void addHeaders(final Map<String, String> headers) {
+    this.headers = headers;
+  }
+
+  public void addHeader(final String name, final String value) {
+    if (headers == null) {
+      headers = new HashMap<String, String>();
+    }
+
+    headers.put(name, value);
+  }
+
+  public Map<String, String> getHeaders() {
+    return headers;
   }
 }

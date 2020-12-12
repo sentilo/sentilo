@@ -40,7 +40,7 @@ To disable it, you must provide a JVM Tomcat parameter:
 
    -Dsentilo.state_page.enabled=false
 
-Then, the status page will be innaccessible:
+Then, the status page will be inaccessible:
 
 |status_170_003.jpg|
 
@@ -48,13 +48,13 @@ Postman tests
 -------------
 
 To test the API REST services individually, you can also test end-end
-funcionality with `Postman <https://www.getpostman.com>`__, or if you
+functionality with `Postman <https://www.getpostman.com>`__, or if you
 prefer CLI, via
 `Newsman <https://www.getpostman.com/docs/postman/collection_runs/command_line_integration_with_newman>`__:
 
 ::
 
-   newman run postman-script.json -e postman-script-env.json --delay-request 2000 --reporters cli,json --reporter-json-export outputfile.json
+   newman run postman-script.json -e postman-script-env.json --delay-request 5000 --reporters cli,json --reporter-json-export outputfile.json
 
 where files *postman-script.json* and *postman-script-env.json* are
 located in subdirectory
@@ -64,6 +64,17 @@ from your local copy of Sentilo.
 This script provides tests all Sentilo REST API resources and can serve
 you also as example of the API usage.
 
+.. note::
+
+   Before executing tests with newman, you should review the values of the variables
+   api_url, api_port, provider and provider_token in the environment file postman-script-env.json
+   so that they match your Sentilo instance
+
+
 .. |status_170_001.jpg| image:: _static/images/platform_testing/status_170_001.jpg
 .. |status_170_002.jpg| image:: _static/images/platform_testing/status_170_002.jpg
 .. |status_170_003.jpg| image:: _static/images/platform_testing/status_170_003.jpg
+
+
+Before executing the postman script / or  you should replace default values (extracted from the init_test_data.js file)
+with the ones that you want to use to execute it (api_url, api_port, provider and provider_token)

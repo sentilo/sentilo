@@ -106,13 +106,13 @@ Platform console
 ~~~~~~~~~~~~~~~~
 
 **Super Admin** users should access to the catalog console without
-informing any organization iddentifier in the url. In this case, no data
+informing any organization identifier in the url. In this case, no data
 is filtered by organization, and all the public information is visible
 in the public map and statistics:
 
 -  http://your_sentilo_server_ip/sentilo-catalog-web
 
-Super Admin users are responsibles of configure the platform
+Super Admin users are responsible of configuring the platform
 organizations and its users, and also to define the component and sensor
 typologies.
 
@@ -136,7 +136,7 @@ information, specifying a different URL context:
 
 For example, we could access to an organization named **Sample
 Organization**, with a **sample_organization** as organization
-identifier in a Senilo instance deployed in a host with name
+identifier in a Sentilo instance deployed in a host with name
 **example.com**:
 
 -  http://example.com/sentilo-catalog-web/sample_organization
@@ -151,7 +151,7 @@ section <./catalog_and_maps.html>`__.
 Platform administration
 -----------------------
 
-Super Admin users are responsibles of configure the platform
+Super Admin users are responsible of configuring the platform
 organizations and its users, and also to define the component and sensor
 typologies. They cannot see any organization data, such as components,
 sensors, alerts.
@@ -348,14 +348,14 @@ Admin role users are directly related with an specific organization.
 They are the only ones who are able to administer the organization
 private data, such as its providers, applications, components, sensors
 and alarms. They can also manage its own users. The admin users will
-also be capable of seeng all the defined component and sensor
+also be capable of seeing all the defined component and sensor
 typologies, but they wont be able to modify them.
 
 Basically, the only difference between the simple Sentilo instance and a
-Multi Tenant instace version is that only users from one organization
+Multi Tenant instance version is that only users from one organization
 can see and access to information from its own organization. It’s also
-possible to share information with another organitzations, as described
-later. This data isolation make possible taking advantadge of user and
+possible to share information with another organizations, as described
+later. This data isolation make possible taking advantage of user and
 organization hierarchy.
 
 Below, we review the specific behaviour of tenant administration,
@@ -379,7 +379,7 @@ Permission administration
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------+-----------------------------------+
-| Permission type                   | Functionallity                    |
+| Permission type                   | Functionality                    |
 +===================================+===================================+
 | **To third party organizations    | Grant read / write permissions to |
 | from us**                         | other organizations over our      |

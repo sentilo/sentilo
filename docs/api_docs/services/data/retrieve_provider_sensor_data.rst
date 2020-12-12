@@ -24,9 +24,6 @@ indicate the maximum number of observations to be recovered.
 +----------------+----------------------------------------------------+
 
 
-**Because the number of sensors from a supplier can be very high, and
-therefore the amount of information returned can be very large, be
-careful using this operations due to performance reasons.**
 
 Parameteres
 -----------

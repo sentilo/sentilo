@@ -41,6 +41,7 @@ import org.sentilo.web.catalog.service.PerformanceService;
 import org.sentilo.web.catalog.service.PlatformService;
 import org.sentilo.web.catalog.utils.TenantUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -58,6 +59,9 @@ public class PerformanceServiceImpl extends AbstractBaseCrudServiceImpl<Performa
 
   @Autowired
   private PlatformService platformService;
+
+  @Autowired
+  private Environment environment;
 
   public PerformanceServiceImpl() {
     super(Performance.class);
@@ -99,14 +103,21 @@ public class PerformanceServiceImpl extends AbstractBaseCrudServiceImpl<Performa
    */
   @Scheduled(initialDelay = 10000, fixedRate = 30000)
   public void getAndStorePlatformPerformance() {
-    final PlatformMetricsMessage metrics = platformService.getPlatformPerformance();
-    final Collection<Performance> globalPerformance = new ArrayList<Performance>();
-    for (final PlatformPerformance platformPerformance : metrics.getPerformance()) {
-      globalPerformance.add(new Performance(platformPerformance));
-    }
+    // Only stores performance if profile "local" is not active
+    if (environment.acceptsProfiles("!local")) {
+      final PlatformMetricsMessage metrics = platformService.getPlatformPerformance();
+      final Collection<Performance> globalPerformance = new ArrayList<Performance>();
+      for (final PlatformPerformance platformPerformance : metrics.getPerformance()) {
+        final Performance pf = new Performance(platformPerformance);
+        // Control to evict duplicates in MongoDB (view issue #316311)
+        if (!exists(pf.getId())) {
+          globalPerformance.add(pf);
+        }
+      }
 
-    if (!CollectionUtils.isEmpty(globalPerformance)) {
-      insertAll(globalPerformance);
+      if (!CollectionUtils.isEmpty(globalPerformance)) {
+        insertAll(globalPerformance);
+      }
     }
   }
 

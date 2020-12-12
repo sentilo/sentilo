@@ -5,6 +5,7 @@
 
 <spring:eval var="userTenantId" expression="T(org.sentilo.web.catalog.utils.TenantUtils).getMenuCurrentTenant()"/>
 <spring:eval var="isFederationEnabled" expression="T(org.sentilo.web.catalog.security.SecurityUtils).isFederationEnabled()"/>
+<spring:eval var="isMultitenant" expression="T(org.sentilo.web.catalog.context.TenantContextHolder).isEnabled()"/>
 
 <spring:url value="/admin/provider/list?nameTableRecover=providerTable&uar=1&sfamr=true" var="providerListURL" />
 <spring:url value="/admin/application/list?nameTableRecover=applicationTable&uar=1&sfamr=true" var="applicationListURL" />
@@ -22,6 +23,7 @@
 <spring:url value="/admin/tenant/list?nameTableRecover=tenantTable&uar=1&sfamr=true" var="tenantListURL" />
 <spring:url value="/admin/activesubscriptions/list?nameTableRecover=activesubscriptionsTable" var="activesubscriptionsListURL" />
 <spring:url value="/admin/federation/list?nameTableRecover=federationTable" var="federationListURL" />
+<spring:url value="/admin/metrics?sfamr=true" var="metricsURL" />
  
 <spring:url value="/j_spring_security_logout" var="logoutURL" />
 
@@ -39,7 +41,7 @@
 						<li><a href="${tenantDetailURL}"><spring:message code="menu.admin.tenant.title" /> </a></li>
 					</security:authorize>
 					<security:authorize access="hasAnyRole('ROLE_SUPER_ADMIN','ROLE_ADMIN')">
-						<li><a href="${userListURL}"><spring:message code="menu.admin.user.title" /> </a></li>
+						<li><a href="${userListURL}"><spring:message code="menu.admin.user.title" /> </a></li>						
 					</security:authorize>
 					<security:authorize access="hasAnyRole('ROLE_USER')">
 						<li><a href="${userDetailURL}"><spring:message code="menu.normal.user.title"/></a> </li>
@@ -57,8 +59,24 @@
 					<li><a href="${componentTypesListURL}"><spring:message code="menu.admin.componenttype.title" /> </a></li>
 					<security:authorize access="hasRole('ROLE_ADMIN')">
 						<c:if test="${isFederationEnabled}"><li><a href="${federationListURL}"><spring:message code="menu.admin.federation.title" /> </a></li></c:if>
-					</security:authorize>				
-			<li class="divider"></li>
+					</security:authorize>									
+					<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">				
+						<li>
+							<a href="${metricsURL}">								
+								<spring:message	code="menu.admin.metrics" /> 
+							</a>
+						</li>				
+					</security:authorize>
+					<security:authorize access="hasRole('ROLE_ADMIN')">			
+						<c:if test="${!isMultitenant}">
+							<li>
+								<a href="${metricsURL}">									
+									<spring:message	code="menu.admin.metrics" /> 
+								</a>
+							</li>
+						</c:if>
+					</security:authorize>					
+				<li class="divider"></li>
 			</security:authorize>
 			<li>
                 <a href="#" onclick="document.getElementById('logout-form').submit();"> <spring:message code="logout" /> </a>

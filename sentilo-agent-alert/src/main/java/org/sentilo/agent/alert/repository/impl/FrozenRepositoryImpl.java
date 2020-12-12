@@ -28,6 +28,7 @@
  */
 package org.sentilo.agent.alert.repository.impl;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -143,6 +144,7 @@ public class FrozenRepositoryImpl implements FrozenRepository {
   private void removeDeprecatedAlerts(final Collection<InternalAlert> frozenAlerts) {
     final Cursor<TypedTuple<String>> scanCursor = redisTemplate.opsForZSet().scan(SORTED_SET_KEY, ScanOptions.NONE);
     final List<String> membersToRemove = new ArrayList<String>();
+
     while (scanCursor.hasNext()) {
       final TypedTuple<String> member = scanCursor.next();
       // member verifies pattern providerId#sensorId#alertId
@@ -151,6 +153,9 @@ public class FrozenRepositoryImpl implements FrozenRepository {
         membersToRemove.add(member.getValue());
       }
     }
+
+    // Close cursor to evict connections leak
+    closeCursor(scanCursor);
 
     LOGGER.debug("Found {} members on Redis that need to be removed because them no longer exist on Catalog", membersToRemove.size());
     if (!CollectionUtils.isEmpty(membersToRemove)) {
@@ -173,6 +178,16 @@ public class FrozenRepositoryImpl implements FrozenRepository {
     final long newLastSyncValue = System.currentTimeMillis();
     redisTemplate.opsForValue().set(LAST_SYNC_KEY, Long.toString(newLastSyncValue));
     LOGGER.debug("New lastSync value updated to {}", newLastSyncValue);
+  }
+
+  private <E> void closeCursor(final Cursor<E> cursor) {
+    try {
+      if (!cursor.isClosed()) {
+        cursor.close();
+      }
+    } catch (final IOException ioe) {
+      // nothing to do ...
+    }
   }
 
 }

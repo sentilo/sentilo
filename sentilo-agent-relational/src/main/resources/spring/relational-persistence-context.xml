@@ -4,11 +4,12 @@
 	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd  		
-  		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-  		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+  		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<context:annotation-config />
 	<tx:annotation-driven />
+	
+	<import resource="classpath:spring/relational-datasources-context.xml" />
 
 	<!-- Custom AbstractRoutingDataSource which allows working with several databases, picking up one database on the fly based on some info associated with the data to persist. --> 		
 	<bean id="dataSourceRouting" class="org.sentilo.agent.relational.jdbc.SentiloRoutingDataSource" p:targetDataSources-ref="dataSources"/>		
@@ -17,27 +18,5 @@
 		
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" p:dataSource-ref="dataSource" p:defaultTimeout="120"/>		
 	
-	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" p:dataSource-ref="dataSource"/>
-	
-	
-	<beans profile="dev">
-		<!--  Map with the multiple databases where data could be persisted -->				
-		<util:map id="dataSources">
-			<entry key="sentiloDs" value-ref="sentiloDs" />
-		</util:map>
-
-		<bean id="sentiloDs" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
-			<property name="driverClassName" value="${sentiloDs.jdbc.driverClassName}" />
-			<property name="url" value="${sentiloDs.url}" />
-			<property name="username" value="${sentiloDs.username}" />
-			<property name="password" value="${sentiloDs.password}" />
-			<property name="minIdle" value="1" />
-			<property name="maxActive" value="10" />
-			<property name="testOnBorrow" value="true" />
-			<property name="testWhileIdle" value="true" />
-			<property name="timeBetweenEvictionRunsMillis" value="10000" />
-			<property name="validationInterval" value="30000" />
-			<property name="validationQuery" value="${sentiloDs.validationQuery}" />
-		</bean>
-	</beans>
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" p:dataSource-ref="dataSource"/>	
 </beans>

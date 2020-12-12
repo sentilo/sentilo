@@ -33,7 +33,7 @@ function selectComponentType(id, name, icon) {
 			</ul>
 		</div>
 
-		<div class="input-prepend input-append">
+		<div class="input-prepend input-append" id="geocode">
 			<span class="add-on"> <i class="icon-map-marker"></i> </span>
 			<spring:message code="component.map.address.search.instructions" var="instructions" />
 			<input id="address" class="" placeholder="${instructions}" type="text" data-provide="typeahead" autocomplete="off" />

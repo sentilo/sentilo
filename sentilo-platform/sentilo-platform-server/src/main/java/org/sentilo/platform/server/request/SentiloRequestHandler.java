@@ -46,13 +46,15 @@ import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.platform.common.exception.JsonConverterException;
 import org.sentilo.platform.common.exception.PlatformException;
+import org.sentilo.platform.common.ratelimiter.QuotaContext;
+import org.sentilo.platform.common.ratelimiter.QuotaContextHolder;
 import org.sentilo.platform.common.security.RequesterContextHolder;
-import org.sentilo.platform.server.auth.AuthenticationService;
 import org.sentilo.platform.server.converter.ErrorConverter;
 import org.sentilo.platform.server.converter.PlatformJsonMessageConverter;
 import org.sentilo.platform.server.dto.ErrorMessage;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
+import org.sentilo.platform.server.request.interceptor.SentiloRequestHandlerInterceptor;
 import org.sentilo.platform.server.response.SentiloResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +63,14 @@ public class SentiloRequestHandler implements HttpRequestHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SentiloRequestHandler.class);
 
-  private final HandlerLocator handlerLocator;
-  private final AuthenticationService authenticationService;
   private final ErrorConverter errorParser;
 
-  public SentiloRequestHandler(final HandlerLocator handlerLocator, final AuthenticationService authService) {
-    this.handlerLocator = handlerLocator;
-    authenticationService = authService;
+  private HandlerLocator handlerLocator;
+
+  private List<SentiloRequestHandlerInterceptor> requestInterceptors = Collections.emptyList();
+
+  public SentiloRequestHandler() {
+    super();
     errorParser = new ErrorConverter();
   }
 
@@ -78,59 +81,95 @@ public class SentiloRequestHandler implements HttpRequestHandler {
       final SentiloRequest request = SentiloRequest.build(httpRequest, httpContext);
       final SentiloResponse response = SentiloResponse.build(httpResponse);
       debug(request);
-      request.checkCredentialIntegrity(authenticationService);
-      request.checkSSLAAccess();
+
+      // Apply pre-handle treatments on entry request.
+      applyPreHandle(request);
 
       final AbstractHandler handler = lookupHandlerForRequest(request);
       handler.manageRequest(request, response);
 
-      prepareResponse(httpResponse, request.getContentType().toString());
+      // Prepare response and add additional headers, e.g., RL headers
+      applyPostHandle(httpResponse, request.getContentType().toString());
     } catch (final PlatformException e) {
       final int errorCode = e.getHttpStatus() != 0 ? e.getHttpStatus() : HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
-      prepareErrorResponse(httpResponse, errorCode, e.getMessage(), e.getErrorDetails());
+      buildErrorResponse(httpResponse, errorCode, e.getMessage(), e.getErrorDetails());
     } catch (final PlatformAccessException e) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_ACCESS_ERROR);
       LOGGER.error("{} - Internal access error.", internalErrorCode, e);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
-      prepareErrorResponse(httpResponse, errorCode, errorMessage);
+      buildErrorResponse(httpResponse, errorCode, errorMessage);
     } catch (final Exception e) {
       final String internalErrorCode = SentiloUtils.buildNewInternalErrorCode(SentiloConstants.SENTILO_UNKNOWN_ERROR);
       LOGGER.error("{} - Internal server error.", internalErrorCode, e);
       final String errorMessage = String.format(SentiloConstants.INTERNAL_ERROR_MESSAGE_TEMPLATE, internalErrorCode);
       final int errorCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
-      prepareErrorResponse(httpResponse, errorCode, errorMessage);
+      buildErrorResponse(httpResponse, errorCode, errorMessage);
     } finally {
       debug(httpResponse);
       RequesterContextHolder.clearContext();
+      QuotaContextHolder.clearContext();
     }
 
   }
 
-  private void prepareErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage) {
-    prepareErrorResponse(response, errorCode, errorMessage, Collections.<String>emptyList());
+  /**
+   * Apply custom treatment of registered interceptors.
+   */
+  private void applyPreHandle(final SentiloRequest request) {
+    for (final SentiloRequestHandlerInterceptor reqInterceptor : requestInterceptors) {
+      reqInterceptor.invoke(request);
+    }
   }
 
-  private void prepareErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage, final List<String> errorDetails) {
+  private void buildErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage) {
+    buildErrorResponse(response, errorCode, errorMessage, Collections.<String>emptyList());
+  }
+
+  private void buildErrorResponse(final HttpResponse response, final int errorCode, final String errorMessage, final List<String> errorDetails) {
     final ErrorMessage message = new ErrorMessage(errorCode, errorMessage, errorDetails);
 
     try {
       final ByteArrayOutputStream baos = errorParser.writeInternal(message);
       response.setStatusCode(errorCode);
       response.setEntity(new ByteArrayEntity(baos.toByteArray(), PlatformJsonMessageConverter.DEFAULT_CONTENT_TYPE));
-      response.setHeader(HttpHeader.CONTENT_TYPE.toString(), PlatformJsonMessageConverter.DEFAULT_CONTENT_TYPE.toString());
+      addHeader(response, HttpHeader.CONTENT_TYPE, PlatformJsonMessageConverter.DEFAULT_CONTENT_TYPE.toString());
+      addExtraResponseHeaders(response);
     } catch (final JsonConverterException jce) {
       response.setStatusCode(errorCode);
       response.setEntity(new ByteArrayEntity(jce.getMessage().getBytes()));
     }
   }
 
-  private void prepareResponse(final HttpResponse httpResponse, final String contentType) {
+  private void applyPostHandle(final HttpResponse httpResponse, final String contentType) {
     httpResponse.setStatusCode(HttpStatus.SC_OK);
-    httpResponse.setHeader(HttpHeader.CONTENT_TYPE.toString(), contentType);
+    addHeader(httpResponse, HttpHeader.CONTENT_TYPE, contentType);
+    addExtraResponseHeaders(httpResponse);
+  }
+
+  private void addExtraResponseHeaders(final HttpResponse httpResponse) {
+    // Add Rate Limiter headers. QuotaContextHolder may contain either global and/or account
+    // QuotaContext
+    if (QuotaContextHolder.hasGlobalContext()) {
+      final QuotaContext qc = QuotaContextHolder.getContext(QuotaContext.Type.GLOBAL);
+      addHeader(httpResponse, HttpHeader.X_RL_GLOBAL_INPUT_LIMIT, qc.getLimit());
+      addHeader(httpResponse, HttpHeader.X_RL_GLOBAL_INPUT_REMAINING, qc.getRemaining());
+      addHeader(httpResponse, HttpHeader.X_RL_GLOBAL_INPUT_RESET, qc.getMinutesToReset());
+    }
+
+    if (QuotaContextHolder.hasEntityContext()) {
+      final QuotaContext qc = QuotaContextHolder.getContext(QuotaContext.Type.ENTITY);
+      addHeader(httpResponse, HttpHeader.X_RL_INPUT_LIMIT, qc.getLimit());
+      addHeader(httpResponse, HttpHeader.X_RL_INPUT_REMAINING, qc.getRemaining());
+      addHeader(httpResponse, HttpHeader.X_RL_INPUT_RESET, qc.getMinutesToReset());
+    }
+  }
+
+  private void addHeader(final HttpResponse httpResponse, final HttpHeader header, final Object value) {
+    httpResponse.setHeader(header.toString(), value.toString());
   }
 
   private AbstractHandler lookupHandlerForRequest(final SentiloRequest request) throws PlatformException {
@@ -168,6 +207,14 @@ public class SentiloRequestHandler implements HttpRequestHandler {
       }
     }
 
+  }
+
+  public void setHandlerLocator(final HandlerLocator handlerLocator) {
+    this.handlerLocator = handlerLocator;
+  }
+
+  public void setRequestInterceptors(final List<SentiloRequestHandlerInterceptor> requestInterceptors) {
+    this.requestInterceptors = requestInterceptors;
   }
 
 }

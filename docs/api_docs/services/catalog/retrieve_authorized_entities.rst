@@ -252,4 +252,4 @@ Other examples
 
 .. note::
 
-   Only sensors will "online" state are return by the API.
+   Only sensors will "online" state are returned by the API.

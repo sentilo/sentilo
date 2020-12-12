@@ -20,7 +20,7 @@
 <c:set var="btnclose" value="${param.btnclose}" />
 
 <%@include file="/WEB-INF/jsp/common/include_tab_classes.jsp"%>
-<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
+<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp" %>
 <%@include file="/WEB-INF/jsp/common/include_script_graphics.jsp"%>
 
 
@@ -68,8 +68,16 @@ $(document).ready(function() {
 		theFuture, 
 		dataType
 	);
+
+	const mapOptions = {
+		latitude: '${component.location.centroid[1]}',
+		longitude: '${component.location.centroid[0]}',
+		coordinates: componentPath.split(','),
+		icon: '${componentIcon}',
+		provider: '${provider_map}'
+	}
 	
-	initializeMap('${component.location.centroid[1]}','${component.location.centroid[0]}', componentPath.split(','), '${componentIcon}');
+	initializeMap(mapOptions);
 	
 	<c:if test="${alternative eq 'true' && btnclose eq 'off'}">
 	    // Hook to remove margin top when detail is show in a third-party window 
@@ -88,11 +96,11 @@ $(document).ready(function() {
 			<c:if test="${!alreadySet}">
 				<c:set var="alreadySet" value="${true}"/>  
 				firstSelPublicSensor={
-					'id': '${sensor.id}',			
-					'label': '${fn:replace(sensor.type,search,replace)}',
-					'dataType': '${sensor.dataType}',
-					'unit': '${sensor.unit}',
-					'type': '${sensor.type}'						
+					"id": "${sensor.id}",
+					"label": "${fn:replace(sensor.type,search,replace)}",
+					"dataType": "${sensor.dataType}",
+					"unit": "${sensor.unit}",
+					"type": "${sensor.type}"
 				};
 			</c:if>
 		</c:forEach>

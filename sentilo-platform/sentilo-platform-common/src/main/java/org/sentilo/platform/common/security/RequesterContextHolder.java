@@ -55,4 +55,8 @@ public final class RequesterContextHolder {
   public static void clearContext() {
     contextHolder.remove();
   }
+
+  public static boolean hasContext() {
+    return getContext() != null;
+  }
 }

@@ -174,7 +174,8 @@ public final class ApiConverter {
 
   private static final Sensor buildNewSensor(final CatalogSensor catalogSensor, final ApiConverterContext context) {
     final String providerId = context.getProviderId();
-    final String componentId = Component.buildId(providerId, catalogSensor.getComponent());
+    final CatalogComponent catalogComponent = CatalogDocumentConverter.extractCatalogComponent(catalogSensor);
+    final String componentId = Component.buildId(providerId, catalogComponent.getComponent());
     Sensor sensor = null;
 
     if (context.getSensorService().findByName(providerId, catalogSensor.getSensor()) == null) {

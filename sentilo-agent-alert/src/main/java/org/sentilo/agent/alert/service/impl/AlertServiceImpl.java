@@ -42,6 +42,7 @@ import org.sentilo.agent.alert.service.PublishService;
 import org.sentilo.agent.alert.utils.AlertUtils;
 import org.sentilo.agent.alert.utils.enums.AlertType;
 import org.sentilo.agent.common.listener.MockMessageListenerImpl;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,9 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
 
   @Autowired
   private PublishService publishService;
+
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
 
   private final Map<String, MessageListenerImpl> currentListeners = new HashMap<String, MessageListenerImpl>();
   private final Map<String, InternalAlert> frozenAlertsCache = new HashMap<String, InternalAlert>();
@@ -104,7 +108,7 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
 
         final String topicToListen = generateTopicName(alert);
         if (listeners.get(topicToListen) == null) {
-          listeners.put(topicToListen, new MessageListenerImpl(topicToListen, publishService, frozenRepository));
+          listeners.put(topicToListen, createMessageListener(topicToListen));
         }
 
         listeners.get(topicToListen).addAlert(alert);
@@ -244,6 +248,12 @@ public class AlertServiceImpl implements AlertService, ApplicationListener<Check
 
     // and finally, updates the repository timeouts for each frozen alert
     frozenRepository.updateFrozenTimeouts(updatedFrozenAlerts);
+  }
+
+  private MessageListenerImpl createMessageListener(final String topicToListen) {
+    final MessageListenerImpl aux = new MessageListenerImpl(topicToListen, publishService, frozenRepository);
+    aux.setMetricsCounters(metricsCounters);
+    return aux;
   }
 
 }

@@ -58,7 +58,7 @@
 									</a>
 								</li>
 								</security:authorize>
-							</ul>
+							</ul>							
 							<div class="tab-content">
 								<div class="${tab1PaneClass}" id="tab1">
 									<div class="accordion" id="detailAccordion">
@@ -165,7 +165,7 @@
 												<div class="accordion-inner">
 													<div class="row-fluid">
 														<div class="span4">
-															<strong><spring:message code="tenant.zoomLevel" /> </strong>
+															<strong><spring:message code="tenant.mapParams.zoomLevel" /> </strong>
 														</div>
 														<div class="span8">
 															<spring:eval expression="tenant.mapParams.zoomLevel" />
@@ -173,7 +173,7 @@
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
-															<strong><spring:message code="tenant.latitude" /> </strong>
+															<strong><spring:message code="tenant.mapParams.center.latitude" /> </strong>
 														</div>
 														<div class="span8">
 															<spring:eval expression="tenant.mapParams.center.latitude" />
@@ -181,7 +181,7 @@
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
-															<strong><spring:message code="tenant.longitude" /> </strong>
+															<strong><spring:message code="tenant.mapParams.center.longitude" /> </strong>
 														</div>
 														<div class="span8">
 															<spring:eval expression="tenant.mapParams.center.longitude" />
@@ -189,7 +189,7 @@
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
-															<strong><spring:message code="tenant.bgColor" /> </strong>
+															<strong><spring:message code="tenant.mapParams.bgColor" /> </strong>
 														</div>
 														<div class="span8">
 															<spring:eval expression="tenant.mapParams.bgColor" />
@@ -220,7 +220,7 @@
 									<jsp:include page="/WEB-INF/jsp/tenant/tenant_from_permissions.jsp" />
 								</div>
 								</security:authorize>
-							</div>
+							</div>						    
 						</div>
 					</div>
 				</div>

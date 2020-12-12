@@ -21,6 +21,7 @@
 <spring:url value="/static/css/chartist.css" var="chartistCSS" />
 <spring:url value="/static/css/media_players.css" var="mediaPlayersCSS" />
 <spring:url value="/static/css/sentilo18.css" var="sentilo18CSS" />
+<spring:url value="/static/css/metrics.css" var="metricsCSS" />
 
 <link href="${googleFonts}" rel="stylesheet" media="all">
 <link href="${bootstrapCSS}" rel="stylesheet" media="all">
@@ -40,6 +41,8 @@
 <link href="${chartistPluginTooltipCSS}" rel="stylesheet" media="all">
 <link href="${chartistCSS}" rel="stylesheet" media="all">
 <link href="${mediaPlayersCSS}" rel="stylesheet" media="all">
+<link href="${metricsCSS}" rel="stylesheet" media="all">
+
 
 <c:if test="${not empty currentRequestMapping}">
 	<c:choose>

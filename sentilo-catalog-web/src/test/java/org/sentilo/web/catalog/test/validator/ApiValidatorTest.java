@@ -184,25 +184,6 @@ public class ApiValidatorTest extends AbstractBaseTest {
   }
 
   @Test
-  public void isValidLocationFormat() {
-    final String location = "1.123456 4.435678";
-    final String location2 = "1.123456 4.435678, 1.123424 4.435689";
-    final String location3 = "1.123456 4.435678, 2.34567, 1.123424 4.435689";
-    final String location4 = "1.123456 4.435678, 1.abc3424 4.435689";
-
-    final Boolean valid = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location);
-    final Boolean valid2 = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location2);
-    final Boolean valid3 = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location3);
-    final Boolean valid4 = ReflectionTestUtils.invokeMethod(apiValidator, "isValidLocationFormat", location4);
-
-    assertTrue(valid);
-    assertTrue(valid2);
-    assertFalse(valid3);
-    assertFalse(valid4);
-
-  }
-
-  @Test
   public void validateLocationContent() {
     final LngLat[] lngLat1 = {new LngLat(1.2345, 43.23456)};
     final LngLat[] lngLat2 = {new LngLat(1.2345, 43.23456), new LngLat(-198.2345, 99.23456)};

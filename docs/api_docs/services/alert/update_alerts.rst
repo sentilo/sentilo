@@ -59,7 +59,7 @@ Please, note the following observations:
 
 -  The list of trigger’s types and expressions are defined in: `Trigger
    types <../alert/alert.html#InternalTriggerTypes>`__.
--  The possible values ​​for the alert type are: INTERNAL or EXTERNAL.
+-  The possible values ​​for the alert type are: :literal:`INTERNAL` or :literal:`EXTERNAL`.
 
 Response data
 -------------

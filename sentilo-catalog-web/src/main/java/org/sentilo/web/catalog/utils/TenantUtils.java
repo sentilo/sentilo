@@ -114,9 +114,9 @@ public abstract class TenantUtils extends CatalogUtils {
       if (targetResource instanceof Component) {
         ((Component) targetResource).getTenantsMapVisible().add(tenantIdOwner);
       }
-    }else if(targetResource instanceof User) {
+    } else if (targetResource instanceof User) {
       // This case occurs when a super admin user creates a new user
-      final String resourceTenant =  targetResource.getTenantId();
+      final String resourceTenant = targetResource.getTenantId();
       targetResource.getTenantsAuth().add(resourceTenant);
       targetResource.getTenantsListVisible().add(resourceTenant);
     }

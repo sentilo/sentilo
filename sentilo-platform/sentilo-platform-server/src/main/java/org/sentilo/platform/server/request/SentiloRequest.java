@@ -112,6 +112,13 @@ public class SentiloRequest {
     resource = new SentiloResource(resourcePath);
   }
 
+  public String extractHeader(final HttpHeader header) {
+    LOGGER.debug("extractHeader: {}", header.toString());
+
+    final Header[] requestHeaders = httpRequest.getHeaders(header.toString());
+    return SentiloUtils.arrayIsEmpty(requestHeaders) ? null : requestHeaders[0].getValue();
+  }
+
   private void debug(final HttpEntity entity) {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Default charset: {}", Charset.defaultCharset());
@@ -156,13 +163,6 @@ public class SentiloRequest {
     parameters = new RequestParameters(pairs);
   }
 
-  private String extractHeader(final HttpHeader header) {
-    LOGGER.debug("extractHeader: {}", header.toString());
-
-    final Header[] requestHeaders = httpRequest.getHeaders(header.toString());
-    return SentiloUtils.arrayIsEmpty(requestHeaders) ? null : requestHeaders[0].getValue();
-  }
-
   public String getRemoteClientAddress() {
     String remoteAddr = extractHeader(HttpHeader.X_FORWARDED_FOR);
     if (!StringUtils.hasText(remoteAddr)) {
@@ -194,9 +194,19 @@ public class SentiloRequest {
   }
 
   public String getBody() throws IOException {
+    return hasBody() ? EntityUtils.toString(getEntity(), UTF8) : "";
+  }
+
+  // TODO : revisar
+  public long getContentLength() {
+    return hasBody() ? getEntity().getContentLength() : 0;
+  }
+
+  private HttpEntity getEntity() {
     final HttpEntity entity = ((HttpEntityEnclosingRequest) httpRequest).getEntity();
     debug(entity);
-    return EntityUtils.toString(entity, UTF8);
+
+    return entity;
   }
 
   public ContentType getContentType() {
@@ -222,6 +232,10 @@ public class SentiloRequest {
 
   public String getPath() {
     return path;
+  }
+
+  public boolean hasBody() {
+    return httpRequest instanceof HttpEntityEnclosingRequest;
   }
 
   public String toString() {

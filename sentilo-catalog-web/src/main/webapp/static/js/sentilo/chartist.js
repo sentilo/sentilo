@@ -204,7 +204,7 @@ function printBooleanChart(inputData, anchor, chartOptions) {
 	var i=0;
 	for(var e in inputData.events) {
 		var event = inputData.events[e];
-		var value = eval(event.value) ? 0 : 1;		
+		var value = eval(event.value) ? 1 : 0;		
 		var label = formatLabelTimestamp(event.timestamp, event.time);
 		values.push({x: i , y: value});		
 		labels.push(label);
@@ -295,4 +295,57 @@ function valueToBooleanText(value) {
 	  return messages.boolValues.falseValue.toUpperCase();
   }
   return messages.boolValues.trueValue.toUpperCase();
+}
+
+function chartMetrics(chartElement, series, legendNames){ 
+	
+    var ctx = document.getElementById(chartElement);
+    chart= new Chartist.Line(ctx,   {
+    labels: [],
+     series: JSON.parse(series)
+    },
+    {
+    low: 0,
+    showArea: true,        
+    plugins: [
+      Chartist.plugins.tooltip({
+          appendToBody: true,
+          transformTooltipTextFnc: function(tooltip) { 
+            var x = tooltip.split(",");
+            var t = convertLongToTime(x[0])
+            return x[1] + "<br>" + t;
+          }
+          
+      }),
+      Chartist.plugins.legend({
+          legendNames: legendNames              
+      })
+    ]
+    });
+
+    return chart;  
+}
+function convertTimeToLong(time){    
+    var t = time.split(":");    
+    var a =(+t[0] * 3600) + (+t[1] * 60) + (+t[2]); 
+    return a;
+}
+
+function convertLongToTime(totalSecs){     
+    var hours   = Math.floor(totalSecs / 3600);
+    var minutes = Math.floor((totalSecs - (hours * 3600)) / 60);
+    var seconds = totalSecs - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+}
+
+// Solution to the bug about charts in tabs. When the element that contains 
+// the chart is hidden when viewing the tab that contains it this is not rendered 
+function chartUpdate(id){
+	$(id).find('.chart').each(function(i, e) {
+      e.__chartist__.update();
+	}); 
 }

@@ -35,6 +35,7 @@ import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.sentilo.web.catalog.context.TenantContextHolder;
 import org.sentilo.web.catalog.utils.Constants;
@@ -47,7 +48,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
 
 @Document
-public class Provider implements FederatedResource, TenantResource, SyncResource, AlphabeticalSortable {
+public class Provider implements Entity, FederatedResource, TenantResource, SyncResource, AlphabeticalSortable {
 
   private static final long serialVersionUID = 1L;
 
@@ -79,6 +80,12 @@ public class Provider implements FederatedResource, TenantResource, SyncResource
 
   /** Show if API's requests from this provider must be secured over HTTPs */
   private boolean restHttps;
+
+  @PositiveOrZero
+  private int apiInputQuota;
+
+  @PositiveOrZero
+  private int apiOutputQuota;
 
   private Boolean federatedResource = Boolean.FALSE;
 
@@ -282,4 +289,19 @@ public class Provider implements FederatedResource, TenantResource, SyncResource
     return federatedResource;
   }
 
+  public int getApiInputQuota() {
+    return apiInputQuota;
+  }
+
+  public void setApiInputQuota(final int apiInputQuota) {
+    this.apiInputQuota = apiInputQuota;
+  }
+
+  public int getApiOutputQuota() {
+    return apiOutputQuota;
+  }
+
+  public void setApiOutputQuota(final int apiOutputQuota) {
+    this.apiOutputQuota = apiOutputQuota;
+  }
 }

@@ -372,8 +372,9 @@ public class SensorController extends CrudController<Sensor> {
   /*
    * (non-Javadoc)
    *
-   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
-   * catalog.domain.CatalogDocument, org.springframework.ui.Model)
+   * @see
+   * org.sentilo.web.catalog.controller.CrudController#doAfterViewResource(org.springframework.ui.
+   * Model)
    */
   @Override
   protected void doAfterViewResource(final Model model) {
@@ -400,12 +401,6 @@ public class SensorController extends CrudController<Sensor> {
     setDefaultTtl(sensor);
   }
 
-  private void setDefaultTtl(final Sensor sensor) {
-    if (sensor.getTtl() == 0) {
-      sensor.setTtl(platformService.getPlatformTtl());
-    }
-  }
-
   /*
    * (non-Javadoc)
    *
@@ -417,6 +412,32 @@ public class SensorController extends CrudController<Sensor> {
     super.doBeforeUpdateResource(sensor, model);
     if (!StringUtils.hasText(sensor.getSubstate())) {
       sensor.setSubstate(null);
+    }
+
+    // keep additionalInfo field
+    if (CollectionUtils.isEmpty(sensor.getAdditionalInfo())) {
+      final Sensor aux = getService().find(sensor);
+      sensor.setAdditionalInfo(aux.getAdditionalInfo());
+    }
+
+    setDefaultTtl(sensor);
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.controller.CrudController#doBeforeCreateResource(org.sentilo.web.
+   * catalog.domain.CatalogDocument, org.springframework.ui.Model)
+   */
+  protected void doBeforeCreateResource(final Sensor sensor, final Model model) {
+    super.doBeforeCreateResource(sensor, model);
+    setDefaultTtl(sensor);
+  }
+
+  private void setDefaultTtl(final Sensor sensor) {
+    // If sensor TTL is null it means that its TTL equals default platform TTL
+    if (sensor.getTtl() == null) {
+      sensor.setTtl(platformService.getPlatformTtl());
     }
   }
 

@@ -20,7 +20,7 @@ function makeAudioLinkChartLine(id, ph, data) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + data.timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">AUDIO</span>&nbsp;' + 
 		' 	<span class="link"><a id="audio-link-'+id + '" class="audio-link" href="#" onclick="loadAudioPlayer(audioLinkObjects['+id+'].value, audioLinkObjects['+id+'].formattedValue, audioLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
 		'</div>';
@@ -40,7 +40,7 @@ function makeVideoLinkChartLine(id, ph, data) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + data.timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">VIDEO</span>&nbsp;' + 
 		' 	<span class="link"><a id="video-link-'+id + '" class="video-link" href="#" onclick="loadVideoPlayer(videoLinkObjects['+id+'].value, videoLinkObjects['+id+'].formattedValue, videoLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
 		'</div>';
@@ -60,7 +60,7 @@ function makeImageLinkChartLine(id, ph, data) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + data.timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">IMAGE</span>&nbsp;' + 
 		' 	<span class="link"><a id="image-link-'+id + '" class="image-link" href="#" onclick="loadImage(imageLinkObjects['+id+'].value, imageLinkObjects['+id+'].formattedValue, imageLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
 		'</div>';
@@ -80,7 +80,7 @@ function makeFileLinkChartLine (id, ph, data) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + data.timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">FILE</span>&nbsp;' + 
 		' 	<span class="link"><a id="file-link-'+id + '" class="file-link" href="#" onclick="loadFile(fileLinkObjects['+id+'].value, fileLinkObjects['+id+'].formattedValue, fileLinkObjects['+id+'].filename, fileLinkObjects['+id+'].timestamp)">' + data.value + '</a></span>' +
 		'</div>';
@@ -99,7 +99,7 @@ function makeLinkChartLine(id, ph, data) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(data.timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + data.timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">LINK</span>&nbsp;' + 
 		' 	<span class="link"><a id="link-'+id + '" class="link" href="'+data.value+'" target="_blank">' + data.value + '</a></span>' +
 		'</div>';
@@ -144,7 +144,7 @@ function makeTextChartLine(ph, timestamp, text, label) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">TEXT</span>&nbsp;' + 
 		' 	<span class="text">' + text + '</span>' +
 		'</div>';
@@ -158,7 +158,7 @@ function makeJsonChartLine (id, ph, valuePh, timestamp, text, label) {
 	
 	var html = 
 		'<div class="activity_text_element">' +
-		'	<span class="label label-info">' + formatTimestamp(timestamp) + '</span>&nbsp;' +
+		'	<span class="label label-info">' + timestamp + '</span>&nbsp;' +
 		'  	<span class="label label-success">JSON</span>&nbsp;' + 
 		' 	<span class="link"><a href="#" onclick="showJson(\''+valuePh+'\', jsonLinkObjects['+id+'].value);">' + text + '</a></span>' +
 		'</div>';

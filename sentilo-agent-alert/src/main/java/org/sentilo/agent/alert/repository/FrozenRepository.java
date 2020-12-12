@@ -45,7 +45,7 @@ public interface FrozenRepository {
   /**
    * For each alert, updates its timeout on the repository
    *
-   * @param newFrozenAlerts
+   * @param frozenAlerts
    */
   void updateFrozenTimeouts(Collection<InternalAlert> frozenAlerts);
 
@@ -53,7 +53,7 @@ public interface FrozenRepository {
    * Updates the set of alerts registered on the repository by adding the alerts defined on the list
    * newFrozenAlerts
    *
-   * @param frozenAlerts frozen alerts to add
+   * @param newFrozenAlerts frozen alerts to add
    */
   void synchronizeAlerts(Collection<InternalAlert> newFrozenAlerts);
 }

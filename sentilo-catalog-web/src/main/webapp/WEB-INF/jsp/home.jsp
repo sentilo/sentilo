@@ -1,15 +1,35 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/header.jsp"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp" %>
 
-<%@include file="/WEB-INF/jsp/common/include_script_maps.jsp"%>
+<c:choose>
+	<c:when test="${provider_map == 'gmaps'}">		
+		<script type="text/javascript">
+			$(document).ready(function() {
+				initializeHomeMap("#map_canvas_1", '${mapboxStyle}');
+			});
+		</script>
+	</c:when>	
+	<c:otherwise>		
+		<script type="text/javascript">
+			$(document).ready(function() {
+				const mapProviderValue = '${provider_map}';
+				const selector = "#map_canvas_1";
 
-<script type="text/javascript">
-	$(document).ready(function() {
-		initializeHomeMap("#map_canvas_1");		
-	});
-</script>
+				const mapProperties = {
+					selector: selector,
+					provider: mapProviderValue,
+					controls: false
+				};
+				initializeComponentMap(mapProperties);				
+				
+			});
+		</script>
+	</c:otherwise>
+</c:choose>
 
+<div id="bgHomeScreen"></div>
 <div class="container-fluid">
 	<div class="mapcontent">
 		<div class="row-fluid">

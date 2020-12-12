@@ -54,8 +54,8 @@ public class TopicName {
    *
    *
    * Possible values of topicNameMode: topicPerSensor, topicPerProvider, topicPerSensorType,
-   * topicPerMessageType, singleTopic Examples with value of kafka.topicPrefix set to "sentilo" and
-   * kafka.topicSeparator set to ".": topicPerSensor: sentilo.data.providerName.sensorName
+   * topicPerMessageType, singleTopic Examples with value of kafka.topic.prefix set to "sentilo" and
+   * kafka.topic.separator set to ".": topicPerSensor: sentilo.data.providerName.sensorName
    * topicPerProvider: sentilo.data.providerName topicPerSensorType: sentilo.data.temperature
    * topicPerMessageType: sentilo.data singleTopic: sentilo
    *

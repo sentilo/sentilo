@@ -38,7 +38,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
-import org.hibernate.validator.constraints.Range;
 import org.sentilo.common.domain.TechnicalDetails;
 import org.sentilo.common.enums.SensorState;
 import org.sentilo.web.catalog.utils.CatalogUtils;
@@ -118,8 +117,7 @@ public class Sensor implements FederatedResource, TenantResource, EntityResource
 
   private String substate;
 
-  @Range
-  private int ttl;
+  private Integer ttl;
 
   @Transient
   private String substateDesc;
@@ -422,11 +420,11 @@ public class Sensor implements FederatedResource, TenantResource, EntityResource
     return substate;
   }
 
-  public int getTtl() {
+  public Integer getTtl() {
     return ttl;
   }
 
-  public void setTtl(final int ttl) {
+  public void setTtl(final Integer ttl) {
     this.ttl = ttl;
   }
 

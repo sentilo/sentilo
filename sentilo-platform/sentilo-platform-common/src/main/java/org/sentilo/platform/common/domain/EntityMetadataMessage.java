@@ -41,6 +41,10 @@ public class EntityMetadataMessage {
   private String tenantId;
   @JsonInclude(value = Include.NON_NULL)
   private boolean restHttps;
+  @JsonInclude(value = Include.NON_NULL)
+  private long apiInputQuota;
+  @JsonInclude(value = Include.NON_NULL)
+  private long apiOutputQuota;
 
   public void setToken(final String token) {
     this.token = token;
@@ -73,4 +77,21 @@ public class EntityMetadataMessage {
   public void setRestHttps(final boolean restHttps) {
     this.restHttps = restHttps;
   }
+
+  public long getApiInputQuota() {
+    return apiInputQuota;
+  }
+
+  public void setApiInputQuota(final long apiInputQuota) {
+    this.apiInputQuota = apiInputQuota;
+  }
+
+  public long getApiOutputQuota() {
+    return apiOutputQuota;
+  }
+
+  public void setApiOutputQuota(final long apiOutputQuota) {
+    this.apiOutputQuota = apiOutputQuota;
+  }
+
 }

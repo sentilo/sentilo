@@ -51,6 +51,7 @@ import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.relational.domain.Alarm;
 import org.sentilo.agent.relational.domain.Observation;
 import org.sentilo.agent.relational.domain.Order;
@@ -76,6 +77,9 @@ public class AgentRelationalBatchRepositoryImplTest extends AbstractBaseTest {
 
   @Mock
   private JdbcTemplate jdbcTemplate;
+
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   @InjectMocks
   private AgentRelationalBatchRepositoryImpl repository;

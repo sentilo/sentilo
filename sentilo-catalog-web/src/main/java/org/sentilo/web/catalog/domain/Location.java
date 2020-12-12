@@ -31,8 +31,8 @@ package org.sentilo.web.catalog.domain;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
-import org.sentilo.web.catalog.utils.Constants;
 
 public class Location implements Serializable {
 
@@ -95,10 +95,10 @@ public class Location implements Serializable {
     if (!SentiloUtils.arrayIsEmpty(coordinates)) {
       for (final LngLat coordinate : coordinates) {
         if (!first) {
-          sb.append(Constants.LOCATION_TOKEN_SPLITTER);
+          sb.append(SentiloConstants.LOCATION_TOKEN_SPLITTER);
         }
         sb.append(coordinate.getLatitude());
-        sb.append(Constants.LOCATION_TOKEN_DIVIDER);
+        sb.append(SentiloConstants.LOCATION_TOKEN_DIVIDER);
         sb.append(coordinate.getLongitude());
 
         first = false;

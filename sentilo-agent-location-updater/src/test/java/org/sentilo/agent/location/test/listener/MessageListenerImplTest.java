@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.location.batch.AsyncCatalogResourceUpdater;
 import org.sentilo.agent.location.listener.MessageListenerImpl;
 import org.sentilo.common.cache.LRUCache;
@@ -57,6 +58,8 @@ public class MessageListenerImplTest {
   private LRUCache<String, String> sensorLocationsCache;
   @Mock
   private AsyncCatalogResourceUpdater asyncResourceUpdater;
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   @Mock
   private EventMessage eventMessage;

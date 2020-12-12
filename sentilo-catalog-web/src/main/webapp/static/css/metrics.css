@@ -1,0 +1,248 @@
+.tabcontent {
+	display: none;
+}
+
+.percent span {
+	font-size: 26px;
+	top: 38px;
+	width: 120px;
+	color: #1ebfae;
+}
+
+.progress {
+	margin-top: 10px;
+}
+
+.indicator {
+	width: 10px;
+	height: 10px;
+	display: inline-block;
+	border-radius: 9999px;
+	margin-right: 5px;
+}
+
+.indicator.label-success {
+	background-color: #8ad919;
+}
+
+.indicator.label-danger {
+	background-color: red;
+}
+
+span.key {
+	padding: 0px 5px 0px 0px;
+	margin: 0;
+}
+
+div[id$='total_by_statusStats'] .stats {
+	font-weight: bold;
+	font-size: 18px;
+	text-shadow: none;
+	color: #000;
+}
+
+div[id$='stats'], div[id$='Stats'] {
+	margin: 0;
+	padding: 0;
+}
+
+div[id$='file_systemsStats'] .agrouper, div[id$='path_stats'] span.key,
+	div[id$='data_sourcesStats'] .agrouper, div[id$='numberStats'] span.key,
+	div[id$='system_memoryStats'] div[id$='total_stats'] span.key, div[id$='threads'] div[id$='total_stats'] span.key,
+	div[id$='cpu'] div[id$='number_stats'] span.key, div[id$='instance_stats'] span.key,
+	div[id$='requestsStats'] div[id$='total_stats'] span.key {
+	display: none;
+}
+
+div[id$='path_stats'] span.value, div[id$='number_stats'] span.value,
+	div[id$='system_memoryStats'] div[id$='total_stats'] span.value, div[id$='file_systemsStats'] div[id$='path_stats'] span.value,
+	div[id$='threadsStats'] div[id$='total_stats'] span.value, div[id$='requestsStats'] div[id$='total_stats'] span.value,
+	div[id$='total_by_statusStats'] div[id$='_stats'] span.value, div[id$='instance_stats'] span.value
+	{
+	font-size: 38px;
+	font-weight: 100;
+	line-height: 42px;
+	text-align: center;
+	width: 100%;
+	margin: 0;
+}
+
+.accordion-inner.metrics {
+	min-height: 190px;
+}
+
+.accordion.metrics {
+  	margin-right: 25px;
+}
+
+.accordion.accustom {
+    margin-right: 25px;
+}
+    
+div[id$='data_sourcesStats'] div[id$='Stats'], div[id$='process_memoryStats'] div[id$='Stats'],
+	div[id$='file_systemsStats']  div[id$='progressBar'], div[id$='file_systemsStats']  div[id$='Stats'],
+	div[id$='data_sourcesStats'] div[id$='Stats'] {
+	width: 48.717948717948715%;
+	float: left;
+}
+
+div[id$='total_by_statusStats'] div[id$='_stats'] {
+	width: 30.33333%;
+	float: left;
+}
+
+div[id$='dataStats'], div[id$='alarmStats'], div[id$='globalStats'], div[id$='orderStats']
+	{
+	width: 25%;
+	float: left;
+}
+
+span.hostmane {
+	color: #c1c1c1;
+	font-weight: 400;
+	font-size: 16px;
+}
+
+.emptyprogress {
+	height: 20px;
+	margin-bottom: 20px;
+	background: none;
+	border: none;
+	box-shadow: none;
+	display: none;
+}
+
+div[id$='cpuStats'] .emptyprogress, div[id$='requestsStats'] .emptyprogress,
+	div[id$='threadsStats'] .emptyprogress, div[id$='thread_poolStats'] .emptyprogress,
+	div[id$='data_sourcesStats'] .emptyprogress, div[id$='eventsStats'] .emptyprogress,
+	div[id$='process_memoryStats'] .emptyprogress {
+	display: none
+}
+
+div[id$='non_heapStats'] .agrouper {
+	margin-bottom: 50px;
+}
+
+#abstract {
+	display: flex;
+}
+
+span.date-footer {
+	bottom: 5px;
+	color: #aaa;
+	font-weight: 100;
+	left: 10px;
+	line-height: 17px;
+	margin: 0;
+}
+
+#abstract li:hover .accordion-group {
+	background-color: #eeeeee;
+}
+
+#abstract li.active .accordion-group {
+	background-color: #eeeeee;
+}
+
+.tabcontent ul, #abstract ul {
+	display: flex;
+	flex-flow: wrap;
+	width: 100%;
+	margin-left: 0
+}
+
+.tabcontent ul li, #abstract ul li {
+    list-style-type: none;
+    line-height: 20px;
+    min-width: 379px;
+    max-width: 379px;
+    width: auto;
+    flex-grow: 1;
+    margin-right: 25px;
+}
+
+#abstract ul li {
+    min-width: 278px;
+    max-width: 278px;
+    margin-bottom: 25px;
+}
+
+#abstract .accordion-inner {
+	min-height: auto !important;
+}
+
+#abstract .accordion {
+	margin-bottom: 0 !important;
+	border: none;
+}
+
+h1#metrics-name {
+	margin-top: 0;
+	margin-bottom: 40px;
+}
+
+span.value {
+	font-weight: 600;
+}
+
+div#requests_total_by_statusStats {
+	padding: 15px 0px 0px 0px;
+}
+
+.ct-legend {
+	font-size: 12px;
+	line-height: 13px;
+	text-align: right;
+}
+
+.ct-legend {
+	position: relative;
+	z-index: 10;
+	list-style: none;
+	text-align: center;
+}
+
+ul.ct-legend {
+	display: block;
+	margin-bottom: 15px;
+}
+
+.ct-legend li {
+	flex-grow: inherit;
+	line-height: 8px !important;
+	padding-left: 16px !important;;
+}
+
+.ct-legend li {
+	flex-grow: inherit !important;
+	min-width: auto !important;
+	max-width: 100% !important;
+	position: relative;	
+	margin-right: 10px !important;
+	margin-bottom: 3px !important;
+	display: inline-block;
+	line-height: 16px;
+}
+
+.ct-chart-centered-labels .ct-label.ct-horizontal{
+    transform:rotate(-30deg) translateX(-80%) translateY(-60%) !important;
+}
+
+@media screen and (max-width: 767px) {
+	.custom {
+		margin: 25px;
+	}
+	.tabcontent ul li, #abstract ul li {
+		max-width: 100%;
+		margin-right: 0px;
+		min-width: 100%;
+	}
+	.custom.min.accordion-group {
+		min-width: auto;
+		margin-right: 0;
+	}
+	
+	.accordion.metrics {
+    	margin-right: 0px;
+    }
+}

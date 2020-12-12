@@ -80,7 +80,7 @@ public class EntityMetadataRepositoryImpl implements EntityMetadataRepository {
     return idEntitiesMetadataMap.containsKey(entity) ? idEntitiesMetadataMap.get(entity).getTenantId() : null;
   }
 
-  @Scheduled(initialDelay = 1000, fixedRate = 300000)
+  @Scheduled(initialDelay = 1000, fixedRate = 60000)
   public void loadActiveEntitiesMetadata() {
     try {
       LOGGER.info("Upgrading entity metadata cache");

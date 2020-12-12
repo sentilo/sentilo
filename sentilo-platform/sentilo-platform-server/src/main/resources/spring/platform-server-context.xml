@@ -14,17 +14,68 @@
 	<context:component-scan base-package="org.sentilo.platform.server.handler.impl" />
 	<context:component-scan base-package="org.sentilo.platform.server.auth.impl" />
 	<context:component-scan base-package="org.sentilo.platform.server.config" />
+	<context:component-scan base-package="org.sentilo.platform.server.metrics" />
+	<context:component-scan base-package="org.sentilo.platform.server.monitor" />
+	<context:component-scan base-package="org.sentilo.platform.common.ratelimiter" />
+	<context:component-scan base-package="org.sentilo.platform.server.request.interceptor" />	
 	<context:component-scan base-package="org.sentilo.common.config" />
+	<context:component-scan base-package="org.sentilo.common.metrics" />	
 
+	
+	<!--  API server  -->
 	<bean id="listener" class="org.sentilo.platform.server.http.RequestListenerThread" p:port="${port}" p:socketTcpBacklog="${socket.tcp.backlog}"
 		p:socketBufferSize="${socket.buffer.size}" p:socketMillisecondsTimeout="${socket.timeout.milliseconds}"
 		p:staleConnectionCheck="${stale.connection.check}" p:tcpNoDelay="${tcp.nodelay}" p:originServer="${origin.server}"
-		p:registeredURLs="${urls.registered}" />
+		p:registeredURLs="${urls.registered}"/>
 
 	<bean id="threadPool" class="org.sentilo.platform.server.pool.ThreadPool" p:initialCapacity="${thread.pool.capacity.initial}"
 		p:maxCapacity="${thread.pool.capacity.max}" p:shutdownSecondsTimeout="${thread.pool.shutdown.timeout.seconds}"
 		p:queueSize="${thread.pool.queue.size}" p:groupId="${thread.pool.group.id}" p:groupName="${thread.pool.group.name}" />
 
+	<bean id="apiServerRequestHandler" class="org.sentilo.platform.server.request.SentiloRequestHandler" p:handlerLocator-ref="apiHandlerLocator">
+		<property name="requestInterceptors">
+			<list>
+				<ref bean="credentialInterceptor" />
+				<ref bean="SSLAccessInterceptor" />
+				<ref bean="rateLimiterInterceptor"/>
+				<ref bean="bodyLengthInterceptor"/>
+			</list>
+		</property>
+	</bean>	
+	
+	<bean id="apiHandlerLocator" class="org.sentilo.platform.server.handler.HandlerLocator">
+		<constructor-arg>	
+			<map>
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).ORDER}" value-ref="orderHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).ALARM}" value-ref="alarmHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).SUBSCRIBE}" value-ref="subscribeHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).CATALOG}" value-ref="catalogHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).DATA}" value-ref="dataHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).ADMIN}" value-ref="adminHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).CATALOG_ALERT}" value-ref="catalogAlertHandler" />
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<!--  Monitor server -->
+	<bean id="monitorServer" class="org.sentilo.platform.server.http.SentiloMonitorServer" p:port="${monitor.port}" 
+		p:requestHandler-ref="monitorRequestHandler"/>
+	
+	<bean id="monitorRequestHandler" class="org.sentilo.platform.server.request.SentiloRequestHandler" p:handlerLocator-ref="monitorHandlerLocator">
+		<property name="requestInterceptors">
+			<list>
+				<ref bean="credentialInterceptor" />				
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="monitorHandlerLocator" class="org.sentilo.platform.server.handler.HandlerLocator">
+		<constructor-arg>	
+			<map>
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).MONITOR}" value-ref="monitorHandler" />			 	
+			</map>
+		</constructor-arg>
+	</bean>
 
     <!--
       The tag annotation-driven enables support for @Scheduled and @Async method annotations:  

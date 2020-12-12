@@ -94,6 +94,19 @@ public class PlatformJsonMessageConverter extends BaseJsonMessageConverter {
     }
   }
 
+  protected String parseLocation(final String location) throws JsonConverterException {
+    if (SentiloUtils.isValidLocationFormat(location)) {
+      return location;
+    } else {
+      throw buildJsonFieldError("location", location, new IllegalArgumentException(buildFieldErrorMessage("location", location)));
+    }
+  }
+
+  protected String buildFieldErrorMessage(final String fieldName, final String fieldValue) {
+    final String errorTemplate = "Wrong value for field %s (%s).";
+    return String.format(errorTemplate, fieldName, fieldValue);
+  }
+
   protected Integer parseInteger(final String integer) throws JsonConverterException {
     try {
       return StringUtils.hasText(integer) ? Integer.valueOf(integer) : null;

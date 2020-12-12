@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;;
 public class CatalogServiceImpl implements CatalogService {
 
   private static final String UNKNOWN_TYPE = "unknown_type";
-  
+
   @Autowired
   private MongoOperations mongoOperations;
 

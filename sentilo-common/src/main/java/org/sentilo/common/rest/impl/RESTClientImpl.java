@@ -84,6 +84,7 @@ import org.sentilo.common.utils.URIUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public class RESTClientImpl implements RESTClient, InitializingBean {
@@ -286,6 +287,11 @@ public class RESTClientImpl implements RESTClient, InitializingBean {
   private void prepareRequest(final HttpRequestBase httpRequest, final String body, final RequestContext rc) throws GeneralSecurityException {
     if (StringUtils.hasText(body)) {
       ((HttpEntityEnclosingRequestBase) httpRequest).setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
+    }
+
+    // Add custom headers
+    if (!CollectionUtils.isEmpty(rc.getHeaders())) {
+      rc.getHeaders().forEach((key, value) -> httpRequest.addHeader(key, value));
     }
 
     if (StringUtils.hasText(rc.getIdentityToken())) {

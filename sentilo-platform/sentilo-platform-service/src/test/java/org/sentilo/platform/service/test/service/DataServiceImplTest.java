@@ -28,6 +28,7 @@
  */
 package org.sentilo.platform.service.test.service;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
@@ -45,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,9 +65,10 @@ import org.sentilo.platform.common.security.RequesterContext;
 import org.sentilo.platform.common.security.RequesterContextHolder;
 import org.sentilo.platform.common.security.ResourceOwnerContext;
 import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
+import org.sentilo.platform.common.service.InternalAlarmService;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
+import org.sentilo.platform.service.dao.SentiloRedisTemplate;
+import org.sentilo.platform.service.dao.SentiloSequenceUtils;
 import org.sentilo.platform.service.impl.DataServiceImpl;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
@@ -81,9 +84,9 @@ public class DataServiceImplTest {
   @Mock
   private DataInputMessage inputMessage;
   @Mock
-  private JedisTemplate<String, String> jedisTemplate;
+  private SentiloRedisTemplate sRedisTemplate;
   @Mock
-  private JedisSequenceUtils jedisSequenceUtils;
+  private SentiloSequenceUtils sequenceUtils;
   @Mock
   private ResourceService resourceService;
   @Mock
@@ -92,6 +95,8 @@ public class DataServiceImplTest {
   private ResourceOwnerContext resourceOwnerContext;
   @Mock
   private QueryFilterParams queryFilterParams;
+  @Mock
+  private InternalAlarmService internalAlarmService;
 
   @Before
   public void setUp() {
@@ -100,15 +105,21 @@ public class DataServiceImplTest {
     ResourceOwnerContextHolder.setContext(resourceOwnerContext);
   }
 
+  @After
+  public void tearDown() {
+    RequesterContextHolder.clearContext();
+    ResourceOwnerContextHolder.clearContext();
+  }
+
   @Test
   public void setObservations() {
     final String provider = "prov1";
     final String sensor1 = "sensor1";
     final List<Observation> observations = buildObservations(provider, sensor1);
     when(inputMessage.getObservations()).thenReturn(observations);
-    // when(jedisSequenceUtils.getSid(eq(provider), eq(sensor1))).thenReturn(new Long(1));
+    // when(sequenceUtils.getSid(eq(provider), eq(sensor1))).thenReturn(new Long(1));
     when(resourceService.getSensor(eq(provider), eq(sensor1))).thenReturn(new Sensor(1L, provider, sensor1, SensorState.online.name(), "2"));
-    when(jedisSequenceUtils.getSdid()).thenReturn(new Long(10));
+    when(sequenceUtils.getSdid()).thenReturn(new Long(10));
 
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensor1);
 
@@ -117,11 +128,11 @@ public class DataServiceImplTest {
     // Para cada observacion se pasara una vez por los metodos indicados
     verify(inputMessage).getObservations();
     verify(resourceService, times(observations.size())).getSensor(eq(provider), eq(sensor1));
-    verify(jedisSequenceUtils, times(0)).getSid(provider, sensor1);
-    verify(jedisSequenceUtils, times(observations.size())).getSdid();
-    verify(jedisTemplate, times(observations.size())).hmSet(eq("sdid:10"), anyMapOf(String.class, String.class));
-    verify(jedisTemplate, times(observations.size())).zAdd(eq("sid:1:observations"), anyDouble(), eq("10"));
-    verify(jedisTemplate, times(observations.size())).publish(eq(topic.getTopic()), anyString());
+    verify(sequenceUtils, times(0)).getSid(provider, sensor1);
+    verify(sequenceUtils, times(observations.size())).getSdid();
+    verify(sRedisTemplate, times(observations.size())).hmSet(eq("sdid:10"), anyMapOf(String.class, String.class));
+    verify(sRedisTemplate, times(observations.size())).zAdd(eq("sid:1:observations"), anyDouble(), eq("10"));
+    verify(sRedisTemplate, times(observations.size())).publish(eq(topic.getTopic()), anyString());
   }
 
   @Test
@@ -145,13 +156,13 @@ public class DataServiceImplTest {
       }
 
     });
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensorId))).thenReturn(sid);
-    when(jedisSequenceUtils.getSdid()).thenReturn(new Long(10));
+    when(sequenceUtils.getSid(eq(provider), eq(sensorId))).thenReturn(sid);
+    when(sequenceUtils.getSdid()).thenReturn(new Long(10));
     when(resourceService.registerGhostSensorIfNeedBe(sensor)).then(new Answer<Long>() {
 
       @Override
       public Long answer(final InvocationOnMock invocation) throws Throwable {
-        final Long sid = jedisSequenceUtils.getSid(sensor.getProvider(), sensor.getSensor());
+        final Long sid = sequenceUtils.getSid(sensor.getProvider(), sensor.getSensor());
         sensor.setState(SensorState.ghost);
         sensor.setSid(sid);
         return sid;
@@ -160,17 +171,16 @@ public class DataServiceImplTest {
     });
 
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensorId);
-    final Topic ghostAlarmTopic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, provider, sensorId);
 
     service.setObservations(inputMessage);
 
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(observations.size())).getSid(provider, sensorId);
-    verify(jedisSequenceUtils, times(observations.size())).getSdid();
-    verify(jedisTemplate, times(observations.size())).hmSet(eq("sdid:10"), anyMapOf(String.class, String.class));
-    verify(jedisTemplate, times(observations.size())).zAdd(eq("sid:1:observations"), anyDouble(), eq("10"));
-    verify(jedisTemplate, times(observations.size())).publish(eq(topic.getTopic()), anyString());
-    verify(jedisTemplate, times(1)).publish(eq(ghostAlarmTopic.getTopic()), anyString());
+    verify(sequenceUtils, times(observations.size())).getSid(provider, sensorId);
+    verify(sequenceUtils, times(observations.size())).getSdid();
+    verify(sRedisTemplate, times(observations.size())).hmSet(eq("sdid:10"), anyMapOf(String.class, String.class));
+    verify(sRedisTemplate, times(observations.size())).zAdd(eq("sid:1:observations"), anyDouble(), eq("10"));
+    verify(sRedisTemplate, times(observations.size())).publish(eq(topic.getTopic()), anyString());
+    verify(internalAlarmService, times(observations.size())).publishGhostSensorAlarm(any());
   }
 
   @Test
@@ -191,9 +201,9 @@ public class DataServiceImplTest {
 
     Assert.assertTrue(dataRejected);
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(0)).getSid(provider, sensor);
-    verify(jedisSequenceUtils, times(0)).getSdid();
-    verify(jedisTemplate, times(0)).publish(eq(topic.getTopic()), anyString());
+    verify(sequenceUtils, times(0)).getSid(provider, sensor);
+    verify(sequenceUtils, times(0)).getSdid();
+    verify(sRedisTemplate, times(0)).publish(eq(topic.getTopic()), anyString());
   }
 
   @Test
@@ -206,7 +216,7 @@ public class DataServiceImplTest {
     final List<Observation> observations = buildObservations(provider, sensorId);
 
     when(inputMessage.getObservations()).thenReturn(observations);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensorId))).thenReturn(sid);
+    when(sequenceUtils.getSid(eq(provider), eq(sensorId))).thenReturn(sid);
     when(resourceService.getSensor(eq(provider), eq(sensorId))).thenReturn(sensor);
 
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, provider, sensorId);
@@ -219,9 +229,9 @@ public class DataServiceImplTest {
 
     Assert.assertTrue(dataRejected);
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(0)).getSid(provider, sensorId);
-    verify(jedisSequenceUtils, times(0)).getSdid();
-    verify(jedisTemplate, times(0)).publish(eq(topic.getTopic()), anyString());
+    verify(sequenceUtils, times(0)).getSid(provider, sensorId);
+    verify(sequenceUtils, times(0)).getSdid();
+    verify(sRedisTemplate, times(0)).publish(eq(topic.getTopic()), anyString());
   }
 
   @Test
@@ -232,8 +242,8 @@ public class DataServiceImplTest {
     final String sensor2 = "sensor2";
     final List<Observation> observations = buildObservations(provider, sensor1, sensor2);
     when(inputMessage.getObservations()).thenReturn(observations);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor1))).thenReturn(null);
-    when(jedisSequenceUtils.getSid(eq(provider), eq(sensor2))).thenReturn(2L);
+    when(sequenceUtils.getSid(eq(provider), eq(sensor1))).thenReturn(null);
+    when(sequenceUtils.getSid(eq(provider), eq(sensor2))).thenReturn(2L);
     when(resourceService.getSensor(eq(provider), eq(sensor1))).thenReturn(new Sensor(provider, sensor1));
     when(resourceService.getSensor(eq(provider), eq(sensor2))).thenReturn(new Sensor(2L, provider, sensor1, SensorState.online.name(), "2"));
 
@@ -247,9 +257,9 @@ public class DataServiceImplTest {
 
     Assert.assertTrue(dataRejected);
     verify(inputMessage).getObservations();
-    verify(jedisSequenceUtils, times(0)).getSid(provider, sensor1);
-    verify(jedisSequenceUtils, times(observations.size() / 2)).getSdid();
-    verify(jedisTemplate, times(observations.size() / 2)).publish(eq(topic.getTopic()), anyString());
+    verify(sequenceUtils, times(0)).getSid(provider, sensor1);
+    verify(sequenceUtils, times(observations.size() / 2)).getSdid();
+    verify(sRedisTemplate, times(observations.size() / 2)).publish(eq(topic.getTopic()), anyString());
   }
 
   @Test
@@ -258,16 +268,16 @@ public class DataServiceImplTest {
     final String sensor = "sensor1";
     when(inputMessage.getSensorId()).thenReturn(sensor);
     when(inputMessage.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
-    when(jedisTemplate.zRange(eq("sid:1:observations"), anyLong(), anyLong())).thenReturn(null);
+    when(sequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
+    when(sRedisTemplate.zRange(eq("sid:1:observations"), anyLong(), anyLong())).thenReturn(null);
 
     service.deleteLastObservations(inputMessage);
 
     verify(inputMessage, times(2)).getSensorId();
     verify(inputMessage).getProviderId();
-    verify(jedisTemplate).zRange(eq("sid:1:observations"), anyLong(), anyLong());
-    verify(jedisTemplate, times(0)).zRemRangeByRank(eq("sid:1:observations"), anyLong(), anyLong());
-    verify(jedisTemplate, times(0)).del(anyString());
+    verify(sRedisTemplate).zRange(eq("sid:1:observations"), anyLong(), anyLong());
+    verify(sRedisTemplate, times(0)).zRemRangeByRank(eq("sid:1:observations"), anyLong(), anyLong());
+    verify(sRedisTemplate, times(0)).del(anyString());
   }
 
   @Test
@@ -278,16 +288,16 @@ public class DataServiceImplTest {
 
     when(inputMessage.getSensorId()).thenReturn(sensor);
     when(inputMessage.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
-    when(jedisTemplate.zRange(eq("sid:1:observations"), anyLong(), anyLong())).thenReturn(sdids);
+    when(sequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
+    when(sRedisTemplate.zRange(eq("sid:1:observations"), anyLong(), anyLong())).thenReturn(sdids);
 
     service.deleteLastObservations(inputMessage);
 
     verify(inputMessage, times(2)).getSensorId();
     verify(inputMessage).getProviderId();
-    verify(jedisTemplate).zRange(eq("sid:1:observations"), anyLong(), anyLong());
-    verify(jedisTemplate, times(1)).zRemRangeByRank(eq("sid:1:observations"), anyLong(), anyLong());
-    verify(jedisTemplate, times(1)).del(anyString());
+    verify(sRedisTemplate).zRange(eq("sid:1:observations"), anyLong(), anyLong());
+    verify(sRedisTemplate, times(1)).zRemRangeByRank(eq("sid:1:observations"), anyLong(), anyLong());
+    verify(sRedisTemplate, times(1)).del(anyString());
   }
 
   @Test
@@ -296,8 +306,8 @@ public class DataServiceImplTest {
 
     when(inputMessage.getSensorId()).thenReturn(null);
     when(inputMessage.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
+    when(sequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
+    when(sequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
     when(resourceService.getSensorsFromProvider(provider)).thenReturn(null);
 
     service.deleteLastObservations(inputMessage);
@@ -305,9 +315,9 @@ public class DataServiceImplTest {
     verify(inputMessage).getSensorId();
     verify(inputMessage).getProviderId();
     verify(resourceService).getSensorsFromProvider(provider);
-    verify(jedisTemplate, times(0)).zRange(anyString(), anyLong(), anyLong());
-    verify(jedisTemplate, times(0)).zRemRangeByRank(anyString(), anyLong(), anyLong());
-    verify(jedisTemplate, times(0)).del(anyString());
+    verify(sRedisTemplate, times(0)).zRange(anyString(), anyLong(), anyLong());
+    verify(sRedisTemplate, times(0)).zRemRangeByRank(anyString(), anyLong(), anyLong());
+    verify(sRedisTemplate, times(0)).del(anyString());
   }
 
   @Test
@@ -317,19 +327,19 @@ public class DataServiceImplTest {
 
     when(inputMessage.getSensorId()).thenReturn(null);
     when(inputMessage.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
-    when(jedisSequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
+    when(sequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
+    when(sequenceUtils.getSid(notNull(String.class), notNull(String.class))).thenReturn(new Long(1));
     when(resourceService.getSensorsFromProvider(provider)).thenReturn(buildSids());
-    when(jedisTemplate.zRange(anyString(), anyLong(), anyLong())).thenReturn(buildSdids());
+    when(sRedisTemplate.zRange(anyString(), anyLong(), anyLong())).thenReturn(buildSdids());
 
     service.deleteLastObservations(inputMessage);
 
     verify(inputMessage).getSensorId();
     verify(inputMessage).getProviderId();
     verify(resourceService).getSensorsFromProvider(provider);
-    verify(jedisTemplate, times(1 * sids.size())).zRange(anyString(), anyLong(), anyLong());
-    verify(jedisTemplate, times(1 * sids.size())).zRemRangeByRank(anyString(), anyLong(), anyLong());
-    verify(jedisTemplate, times(1 * sids.size())).del(anyString());
+    verify(sRedisTemplate, times(1 * sids.size())).zRange(anyString(), anyLong(), anyLong());
+    verify(sRedisTemplate, times(1 * sids.size())).zRemRangeByRank(anyString(), anyLong(), anyLong());
+    verify(sRedisTemplate, times(1 * sids.size())).del(anyString());
 
   }
 
@@ -347,18 +357,18 @@ public class DataServiceImplTest {
     when(inputMessage.getQueryFilters()).thenReturn(queryFilterParams);
     when(queryFilterParams.getLimit()).thenReturn(limit);
     when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(sids);
-    when(jedisSequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
-    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids);
-    when(jedisTemplate.hGetAll("sdid:121")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
-    when(jedisTemplate.hGetAll("sdid:122")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(sequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
+    when(sRedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids);
+    when(sRedisTemplate.hGetAll("sdid:121")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(sRedisTemplate.hGetAll("sdid:122")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
     when(resourceService.getSensor(1l)).thenReturn(new Sensor(provider, sensor));
 
     service.getLastObservations(inputMessage);
 
     verify(inputMessage, times(limit)).getSensorId();
     verify(inputMessage, times(2)).getProviderId();
-    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
-    verify(jedisTemplate, times(limit)).hGetAll(anyString());
+    verify(sRedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
+    verify(sRedisTemplate, times(limit)).hGetAll(anyString());
   }
 
   @Test
@@ -376,20 +386,20 @@ public class DataServiceImplTest {
     when(inputMessage.getQueryFilters()).thenReturn(queryFilterParams);
     when(queryFilterParams.getLimit()).thenReturn(limit);
     when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(sids);
-    when(jedisSequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
-    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids_1);
-    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1))).thenReturn(sdids_2);
-    when(jedisTemplate.hGetAll("sdid:122")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
-    when(jedisTemplate.hGetAll("sdid:124")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(sequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
+    when(sRedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids_1);
+    when(sRedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1))).thenReturn(sdids_2);
+    when(sRedisTemplate.hGetAll("sdid:122")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(sRedisTemplate.hGetAll("sdid:124")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
     when(resourceService.getSensor(1l)).thenReturn(new Sensor(provider, sensor));
 
     service.getLastObservations(inputMessage);
 
     verify(inputMessage, times(limit)).getSensorId();
     verify(inputMessage, times(2)).getProviderId();
-    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
-    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1));
-    verify(jedisTemplate, times(4)).hGetAll(anyString());
+    verify(sRedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
+    verify(sRedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1));
+    verify(sRedisTemplate, times(4)).hGetAll(anyString());
   }
 
   @Test
@@ -408,22 +418,22 @@ public class DataServiceImplTest {
     when(inputMessage.getQueryFilters()).thenReturn(queryFilterParams);
     when(queryFilterParams.getLimit()).thenReturn(limit);
     when(resourceService.getSensorsToInspect(provider, sensor)).thenReturn(sids);
-    when(jedisSequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
-    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids_1);
-    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1))).thenReturn(sdids_2);
-    when(jedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(2 * limit), eq(limit + 1))).thenReturn(sdids_3);
-    when(jedisTemplate.hGetAll("sdid:126")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
-    when(jedisTemplate.hGetAll("sdid:127")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(sequenceUtils.getSid(provider, sensor)).thenReturn(new Long(1));
+    when(sRedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1))).thenReturn(sdids_1);
+    when(sRedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1))).thenReturn(sdids_2);
+    when(sRedisTemplate.zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(2 * limit), eq(limit + 1))).thenReturn(sdids_3);
+    when(sRedisTemplate.hGetAll("sdid:126")).thenReturn(ImmutableMap.of("data", "23", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
+    when(sRedisTemplate.hGetAll("sdid:127")).thenReturn(ImmutableMap.of("data", "24", "sid", "1", "ts", Long.toString(System.currentTimeMillis())));
     when(resourceService.getSensor(1l)).thenReturn(new Sensor(provider, sensor));
 
     service.getLastObservations(inputMessage);
 
     verify(inputMessage, times(2)).getSensorId();
     verify(inputMessage, times(2)).getProviderId();
-    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
-    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1));
-    verify(jedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(2 * limit), eq(limit + 1));
-    verify(jedisTemplate, times(7)).hGetAll(anyString());
+    verify(sRedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(0), eq(limit + 1));
+    verify(sRedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(limit), eq(limit + 1));
+    verify(sRedisTemplate).zRevRangeByScore(eq("sid:1:observations"), anyDouble(), anyDouble(), eq(2 * limit), eq(limit + 1));
+    verify(sRedisTemplate, times(7)).hGetAll(anyString());
   }
 
   // @Test
@@ -432,17 +442,17 @@ public class DataServiceImplTest {
     final Set<String> sdids = buildSdids();
 
     when(inputMessage.getProviderId()).thenReturn(provider);
-    when(jedisSequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
+    when(sequenceUtils.getPid(notNull(String.class))).thenReturn(new Long(1));
     when(resourceService.getSensorsToInspect(provider, null)).thenReturn(buildSids());
-    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSdids());
+    when(sRedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(buildSdids());
 
     service.getLastObservations(inputMessage);
 
     verify(inputMessage).getSensorId();
     verify(inputMessage, times(2)).getProviderId();
     verify(resourceService).getSensorsToInspect(provider, null);
-    verify(jedisTemplate, times(1 * sdids.size())).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
-    verify(jedisTemplate, times(2 * sdids.size())).hGetAll(anyString());
+    verify(sRedisTemplate, times(1 * sdids.size())).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
+    verify(sRedisTemplate, times(2 * sdids.size())).hGetAll(anyString());
   }
 
   private List<Observation> buildObservations(final String provider, final String... sensors) {

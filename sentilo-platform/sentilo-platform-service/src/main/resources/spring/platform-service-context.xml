@@ -19,26 +19,20 @@
 	<context:component-scan base-package="org.sentilo.platform.service.monitor" />
 	<context:component-scan base-package="org.sentilo.platform.service.notification" />
 	<context:component-scan base-package="org.sentilo.platform.common.security" />
+	<context:component-scan base-package="org.sentilo.platform.common.ratelimiter" />
 
 	
 	<!-- RESTClient used by the notifier process  -->
 	<bean id="pushRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" scope="prototype" 
 		p:noValidateCertificates="${api.subs.ssl.no-validate-certificates:false}"/>
-	
-	
-	<!-- Pool a utilizar por la plataforma para toda llamada que no tenga que ver con pubsub -->
-	<bean id="jedisPool" class="redis.clients.jedis.JedisPool" c:poolConfig-ref="jedisPoolConfig" c:host="${jedis.pool.host}"
-		c:port="${jedis.pool.port}" c:timeout="${jedis.pool.timeout}" c:password="${jedis.pool.password}" />
-
+		
 	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig" p:maxTotal="${jedis.config.maxactive}"
 		p:maxIdle="${jedis.config.maxidle}" p:maxWaitMillis="${jedis.config.maxwait}" p:testOnBorrow="true"/> 
 	
 	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
 		p:host-name="${jedis.pool.host}" p:port="${jedis.pool.port}" p:password="${jedis.pool.password}" p:timeout="${jedis.pool.timeout}"
 		p:usePool="true" p:poolConfig-ref="jedisPoolConfig" />
-		
 	
-	<!-- StringRedisTemplate for begin migration from custom JedisTemplate to StringRedisTemplate -->
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" 
 		p:connectionFactory-ref="jedisConnectionFactory" />	
 

@@ -110,8 +110,9 @@ public class ActivityMonitorRepositoryImpl implements ActivityMonitorRepository 
 
     esVersion = getElasticVersion();
 
-    LOGGER.info("Initialized ActivityMonitorRepositoryImpl with the following properties: batchSize {},  numMaxRetries {} and numMaxWorkers {} ",
-        batchSize, numMaxRetries, numMaxWorkers);
+    LOGGER.info(
+        "Initialized ActivityMonitorRepositoryImpl with the following properties: esVersion {}, batchSize {},  numMaxRetries {} and numMaxWorkers {} ",
+        esVersion, batchSize, numMaxRetries, numMaxWorkers);
 
   }
 

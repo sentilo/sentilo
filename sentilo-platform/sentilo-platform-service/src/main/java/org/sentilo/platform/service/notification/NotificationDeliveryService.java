@@ -32,12 +32,17 @@ public interface NotificationDeliveryService {
 
   /**
    * Push an HTTP notification to the target specify by {@link NotificationDeliveryContext}
+   * 
+   * @param message
+   * @param notificationContext
    */
   void pushNotification(final String message, final NotificationDeliveryContext notificationContext);
 
   /**
    * Push an HTTP notification to the target specify by
    * {@link NotificationRetryEvent#getNotificationDeliveryContext()}
+   * 
+   * @param notificationRetryEvent
    */
   void pushNotification(final NotificationRetryEvent notificationRetryEvent);
 

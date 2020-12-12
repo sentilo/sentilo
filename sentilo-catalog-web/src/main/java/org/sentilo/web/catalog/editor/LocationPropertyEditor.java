@@ -30,9 +30,9 @@ package org.sentilo.web.catalog.editor;
 
 import java.beans.PropertyEditorSupport;
 
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.web.catalog.domain.Location;
 import org.sentilo.web.catalog.utils.CatalogUtils;
-import org.sentilo.web.catalog.utils.Constants;
 
 public class LocationPropertyEditor extends PropertyEditorSupport {
 
@@ -55,10 +55,10 @@ public class LocationPropertyEditor extends PropertyEditorSupport {
 
     for (final String latLngToken : result) {
       if (!first) {
-        coordinatesFormatted.append(Constants.LOCATION_TOKEN_SPLITTER);
+        coordinatesFormatted.append(SentiloConstants.LOCATION_TOKEN_SPLITTER);
       }
 
-      coordinatesFormatted.append(latLngToken.replace("(", "").replace(")", "").replace(",", Constants.LOCATION_TOKEN_DIVIDER));
+      coordinatesFormatted.append(latLngToken.replace("(", "").replace(")", "").replace(",", SentiloConstants.LOCATION_TOKEN_DIVIDER));
       first = false;
     }
 

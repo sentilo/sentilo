@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
+import org.sentilo.common.metrics.SentiloArtifactMetrics;
 import org.sentilo.platform.client.core.domain.Subscription;
 import org.sentilo.web.catalog.domain.PlatformAdminInputMessage;
 import org.sentilo.web.catalog.domain.PlatformStatsMessage;
@@ -57,9 +58,13 @@ public interface PlatformService {
 
   void saveCatalogConfig(final Map<String, Map<String, Object>> catalogConfig);
 
+  void saveCatalogMetrics(final SentiloArtifactMetrics catalogMetrics);
+
   /**
    * Returns platform configuration parameter 'redis.expire.data.seconds' value in minutes.
    */
   int getPlatformTtl();
+
+  String getMetrics();
 
 }

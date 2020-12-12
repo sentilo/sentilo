@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PositiveOrZero;
 
 import org.sentilo.web.catalog.utils.Constants;
 import org.sentilo.web.catalog.validator.ValidEntityId;
@@ -44,7 +45,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Document
-public class Application implements CatalogDocument, TenantResource, SyncResource, AlphabeticalSortable {
+public class Application implements Entity, CatalogDocument, TenantResource, SyncResource, AlphabeticalSortable {
 
   private static final long serialVersionUID = 1L;
 
@@ -83,6 +84,12 @@ public class Application implements CatalogDocument, TenantResource, SyncResourc
 
   /** Show if API's requests from this application must be secured over HTTPs */
   private boolean restHttps;
+
+  @PositiveOrZero
+  private int apiInputQuota;
+
+  @PositiveOrZero
+  private int apiOutputQuota;
 
   public Application() {
     authorizedProviders = new ArrayList<Provider>();
@@ -243,5 +250,21 @@ public class Application implements CatalogDocument, TenantResource, SyncResourc
   @Override
   public String getSortableValue() {
     return name;
+  }
+
+  public int getApiInputQuota() {
+    return apiInputQuota;
+  }
+
+  public void setApiInputQuota(final int apiInputQuota) {
+    this.apiInputQuota = apiInputQuota;
+  }
+
+  public int getApiOutputQuota() {
+    return apiOutputQuota;
+  }
+
+  public void setApiOutputQuota(final int apiOutputQuota) {
+    this.apiOutputQuota = apiOutputQuota;
   }
 }

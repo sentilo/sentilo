@@ -59,7 +59,7 @@ import org.sentilo.platform.common.exception.ResourceNotFoundException;
 import org.sentilo.platform.common.exception.ResourceOfflineException;
 import org.sentilo.platform.common.service.AlarmService;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisTemplate;
+import org.sentilo.platform.service.dao.SentiloRedisTemplate;
 import org.sentilo.platform.service.impl.SubscribeServiceImpl;
 import org.sentilo.platform.service.listener.MessageListenerFactory;
 import org.sentilo.platform.service.listener.MessageListenerImpl;
@@ -71,7 +71,7 @@ import org.springframework.util.CollectionUtils;
 public class SubscribeServiceImplTest {
 
   @Mock
-  private JedisTemplate<String, String> jedisTemplate;
+  private SentiloRedisTemplate sRedisTemplate;
   @Mock
   private RedisMessageListenerContainer listenerContainer;
   @Mock
@@ -220,7 +220,7 @@ public class SubscribeServiceImplTest {
 
     service.remove(dataSubscription);
 
-    verify(jedisTemplate).hDel(key, topic.getTopic());
+    verify(sRedisTemplate).hDel(key, topic.getTopic());
 
   }
 
@@ -234,12 +234,12 @@ public class SubscribeServiceImplTest {
     final Set<String> topics = getTopics();
     final List<String> topicsToRemove = ChannelUtils.filterTopicsOfType(topics, dataSubscription.getType());
 
-    when(jedisTemplate.hKeys(key)).thenReturn(topics);
+    when(sRedisTemplate.hKeys(key)).thenReturn(topics);
 
     service.remove(dataSubscription);
 
-    verify(jedisTemplate).hKeys(key);
-    verify(jedisTemplate).hDel(key, topicsToRemove.toArray(new String[0]));
+    verify(sRedisTemplate).hKeys(key);
+    verify(sRedisTemplate).hDel(key, topicsToRemove.toArray(new String[0]));
 
   }
 
@@ -253,12 +253,12 @@ public class SubscribeServiceImplTest {
     final Set<String> topics = getEmptyTopics();
     final List<String> topicsToRemove = ChannelUtils.filterTopicsOfType(topics, dataSubscription.getType());
 
-    when(jedisTemplate.hKeys(key)).thenReturn(topics);
+    when(sRedisTemplate.hKeys(key)).thenReturn(topics);
 
     service.remove(dataSubscription);
 
-    verify(jedisTemplate).hKeys(key);
-    verify(jedisTemplate, times(0)).hDel(key, topicsToRemove.toArray(new String[0]));
+    verify(sRedisTemplate).hKeys(key);
+    verify(sRedisTemplate, times(0)).hDel(key, topicsToRemove.toArray(new String[0]));
 
   }
 
@@ -272,7 +272,7 @@ public class SubscribeServiceImplTest {
 
     service.remove(dataSubscription);
 
-    verify(jedisTemplate).del(key);
+    verify(sRedisTemplate).del(key);
 
   }
 
@@ -281,12 +281,12 @@ public class SubscribeServiceImplTest {
     initSubscription(dataSubscription);
     final String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());
     when(dataSubscription.getType()).thenReturn(SubscribeType.DATA);
-    when(jedisTemplate.hGetAll(key)).thenReturn(buildSubscriptions());
+    when(sRedisTemplate.hGetAll(key)).thenReturn(buildSubscriptions());
 
     // Retrieve all subscriptions that belongs to entity dataSubscription's source and type DATA
     final List<Subscription> subscriptions = service.get(dataSubscription);
 
-    verify(jedisTemplate).hGetAll(key);
+    verify(sRedisTemplate).hGetAll(key);
     assertTrue(subscriptions.size() == buildSubscriptions().size());
     for (final Subscription subscription : subscriptions) {
       assertEquals("http://127.0.0.1/endpoint", subscription.getNotificationParams().getEndpoint());
@@ -302,7 +302,7 @@ public class SubscribeServiceImplTest {
     final String key = service.getKeysBuilder().getSubscriptionKey(dataSubscription.getSourceEntityId());
     final List<Subscription> subscriptions = service.get(dataSubscription);
 
-    verify(jedisTemplate).hGetAll(key);
+    verify(sRedisTemplate).hGetAll(key);
     assertTrue(CollectionUtils.isEmpty(subscriptions));
 
   }
@@ -322,7 +322,7 @@ public class SubscribeServiceImplTest {
 
     service.subscribe(subscription);
 
-    verify(jedisTemplate).hSet(key, topic.getTopic(), converter.marshal(subscription.getNotificationParams()));
+    verify(sRedisTemplate).hSet(key, topic.getTopic(), converter.marshal(subscription.getNotificationParams()));
   }
 
   private Set<String> getTopics() {

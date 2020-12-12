@@ -43,6 +43,8 @@ import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.common.domain.PlatformPerformance;
 import org.sentilo.common.enums.HttpMethod;
+import org.sentilo.common.metrics.SentiloArtifactsMetricsMessage;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.platform.common.domain.AdminInputMessage;
 import org.sentilo.platform.common.domain.AdminInputMessage.AdminType;
 import org.sentilo.platform.common.domain.Statistics;
@@ -105,7 +107,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(message.getType()).thenReturn(AdminType.stats);
     when(service.getStatistics()).thenReturn(stats);
 
-    simulateRequest(HttpMethod.GET, "sentilo-catalog", "/admin/stats");
+    simulateRequest(HttpMethod.GET, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/stats");
     handler.manageRequest(request, response);
 
     verify(parser).parseGetRequest(request);
@@ -119,11 +121,37 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(message.getType()).thenReturn(AdminType.config);
     when(service.getPlatformConfig()).thenReturn(configMessage);
 
-    simulateRequest(HttpMethod.GET, "sentilo-catalog", "/admin/config");
+    simulateRequest(HttpMethod.GET, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/config");
     handler.manageRequest(request, response);
 
     verify(parser).parseGetRequest(request);
     verify(parser).writeResponse(response, configMessage);
+  }
+
+  @Test
+  public void metricsRequest() {
+    final SentiloArtifactsMetricsMessage metricsMessage = new SentiloArtifactsMetricsMessage();
+    when(parser.parseGetRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.metrics);
+    when(service.getSentiloArtifactsMetrics()).thenReturn(metricsMessage);
+
+    simulateRequest(HttpMethod.GET, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/metrics");
+    handler.manageRequest(request, response);
+
+    verify(parser).parseGetRequest(request);
+    verify(parser).writeResponse(response, metricsMessage);
+  }
+
+  @Test
+  public void saveMetricsRequest() {
+    when(parser.parsePostPutRequest(request)).thenReturn(message);
+    when(message.getType()).thenReturn(AdminType.metrics);
+
+    simulateRequest(HttpMethod.POST, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/metrics");
+    handler.manageRequest(request, response);
+
+    verify(parser).parsePostPutRequest(request);
+    verify(service).saveArtifactsMetrics(message);
   }
 
   @Test(expected = MessageValidationException.class)
@@ -131,7 +159,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePostPutRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.stats);
 
-    simulateRequest(HttpMethod.PUT, "sentilo-catalog", "/admin/stats");
+    simulateRequest(HttpMethod.PUT, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/stats");
     handler.manageRequest(request, response);
 
   }
@@ -155,7 +183,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePostPutRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.delete);
 
-    simulateRequest(HttpMethod.PUT, "sentilo-catalog", "/admin/delete");
+    simulateRequest(HttpMethod.PUT, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/delete");
     handler.manageRequest(request, response);
 
     verify(parser).parsePostPutRequest(request);
@@ -167,7 +195,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(parser.parsePostPutRequest(request)).thenReturn(message);
     when(message.getType()).thenReturn(AdminType.save);
 
-    simulateRequest(HttpMethod.POST, "sentilo-catalog", "/admin/save");
+    simulateRequest(HttpMethod.POST, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/save");
     handler.manageRequest(request, response);
 
     verify(parser).parsePostPutRequest(request);
@@ -183,7 +211,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(message.getType()).thenReturn(AdminType.activity);
     when(service.getActivity()).thenReturn(metricsMessage);
 
-    simulateRequest(HttpMethod.GET, "sentilo-catalog", "/admin/activity");
+    simulateRequest(HttpMethod.GET, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/activity");
     handler.manageRequest(request, response);
 
     verify(parser).parseGetRequest(request);
@@ -199,7 +227,7 @@ public class AdminHandlerTest extends AbstractBaseHandlerTest {
     when(message.getType()).thenReturn(AdminType.performance);
     when(service.getPerformance()).thenReturn(metricsMessage);
 
-    simulateRequest(HttpMethod.GET, "sentilo-catalog", "/admin/performance");
+    simulateRequest(HttpMethod.GET, SentiloConstants.DEFAULT_CATALOG_ID, "/admin/performance");
     handler.manageRequest(request, response);
 
     verify(parser).parseGetRequest(request);

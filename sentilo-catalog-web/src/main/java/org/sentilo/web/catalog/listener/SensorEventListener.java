@@ -29,6 +29,7 @@
 package org.sentilo.web.catalog.listener;
 
 import org.sentilo.web.catalog.domain.Sensor;
+import org.sentilo.web.catalog.service.PlatformService;
 import org.sentilo.web.catalog.service.SensorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
@@ -40,9 +41,13 @@ public class SensorEventListener extends AbstractMongoEventListener<Sensor> {
   @Autowired
   private SensorService sensorService;
 
+  @Autowired
+  private PlatformService platformService;
+
   @Override
   public void onBeforeConvert(final BeforeConvertEvent<Sensor> event) {
     checkStateChange(event.getSource());
+    checkTtl(event.getSource());
   }
 
   private void checkStateChange(final Sensor newSensor) {
@@ -50,6 +55,13 @@ public class SensorEventListener extends AbstractMongoEventListener<Sensor> {
     final Sensor currentSensor = sensorService.find(newSensor);
     if (currentSensor != null && !newSensor.getState().equals(currentSensor.getState())) {
       sensorService.notifyStateChange(newSensor);
+    }
+  }
+
+  private void checkTtl(final Sensor sensor) {
+    // If sensor TTL is null it means that its TTL equals default platform TTL
+    if (sensor.getTtl() == null) {
+      sensor.setTtl(platformService.getPlatformTtl());
     }
   }
 }

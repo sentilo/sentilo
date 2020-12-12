@@ -31,6 +31,8 @@ package org.sentilo.platform.server.http;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PreDestroy;
 
@@ -53,10 +55,6 @@ import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 import org.sentilo.platform.server.SentiloHttpRequestTask;
-import org.sentilo.platform.server.auth.AuthenticationService;
-import org.sentilo.platform.server.handler.AbstractHandler;
-import org.sentilo.platform.server.handler.HandlerLocator;
-import org.sentilo.platform.server.handler.HandlerPath;
 import org.sentilo.platform.server.pool.ThreadPool;
 import org.sentilo.platform.server.request.SentiloRequestHandler;
 import org.slf4j.Logger;
@@ -67,14 +65,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 public class RequestListenerThread extends Thread {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RequestListenerThread.class);
+  private static final String THREAD_NAME = "API-Server-Thread";
 
   private ServerSocket serverSocket;
   private HttpParams params;
   private HttpService httpService;
 
-  private HandlerLocator handlerLocator;
-  @Autowired
-  private AuthenticationService authenticationService;
+  @Autowired()
+  @Qualifier("apiServerRequestHandler")
+  private SentiloRequestHandler requestHandler;
 
   @Autowired
   private ThreadPool threadPool;
@@ -88,41 +87,26 @@ public class RequestListenerThread extends Thread {
   private String originServer;
   private String registeredURLs;
 
-  @Autowired
-  @Qualifier("alarmHandler")
-  private AbstractHandler alarmHandler;
-  @Autowired
-  @Qualifier("catalogHandler")
-  private AbstractHandler catalogHandler;
-  @Autowired
-  @Qualifier("dataHandler")
-  private AbstractHandler dataHandler;
-  @Autowired
-  @Qualifier("orderHandler")
-  private AbstractHandler orderHandler;
-  @Autowired
-  @Qualifier("subscribeHandler")
-  private AbstractHandler subscribeHandler;
-  @Autowired
-  @Qualifier("adminHandler")
-  private AbstractHandler adminHandler;
-  @Autowired
-  @Qualifier("catalogAlertHandler")
-  private AbstractHandler catalogAlertHandler;
+  private volatile boolean listening;
+  private final ReentrantLock lock = new ReentrantLock();
 
   @Override
   public void run() {
     try {
       initialize();
-      LOGGER.info("Server initialized and listening on port {}", port);
-      while (notInterrupted()) {
+      initConnectionDependencies();
+      listening = true;
+
+      while (!Thread.interrupted()) {
         manageConnection(new DefaultHttpServerConnection());
       }
+
     } catch (final IOException ioe) {
       LOGGER.error("Error while initializing connection thread. {}", ioe);
     } catch (final Exception e) {
       LOGGER.error("Error while running sentilo server on port {}. {}", port, e);
     } finally {
+      listening = false;
       cleanUp();
     }
   }
@@ -133,41 +117,59 @@ public class RequestListenerThread extends Thread {
     releaseSocketPort();
   }
 
-  private void initialize() throws IOException {
-    LOGGER.info("Initializing server");
+  public boolean isListening() {
+    return listening;
+  }
 
-    registerHandlers();
-    initializeListener();
+  public void restart(final boolean force) {
+    lock.lock();
+    try {
+      listening = false;
+
+      if (isServerListening()) {
+        if (!force) {
+          // wait here until all current requests complete.
+          LOGGER.info("Current requests number: {}", threadPool.getCurrentTasks());
+          threadPool.shutdownControlled();
+        }
+        cleanUp();
+      }
+
+      initConnectionDependencies();
+      listening = true;
+    } catch (final IOException ioe) {
+      LOGGER.error("Error while restarting API server. {}", ioe);
+    } finally {
+      lock.unlock();
+    }
+
+  }
+
+  private void initialize() {
+    LOGGER.info("Initializing api server");
+    setName(THREAD_NAME);
     initializeConnectionParams();
     registerURLS();
+  }
+
+  private void initConnectionDependencies() throws IOException {
+    LOGGER.info("Initializing connection dependencies");
+
+    initializeListener();
     initializeThreadPool();
+    LOGGER.info("Server initialized and listening on port {}", port);
   }
 
-  private void registerHandlers() {
-
-    LOGGER.info("Registering services");
-
-    handlerLocator = new HandlerLocator();
-
-    registerHandler(HandlerPath.ORDER, orderHandler);
-    registerHandler(HandlerPath.SUBSCRIBE, subscribeHandler);
-    registerHandler(HandlerPath.ALARM, alarmHandler);
-    registerHandler(HandlerPath.CATALOG, catalogHandler);
-    registerHandler(HandlerPath.DATA, dataHandler);
-    registerHandler(HandlerPath.ADMIN, adminHandler);
-    registerHandler(HandlerPath.CATALOG_ALERT, catalogAlertHandler);
-
-    LOGGER.info("Services registered");
-  }
-
-  private void registerHandler(final HandlerPath handler, final AbstractHandler handlerImpl) {
-    LOGGER.info("Registering {} handler", handler.toString());
-    handlerLocator.register(handler, handlerImpl);
+  private boolean isServerListening() {
+    return serverSocket != null || threadPool != null;
   }
 
   private void initializeListener() throws IOException {
     LOGGER.info("Initializing listener on port {} with TCP backlog {}", port, getSocketTcpBacklog());
     serverSocket = new ServerSocket(port, getSocketTcpBacklog());
+    /*
+     * if (socketMillisecondsTimeout > 0) { serverSocket.setSoTimeout(socketMillisecondsTimeout); }
+     */
   }
 
   private void initializeThreadPool() {
@@ -181,25 +183,33 @@ public class RequestListenerThread extends Thread {
     params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, isStaleConnectionCheck());
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY, isTcpNoDelay());
     params.setParameter(CoreProtocolPNames.ORIGIN_SERVER, getOriginServer());
+    params.setBooleanParameter(CoreConnectionPNames.SO_KEEPALIVE, true);
   }
 
   private void registerURLS() {
     final HttpProcessor httpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {new RequestExpectContinue()},
         new HttpResponseInterceptor[] {new ResponseDate(), new ResponseServer(), new ResponseContent(), new ResponseConnControl()});
     final HttpRequestHandlerRegistry reqistry = new HttpRequestHandlerRegistry();
-    reqistry.register(getRegisteredURLs(), new SentiloRequestHandler(handlerLocator, authenticationService));
+    reqistry.register(getRegisteredURLs(), requestHandler);
 
     httpService = new HttpService(httpproc, new DefaultConnectionReuseStrategy(), new DefaultHttpResponseFactory(), reqistry, params);
   }
 
-  private void manageConnection(final DefaultHttpServerConnection conn) throws IOException {
-    final Socket s = serverSocket.accept();
-    conn.bind(s, params);
-    threadPool.submit(new SentiloHttpRequestTask(httpService, conn));
-  }
+  private void manageConnection(final DefaultHttpServerConnection conn) throws IOException, InterruptedException {
 
-  private boolean notInterrupted() {
-    return !Thread.interrupted();
+    try {
+      if (lock.isLocked()) {
+        LOGGER.warn("Server is restarting. No more requests accepted, wait for a seconds until server is up");
+        sleep(500);
+        return;
+      }
+      final Socket s = serverSocket.accept();
+      conn.bind(s, params);
+      threadPool.submit(new SentiloHttpRequestTask(httpService, conn));
+    } catch (final SocketException se) {
+      // LOGGER.warn("An error has been raised while waiting to new requests on port {}", port);
+    }
+
   }
 
   private void stopThreadPool() {
@@ -216,11 +226,11 @@ public class RequestListenerThread extends Thread {
 
   private void releaseSocketPort() {
     try {
-      if (!serverSocket.isClosed()) {
+      if (serverSocket != null && !serverSocket.isClosed()) {
         serverSocket.close();
       }
     } catch (final IOException e) {
-      LOGGER.warn("Error closing socket port.", e);
+      LOGGER.warn("Error closing socket on port {}", port, e);
     }
 
     LOGGER.info("Listener off on port {}", port);
@@ -282,32 +292,12 @@ public class RequestListenerThread extends Thread {
     this.registeredURLs = registeredURLs;
   }
 
+  public ThreadPool getThreadPool() {
+    return threadPool;
+  }
+
   public void setThreadPool(final ThreadPool threadPool) {
     this.threadPool = threadPool;
-  }
-
-  public void setAlarmHandler(final AbstractHandler alarmHandler) {
-    this.alarmHandler = alarmHandler;
-  }
-
-  public void setCatalogHandler(final AbstractHandler catalogHandler) {
-    this.catalogHandler = catalogHandler;
-  }
-
-  public void setDataHandler(final AbstractHandler dataHandler) {
-    this.dataHandler = dataHandler;
-  }
-
-  public void setOrderHandler(final AbstractHandler orderHandler) {
-    this.orderHandler = orderHandler;
-  }
-
-  public void setSubscriptionHandler(final AbstractHandler subscriptionHandler) {
-    subscribeHandler = subscriptionHandler;
-  }
-
-  public void setAuthenticationService(final AuthenticationService authenticationService) {
-    this.authenticationService = authenticationService;
   }
 
   public int getSocketTcpBacklog() {
@@ -317,4 +307,5 @@ public class RequestListenerThread extends Thread {
   public void setSocketTcpBacklog(final int socketTcpBacklog) {
     this.socketTcpBacklog = socketTcpBacklog;
   }
+
 }

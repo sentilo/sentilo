@@ -42,6 +42,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.location.batch.ComponentLocationUpdater;
 import org.sentilo.agent.location.parser.CatalogMessageConverter;
 import org.sentilo.common.domain.CatalogInputMessage;
@@ -63,6 +64,9 @@ public class ComponentLocationUpdaterTest {
 
   @Mock
   private SensorLocationElement resource;
+
+  @Mock
+  private AgentMetricsCounter metricsCounters;
 
   @Before
   public void setUp() {

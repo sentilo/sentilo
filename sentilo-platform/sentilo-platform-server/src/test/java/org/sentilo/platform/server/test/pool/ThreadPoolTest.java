@@ -28,12 +28,17 @@
  */
 package org.sentilo.platform.server.test.pool;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -62,6 +67,9 @@ public class ThreadPoolTest {
 
   @Mock
   private ThreadPoolExecutor poolExecutor;
+
+  @Mock
+  private BlockingQueue<Runnable> poolQueue;
 
   @Mock
   private SentiloHttpRequestTask task;
@@ -108,12 +116,47 @@ public class ThreadPoolTest {
   }
 
   @Test
+  public void shutdownControlled() {
+    pool.shutdownControlled();
+
+    try {
+      verify(poolExecutor).awaitTermination(anyLong(), eq(TimeUnit.SECONDS));
+    } catch (final InterruptedException e) {
+      verify(poolExecutor).shutdownNow();
+    }
+  }
+
+  @Test
+  public void shutdownControlled_withInterruptedException() throws InterruptedException {
+    doThrow(new InterruptedException()).when(poolExecutor).awaitTermination(anyLong(), eq(TimeUnit.SECONDS));
+
+    pool.shutdownControlled();
+
+    verify(poolExecutor).shutdownNow();
+  }
+
+  @Test
   public void shutdownNow() throws Exception {
     when(poolExecutor.awaitTermination(new Integer(2), TimeUnit.SECONDS)).thenReturn(Boolean.FALSE);
     pool.shutdown();
 
     verify(poolExecutor).shutdown();
     verify(poolExecutor).shutdownNow();
+  }
+
+  @Test
+  public void getCurrentTasks() {
+    final int activeCount = 4;
+    final int queueSize = 5;
+
+    when(poolExecutor.getActiveCount()).thenReturn(activeCount);
+    when(poolExecutor.getQueue()).thenReturn(poolQueue);
+    when(poolQueue.size()).thenReturn(queueSize);
+
+    final long currentTasks = pool.getCurrentTasks();
+
+    assertEquals(activeCount + queueSize, currentTasks);
+
   }
 
 }

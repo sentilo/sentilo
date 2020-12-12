@@ -77,7 +77,7 @@ $(document).ready(function() {
 								</div>
 								<div class="span9" id="current-obs-timestamp">
 									<c:if test="${not empty sensorLastObservation}">
-										${fn:replace(sensorLastObservation.timestamp,'T', ' ')} 										
+										<spring:eval expression="sensorLastObservation.timestamp" />										 									
 									</c:if>
 								</div>
 							</div>

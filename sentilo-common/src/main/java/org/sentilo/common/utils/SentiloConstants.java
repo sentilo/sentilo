@@ -28,7 +28,9 @@
  */
 package org.sentilo.common.utils;
 
-public final class SentiloConstants {
+public abstract class SentiloConstants {
+
+  public static final String DEFAULT_CATALOG_ID = "sentilo-catalog";
 
   public static final String SENTILO_FEDERATION_ENABLED_PROP_KEY = "sentilo.federation.enabled";
   public static final String SENTILO_STATE_PAGE_ENABLED_PROP_KEY = "sentilo.state_page.enabled";
@@ -47,6 +49,11 @@ public final class SentiloConstants {
   public static final String DATE_HEADER = "X-Sentilo-Date";
 
   public static final String SENTILO_INTERNAL_TOKEN = "#@#";
+
+  public static final String COMMA_TOKEN_SPLITTER = ",";
+
+  public static final String LOCATION_TOKEN_SPLITTER = COMMA_TOKEN_SPLITTER;
+  public static final String LOCATION_TOKEN_DIVIDER = " ";
 
   // Path tokens constants
   public static final String API_TOKEN = "api";
@@ -89,17 +96,24 @@ public final class SentiloConstants {
   public static final long DEFAULT_RETRY_DELAY = 5;
 
   public static final String GHOST_SENSOR_ALERT = "_GHOST_SENSOR";
-  public static final String GHOST_SENSOR_SENDER = "SENTILO";
+  public static final String GLOBAL_OVER_QUOTA_INBOUND_ALERT = "_GLOBAL_OVER_QUOTA_INBOUND";
+  public static final String OVER_QUOTA_INBOUND_ALERT = "_OVER_QUOTA_INBOUND";
+  public static final String OVER_QUOTA_OUTBOUND_ALERT = "_OVER_QUOTA_OUTBOUND";
+  public static final String SENTILO_SENDER = "SENTILO";
 
   // Cross timestamp pattern
   public static final String TIMESTAMP_PATTERN = "dd/MM/yyyy'T'HH:mm:ss";
 
   // Config module constants
-  public static final String GLOBAL_CONFIG_LIST_KEY = "sentilo:components:config:registry";
+  public static final String GLOBAL_CONFIG_LIST_KEY = "sentilo:artifacts:config:registry";
   public static final String CONFIG_SENSITIVE_KEY_PREFIX = "(*)";
   public static final String CONFIG_SENSITIVE_VALUE_MASK = "[***PROTECTED***]";
 
-  private SentiloConstants() {
+  // Metrics module constants
+  public static final String GLOBAL_METRICS_LIST_KEY = "sentilo:artifacts:metrics:registry";
+  public static final String METRICS_TOPIC = "/metrics/";
+
+  protected SentiloConstants() {
     // this prevents even the native class from calling this ctor as well :
     throw new AssertionError();
   }

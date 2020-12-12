@@ -3,6 +3,7 @@
 
 <sec:authentication var="principal" property="principal"/>
 <spring:eval var="isFederationEnabled" expression="T(org.sentilo.web.catalog.security.SecurityUtils).isFederationEnabled()"/>
+<spring:eval var="isMultitenant" expression="T(org.sentilo.web.catalog.context.TenantContextHolder).isEnabled()"/>
 
 <spring:url value="/admin/provider/list?sfamr=true&nameTableRecover=providerTable" var="providerListURL" />
 <spring:url value="/admin/application/list?sfamr=true&nameTableRecover=applicationTable" var="applicationListURL" />
@@ -20,6 +21,7 @@
 <spring:url value="/admin/tenant/list?sfamr=true&nameTableRecover=tenantTable" var="tenantListURL" />
 <spring:url value="/admin/activesubscriptions/list?nameTableRecover=activeSubscriptionsTable" var="activeSubscriptionsListURL" />
 <spring:url value="/admin/federation/list?nameTableRecover=federationTable" var="federationListURL" />
+<spring:url value="/admin/metrics?sfamr=true" var="metricsURL" />
 
 <c:set value=" connecta-icon-black" var="classApplicationIcon" />
 <c:set value=" connecta-icon-black" var="classProviderIcon" />
@@ -33,6 +35,7 @@
 <c:set value=" connecta-icon-black" var="classTenantIcon" />
 <c:set value=" connecta-icon-black" var="classActiveSubscriptionsIcon" />
 <c:set value=" connecta-icon-black" var="classFederationIcon" />
+<c:set value=" connecta-icon-black" var="classMetricsIcon" />
  
 <c:if test="${activeMenu == '/application' }">
 	<c:set value=" class='current'" var="classApplication" />
@@ -81,6 +84,11 @@
 <c:if test="${activeMenu == '/federation'}">
 	<c:set value=" class='current'" var="classFederation" />
 	<c:set value=" icon-white" var="classFederationIcon" />
+</c:if>
+
+<c:if test="${activeMenu == '/metrics'}">
+	<c:set value=" class='current'" var="classMetrics" />
+	<c:set value=" icon-white" var="classMetricsIcon" />
 </c:if>
 
 <div id="menu-left" class="sidebar-nav">
@@ -186,6 +194,24 @@
 						</a>
 					</li>
 				</c:if>	
+			</security:authorize>			
+			<security:authorize access="hasRole('ROLE_SUPER_ADMIN')">				
+					<li>
+						<a href="${metricsURL}"${classMetrics}>
+							<i class="icon-dashboard${classMetricsIcon}"></i> 
+							<spring:message	code="menu.admin.metrics" /> 
+						</a>
+					</li>				
+			</security:authorize>
+			<security:authorize access="hasRole('ROLE_ADMIN')">			
+				<c:if test="${!isMultitenant}">
+					<li>
+						<a href="${metricsURL}"${classMetrics}>
+							<i class="icon-dashboard${classMetricsIcon}"></i> 
+							<spring:message	code="menu.admin.metrics" /> 
+						</a>
+					</li>
+				</c:if>
 			</security:authorize>
 		</security:authorize>
 	</ul>

@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 
   @Value("${enableAnonymousAccess:false}")
   private boolean enableAnonymousAccess;

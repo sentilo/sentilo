@@ -46,9 +46,12 @@ public class HandlerLocator {
     handlers = new Hashtable<String, AbstractHandler>();
   }
 
-  /*
-   * public AbstractHandler lookup(final String handlerPath) { return handlers.get(handlerPath); }
-   */
+  public HandlerLocator(final Map<HandlerPath, AbstractHandler> mappingHandlers) {
+    this();
+    if (!CollectionUtils.isEmpty(mappingHandlers)) {
+      mappingHandlers.forEach((k, v) -> register(k, v));
+    }
+  }
 
   public AbstractHandler lookup(final SentiloRequest request) {
     final String path = request.getPath();

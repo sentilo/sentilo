@@ -30,7 +30,7 @@ package org.sentilo.common.enums;
 
 public enum HttpHeader {
 
-  CONTENT_TYPE("Content-Type"), IDENTITY_KEY("IDENTITY_KEY"), X_FORWARDED_PROTO("X-Forwarded-Proto"), X_FORWARDED_FOR("X-Forwarded-For");
+  CONTENT_TYPE("Content-Type"), IDENTITY_KEY("IDENTITY_KEY"), X_FORWARDED_PROTO("X-Forwarded-Proto"), X_FORWARDED_FOR("X-Forwarded-For"), X_RL_GLOBAL_INPUT_LIMIT("X-RateLimit-Global-Inbound-Limit"), X_RL_GLOBAL_INPUT_REMAINING("X-RateLimit-Global-Inbound-Remaining"), X_RL_GLOBAL_INPUT_RESET("X-RateLimit-Global-Inbound-Reset"), X_RL_INPUT_LIMIT("X-RateLimit-Inbound-Limit"), X_RL_INPUT_REMAINING("X-RateLimit-Inbound-Remaining"), X_RL_INPUT_RESET("X-RateLimit-Inbound-Reset"), X_RL_OUTPUT_LIMIT("X-RateLimit-Outbound-Limit"), X_RL_OUTPUT_REMAINING("X-RateLimit-Outbound-Remaining"), X_RL_OUTPUT_RESET("X-RateLimit-Outbound-Reset");
 
   private String name;
 

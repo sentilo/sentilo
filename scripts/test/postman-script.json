@@ -1,17 +1,15 @@
 {
 	"info": {
-		"name": "Sentilo API Rest Testing",
-		"_postman_id": "80021d0c-e90c-1848-cc00-8dca80eaf498",
-		"description": "",
+		"_postman_id": "6763e457-b134-40e7-824e-566216098f4a",
+		"name": "Sentilo API Rest Testing 1.9.0",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Catalog",
-			"description": "",
 			"item": [
 				{
-					"name": "99. Catalog - delete all with DELETE method",
+					"name": "00. Catalog - delete all with DELETE method",
 					"event": [
 						{
 							"listen": "test",
@@ -31,7 +29,8 @@
 									"",
 									"pausecomp(10000);",
 									""
-								]
+								],
+								"id": "8736d56b-9200-4617-84d7-a57076717ff7"
 							}
 						}
 					],
@@ -43,7 +42,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/{{provider}}",
 							"host": [
@@ -54,8 +52,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -76,14 +73,14 @@
 									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
 									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
 									""
-								]
+								],
+								"id": "b7d02825-8951-4181-8285-b7a244dea5ac"
 							}
 						}
 					],
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog",
 							"host": [
@@ -93,8 +90,7 @@
 							"path": [
 								"catalog"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -114,7 +110,8 @@
 									"var jsonData = JSON.parse(responseBody);",
 									"tests[\"JSON Validation: empty\"] = JSON.stringify(jsonData) === JSON.stringify({});",
 									""
-								]
+								],
+								"id": "27d699e2-f724-4ae6-b6dc-ffa5ac90bc00"
 							}
 						}
 					],
@@ -126,7 +123,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/{{provider}}",
 							"host": [
@@ -137,8 +133,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -153,7 +148,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "e1e17893-e0c5-4f2c-82d1-a6302d1b6054"
 							}
 						}
 					],
@@ -183,8 +179,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -260,7 +255,8 @@
 									"tests[\"Exists TEST_SENSOR_011\"] = existsSensor011 === true;",
 									"tests[\"Exists TEST_SENSOR_012\"] = existsSensor012 === true;",
 									""
-								]
+								],
+								"id": "5369d832-ec47-4068-aefa-4776b1f3bc5e"
 							}
 						}
 					],
@@ -272,7 +268,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/{{provider}}",
 							"host": [
@@ -283,8 +278,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -299,7 +293,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "72def9cd-fa32-4f84-9961-94fe1e8fd7b0"
 							}
 						}
 					],
@@ -329,8 +324,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -370,7 +364,8 @@
 									"",
 									"tests[\"Test TEST_SENSOR_001 data was updated \"] = updated === true;",
 									""
-								]
+								],
+								"id": "ee26986e-b2d2-4b79-b2cd-ec94dde2f1c5"
 							}
 						}
 					],
@@ -382,7 +377,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/{{provider}}",
 							"host": [
@@ -393,8 +387,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -409,7 +402,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "c4e5ba94-1f2f-4979-b36d-6e27ec0958b1"
 							}
 						}
 					],
@@ -439,8 +433,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -480,7 +473,8 @@
 									"",
 									"tests[\"Test TEST_COMPONENT_001 data was updated \"] = updated === true;",
 									""
-								]
+								],
+								"id": "823f4f25-29ce-42f3-839b-0d87e48c317d"
 							}
 						}
 					],
@@ -492,7 +486,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/{{provider}}",
 							"host": [
@@ -503,8 +496,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -544,7 +536,8 @@
 									"",
 									"tests[\"Test sensor types noise was finded\"] = finded === true;",
 									""
-								]
+								],
+								"id": "54a1a3bf-0886-4fdd-91e9-2f33a4e01ba2"
 							}
 						}
 					],
@@ -556,7 +549,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog?type=noise",
 							"host": [
@@ -569,12 +561,10 @@
 							"query": [
 								{
 									"key": "type",
-									"value": "noise",
-									"equals": true
+									"value": "noise"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -596,7 +586,8 @@
 									"",
 									"tests[\"Exists the components\"] = existsComponents === true;",
 									""
-								]
+								],
+								"id": "c305a651-9ea5-4ad3-bd09-2a0fccdfcc32"
 							}
 						}
 					],
@@ -608,7 +599,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog?componentType=generic",
 							"host": [
@@ -621,20 +611,18 @@
 							"query": [
 								{
 									"key": "componentType",
-									"value": "generic",
-									"equals": true
+									"value": "generic"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Data",
-			"description": "",
 			"item": [
 				{
 					"name": "00. Data - invalid credentials",
@@ -653,14 +641,14 @@
 									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
 									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
 									""
-								]
+								],
+								"id": "9f53777d-6800-4d2e-a594-87e1b8f61155"
 							}
 						}
 					],
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}",
 							"host": [
@@ -671,8 +659,7 @@
 								"data",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -687,7 +674,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "1fc966af-93b5-4824-a89b-fa640357ba1b"
 							}
 						}
 					],
@@ -715,8 +703,7 @@
 								"TEST_SENSOR_001",
 								"12.6"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -731,7 +718,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "13818e96-a99c-41c1-960b-21f3bb70ed1f"
 							}
 						}
 					],
@@ -759,8 +747,7 @@
 								"TEST_SENSOR_001",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -775,7 +762,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "268faa0a-968f-4454-a58d-afd5a2c0ab8c"
 							}
 						}
 					],
@@ -803,8 +791,7 @@
 								"TEST_SENSOR_001",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -819,7 +806,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "d4843af4-ee92-4985-9621-61972279f87c"
 							}
 						}
 					],
@@ -845,8 +833,7 @@
 								"data",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -886,7 +873,8 @@
 									"tests[\"For all sensors retrieve only one (last) observation\"] = onlyOneObsPerSensor === true;",
 									"tests[\"Last observations was as spected\"] = lastObsAreCorrect === true;",
 									""
-								]
+								],
+								"id": "a6ee931a-60d5-43f5-8a08-dd95a1b8ef45"
 							}
 						}
 					],
@@ -898,10 +886,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"sensors\":[\r\n   {\r\n    \"sensor\":\"TEST_SENSOR_001\",\r\n    \"observations\":[\r\n      {\"value\":\"1.1\"},\r\n      {\"value\":\"1.2\",\r\n       \"timestamp\":\"17/09/2012T12:34:45CET\"},\r\n      {\"value\":\"1.3\",\r\n       \"timestamp\":\"17/09/2012T10:34:45CET\"}\r\n    ]\r\n   },{\r\n    \"sensor\":\"TEST_SENSOR_002\",\r\n    \"location\":\"41.12345 2.12354\",\r\n    \"observations\":[\r\n      {\"value\":\"2.1\"},\r\n      {\"value\":\"2.2\",\r\n       \"timestamp\":\"16/09/2012T15:43:21CET\"},\r\n      {\"value\":\"2.3\",\r\n       \"timestamp\":\"16/09/2012T10:43:21CET\"}\r\n    ]\r\n   }\r\n]}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}",
 							"host": [
@@ -912,8 +896,7 @@
 								"data",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -942,7 +925,8 @@
 									"var valid = observation !== 'undefined' && observation.value === \"1.5\";",
 									"tests[\"Sensor last observation is 1.5\"] = valid === true;",
 									""
-								]
+								],
+								"id": "8275e370-5fcd-4e69-ae95-f7c4ba9478a6"
 							}
 						}
 					],
@@ -954,10 +938,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"sensors\":[\r\n   {\r\n    \"sensor\":\"TEST_SENSOR_001\",\r\n    \"observations\":[\r\n      {\"value\":\"1.1\"},\r\n      {\"value\":\"1.2\",\r\n       \"timestamp\":\"17/09/2012T12:34:45CET\"},\r\n      {\"value\":\"1.3\",\r\n       \"timestamp\":\"17/09/2012T10:34:45CET\"}\r\n    ]\r\n   },{\r\n    \"sensor\":\"TEST_SENSOR_002\",\r\n    \"location\":\"41.12345 2.12354\",\r\n    \"observations\":[\r\n      {\"value\":\"2.1\"},\r\n      {\"value\":\"2.2\",\r\n       \"timestamp\":\"16/09/2012T15:43:21CET\"},\r\n      {\"value\":\"2.3\",\r\n       \"timestamp\":\"16/09/2012T10:43:21CET\"}\r\n    ]\r\n   }\r\n]}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}/TEST_SENSOR_001",
 							"host": [
@@ -969,8 +949,7 @@
 								"{{provider}}",
 								"TEST_SENSOR_001"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -994,7 +973,8 @@
 									"var exists = observations !== undefined && observations !== null && observations.constructor === Array && observations.length === 10;",
 									"tests[\"Exists 10 sensor observations\"] = exists === true;",
 									""
-								]
+								],
+								"id": "78cac625-28f7-471c-8b6f-5881b5179c75"
 							}
 						}
 					],
@@ -1006,10 +986,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"sensors\":[\r\n   {\r\n    \"sensor\":\"TEST_SENSOR_001\",\r\n    \"observations\":[\r\n      {\"value\":\"1.1\"},\r\n      {\"value\":\"1.2\",\r\n       \"timestamp\":\"17/09/2012T12:34:45CET\"},\r\n      {\"value\":\"1.3\",\r\n       \"timestamp\":\"17/09/2012T10:34:45CET\"}\r\n    ]\r\n   },{\r\n    \"sensor\":\"TEST_SENSOR_002\",\r\n    \"location\":\"41.12345 2.12354\",\r\n    \"observations\":[\r\n      {\"value\":\"2.1\"},\r\n      {\"value\":\"2.2\",\r\n       \"timestamp\":\"16/09/2012T15:43:21CET\"},\r\n      {\"value\":\"2.3\",\r\n       \"timestamp\":\"16/09/2012T10:43:21CET\"}\r\n    ]\r\n   }\r\n]}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}/TEST_SENSOR_001?limit=10",
 							"host": [
@@ -1024,12 +1000,10 @@
 							"query": [
 								{
 									"key": "limit",
-									"value": "10",
-									"equals": true
+									"value": "10"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -1069,7 +1043,8 @@
 									"    }",
 									"}",
 									""
-								]
+								],
+								"id": "452f288a-1c4c-418c-9def-38ced5513ec3"
 							}
 						}
 					],
@@ -1081,10 +1056,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"sensors\":[\r\n   {\r\n    \"sensor\":\"TEST_SENSOR_001\",\r\n    \"observations\":[\r\n      {\"value\":\"1.1\"},\r\n      {\"value\":\"1.2\",\r\n       \"timestamp\":\"17/09/2012T12:34:45CET\"},\r\n      {\"value\":\"1.3\",\r\n       \"timestamp\":\"17/09/2012T10:34:45CET\"}\r\n    ]\r\n   },{\r\n    \"sensor\":\"TEST_SENSOR_002\",\r\n    \"location\":\"41.12345 2.12354\",\r\n    \"observations\":[\r\n      {\"value\":\"2.1\"},\r\n      {\"value\":\"2.2\",\r\n       \"timestamp\":\"16/09/2012T15:43:21CET\"},\r\n      {\"value\":\"2.3\",\r\n       \"timestamp\":\"16/09/2012T10:43:21CET\"}\r\n    ]\r\n   }\r\n]}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}/?limit=10",
 							"host": [
@@ -1099,12 +1070,10 @@
 							"query": [
 								{
 									"key": "limit",
-									"value": "10",
-									"equals": true
+									"value": "10"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -1133,7 +1102,8 @@
 									"                    ",
 									"tests[\"Sensor observations are as spected\"] = dataIsCorrect === true;",
 									""
-								]
+								],
+								"id": "31c52413-5d94-4461-81ff-fd00d2304b6f"
 							}
 						}
 					],
@@ -1145,10 +1115,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"sensors\":[\r\n   {\r\n    \"sensor\":\"TEST_SENSOR_001\",\r\n    \"observations\":[\r\n      {\"value\":\"1.1\"},\r\n      {\"value\":\"1.2\",\r\n       \"timestamp\":\"17/09/2012T12:34:45CET\"},\r\n      {\"value\":\"1.3\",\r\n       \"timestamp\":\"17/09/2012T10:34:45CET\"}\r\n    ]\r\n   },{\r\n    \"sensor\":\"TEST_SENSOR_002\",\r\n    \"location\":\"41.12345 2.12354\",\r\n    \"observations\":[\r\n      {\"value\":\"2.1\"},\r\n      {\"value\":\"2.2\",\r\n       \"timestamp\":\"16/09/2012T15:43:21CET\"},\r\n      {\"value\":\"2.3\",\r\n       \"timestamp\":\"16/09/2012T10:43:21CET\"}\r\n    ]\r\n   }\r\n]}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}/TEST_SENSOR_001?from=17/09/2012T00:00:00&to=17/09/2012T23:59:59&limit=10",
 							"host": [
@@ -1163,27 +1129,23 @@
 							"query": [
 								{
 									"key": "from",
-									"value": "17/09/2012T00:00:00",
-									"equals": true
+									"value": "17/09/2012T00:00:00"
 								},
 								{
 									"key": "to",
-									"value": "17/09/2012T23:59:59",
-									"equals": true
+									"value": "17/09/2012T23:59:59"
 								},
 								{
 									"key": "limit",
-									"value": "10",
-									"equals": true
+									"value": "10"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "10. Data - read observations from all privder's sensors from/to date",
+					"name": "10. Data - read observations from all provider's sensors from/to date",
 					"event": [
 						{
 							"listen": "test",
@@ -1210,7 +1172,8 @@
 									"                    ",
 									"tests[\"Sensor observations are as spected\"] = dataIsCorrect === true;",
 									""
-								]
+								],
+								"id": "d3daac12-d416-4ac8-a3ab-13fccd0f03ce"
 							}
 						}
 					],
@@ -1222,10 +1185,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"sensors\":[\r\n   {\r\n    \"sensor\":\"TEST_SENSOR_001\",\r\n    \"observations\":[\r\n      {\"value\":\"1.1\"},\r\n      {\"value\":\"1.2\",\r\n       \"timestamp\":\"17/09/2012T12:34:45CET\"},\r\n      {\"value\":\"1.3\",\r\n       \"timestamp\":\"17/09/2012T10:34:45CET\"}\r\n    ]\r\n   },{\r\n    \"sensor\":\"TEST_SENSOR_002\",\r\n    \"location\":\"41.12345 2.12354\",\r\n    \"observations\":[\r\n      {\"value\":\"2.1\"},\r\n      {\"value\":\"2.2\",\r\n       \"timestamp\":\"16/09/2012T15:43:21CET\"},\r\n      {\"value\":\"2.3\",\r\n       \"timestamp\":\"16/09/2012T10:43:21CET\"}\r\n    ]\r\n   }\r\n]}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}/?from=17/09/2012T00:00:00&to=17/09/2012T23:59:59&limit=10",
 							"host": [
@@ -1240,27 +1199,23 @@
 							"query": [
 								{
 									"key": "from",
-									"value": "17/09/2012T00:00:00",
-									"equals": true
+									"value": "17/09/2012T00:00:00"
 								},
 								{
 									"key": "to",
-									"value": "17/09/2012T23:59:59",
-									"equals": true
+									"value": "17/09/2012T23:59:59"
 								},
 								{
 									"key": "limit",
-									"value": "10",
-									"equals": true
+									"value": "10"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "99. Data - delete last observation from a sensor",
+					"name": "11. Data - delete last observation from a sensor",
 					"event": [
 						{
 							"listen": "test",
@@ -1270,7 +1225,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "2236c329-1acd-4069-9da6-1a68e989c7c7"
 							}
 						}
 					],
@@ -1282,7 +1238,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}/TEST_SENSOR_001",
 							"host": [
@@ -1294,13 +1249,12 @@
 								"{{provider}}",
 								"TEST_SENSOR_001"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "99. Data - delete last observation from all the provider's sensors",
+					"name": "12. Data - delete last observation from all the provider's sensors",
 					"event": [
 						{
 							"listen": "test",
@@ -1310,7 +1264,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "00214b00-61da-4606-8216-28bc213d9caf"
 							}
 						}
 					],
@@ -1322,7 +1277,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/data/{{provider}}",
 							"host": [
@@ -1333,16 +1287,15 @@
 								"data",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Alert",
-			"description": "",
 			"item": [
 				{
 					"name": "00. Alert - invalid credentials",
@@ -1361,14 +1314,14 @@
 									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
 									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
 									""
-								]
+								],
+								"id": "a4c918ff-90a6-4413-859e-ff797def3b17"
 							}
 						}
 					],
 					"request": {
 						"method": "POST",
 						"header": [],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/alert/{{provider}}",
 							"host": [
@@ -1380,8 +1333,7 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -1396,7 +1348,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "858ee58b-eca7-4a89-bdc4-74ff57720029"
 							}
 						}
 					],
@@ -1427,8 +1380,7 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -1452,7 +1404,8 @@
 									"    jsonData.errorDetails !== undefined && jsonData.errorDetails !== null && jsonData.errorDetails.constructor === Array &&",
 									"    jsonData.errorDetails.length === 1 && jsonData.errorDetails[0] === 'Alert TEST_ALERT_001 : alert with the same id already exists.';",
 									"    "
-								]
+								],
+								"id": "72604a35-a8a4-451b-bb60-c07ca27da48f"
 							}
 						}
 					],
@@ -1483,8 +1436,7 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -1499,7 +1451,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "b3023310-7af3-4c4a-8db5-3cdb4c557946"
 							}
 						}
 					],
@@ -1530,8 +1483,7 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -1582,7 +1534,8 @@
 									"tests[\"Exists TEST_ALERT_004\"] = existsAlert004 === true;",
 									"tests[\"Exists TEST_ALERT_005\"] = existsAlert005 === true;",
 									""
-								]
+								],
+								"id": "a3ada9e9-96c4-4822-8c18-10cdb121738a"
 							}
 						}
 					],
@@ -1598,10 +1551,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"alerts\":[\r\n    {\r\n      \"id\":\"TEST_ALERT_001\",\r\n        \"name\":\"TEST_ALERT_011\",\r\n        \"description\":\"External test alert 001 has been modified to 011\",\r\n        \"type\":\"EXTERNAL\"\r\n     }\r\n  ]\r\n}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/alert/{{provider}}",
 							"host": [
@@ -1613,13 +1562,109 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Alarm",
+			"item": [
+				{
+					"name": "00. Alarm - invalid credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 401\"] = responseCode.code === 401;",
+									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
+									"",
+									"// Test response body",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
+									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
+									""
+								],
+								"id": "1fda0616-d8ae-4b24-85c8-b1586d105951"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_001",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_001"
+							]
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "05. Alert - Request to delete a set of alerts",
+					"name": "01. Alarm - Post a new alarm associated with an alert (ERROR)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 404\"] = responseCode.code === 404;",
+									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
+									"",
+									"// Test response body",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"JSON Validation: code is 404\"] = jsonData.code === 404;",
+									"tests[\"JSON Validation: message is 'Alert [TEST_ALERT_011] not found on Sentilo (404.1).'\"] = jsonData.message === \"Alert [TEST_ALERT_011] not found on Sentilo (404.1).\";",
+									""
+								],
+								"id": "f8b0a129-f4f2-4089-84d7-68fe75711d77"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"message\":\"Threshold limit exceeded: 32\"} "
+						},
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_011",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_011"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02. Alarm - Post a new alarm associated with an alert",
 					"event": [
 						{
 							"listen": "test",
@@ -1629,7 +1674,448 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "9dbe2de9-e9e7-416c-bccf-8d00599530c1"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002\"} "
+						},
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03. Alarm - Retrieve the last alarm",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
+									"",
+									"// Test response body",
+									"var jsonData = JSON.parse(responseBody);",
+									"var alarms = jsonData.alarms;",
+									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length > 0;",
+									"tests[\"Exists alarms\"] = existsAlarms === true;",
+									"",
+									"var lastAlarmAsSpected = false;",
+									"if (existsAlarms === true) {",
+									"    var alarm = alarms[0];",
+									"    lastAlarmAsSpected = alarm !== undefined && alarm !== null && alarm.message === \"This is a test alarm over the TEST_ALERT_002\";",
+									"}",
+									"",
+									"tests[\"Last alarm for TEST_ALERT_002 as spected\"] = lastAlarmAsSpected === true;",
+									""
+								],
+								"id": "d2948b4c-4437-4793-a8ca-a1ab551787d5"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "04. Alarm - Post a new alarm associated with an alert (1.before list test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									""
+								],
+								"id": "10f0d5f7-70fa-4ee9-be3b-6a1ce30b90d5"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002, (I)\"} "
+						},
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "05. Alarm - Post a new alarm associated with an alert (2.before list test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									""
+								],
+								"id": "ee20e40f-0150-48f3-9fd5-bf132bbdab59"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002, (II)\"} "
+						},
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "06. Alarm - Post a new alarm associated with an alert (3.before list test)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									""
+								],
+								"id": "75c1b65a-6812-4317-ac07-8d4956e1932d"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002, (III)\"} "
+						},
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "07. Alarm - Recover N alarms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
+									"",
+									"// Test response body",
+									"var jsonData = JSON.parse(responseBody);",
+									"var alarms = jsonData.alarms;",
+									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length === 3;",
+									"tests[\"Retrieved 3 alarms\"] = existsAlarms === true;",
+									""
+								],
+								"id": "c76eaf45-a104-403d-8276-c217d2059f6a"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002?limit=3",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "08. Alarm - Retrieve N alarms in a given period (empty)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
+									"",
+									"// Test response body",
+									"var jsonData = JSON.parse(responseBody);",
+									"var alarms = jsonData.alarms;",
+									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length === 0;",
+									"tests[\"Retrieved 0 alarms\"] = existsAlarms === true;",
+									""
+								],
+								"id": "0e4e4060-7553-4e2a-8a6c-868de208849e"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002?limit=3&from=01/01/1999T00:00:00&to=31/12/1999T23:59:59",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "3"
+								},
+								{
+									"key": "from",
+									"value": "01/01/1999T00:00:00"
+								},
+								{
+									"key": "to",
+									"value": "31/12/1999T23:59:59"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "09. Alarm - Retrieve N alarms in a given period",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
+									"",
+									"// Test response body",
+									"var jsonData = JSON.parse(responseBody);",
+									"var alarms = jsonData.alarms;",
+									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length === 3;",
+									"tests[\"Retrieved 3 alarms\"] = existsAlarms === true;",
+									""
+								],
+								"id": "7c79793c-2b5f-4614-b138-e672bb6d7ca5"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var now = new Date();  ",
+									"var before = now.getDate() + \"/\" + (now.getMonth()+1) + \"/\" + now.getFullYear() + \"T00:00:00\";",
+									"var after = now.getDate() + \"/\" + (now.getMonth()+1) + \"/\" + now.getFullYear() + \"T23:59:59\";",
+									"",
+									"console.log(before);",
+									"console.log(after);",
+									" ",
+									"postman.setEnvironmentVariable(\"before\", before);",
+									"postman.setEnvironmentVariable(\"after\", after);"
+								],
+								"id": "3faa5376-92e4-4234-a62b-87e7353984a9"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "identity_key",
+								"value": "{{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002?limit=3&from={{before}}&to={{after}}",
+							"host": [
+								"{{api_url}}"
+							],
+							"port": "{{api_port}}",
+							"path": [
+								"alarm",
+								"TEST_ALERT_002"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "3"
+								},
+								{
+									"key": "from",
+									"value": "{{before}}"
+								},
+								{
+									"key": "to",
+									"value": "{{after}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10. Alert - Request to delete a set of alerts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Test response",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									""
+								],
+								"id": "be16f03c-b5f8-42ac-a28e-f686997b7c2d"
 							}
 						}
 					],
@@ -1663,17 +2149,15 @@
 							"query": [
 								{
 									"key": "method",
-									"value": "delete",
-									"equals": true
+									"value": "delete"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "06. Alert - Request to retrieve all the authorized alerts after delete",
+					"name": "11. Alert - Request to retrieve all the authorized alerts after delete",
 					"event": [
 						{
 							"listen": "test",
@@ -1690,7 +2174,8 @@
 									"var existsAlerts = alerts !== undefined && alerts !== null && alerts.constructor === Array && alerts.length === 2;",
 									"tests[\"Exists 2 alerts (3 were deleted before this test)\"] = existsAlerts === true;",
 									""
-								]
+								],
+								"id": "18ad4d1d-fd27-4157-b747-0e700ffb6b4a"
 							}
 						}
 					],
@@ -1706,10 +2191,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"alerts\":[\r\n    {\r\n      \"id\":\"TEST_ALERT_001\",\r\n        \"name\":\"TEST_ALERT_011\",\r\n        \"description\":\"External test alert 001 has been modified to 011\",\r\n        \"type\":\"EXTERNAL\"\r\n     }\r\n  ]\r\n}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/alert/{{provider}}",
 							"host": [
@@ -1721,576 +2202,15 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				}
-			]
-		},
-		{
-			"name": "Alarm",
-			"description": "",
-			"item": [
-				{
-					"name": "00. Alarm - invalid credentials",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 401\"] = responseCode.code === 401;",
-									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
-									"",
-									"// Test response body",
-									"var jsonData = JSON.parse(responseBody);",
-									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
-									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_001",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_001"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "01. Alarm - Post a new alarm associated with an alert (ERROR)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 404\"] = responseCode.code === 404;",
-									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
-									"",
-									"// Test response body",
-									"var jsonData = JSON.parse(responseBody);",
-									"tests[\"JSON Validation: code is 404\"] = jsonData.code === 404;",
-									"tests[\"JSON Validation: message is 'Alert [TEST_ALERT_011] not found on Sentilo (404.1).'\"] = jsonData.message === \"Alert [TEST_ALERT_011] not found on Sentilo (404.1).\";",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"Threshold limit exceeded: 32\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_011",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_011"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "02. Alarm - Post a new alarm associated with an alert",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "03. Alarm - Retrieve the last alarm",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
-									"",
-									"// Test response body",
-									"var jsonData = JSON.parse(responseBody);",
-									"var alarms = jsonData.alarms;",
-									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length > 0;",
-									"tests[\"Exists alarms\"] = existsAlarms === true;",
-									"",
-									"var lastAlarmAsSpected = false;",
-									"if (existsAlarms === true) {",
-									"    var alarm = alarms[0];",
-									"    lastAlarmAsSpected = alarm !== undefined && alarm !== null && alarm.message === \"This is a test alarm over the TEST_ALERT_002\";",
-									"}",
-									"",
-									"tests[\"Last alarm for TEST_ALERT_002 as spected\"] = lastAlarmAsSpected === true;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_001\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "04. Alarm - Post a new alarm associated with an alert (1.before list test)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002, (I)\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "05. Alarm - Post a new alarm associated with an alert (2.before list test)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002, (II)\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "06. Alarm - Post a new alarm associated with an alert (3.before list test)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_002, (III)\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "07. Alarm - Recover N alarms",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
-									"",
-									"// Test response body",
-									"var jsonData = JSON.parse(responseBody);",
-									"var alarms = jsonData.alarms;",
-									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length === 3;",
-									"tests[\"Retrieved 3 alarms\"] = existsAlarms === true;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_001\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002?limit=3",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							],
-							"query": [
-								{
-									"key": "limit",
-									"value": "3",
-									"equals": true
-								}
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "08. Alarm - Retrieve N alarms in a given period (empty)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
-									"",
-									"// Test response body",
-									"var jsonData = JSON.parse(responseBody);",
-									"var alarms = jsonData.alarms;",
-									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length === 0;",
-									"tests[\"Retrieved 0 alarms\"] = existsAlarms === true;",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_001\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002?limit=3&from=01/01/1999T00:00:00&to=31/12/1999T23:59:59",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							],
-							"query": [
-								{
-									"key": "limit",
-									"value": "3",
-									"equals": true
-								},
-								{
-									"key": "from",
-									"value": "01/01/1999T00:00:00",
-									"equals": true
-								},
-								{
-									"key": "to",
-									"value": "31/12/1999T23:59:59",
-									"equals": true
-								}
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				},
-				{
-					"name": "09. Alarm - Retrieve N alarms in a given period",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"// Test response",
-									"tests[\"Status code is 200\"] = responseCode.code === 200;",
-									"tests[\"Content-Type is JSON\"] = postman.getResponseHeader(\"Content-Type\") && postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") !== -1;",
-									"",
-									"// Test response body",
-									"var jsonData = JSON.parse(responseBody);",
-									"var alarms = jsonData.alarms;",
-									"var existsAlarms = alarms !== undefined && alarms !== null && alarms.constructor === Array && alarms.length === 3;",
-									"tests[\"Retrieved 3 alarms\"] = existsAlarms === true;",
-									""
-								]
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"var now = new Date();  ",
-									"var before = now.getDate() + \"/\" + (now.getMonth()+1) + \"/\" + now.getFullYear() + \"T00:00:00\";",
-									"var after = now.getDate() + \"/\" + (now.getMonth()+1) + \"/\" + now.getFullYear() + \"T23:59:59\";",
-									"",
-									"console.log(before);",
-									"console.log(after);",
-									" ",
-									"postman.setEnvironmentVariable(\"before\", before);",
-									"postman.setEnvironmentVariable(\"after\", after);"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "identity_key",
-								"value": "{{provider_token}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\"message\":\"This is a test alarm over the TEST_ALERT_001\"} "
-						},
-						"url": {
-							"raw": "{{api_url}}:{{api_port}}/alarm/TEST_ALERT_002?limit=3&from={{before}}&to={{after}}",
-							"host": [
-								"{{api_url}}"
-							],
-							"port": "{{api_port}}",
-							"path": [
-								"alarm",
-								"TEST_ALERT_002"
-							],
-							"query": [
-								{
-									"key": "limit",
-									"value": "3",
-									"equals": true
-								},
-								{
-									"key": "from",
-									"value": "{{before}}",
-									"equals": true
-								},
-								{
-									"key": "to",
-									"value": "{{after}}",
-									"equals": true
-								}
-							]
-						},
-						"description": ""
-					},
-					"response": []
-				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Order",
-			"description": "",
 			"item": [
 				{
 					"name": "00. Order - invalid credentials",
@@ -2309,14 +2229,14 @@
 									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
 									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
 									""
-								]
+								],
+								"id": "070b533c-17a8-44f7-9223-35f893232c1d"
 							}
 						}
 					],
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/order{{provider}}/TEST_SENSOR_001/",
 							"host": [
@@ -2328,8 +2248,7 @@
 								"TEST_SENSOR_001",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2344,7 +2263,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "316a28cd-2753-4923-b466-d689c170475f"
 							}
 						}
 					],
@@ -2375,8 +2295,7 @@
 								"{{provider}}",
 								"TEST_SENSOR_001"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2399,7 +2318,8 @@
 									"tests[\"Response: error errorDetails\"] = jsonData.errorDetails !== undefined && jsonData.errorDetails !== null && jsonData.errorDetails.constructor === Array && ",
 									"                                        jsonData.errorDetails.length === 1 && jsonData.errorDetails[0] === \"Sensor [TEST_SENSOR_021] not found on Sentilo (404.1).\";",
 									""
-								]
+								],
+								"id": "74fce11a-855a-4bbb-919b-b0b9e0c959bd"
 							}
 						}
 					],
@@ -2431,8 +2351,7 @@
 								"TEST_SENSOR_021",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2447,7 +2366,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "ab1afefc-03d1-4244-8246-5223df5a0a59"
 							}
 						}
 					],
@@ -2478,16 +2398,15 @@
 								"{{provider}}",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Subscription",
-			"description": "",
 			"item": [
 				{
 					"name": "00. Subscription - invalid credentials",
@@ -2506,14 +2425,14 @@
 									"tests[\"JSON Validation: code is 401\"] = jsonData.code === 401;",
 									"tests[\"JSON Validation: message is 'Invalid credential null'\"] = jsonData.message === \"Invalid credential null\";",
 									""
-								]
+								],
+								"id": "0e581af7-2dcd-4c85-b43e-47af460de758"
 							}
 						}
 					],
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/subscription",
 							"host": [
@@ -2523,8 +2442,7 @@
 							"path": [
 								"subscription"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2539,7 +2457,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "8cef3ca0-6c22-4285-b82c-87f832ed5441"
 							}
 						}
 					],
@@ -2572,8 +2491,7 @@
 								"TEST_SENSOR_001",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2588,7 +2506,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "bd26308d-6a4a-48f3-beca-17ddfb20d0b6"
 							}
 						}
 					],
@@ -2619,8 +2538,7 @@
 								"data",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2635,7 +2553,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "0fb99382-1a21-429b-9ad0-23ab719b11d9"
 							}
 						}
 					],
@@ -2668,8 +2587,7 @@
 								"TEST_SENSOR_001",
 								""
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2684,7 +2602,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "ae33f862-2568-46d6-b52b-41aa7678560e"
 							}
 						}
 					],
@@ -2715,8 +2634,7 @@
 								"order",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2731,7 +2649,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "8d41dd38-b332-4ad3-aac8-58dd94c06187"
 							}
 						}
 					],
@@ -2762,8 +2681,7 @@
 								"alarm",
 								"TEST_ALERT_002"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2823,7 +2741,8 @@
 									"tests[\"Exists provider ORDER subscription\"] = existsProviderOrderSubscription === true;",
 									"tests[\"Exists alert ALARM subscription\"] = existsAlertAlarmSubscription === true;",
 									""
-								]
+								],
+								"id": "18f8977c-8b7c-4595-acf7-f9b5f20c8900"
 							}
 						}
 					],
@@ -2835,7 +2754,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/subscribe",
 							"host": [
@@ -2845,8 +2763,7 @@
 							"path": [
 								"subscribe"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2861,7 +2778,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "b74d52b3-e83d-4ab1-9ce8-facb18b6dee6"
 							}
 						}
 					],
@@ -2873,7 +2791,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/subscribe/data/{{provider}}/TEST_SENSOR_001",
 							"host": [
@@ -2886,8 +2803,7 @@
 								"{{provider}}",
 								"TEST_SENSOR_001"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2902,7 +2818,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "e8c4d46b-2b92-49e9-bfe9-4f9a832fc293"
 							}
 						}
 					],
@@ -2914,7 +2831,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/subscribe/order",
 							"host": [
@@ -2925,8 +2841,7 @@
 								"subscribe",
 								"order"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2941,7 +2856,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "1df8beaf-e52e-44f9-ba4e-cb98014857a6"
 							}
 						}
 					],
@@ -2953,7 +2869,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/subscribe",
 							"host": [
@@ -2963,8 +2878,7 @@
 							"path": [
 								"subscribe"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -2987,7 +2901,8 @@
 									"var existsSubscriptions = subscriptions !== undefined && subscriptions !== null && subscriptions.constructor === Array && subscriptions.length === 0;",
 									"tests[\"Exists 0 subscriptions\"] = existsSubscriptions === true;",
 									""
-								]
+								],
+								"id": "4439acdb-cb16-474f-a567-339a833e2062"
 							}
 						}
 					],
@@ -2999,7 +2914,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/subscribe",
 							"host": [
@@ -3009,16 +2923,15 @@
 							"path": [
 								"subscribe"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Clean",
-			"description": "",
 			"item": [
 				{
 					"name": "00. Catalog - Request to delete a set of sensors of the catalog",
@@ -3031,7 +2944,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "9f5ed14d-3892-4ee7-bcd5-795b2b8ff445"
 							}
 						}
 					],
@@ -3064,12 +2978,10 @@
 							"query": [
 								{
 									"key": "method",
-									"value": "delete",
-									"equals": true
+									"value": "delete"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -3084,7 +2996,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "4e5e60af-2a17-44e8-8feb-72a35d140a64"
 							}
 						}
 					],
@@ -3117,17 +3030,15 @@
 							"query": [
 								{
 									"key": "method",
-									"value": "delete",
-									"equals": true
+									"value": "delete"
 								}
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "02. Catalog - Request to delete all components and sensors of a provider",
+					"name": "02. Catalog - Request to delete the remaining component of a provider",
 					"event": [
 						{
 							"listen": "test",
@@ -3137,7 +3048,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "d9a17ff7-d918-4e2c-bd24-3b03d6a29908"
 							}
 						}
 					],
@@ -3167,8 +3079,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -3188,7 +3099,8 @@
 									"var jsonData = JSON.parse(responseBody);",
 									"tests[\"JSON Validation: empty\"] = JSON.stringify(jsonData) === JSON.stringify({});",
 									""
-								]
+								],
+								"id": "a95f7af5-8ee6-43b3-8aff-d0a98ea1a931"
 							}
 						}
 					],
@@ -3200,7 +3112,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/{{provider}}",
 							"host": [
@@ -3211,8 +3122,7 @@
 								"catalog",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -3227,7 +3137,8 @@
 									"// Test response",
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									""
-								]
+								],
+								"id": "3a54c8a9-28a5-4d37-a2ac-1cbc7ee16b9d"
 							}
 						}
 					],
@@ -3258,8 +3169,7 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				},
@@ -3279,7 +3189,8 @@
 									"var jsonData = JSON.parse(responseBody);",
 									"tests[\"JSON Validation: empty\"] = JSON.stringify(jsonData) === JSON.stringify({});",
 									""
-								]
+								],
+								"id": "8ae1dc90-876c-46d3-83a6-31b9a9fa7482"
 							}
 						}
 					],
@@ -3295,10 +3206,6 @@
 								"value": "{{provider_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"alerts\":[\r\n    {\r\n      \"id\":\"TEST_ALERT_001\",\r\n        \"name\":\"TEST_ALERT_011\",\r\n        \"description\":\"External test alert 001 has been modified to 011\",\r\n        \"type\":\"EXTERNAL\"\r\n     }\r\n  ]\r\n}"
-						},
 						"url": {
 							"raw": "{{api_url}}:{{api_port}}/catalog/alert/{{provider}}",
 							"host": [
@@ -3310,12 +3217,35 @@
 								"alert",
 								"{{provider}}"
 							]
-						},
-						"description": ""
+						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "34683aac-bf4d-44c9-a162-6de93f725725",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "1978fb6f-9421-4131-ab03-d350cfa6ce2f",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
 }

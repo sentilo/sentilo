@@ -113,8 +113,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
   }
 
   private String buildKeyAccess(final String source, final String target) {
-    Assert.notNull(source);
-    Assert.notNull(target);
+    Assert.notNull(source, "source argument is required; it must not be null.");
+    Assert.notNull(target, "target argument is required; it must not be null.");
 
     return source + SentiloConstants.SENTILO_INTERNAL_TOKEN + target;
   }

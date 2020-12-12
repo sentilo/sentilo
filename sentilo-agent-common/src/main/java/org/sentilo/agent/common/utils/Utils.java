@@ -94,4 +94,9 @@ public abstract class Utils {
     final String agentName = System.getProperty(Constants.SENTILO_AGENT_NAME_ENV);
     return agentName.toLowerCase() + Constants.PENDING_QUEUE_SUFFIX;
   }
+
+  public static String getAgentName() {
+    final String agentName = System.getProperty(Constants.SENTILO_AGENT_NAME_ENV);
+    return agentName.toLowerCase();
+  }
 }

@@ -1,0 +1,67 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.sentilo.agent</groupId>
+	<artifactId>sentilo-agent-metrics-monitor</artifactId>
+	<name>sentilo-agent-metrics-monitor</name>
+
+	<parent>
+		<artifactId>sentilo-parent-pom</artifactId>
+		<groupId>org.sentilo</groupId>
+		<version>1.9.0</version>
+	</parent>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>org.sentilo.agent.common.server.SentiloAgentServer</mainClass>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<version>1.3</version>
+				<configuration>
+					<programs>
+						<program>
+							<mainClass>org.sentilo.agent.common.server.SentiloAgentServer</mainClass>
+							<commandLineArguments>
+								<commandLineArgument>monitor-context.xml</commandLineArgument>
+							</commandLineArguments>
+							<name>sentilo-agent-metrics-monitor-server</name>
+							<jvmSettings>
+								<systemProperties>
+									<systemProperty>user.timezone=UTC</systemProperty>
+									<systemProperty>file.encoding=UTF-8</systemProperty>
+								</systemProperties>
+								<extraArguments>
+									<extraArgument>-Dspring.profiles.active=${spring.profiles.active}</extraArgument>
+									<extraArgument>-Dsentilo.agent.name=METRICS-MONITOR</extraArgument>
+									<extraArgument>-Delasticsearch.index.name=metrics-sentilo</extraArgument>
+									<extraArgument>-Delasticsearch.index.date.pattern={now/M{YYYY.MM}}</extraArgument>
+								</extraArguments>
+							</jvmSettings>
+						</program>
+					</programs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.sentilo.agent</groupId>
+			<artifactId>sentilo-agent-common</artifactId>
+			<version>${platform.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sentilo.platform</groupId>
+			<artifactId>sentilo-platform-client-java</artifactId>
+			<version>${platform.version}</version>
+		</dependency>
+	</dependencies>
+</project>

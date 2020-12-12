@@ -29,10 +29,12 @@
 package org.sentilo.platform.server.test.request;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -46,22 +48,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sentilo.common.enums.HttpHeader;
-import org.sentilo.platform.common.domain.EntityMetadataMessage;
 import org.sentilo.platform.common.exception.PlatformException;
-import org.sentilo.platform.common.security.RequesterContext;
-import org.sentilo.platform.common.security.RequesterContextHolder;
-import org.sentilo.platform.server.auth.AuthenticationService;
+import org.sentilo.platform.server.exception.SSLRequiredException;
+import org.sentilo.platform.server.exception.UnauthorizedException;
 import org.sentilo.platform.server.handler.AbstractHandler;
 import org.sentilo.platform.server.handler.HandlerLocator;
 import org.sentilo.platform.server.request.SentiloRequest;
 import org.sentilo.platform.server.request.SentiloRequestHandler;
+import org.sentilo.platform.server.request.interceptor.CredentialInterceptor;
+import org.sentilo.platform.server.request.interceptor.SSLAccessInterceptor;
+import org.sentilo.platform.server.request.interceptor.SentiloRequestHandlerInterceptor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class SentiloRequestHandlerTest {
 
   @Mock
   private HandlerLocator handlerLocator;
-  @Mock
-  private AuthenticationService authenticationService;
+
   @Mock
   private HttpRequest httpRequest;
   @Mock
@@ -72,9 +75,10 @@ public class SentiloRequestHandlerTest {
   private RequestLine requestLine;
   @Mock
   private AbstractHandler handler;
-
   @Mock
-  private EntityMetadataMessage entityMetadata;
+  private CredentialInterceptor credentialInterceptor;
+  @Mock
+  private SSLAccessInterceptor sslAccessInterceptor;
 
   @InjectMocks
   private SentiloRequestHandler requestHandler;
@@ -82,8 +86,8 @@ public class SentiloRequestHandlerTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    RequesterContextHolder.clearContext();
-    RequesterContextHolder.setContext(new RequesterContext(entityMetadata));
+    final List<SentiloRequestHandlerInterceptor> requestInterceptors = Arrays.asList(credentialInterceptor, sslAccessInterceptor);
+    ReflectionTestUtils.setField(requestHandler, "requestInterceptors", requestInterceptors);
   }
 
   @Test
@@ -105,11 +109,11 @@ public class SentiloRequestHandlerTest {
     when(httpRequest.getRequestLine()).thenReturn(requestLine);
     when(requestLine.getMethod()).thenReturn("GET");
     when(requestLine.getUri()).thenReturn("http://lab.sentilo.io/data/mock");
-    doThrow(MockPlatformException.class).when(authenticationService).checkCredential(anyString());
+    doThrow(new UnauthorizedException("Invalid credential ***")).when(credentialInterceptor).invoke(any(SentiloRequest.class));
 
     requestHandler.handle(httpRequest, httpResponse, httpContext);
 
-    verify(httpResponse).setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    verify(httpResponse).setStatusCode(HttpStatus.SC_UNAUTHORIZED);
     verify(httpResponse).setHeader(HttpHeader.CONTENT_TYPE.toString(), ContentType.APPLICATION_JSON.toString());
   }
 
@@ -139,10 +143,10 @@ public class SentiloRequestHandlerTest {
 
   @Test
   public void sslRequired() {
-    when(entityMetadata.isRestHttps()).thenReturn(true);
     when(httpRequest.getRequestLine()).thenReturn(requestLine);
     when(requestLine.getMethod()).thenReturn("GET");
     when(requestLine.getUri()).thenReturn("http://lab.sentilo.io/data/mock");
+    doThrow(new SSLRequiredException()).when(sslAccessInterceptor).invoke(any(SentiloRequest.class));
 
     requestHandler.handle(httpRequest, httpResponse, httpContext);
 

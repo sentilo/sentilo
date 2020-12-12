@@ -28,7 +28,6 @@
  */
 package org.sentilo.agent.kafka.repository.impl;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -53,13 +53,17 @@ public class KafkaAgentRepositoryImpl implements KafkaAgentRepository {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaAgentRepositoryImpl.class);
 
+  private static final int DEFAULT_NUM_MIN_WORKERS = 0;
   private static final int DEFAULT_NUM_MAX_WORKERS = 5;
   private static final int DEFAULT_NUM_MAX_RETRIES = 1;
 
-  @Value("${batch.workers.size}")
+  @Value("${batch.workers.size.min}")
+  private int numMinWorkers;
+
+  @Value("${batch.workers.size.max}")
   private int numMaxWorkers;
 
-  @Value("${batch.max.retries}")
+  @Value("${batch.max.retries:0}")
   private int numMaxRetries;
 
   @Value("${kafka.request.timeout.ms}")
@@ -71,10 +75,14 @@ public class KafkaAgentRepositoryImpl implements KafkaAgentRepository {
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
 
-  private ExecutorService workersManager;
+  private ThreadPoolExecutor workersManager;
 
   @PostConstruct
   public void init() {
+
+    if (numMinWorkers == 0) {
+      numMinWorkers = DEFAULT_NUM_MIN_WORKERS;
+    }
 
     if (numMaxWorkers == 0) {
       numMaxWorkers = DEFAULT_NUM_MAX_WORKERS;
@@ -88,7 +96,12 @@ public class KafkaAgentRepositoryImpl implements KafkaAgentRepository {
     // class: it has a maximum number of threads(as Executors.newFixedThreadPool) and controls when
     // a thread is busy (as Executors.newCachedThreadPool)
     if (workersManager == null) {
-      workersManager = new ThreadPoolExecutor(0, numMaxWorkers, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+      if (numMinWorkers > numMaxWorkers) {
+        LOGGER.info("Property batch.workers.size.min is greater that batch.workers.size.max. Setting batch.workers.size.min to {}", numMaxWorkers);
+        numMinWorkers = numMaxWorkers;
+      }
+
+      workersManager = new ThreadPoolExecutor(numMinWorkers, numMaxWorkers, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     LOGGER.info("Initialized KafkaAgentRepositoryImpl with the following properties: numMaxRetries {} and numMaxWorkers {} ", numMaxRetries,
@@ -124,6 +137,17 @@ public class KafkaAgentRepositoryImpl implements KafkaAgentRepository {
       LOGGER.info("Flush process finished");
     }
 
+  }
+
+  @Scheduled(initialDelay = 60000, fixedDelay = 60000 * 5)
+  public void writeState() {
+    LOGGER.info(" ---- ProcessMonitor ---- ");
+    final StringBuilder sb = new StringBuilder("\n workersManager Pools size: {}");
+    sb.append("\n workersManager Task queue size: {}");
+    sb.append("\n workersManager Task Count: {}");
+    sb.append("\n workersManager Completed Task Count: {}");
+    LOGGER.info(sb.toString(), workersManager.getPoolSize(), workersManager.getQueue().size(), workersManager.getTaskCount(),
+        workersManager.getCompletedTaskCount());
   }
 
 }

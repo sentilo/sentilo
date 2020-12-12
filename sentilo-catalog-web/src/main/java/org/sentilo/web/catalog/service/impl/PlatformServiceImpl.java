@@ -28,6 +28,7 @@
  */
 package org.sentilo.web.catalog.service.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,7 @@ import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.PlatformConfigMessage;
 import org.sentilo.common.domain.PlatformMetricsMessage;
 import org.sentilo.common.exception.RESTClientException;
+import org.sentilo.common.metrics.SentiloArtifactMetrics;
 import org.sentilo.common.rest.RESTClient;
 import org.sentilo.common.rest.RequestContext;
 import org.sentilo.platform.client.core.domain.Subscription;
@@ -104,6 +106,7 @@ public class PlatformServiceImpl implements PlatformService {
    * org.sentilo.web.catalog.service.PlatformService#saveResources(org.sentilo.web.catalog.domain.
    * PlatformAdminInputMessage)
    */
+  @Override
   public void saveResources(final PlatformAdminInputMessage message) {
     final RequestContext rc = new RequestContext("admin/save", parser.marshal(message));
     restClient.post(rc);
@@ -116,6 +119,7 @@ public class PlatformServiceImpl implements PlatformService {
    * org.sentilo.web.catalog.service.PlatformService#deleteResources(org.sentilo.web.catalog.domain.
    * PlatformAdminInputMessage)
    */
+  @Override
   public void deleteResources(final PlatformAdminInputMessage message) {
     final RequestContext rc = new RequestContext("admin/delete", parser.marshal(message));
     restClient.put(rc);
@@ -126,6 +130,7 @@ public class PlatformServiceImpl implements PlatformService {
    *
    * @see org.sentilo.web.catalog.service.PlatformService#getActiveSubscriptions(java.lang.String)
    */
+  @Override
   public List<Subscription> getActiveSubscriptions(final String entity) {
     final String path = String.format("admin/subscriptions/%s", entity);
     final RequestContext rc = new RequestContext(path);
@@ -139,6 +144,7 @@ public class PlatformServiceImpl implements PlatformService {
    *
    * @see org.sentilo.web.catalog.service.PlatformService#isPlatformRunning()
    */
+  @Override
   public boolean isPlatformRunning() {
     boolean isRunning = true;
 
@@ -161,6 +167,7 @@ public class PlatformServiceImpl implements PlatformService {
    *
    * @see org.sentilo.web.catalog.service.PlatformService#getPlatformTtl()
    */
+  @Override
   public int getPlatformTtl() {
     Object oPlatformTtlConfigInMinutes = platformConfigParams.get(DEFAULT_PLATFORM_TTL);
     if (oPlatformTtlConfigInMinutes == null) {
@@ -175,12 +182,31 @@ public class PlatformServiceImpl implements PlatformService {
    *
    * @see org.sentilo.web.catalog.service.PlatformService#saveCatalogConfig(java.util.Map)
    */
+  @Override
   public void saveCatalogConfig(final Map<String, Map<String, Object>> catalogConfig) {
     if (isPlatformRunning()) {
       final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
       message.setArtifactsConfig(catalogConfig);
 
       final RequestContext rc = new RequestContext("admin/config", parser.marshal(message));
+      restClient.post(rc);
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.sentilo.web.catalog.service.PlatformService#saveCatalogMetrics(org.sentilo.common.metrics.
+   * SentiloArtifactMetrics)
+   */
+  @Override
+  public void saveCatalogMetrics(final SentiloArtifactMetrics catalogMetrics) {
+    if (isPlatformRunning()) {
+      final PlatformAdminInputMessage message = new PlatformAdminInputMessage();
+      message.setArtifactsMetrics(Arrays.asList(catalogMetrics));
+
+      final RequestContext rc = new RequestContext("admin/metrics", parser.marshal(message));
       restClient.post(rc);
     }
   }
@@ -204,5 +230,16 @@ public class PlatformServiceImpl implements PlatformService {
     }
 
     return platformTtlConfigInMinutes;
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.sentilo.web.catalog.service.PlatformService#getMetrics()
+   */
+  @Override
+  public String getMetrics() {
+    final RequestContext rc = new RequestContext("admin/metrics");
+    return restClient.get(rc);
   }
 }

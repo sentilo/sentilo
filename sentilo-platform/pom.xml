@@ -9,15 +9,16 @@
 	<parent>
 		<artifactId>sentilo-parent-pom</artifactId>
 		<groupId>org.sentilo</groupId>
-		<version>1.8.0</version>		
+		<version>1.9.0</version>		
 	</parent>
 
 	<properties>		
 		<httpcore.version>4.4.6</httpcore.version>
 		<commonspool.version>1.6</commonspool.version>	
-		<org.aspectj.aspectjweaver-version>1.7.1</org.aspectj.aspectjweaver-version>								
+		<org.aspectj.aspectjweaver-version>1.7.1</org.aspectj.aspectjweaver-version>
+		<expiringmap.version>0.5.9</expiringmap.version>								
 	</properties>	
-	
+		
 	<build>	    
 	  <plugins>
 	    <plugin>
@@ -44,6 +45,12 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>					
+		</dependency>
+		<!--  Rate Limiter -->
+		<dependency>
+		    <groupId>net.jodah</groupId>
+		    <artifactId>expiringmap</artifactId>
+		    <version>${expiringmap.version}</version>
 		</dependency>		
 	</dependencies>
 

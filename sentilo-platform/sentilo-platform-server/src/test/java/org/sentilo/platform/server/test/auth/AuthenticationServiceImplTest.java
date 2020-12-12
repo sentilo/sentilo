@@ -30,11 +30,12 @@ package org.sentilo.platform.server.test.auth;
 
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,7 +59,6 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationServiceImplTest.class);
   private final String token = "646967a9f99ae76cfb836026d0015c4b80f8c0e1efbd3d261250156efd8fb96f";
   private final String mockEntity = "mockEntityId";
-  private Runnable runnable;
 
   @InjectMocks
   private AuthenticationServiceImpl authenticationService;
@@ -68,7 +68,6 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    runnable = new AuthenticationRunnable(authenticationService);
 
     final EntityMetadataMessage entityMetadata = new EntityMetadataMessage();
     entityMetadata.setToken(token);
@@ -78,26 +77,50 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
     when(credentialsRepository.getEntityMetadataFromToken(token)).thenReturn(entityMetadata);
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
   @Test
-  public void testConcurrence() throws Exception {
-
+  public void testConcurrence() {
+    final int totalReq = 15;
     final int poolSize = 10;
     final ExecutorService service = Executors.newFixedThreadPool(poolSize);
-    final List<Future<Runnable>> futures = new ArrayList<Future<Runnable>>();
+    final CountDownLatch doneSignal = new CountDownLatch(totalReq);
+    final AtomicInteger allowedCount = new AtomicInteger(0);
+    final AtomicInteger blockedCount = new AtomicInteger(0);
+    final Runnable requestTask = () -> {
 
-    for (int n = 0; n < poolSize; n++) {
-      final Future f = service.submit(runnable);
-      futures.add(f);
+      LOGGER.debug("Running thread {}", Thread.currentThread().getName());
+      try {
+        authenticationService.checkCredential(token);
+        Assert.assertEquals(token, RequesterContextHolder.getContext().getToken());
+        allowedCount.incrementAndGet();
+      } catch (final UnauthorizedException e) {
+        LOGGER.debug("Error validating credential in thread: {}", Thread.currentThread().getName());
+        blockedCount.incrementAndGet();
+      } finally {
+        LOGGER.debug("Finished thread {} ", Thread.currentThread().getName());
+      }
+
+      try {
+        TimeUnit.MILLISECONDS.sleep(10);
+      } catch (final InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      doneSignal.countDown();
+    };
+
+    IntStream.range(0, totalReq).forEach(i -> service.submit(requestTask));
+
+    try {
+      doneSignal.await();
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
     }
 
-    // wait for all tasks to complete before continuing
-    for (final Future<Runnable> f : futures) {
-      f.get();
-    }
+    service.shutdown();
 
-    // shut down the executor service so that this thread can exit
-    service.shutdownNow();
+    Assert.assertTrue(allowedCount.get() == totalReq);
+    Assert.assertTrue(blockedCount.get() == 0);
+
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -123,28 +146,5 @@ public class AuthenticationServiceImplTest extends AbstractBaseTest {
 
     authenticationService.checkCredential(null);
     Assert.assertTrue(RequesterContextHolder.getContext() instanceof AnonymousIdentityContext);
-  }
-
-  public class AuthenticationRunnable implements Runnable {
-
-    private final AuthenticationServiceImpl authenticationService;
-
-    public AuthenticationRunnable(final AuthenticationServiceImpl authenticationService) {
-      this.authenticationService = authenticationService;
-    }
-
-    @Override
-    public void run() {
-      LOGGER.debug("Running thread {}", Thread.currentThread().getName());
-      try {
-        authenticationService.checkCredential(token);
-        Assert.assertEquals(token, RequesterContextHolder.getContext().getToken());
-
-      } catch (final UnauthorizedException e) {
-        LOGGER.debug("Error validating credential in thread: {}", Thread.currentThread().getName());
-      } finally {
-        LOGGER.debug("Finished thread {} ", Thread.currentThread().getName());
-      }
-    }
   }
 }

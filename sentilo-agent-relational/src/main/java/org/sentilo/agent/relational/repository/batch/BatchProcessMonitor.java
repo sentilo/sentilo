@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.agent.common.repository.PendingEventsRepository;
 import org.sentilo.agent.relational.domain.Data;
 import org.sentilo.common.domain.EventMessage;
@@ -59,6 +60,9 @@ public class BatchProcessMonitor implements BatchProcessCallback {
   @Autowired
   private PendingEventsRepository pendingEventRepository;
 
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
+
   private Map<String, DataSource> dsToMonitor = new HashMap<String, DataSource>();
 
   @Resource
@@ -67,22 +71,22 @@ public class BatchProcessMonitor implements BatchProcessCallback {
     if (!CollectionUtils.isEmpty(dataSources)) {
       LOGGER.info("Number of dataSources to monitor: {}", dataSources.size());
       dsToMonitor = dataSources;
-
-      // for (final String key : dataSources.keySet()) {
-      // dsToMonitor.put(key, dataSources.get(key));
-      // }
     }
   }
 
   @Override
   public void notifyBatchUpdateIsDone(final BatchProcessResult result) {
     numTasksProcessed++;
+    metricsCounters.incrementOutputEvents(result.getNumElementsPersisted());
+
     if (result.getNumElementsPersisted() == 0) {
       numTasksKo++;
       numPendingElements += result.getNumElementsToPersist();
       pendingEventRepository.storePendingEvents(toEventMessageList(result.getElementsToPersist()));
+      metricsCounters.isRemoteServerConnectionOk(false);
     } else {
       numTasksOk++;
+      metricsCounters.isRemoteServerConnectionOk(true);
     }
   }
 

@@ -29,7 +29,6 @@
 package org.sentilo.web.catalog.validator;
 
 import static org.sentilo.common.utils.SentiloUtils.arrayContainsValue;
-import static org.sentilo.web.catalog.utils.CatalogUtils.isDouble;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +37,7 @@ import org.sentilo.common.domain.CatalogComponent;
 import org.sentilo.common.domain.CatalogElement;
 import org.sentilo.common.domain.CatalogSensor;
 import org.sentilo.common.domain.TechnicalDetails;
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.converter.ApiConverterContext;
 import org.sentilo.web.catalog.domain.CatalogDocument;
@@ -101,8 +101,8 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
     final String connectivityTypes = messageSource.getMessage(Constants.CONNECTIVITY_TYPES_KEY, null, LocaleContextHolder.getLocale());
     final String energyTypes = messageSource.getMessage(Constants.ENERGY_TYPES_KEY, null, LocaleContextHolder.getLocale());
     final String[] connectivityTypesList =
-        StringUtils.hasText(connectivityTypes) ? connectivityTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {};
-    final String[] energyTypesList = StringUtils.hasText(energyTypes) ? energyTypes.split(Constants.COMMA_TOKEN_SPLITTER) : new String[] {};
+        StringUtils.hasText(connectivityTypes) ? connectivityTypes.split(SentiloConstants.COMMA_TOKEN_SPLITTER) : new String[] {};
+    final String[] energyTypesList = StringUtils.hasText(energyTypes) ? energyTypes.split(SentiloConstants.COMMA_TOKEN_SPLITTER) : new String[] {};
 
     if (!CollectionUtils.isEmpty(sensors)) {
       for (final Sensor sensor : sensors) {
@@ -185,7 +185,7 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
     if (!CollectionUtils.isEmpty(resources)) {
       for (final CatalogElement resource : resources) {
         final String location = isUpdateAction ? ((CatalogComponent) resource).getLocation() : ((CatalogSensor) resource).getLocation();
-        if (!isValidLocationFormat(location)) {
+        if (!SentiloUtils.isValidLocationFormat(location)) {
           final String resourceType = isUpdateAction ? COMPONENT : SENSOR;
           final String resourceName = isUpdateAction ? ((CatalogComponent) resource).getComponent() : ((CatalogSensor) resource).getSensor();
           final String errorMessage = buildErrorMessage(resourceType, resourceName, "location", location);
@@ -193,18 +193,6 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
         }
       }
     }
-  }
-
-  private boolean isValidLocationFormat(final String location) {
-    boolean valid = true;
-    if (SentiloUtils.stringIsNotEmptyOrNull(location)) {
-      final String[] coordinatesList = location.split(Constants.LOCATION_TOKEN_SPLITTER);
-      for (int i = 0; i < coordinatesList.length && valid; i++) {
-        valid = validateCoordinatesFormat(coordinatesList[i]);
-      }
-    }
-
-    return valid;
   }
 
   private void validateLocationContent(final ApiValidationResults results, final Component component) {
@@ -224,17 +212,6 @@ public class ApiValidator extends ApiBaseValidator<Sensor> {
         results.addErrorMessage(errorMessage);
       }
     }
-  }
-
-  private boolean validateCoordinatesFormat(final String coordinates) {
-    boolean areValidCoordinates = true;
-    final String coordinatesTrimmed = coordinates.trim();
-    final int pos = coordinatesTrimmed.indexOf(Constants.LOCATION_TOKEN_DIVIDER);
-    if (pos == -1 || !isDouble(coordinatesTrimmed.substring(0, pos).trim()) || !isDouble(coordinatesTrimmed.substring(pos + 1).trim())) {
-      // Coordinates must match the expression [doubleAsString doubleAsString]
-      areValidCoordinates = false;
-    }
-    return areValidCoordinates;
   }
 
   private void validateSensorsDataType(final ApiValidationResults results, final ApiConverterContext context) {

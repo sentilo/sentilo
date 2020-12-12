@@ -95,7 +95,8 @@ function controlDisplaySubstateFields(){
 									<h5><spring:message code="error.check.form.errors" /></h5>
 									<ul>
 									<c:forEach var="error" items="${errors.allErrors}">
-										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" />:</strong> <spring:message message="${error}" /></li>
+										<spring:message code="${error.field}" text="${error.field}" var="defaultErrorFieldName"/>
+										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" text="${defaultErrorFieldName}"/>:</strong> <spring:message message="${error}" /></li>
 									</c:forEach>
 									</ul>
 								</div>

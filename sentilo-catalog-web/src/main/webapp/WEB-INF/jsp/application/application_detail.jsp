@@ -74,6 +74,22 @@
 													</div>
 													<div class="row-fluid">
 														<div class="span4">
+															<strong><spring:message code="entity.apiInputQuota" /> </strong>
+														</div>
+														<div class="span8">
+															<spring:eval expression="application.apiInputQuota" />
+														</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
+															<strong><spring:message code="entity.apiOutputQuota" /> </strong>
+														</div>
+														<div class="span8">
+															<spring:eval expression="application.apiOutputQuota" />
+														</div>
+													</div>
+													<div class="row-fluid">
+														<div class="span4">
 															<strong><spring:message code="application.createdAt" /> </strong>
 														</div>
 														<div class="span8">

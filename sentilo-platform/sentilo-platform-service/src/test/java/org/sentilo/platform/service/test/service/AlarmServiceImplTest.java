@@ -58,8 +58,8 @@ import org.sentilo.platform.common.security.ResourceOwnerContext;
 import org.sentilo.platform.common.security.ResourceOwnerContextHolder;
 import org.sentilo.platform.common.service.CatalogService;
 import org.sentilo.platform.common.service.ResourceService;
-import org.sentilo.platform.service.dao.JedisSequenceUtils;
-import org.sentilo.platform.service.dao.JedisTemplate;
+import org.sentilo.platform.service.dao.SentiloRedisTemplate;
+import org.sentilo.platform.service.dao.SentiloSequenceUtils;
 import org.sentilo.platform.service.impl.AlarmServiceImpl;
 import org.sentilo.platform.service.utils.ChannelUtils;
 import org.sentilo.platform.service.utils.ChannelUtils.PubSubChannelPrefix;
@@ -71,9 +71,9 @@ public class AlarmServiceImplTest {
   @Mock
   private AlarmInputMessage message;
   @Mock
-  private JedisTemplate<String, String> jedisTemplate;
+  private SentiloRedisTemplate sRedisTemplate;
   @Mock
-  private JedisSequenceUtils jedisSequenceUtils;
+  private SentiloSequenceUtils sequenceUtils;
   @Mock
   private ResourceService resourceService;
   @Mock
@@ -107,7 +107,7 @@ public class AlarmServiceImplTest {
 
     service.setAlarm(message);
 
-    verify(jedisTemplate).publish(eq(channel), anyString());
+    verify(sRedisTemplate).publish(eq(channel), anyString());
   }
 
   @Test(expected = EventRejectedException.class)
@@ -134,32 +134,32 @@ public class AlarmServiceImplTest {
     final Set<String> amids = buildAmids();
 
     when(message.getAlertId()).thenReturn(ALERT_ID);
-    when(jedisSequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
-    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(amids);
+    when(sequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
+    when(sRedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(amids);
 
     service.getLastAlarms(message);
 
     verify(message, times(2)).getAlertId();
-    verify(jedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
-    verify(jedisTemplate, times(amids.size())).hGetAll(anyString());
+    verify(sRedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
+    verify(sRedisTemplate, times(amids.size())).hGetAll(anyString());
   }
 
   @Test
   public void getEmptyLastAlertAlarms() {
     when(message.getAlertId()).thenReturn(ALERT_ID);
-    when(jedisSequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
-    when(jedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(Collections.<String>emptySet());
+    when(sequenceUtils.getAid(notNull(String.class))).thenReturn(new Long(1));
+    when(sRedisTemplate.zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt())).thenReturn(Collections.<String>emptySet());
 
     service.getLastAlarms(message);
 
     verify(message, times(1)).getAlertId();
-    verify(jedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
-    verify(jedisTemplate, times(0)).hGetAll(anyString());
+    verify(sRedisTemplate).zRevRangeByScore(anyString(), anyDouble(), anyDouble(), anyInt(), anyInt());
+    verify(sRedisTemplate, times(0)).hGetAll(anyString());
   }
 
   @Test(expected = ResourceNotFoundException.class)
   public void getUnknownAlertOwner() {
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(1L);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(1L);
     when(resourceService.getAlert(1L)).thenReturn(null);
 
     service.getAlertOwner(ALERT_ID);
@@ -168,7 +168,7 @@ public class AlarmServiceImplTest {
   @Test
   public void getAlertOwner() {
     final String owner = "mockOwner";
-    when(jedisSequenceUtils.getAid(ALERT_ID)).thenReturn(1L);
+    when(sequenceUtils.getAid(ALERT_ID)).thenReturn(1L);
     when(resourceService.getAlert(1L)).thenReturn(alert);
     when(alert.getEntity()).thenReturn(owner);
 

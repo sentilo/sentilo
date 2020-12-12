@@ -35,12 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.sentilo.common.cache.LRUCache;
-import org.sentilo.common.cache.impl.LRUCacheImpl;
 import org.sentilo.common.enums.EventType;
 import org.sentilo.common.enums.SensorState;
-import org.sentilo.common.utils.SentiloConstants;
-import org.sentilo.platform.common.domain.AlarmInputMessage;
 import org.sentilo.platform.common.domain.DataInputMessage;
 import org.sentilo.platform.common.domain.Observation;
 import org.sentilo.platform.common.domain.Sensor;
@@ -49,6 +45,7 @@ import org.sentilo.platform.common.exception.RejectedResourcesContext;
 import org.sentilo.platform.common.exception.ResourceNotFoundException;
 import org.sentilo.platform.common.exception.ResourceOfflineException;
 import org.sentilo.platform.common.service.DataService;
+import org.sentilo.platform.common.service.InternalAlarmService;
 import org.sentilo.platform.common.service.ResourceService;
 import org.sentilo.platform.service.monitor.Metric;
 import org.sentilo.platform.service.monitor.RequestType;
@@ -76,8 +73,8 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
   @Autowired
   private ResourceService resourceService;
 
-  /** Internal cache to evict spam with ghost alarms notifications. */
-  private final LRUCache<String, String> ghostSensors = new LRUCacheImpl<String, String>(1000, 10);
+  @Autowired
+  private InternalAlarmService internalAlarmService;
 
   @Value("${api.data.reject-unknown-sensors:true}")
   private boolean rejectUnknownSensors = true;
@@ -183,7 +180,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
   }
 
   private void deleteLastObservation(final String providerId, final String sensorId) {
-    final Long sid = jedisSequenceUtils.getSid(providerId, sensorId);
+    final Long sid = sequenceUtils.getSid(providerId, sensorId);
     if (sid == null) {
       // Si no hay identificador interno del sensor, entonces este no tiene ninguna observacion
       // registrada.
@@ -226,7 +223,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
       final int offset = (iteration - 1) * limit;
       final int count = limit + 1;
       // Redis call is: ZREVRANGEBYSCORE sid:{sid}:observations to from LIMIT 0 limit
-      final Set<String> sdids = jedisTemplate.zRevRangeByScore(keysBuilder.getSensorObservationsKey(sid), to, from, offset, count);
+      final Set<String> sdids = sRedisTemplate.zRevRangeByScore(keysBuilder.getSensorObservationsKey(sid), to, from, offset, count);
 
       // As count=limit+1 and client only request limit elements, sdids set is subset to contain a
       // maximum
@@ -269,7 +266,7 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     String ts = null;
     String location = null;
 
-    final Map<String, String> infoSdid = jedisTemplate.hGetAll(keysBuilder.getObservationKey(sdid));
+    final Map<String, String> infoSdid = sRedisTemplate.hGetAll(keysBuilder.getObservationKey(sdid));
     if (!CollectionUtils.isEmpty(infoSdid)) {
       value = infoSdid.get(DATA);
       ts = infoSdid.get(TIMESTAMP);
@@ -292,11 +289,11 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     // 2. Eliminamos este elemento del Sorted Set.
     // 3. Eliminamos la clave sdid:{sdid}
     final String sensorObservationsKey = keysBuilder.getSensorObservationsKey(sid);
-    final Set<String> sdids = jedisTemplate.zRange(sensorObservationsKey, -1, -1);
+    final Set<String> sdids = sRedisTemplate.zRange(sensorObservationsKey, -1, -1);
     if (!CollectionUtils.isEmpty(sdids)) {
-      jedisTemplate.zRemRangeByRank(sensorObservationsKey, -1, -1);
+      sRedisTemplate.zRemRangeByRank(sensorObservationsKey, -1, -1);
       final String sdid = sdids.iterator().next();
-      jedisTemplate.del(keysBuilder.getObservationKey(sdid));
+      sRedisTemplate.del(keysBuilder.getObservationKey(sdid));
     }
   }
 
@@ -309,16 +306,16 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     if (!existsSensor && rejectUnknownSensors) {
       throw new ResourceNotFoundException(data.getSensor(), "Sensor");
     } else if (!existsSensor) {
-      publishGhostSensorAlarm(data);
+      internalAlarmService.publishGhostSensorAlarm(data);
     } else if (SensorState.offline.equals(sensor.getState())) {
       throw new ResourceOfflineException(data.getSensor(), "Sensor");
     }
   }
 
   private void registerSensorData(final Sensor sensor, final Observation data) {
-    // final Long sid = jedisSequenceUtils.getSid(data.getProvider(), data.getSensor());
+    // final Long sid = sequenceUtils.getSid(data.getProvider(), data.getSensor());
     final Long sid = sensor.getSid();
-    final Long sdid = jedisSequenceUtils.getSdid();
+    final Long sdid = sequenceUtils.getSdid();
     final Long timestamp = data.getTimestamp();
     final String location = StringUtils.hasText(data.getLocation()) ? data.getLocation() : "";
 
@@ -330,46 +327,26 @@ public class DataServiceImpl extends AbstractPlatformServiceImpl implements Data
     fields.put(DATA, data.getValue());
     fields.put(TIMESTAMP, timestamp.toString());
     fields.put(LOCATION, location);
-    jedisTemplate.hmSet(obsKey, fields);
+    sRedisTemplate.hmSet(obsKey, fields);
 
     // if expired time in seconds (ttl) is defined and !=0, set the expire time to the key
     final int ttl = ttlToExpiredTime(sensor.getTtl());
     if (ttl != 0) {
-      jedisTemplate.expire(obsKey, ttl);
+      sRedisTemplate.expire(obsKey, ttl);
     }
 
     // Y definimos una reverse lookup key con la cual recuperar rapidamente las observaciones de un
     // sensor.
     // A continuacion, añadimos el sdid al Sorted Set sensor:{sid}:observations. La puntuacion, o
     // score, que se asocia a cada elemento del Set es el timestamp de la observacion.
-    jedisTemplate.zAdd(keysBuilder.getSensorObservationsKey(sid), timestamp, sdid.toString());
+    sRedisTemplate.zAdd(keysBuilder.getSensorObservationsKey(sid), timestamp, sdid.toString());
 
     LOGGER.debug("Registered in Redis observation [{}] for sensor [{}] belonging to provider [{}]", sdid, data.getSensor(), data.getProvider());
   }
 
   private void publishSensorData(final Observation data) {
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.data, data.getProvider(), data.getSensor());
-    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(data, topic));
-  }
-
-  private void publishGhostSensorAlarm(final Observation data) {
-    final String ghostSensorKey = data.getProvider() + "." + data.getSensor();
-    if (ghostSensors.get(ghostSensorKey) == null) {
-      final String ghost_message_template = "Detected ghost sensor %s belonging to provider %s";
-      final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.alarm, data.getProvider(), data.getSensor());
-
-      final AlarmInputMessage aim = new AlarmInputMessage();
-      aim.setProviderId(data.getProvider());
-      aim.setSensorId(data.getSensor());
-      aim.setAlertType("INTERNAL");
-      aim.setAlertId(SentiloConstants.GHOST_SENSOR_ALERT);
-      aim.setSender(SentiloConstants.GHOST_SENSOR_SENDER);
-      aim.setMessage(String.format(ghost_message_template, data.getSensor(), data.getProvider()));
-
-      jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(aim, topic));
-      ghostSensors.put(ghostSensorKey, ghost_message_template);
-      LOGGER.info("Published new ghost sensor alarm related to sensor [{}] from provider [{}]", data.getSensor(), data.getProvider());
-    }
+    sRedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(data, topic));
   }
 
   private Sensor getSensorMetadata(final String provider, final String sensorId) {

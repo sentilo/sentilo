@@ -41,6 +41,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.sentilo.common.utils.SentiloConstants;
 import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.domain.AlphabeticalSortable;
 import org.sentilo.web.catalog.domain.CatalogDocument;
@@ -83,12 +84,12 @@ public abstract class CatalogUtils extends SentiloUtils {
       return null;
     }
 
-    final String[] coordinatesList = stringLocation.split(Constants.LOCATION_TOKEN_SPLITTER);
+    final String[] coordinatesList = stringLocation.split(SentiloConstants.LOCATION_TOKEN_SPLITTER);
     final LngLat[] lngLatCoordinates = new LngLat[coordinatesList.length];
 
     int i = 0;
     for (final String coordinates : coordinatesList) {
-      final int pos = coordinates.indexOf(Constants.LOCATION_TOKEN_DIVIDER);
+      final int pos = coordinates.indexOf(SentiloConstants.LOCATION_TOKEN_DIVIDER);
       if (pos != -1) {
         final Double latitude = Double.parseDouble(coordinates.substring(0, pos).trim());
         final Double longitude = Double.parseDouble(coordinates.substring(pos + 1).trim());
@@ -109,17 +110,6 @@ public abstract class CatalogUtils extends SentiloUtils {
 
   public static List<String> tagsToStringList(final String tags) {
     return tags != null ? Arrays.asList(tags.split("\\s*,\\s*")) : null;
-  }
-
-  public static boolean isDouble(final String value) {
-    boolean isDouble = true;
-    try {
-      Double.parseDouble(value);
-    } catch (final NumberFormatException nfe) {
-      isDouble = false;
-    }
-
-    return isDouble;
   }
 
   public static Class<? extends CatalogDocument> getCollectionType(final Collection<? extends CatalogDocument> collection) {
@@ -169,12 +159,21 @@ public abstract class CatalogUtils extends SentiloUtils {
     return sb.toString();
   }
 
+  public static <T> String arrayToString(final T[] values) {
+    final StringBuilder sb = new StringBuilder();
+    if (!arrayIsEmpty(values)) {
+      sb.append(collectionToString(Arrays.asList(values)));
+    }
+
+    return sb.toString();
+  }
+
   public static String[] enumGetNames(final Class<? extends Enum<?>> enumClass) {
     return Arrays.toString(enumClass.getEnumConstants()).replaceAll("^.|.$", "").split(", ");
   }
 
   public static List<OptionDTO> toOptionList(final String suffixes, final String prefix, final MessageSource messageSource) {
-    final String[] aSuffixes = suffixes.split(Constants.COMMA_TOKEN_SPLITTER);
+    final String[] aSuffixes = suffixes.split(SentiloConstants.COMMA_TOKEN_SPLITTER);
     return toOptionList(aSuffixes, prefix, messageSource);
   }
 

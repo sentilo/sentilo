@@ -274,6 +274,18 @@ public class CatalogUtilsTest {
   }
 
   @Test
+  public void arrayToString() {
+    final String[] values = {"a", "b", "c"};
+    final String[] values2 = {};
+
+    final String result = CatalogUtils.arrayToString(values);
+    final String result2 = CatalogUtils.arrayToString(values2);
+
+    Assert.assertEquals("a, b, c", result);
+    Assert.assertEquals("", result2);
+  }
+
+  @Test
   public void tagsToStringListNull() {
     final String tags = null;
     final List<String> result = CatalogUtils.tagsToStringList(tags);

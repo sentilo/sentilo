@@ -8,6 +8,8 @@ Contents:
 
    api_docs/general_model
    api_docs/security
+   api_docs/rate_limiting
+   api_docs/monitor_api
    api_docs/services
 
 The Application Programming Interface (API) of Sentilo defines a set of commands,

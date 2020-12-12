@@ -28,12 +28,14 @@
  */
 package org.sentilo.agent.common.listener;
 
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
 import org.sentilo.common.converter.DefaultStringMessageConverter;
 import org.sentilo.common.converter.StringMessageConverter;
 import org.sentilo.common.domain.EventMessage;
 import org.sentilo.common.exception.MessageNotWritableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -47,6 +49,8 @@ public abstract class AbstractMessageListenerImpl implements MessageListener {
   private final String name;
   private RedisSerializer<String> serializer = new StringRedisSerializer();
   private StringMessageConverter eventConverter = new DefaultStringMessageConverter();
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
 
   public AbstractMessageListenerImpl(final String name) {
     super();
@@ -68,6 +72,7 @@ public abstract class AbstractMessageListenerImpl implements MessageListener {
       final EventMessage eventMessage = (EventMessage) eventConverter.unmarshal(info, EventMessage.class);
 
       doWithMessage(eventMessage);
+      metricsCounters.incrementInputEvents(1);
     } catch (final MessageNotWritableException mnwe) {
       LOGGER.error("Error unmarshalling message: {}. ", info, mnwe);
     }
@@ -82,6 +87,10 @@ public abstract class AbstractMessageListenerImpl implements MessageListener {
 
   public String getName() {
     return name;
+  }
+
+  public void setMetricsCounters(final AgentMetricsCounter metricsCounters) {
+    this.metricsCounters = metricsCounters;
   }
 
   protected String getInfo(final Message message) {

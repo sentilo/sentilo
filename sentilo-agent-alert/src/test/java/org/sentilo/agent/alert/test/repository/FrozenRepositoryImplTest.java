@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -166,7 +167,7 @@ public class FrozenRepositoryImplTest {
   }
 
   @Test
-  public void synchronizeAlertsAndRemoveDeprecatedAlerts() {
+  public void synchronizeAlertsAndRemoveDeprecatedAlerts() throws IOException {
     final List<InternalAlert> alerts = Arrays.asList(alert, alert);
     final String memberKey = alert.getProviderId() + "#" + alert.getSensorId() + "#" + alert.getId();
     final String memberDeprecatedKey = alert.getProviderId() + "#" + alert.getSensorId() + "#" + alertId2;
@@ -182,6 +183,7 @@ public class FrozenRepositoryImplTest {
     when(operations.scan(eq(sortedSetKey), eq(ScanOptions.NONE))).thenReturn(scanCursor);
     when(scanCursor.hasNext()).thenReturn(true, true, true, false);
     when(scanCursor.next()).thenReturn(member).thenReturn(member).thenReturn(memberDeprecated);
+    when(scanCursor.isClosed()).thenReturn(false);
 
     repository.synchronizeAlerts(alerts);
 
@@ -190,5 +192,7 @@ public class FrozenRepositoryImplTest {
     verify(operations).scan(eq(sortedSetKey), eq(ScanOptions.NONE));
     verify(operations).remove(eq(sortedSetKey), anyVararg());
     verify(vOperations).set(eq(lastSyncKey), any(String.class));
+    verify(scanCursor).isClosed();
+    verify(scanCursor).close();
   }
 }

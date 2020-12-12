@@ -53,6 +53,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -223,6 +224,12 @@ public class ComponentController extends BaseComponentController {
     if (resource.isMobileComponent() && resource.getRoutePointList() == null) {
       final Component aux = getService().find(resource);
       resource.setRoutePointList(aux.getRoutePointList());
+    }
+
+    // Keep additionalInfo field
+    if (CollectionUtils.isEmpty(resource.getAdditionalInfo())) {
+      final Component aux = getService().find(resource);
+      resource.setAdditionalInfo(aux.getAdditionalInfo());
     }
   }
 

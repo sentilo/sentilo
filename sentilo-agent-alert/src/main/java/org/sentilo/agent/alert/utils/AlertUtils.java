@@ -56,7 +56,7 @@ public abstract class AlertUtils {
    * <code>/data/{provider}/{sensor}</code>
    *
    * @param alert
-   * @return
+   * @return the name of the topic
    */
   public static String buildAlertDataTopic(final InternalAlert alert) {
     final String[] tokens = {Constants.DATA, alert.getProviderId(), alert.getSensorId()};
@@ -89,7 +89,8 @@ public abstract class AlertUtils {
    * member
    *
    * @param alert
-   * @return
+   * @return Build a String with the main alert info. This String will be stored into a Redis set as
+   *         a member
    */
   public static String buildFrozenAlertMember(final InternalAlert alert) {
     final StringBuilder sb = new StringBuilder();

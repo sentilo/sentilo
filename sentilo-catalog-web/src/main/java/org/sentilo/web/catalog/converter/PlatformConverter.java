@@ -45,15 +45,17 @@ public abstract class PlatformConverter {
     final Collection<CatalogSensor> catalogSensors = new ArrayList<CatalogSensor>();
     for (final CatalogDocument document : sensors) {
       final CatalogSensor catalogSensor = new CatalogSensor();
-      catalogSensor.setSensor(((Sensor) document).getSensorId());
-      catalogSensor.setProvider(((Sensor) document).getProviderId());
+      final Sensor sensor = (Sensor) document;
+      catalogSensor.setSensor(sensor.getSensorId());
+      catalogSensor.setProvider(sensor.getProviderId());
       // In the Catalog back-end, sensor TTL is stored in minutes but in PubSub back-end (Redis),
-      // sensor
-      // TTL is expressed in seconds
-      catalogSensor.setTtl(((Sensor) document).getTtl() * 60);
+      // sensor TTL is expressed in seconds
+      if (sensor.getTtl() != null) {
+        catalogSensor.setTtl(sensor.getTtl() * 60);
+      }
 
-      if (((Sensor) document).getState() != null) {
-        catalogSensor.setState(((Sensor) document).getState());
+      if (sensor.getState() != null) {
+        catalogSensor.setState(sensor.getState());
       }
 
       catalogSensors.add(catalogSensor);

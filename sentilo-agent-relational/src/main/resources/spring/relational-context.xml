@@ -9,19 +9,17 @@
 	<context:annotation-config />
 
 	<import resource="classpath:spring/relational-properties-context.xml" />
-	<import resource="classpath:spring/relational-persistence-context.xml" />
+	<import resource="classpath:spring/relational-persistence-context.xml" />	
 	<import resource="classpath:spring/relational-pubsub-context.xml" />
 
-	<context:component-scan base-package="org.sentilo.agent.relational.service" />
-	<context:component-scan base-package="org.sentilo.agent.relational.repository" />	
-	<context:component-scan base-package="org.sentilo.agent.relational.event" />
-	<context:component-scan base-package="org.sentilo.agent.relational.hook" />
+	<context:component-scan base-package="org.sentilo.agent.relational" />	
 	<context:component-scan base-package="org.sentilo.agent.common.listener" />		
   	<context:component-scan base-package="org.sentilo.agent.common.service" />    
   	<context:component-scan base-package="org.sentilo.agent.common.repository" />
   	<context:component-scan base-package="org.sentilo.agent.common.scheduler" />
   	<context:component-scan base-package="org.sentilo.agent.common.config" />
-  	<context:component-scan base-package="org.sentilo.common.config" />
+  	<context:component-scan base-package="org.sentilo.common.config" />   	
+  	<context:component-scan base-package="org.sentilo.common.metrics" />  	
 	
 	<task:annotation-driven scheduler="platformScheduler" />
 	<task:scheduler id="platformScheduler" pool-size="5" />	

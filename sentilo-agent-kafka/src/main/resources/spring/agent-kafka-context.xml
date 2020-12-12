@@ -19,6 +19,7 @@
   	<context:component-scan base-package="org.sentilo.agent.common.scheduler" />
   	<context:component-scan base-package="org.sentilo.agent.common.config" />
   	<context:component-scan base-package="org.sentilo.common.config" />
+  	<context:component-scan base-package="org.sentilo.common.metrics" />
   	<context:component-scan base-package="org.springframework.kafka.core" />
 
 	<bean class="org.sentilo.agent.kafka.utils.TopicName" 

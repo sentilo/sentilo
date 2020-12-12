@@ -52,7 +52,8 @@ $(document).ready(function() {
 									<h5><spring:message code="error.check.form.errors" /></h5>
 									<ul>
 									<c:forEach var="error" items="${errors.allErrors}">
-										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" />:</strong> <spring:message message="${error}" /></li>
+										<spring:message code="${error.field}" text="${error.field}" var="defaultErrorFieldName"/>
+										<li class="text-error"><strong><spring:message code="${error.objectName}.${error.field}" text="${defaultErrorFieldName}"/>:</strong> <spring:message message="${error}" /></li>
 									</c:forEach>
 									</ul>
 								</div>
@@ -140,7 +141,7 @@ $(document).ready(function() {
 													<div class="control-group">
 														<div class="control-group">
 															<form:label path="mapParams.zoomLevel" class="control-label">
-																<spring:message code="tenant.zoomLevel" />
+																<spring:message code="tenant.mapParams.zoomLevel" />
 															</form:label>
 															<div class="controls">
 																<form:input path="mapParams.zoomLevel" />
@@ -149,7 +150,7 @@ $(document).ready(function() {
 														</div>
 														<div class="control-group">
 															<form:label path="mapParams.center.latitude" class="control-label">
-																<spring:message code="tenant.latitude" />
+																<spring:message code="tenant.mapParams.center.latitude" />
 															</form:label>
 															<div class="controls">
 																<form:input path="mapParams.center.latitude" />
@@ -158,7 +159,7 @@ $(document).ready(function() {
 														</div>
 														<div class="control-group">
 															<form:label path="mapParams.center.longitude" class="control-label">
-																<spring:message code="tenant.longitude" />
+																<spring:message code="tenant.mapParams.center.longitude" />
 															</form:label>
 															<div class="controls">
 																<form:input path="mapParams.center.longitude" />
@@ -167,7 +168,7 @@ $(document).ready(function() {
 														</div>
 														<div class="control-group colorPicker">
 															<form:label path="mapParams.bgColor" class="control-label">
-																<spring:message code="tenant.bgColor" />
+																<spring:message code="tenant.mapParams.bgColor" />
 															</form:label>
 															<div class="controls">
 																<form:input path="mapParams.bgColor" class="form-control" /><span class="input-group-addon"><i></i></span>

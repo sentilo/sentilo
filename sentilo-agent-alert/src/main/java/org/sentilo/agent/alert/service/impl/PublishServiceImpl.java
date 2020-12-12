@@ -31,6 +31,8 @@ package org.sentilo.agent.alert.service.impl;
 import org.sentilo.agent.alert.domain.InternalAlert;
 import org.sentilo.agent.alert.service.PublishService;
 import org.sentilo.agent.alert.utils.Constants;
+import org.sentilo.agent.common.metrics.AgentMetricsCounter;
+import org.sentilo.common.exception.RESTClientException;
 import org.sentilo.platform.client.core.PlatformClientOperations;
 import org.sentilo.platform.client.core.domain.AlarmInputMessage;
 import org.slf4j.Logger;
@@ -45,6 +47,9 @@ public class PublishServiceImpl implements PublishService {
 
   @Autowired
   private PlatformClientOperations platformClient;
+
+  @Autowired
+  private AgentMetricsCounter metricsCounters;
 
   /*
    * (non-Javadoc)
@@ -74,6 +79,13 @@ public class PublishServiceImpl implements PublishService {
     alarmMessage.setSensorId(alert.getSensorId());
     alarmMessage.setAlertType(alert.getTrigger().name());
 
-    platformClient.getAlarmOps().publish(alarmMessage);
+    try {
+      platformClient.getAlarmOps().publish(alarmMessage);
+      metricsCounters.isRemoteServerConnectionOk(true);
+      metricsCounters.incrementOutputEvents(1);
+    } catch (final RESTClientException rce) {
+      metricsCounters.isRemoteServerConnectionOk(false);
+      throw rce;
+    }
   }
 }

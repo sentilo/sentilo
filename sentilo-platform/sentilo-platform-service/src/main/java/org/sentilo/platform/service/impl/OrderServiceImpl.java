@@ -144,7 +144,7 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     // La sentencia a utilizar en Redis es:
     // ZREVRANGEBYSCORE sid:{sid}:orders to from LIMIT 0 limit
     final Sensor sensor = resourceService.getSensor(sid);
-    final Set<String> soids = jedisTemplate.zRevRangeByScore(keysBuilder.getSensorOrdersKey(sid), to, from, 0, limit);
+    final Set<String> soids = sRedisTemplate.zRevRangeByScore(keysBuilder.getSensorOrdersKey(sid), to, from, 0, limit);
     List<Order> orders = null;
 
     if (!CollectionUtils.isEmpty(soids)) {
@@ -176,7 +176,7 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     String ts = null;
     String sender = null;
 
-    final Map<String, String> infoSoid = jedisTemplate.hGetAll(keysBuilder.getOrderKey(soid));
+    final Map<String, String> infoSoid = sRedisTemplate.hGetAll(keysBuilder.getOrderKey(soid));
     if (!CollectionUtils.isEmpty(infoSoid)) {
       message = infoSoid.get(ORDER);
       ts = infoSoid.get(TIMESTAMP);
@@ -239,7 +239,7 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
   }
 
   private void registerSensorOrder(final OrderInputMessage message) {
-    final Long sid = jedisSequenceUtils.getSid(message.getProviderId(), message.getSensorId());
+    final Long sid = sequenceUtils.getSid(message.getProviderId(), message.getSensorId());
     final Long soid = persistOrder(message);
     registerSensorOrder(sid, soid, message);
   }
@@ -249,13 +249,13 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     // Definimos una reverse lookup key con la cual recuperar rapidamente las ordenes de un sensor
     // A continuacion, añadimos el soid al Sorted Set sensor:{sid}:orders. La puntuacion, o score,
     // que se asocia a cada elemento del Set es el timestamp de la orden.
-    jedisTemplate.zAdd(keysBuilder.getSensorOrdersKey(sid), timestamp, soid.toString());
+    sRedisTemplate.zAdd(keysBuilder.getSensorOrdersKey(sid), timestamp, soid.toString());
 
     LOGGER.debug("Registered in Redis order [{}] related to provider [{}] and sensor [{}]", soid, message.getProviderId(), message.getSensorId());
   }
 
   private Long persistOrder(final OrderInputMessage message) {
-    final Long soid = jedisSequenceUtils.getSoid();
+    final Long soid = sequenceUtils.getSoid();
     final Long timestamp = System.currentTimeMillis();
     final String orderKey = keysBuilder.getOrderKey(soid);
 
@@ -264,11 +264,11 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     fields.put(SENDER, message.getSender());
     fields.put(ORDER, message.getOrder());
     fields.put(TIMESTAMP, timestamp.toString());
-    jedisTemplate.hmSet(orderKey, fields);
+    sRedisTemplate.hmSet(orderKey, fields);
 
     // if expireSeconds is defined and !=0, set the expire time to key
     if (expireSeconds != 0) {
-      jedisTemplate.expire(orderKey, expireSeconds);
+      sRedisTemplate.expire(orderKey, expireSeconds);
     }
 
     return soid;
@@ -278,7 +278,7 @@ public class OrderServiceImpl extends AbstractPlatformServiceImpl implements Ord
     LOGGER.debug("Publish order event [{}] related to provider [{}] and sensor [{}]", message.getOrder(), message.getProviderId(),
         message.getSensorId());
     final Topic topic = ChannelUtils.buildTopic(PubSubChannelPrefix.order, message.getProviderId(), message.getSensorId());
-    jedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
+    sRedisTemplate.publish(topic.getTopic(), PublishMessageUtils.buildContentToPublish(message, topic));
     LOGGER.debug("Order published");
   }
 }

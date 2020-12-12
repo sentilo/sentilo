@@ -34,7 +34,9 @@
 	<context:component-scan base-package="org.sentilo.web.catalog.format" />
 	<context:component-scan base-package="org.sentilo.web.catalog.scheduler" />
 	<context:component-scan base-package="org.sentilo.web.catalog.config" />
+	<context:component-scan base-package="org.sentilo.web.catalog.metrics" />
 	<context:component-scan base-package="org.sentilo.common.config" />
+	<context:component-scan base-package="org.sentilo.common.metrics" />
 
 	<task:annotation-driven scheduler="catalogScheduler" executor="catalogExecutor"/>
 	<task:scheduler id="catalogScheduler" pool-size="5" />
