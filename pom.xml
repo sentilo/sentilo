@@ -58,7 +58,7 @@
 		<commons.codec.version>1.7</commons.codec.version>		
 		<httpclient.version>4.5.6</httpclient.version>		
 		<jackson.version>2.9.6</jackson.version>		
-		<junit.version>4.13</junit.version>		
+		<junit.version>4.13.1</junit.version>		
 		<mockito.version>1.10.8</mockito.version>
 		<powermock.version>1.6.1</powermock.version>		
 		<org.springframework.security.version>5.0.7.RELEASE</org.springframework.security.version>
