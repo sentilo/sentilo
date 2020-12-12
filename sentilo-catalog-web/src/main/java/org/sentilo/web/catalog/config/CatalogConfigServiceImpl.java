@@ -34,7 +34,6 @@ import java.util.Properties;
 
 import org.sentilo.common.config.impl.SentiloArtifactConfigServiceImpl;
 import org.sentilo.common.utils.SentiloConstants;
-import org.sentilo.common.utils.SentiloUtils;
 import org.sentilo.web.catalog.service.PlatformService;
 import org.sentilo.web.catalog.utils.CatalogUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +57,8 @@ public class CatalogConfigServiceImpl extends SentiloArtifactConfigServiceImpl {
   @Autowired
   private PlatformService platformService;
 
+
+  @Override
   @Scheduled(initialDelay = CATALOG_INITIAL_DELAY, fixedDelay = FIXED_DELAY)
   public void save() {
     doSave();
@@ -76,12 +77,12 @@ public class CatalogConfigServiceImpl extends SentiloArtifactConfigServiceImpl {
     artifactProperties.put(FILE_ENCODING_PARAM, System.getProperty(FILE_ENCODING_PARAM, "-"));
     artifactProperties.put(SPRING_PROFILES_ACTIVE_PARAM, CatalogUtils.arrayToString(getActiveProfiles()));
     artifactProperties.put(SentiloConstants.SENTILO_STATE_PAGE_ENABLED_PROP_KEY,
-        System.getProperty(SentiloConstants.SENTILO_STATE_PAGE_ENABLED_PROP_KEY, "false"));
+            System.getProperty(SentiloConstants.SENTILO_STATE_PAGE_ENABLED_PROP_KEY, "false"));
     artifactProperties.put(SentiloConstants.SENTILO_MULTITENANT_PROP_KEY, System.getProperty(SentiloConstants.SENTILO_MULTITENANT_PROP_KEY, "false"));
     artifactProperties.put(SentiloConstants.SENTILO_MULTITENANT_INFER_PROP_KEY,
-        System.getProperty(SentiloConstants.SENTILO_MULTITENANT_INFER_PROP_KEY, "false"));
+            System.getProperty(SentiloConstants.SENTILO_MULTITENANT_INFER_PROP_KEY, "false"));
     artifactProperties.put(SentiloConstants.SENTILO_FEDERATION_ENABLED_PROP_KEY,
-        System.getProperty(SentiloConstants.SENTILO_FEDERATION_ENABLED_PROP_KEY, "false"));
+            System.getProperty(SentiloConstants.SENTILO_FEDERATION_ENABLED_PROP_KEY, "false"));
 
     return toMap(artifactProperties);
   }
@@ -91,6 +92,7 @@ public class CatalogConfigServiceImpl extends SentiloArtifactConfigServiceImpl {
    *
    * @see org.sentilo.common.config.SentiloArtifactConfigContext#saveModuleConfig(java.lang.String)
    */
+  @Override
   protected void saveArtifactConfig(final String moduleKey) {
     final Map<String, Map<String, Object>> catalogConfig = new HashMap<String, Map<String, Object>>();
     catalogConfig.put(moduleKey, getArtifactConfig());
@@ -99,6 +101,7 @@ public class CatalogConfigServiceImpl extends SentiloArtifactConfigServiceImpl {
   }
 
   private String[] getActiveProfiles() {
-    return SentiloUtils.arrayIsEmpty(environment.getActiveProfiles()) ? environment.getDefaultProfiles() : environment.getActiveProfiles();
+    return CatalogUtils.arrayIsEmpty(environment.getActiveProfiles()) ? environment.getDefaultProfiles() : environment.getActiveProfiles();
   }
+
 }

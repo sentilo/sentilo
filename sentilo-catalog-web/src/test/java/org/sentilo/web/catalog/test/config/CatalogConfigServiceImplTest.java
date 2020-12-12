@@ -83,7 +83,6 @@ public class CatalogConfigServiceImplTest extends AbstractBaseTest {
   public void getArtifactConfig() {
     final String[] activeProfiles = {"test"};
     when(environment.getActiveProfiles()).thenReturn(activeProfiles);
-
     final Map<String, Object> config = configService.getArtifactConfig();
     Assert.assertEquals(System.getProperty(USER_TIMEZONE_PARAM, "-"), config.get(USER_TIMEZONE_PARAM));
     Assert.assertEquals(System.getProperty(FILE_ENCODING_PARAM, "-"), config.get(FILE_ENCODING_PARAM));
