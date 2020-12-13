@@ -207,5 +207,4 @@ public abstract class CatalogUtils extends SentiloUtils {
 
     return tokens.length > 0 && "static".equals(tokens[1]);
   }
-
 }
