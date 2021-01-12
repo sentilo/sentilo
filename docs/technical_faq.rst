@@ -4,21 +4,24 @@ Technical FAQ
 In which platforms has been Sentilo tested ?
 --------------------------------------------
 
-The first deployment for the Barcelona City Council has been tested in
+The first deployment for the Barcelona City Council has
 the following infrastructure:
 
 -  Four virtual machines, two for the front-ends and another two for the
    back-end
--  All of them use as operating system Ubuntu server LTS 16.04
+-  All of them use as operating system Ubuntu server LTS 18.04
 -  The real time database server(Redis) works with 32 GB of memory and
    36 GB of hard disk
--  The other three servers works with 4 GB of memory and 16 GB of hard
+-  The other three servers work with 4 GB of memory and 16 GB of hard
    disk
 
-Another deployment configuration should work properly, always keeping in
+Another deployment configurations should work properly, always keeping in
 mind the expected load by the system. There is also a `virtual
 machine <./use_a_virtual_machine.html>`__ ready for use that can be used
 for testing purposes.
+
+All known Sentilo instances are deployed on Linux servers, mainly CentoOS 6+
+and Ubuntu Server 14.04+.
 
 I successfully published an observation, but I cannot see the data in catalog.
 ------------------------------------------------------------------------------
@@ -36,7 +39,7 @@ the same option, for example en $JAVA_OPTS variable.
 
 --------------
 
-Maps is not showing up in Catalog application
+Google Maps is not showing up in Catalog application
 ---------------------------------------------
 
 Recently Google changed it policy regarding Maps key. Please go to
@@ -91,3 +94,17 @@ Testing <./platform_testing.html>`__
 If you installed everything on your local machine, you can access the
 catalog at http://localhost:8080/sentilo-catalog-web and the REST API at
 http://localhost:8081
+
+--------------
+
+How can I activate debug logs?
+------------------------------
+
+You can pass the property :literal:`sentilo.log.level` to the JVM.
+For example, you might add the following code to the script in the target/appassembler/bin
+of the component you want to debug:
+
+::
+
+   -Dsentilo.log.level=DEBUG
+
