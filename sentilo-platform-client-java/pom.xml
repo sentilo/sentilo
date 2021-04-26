@@ -13,7 +13,7 @@
 	</parent>
 		
 	<properties>								
-		<commons.io.version>2.4</commons.io.version>
+		<commons.io.version>2.7</commons.io.version>
 		<org.aspectj.aspectjweaver-version>1.7.1</org.aspectj.aspectjweaver-version>	    
 	    <sonar.java.source>1.5</sonar.java.source>
   		<sonar.java.target>1.5</sonar.java.target>
