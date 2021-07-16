@@ -36,13 +36,13 @@ Parameters
 |                       | HTTP request with the |                       |
 |                       | observation data      |                       |
 +-----------------------+-----------------------+-----------------------+
-| secretCallbackKey     | Secret key for        | Yes                   |
+| secretCallbackKey     | Secret key for HMAC   | Yes                   |
 |                       | callbacks             |                       |
 +-----------------------+-----------------------+-----------------------+
-| retries               | Maximum number of     | Yes                   |
+| maxRetries            | Maximum number of     | Yes                   |
 |                       | retries               |                       |
 +-----------------------+-----------------------+-----------------------+
-| retries_delay         | Delay parameter in    | Yes                   |
+| retryDelay            | Delay parameter in    | Yes                   |
 |                       | minutes. Delays are   |                       |
 |                       | spaced exponentially  |                       |
 |                       | according to          |                       |

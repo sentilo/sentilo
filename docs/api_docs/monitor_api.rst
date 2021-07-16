@@ -20,7 +20,7 @@ section of the Catalog.
 
    The catalog application token is very sensitive information, since it is used for admin operations. Make sure
    you do store it in a private repository. Also make sure calls to the monitoring API are encrypted. See more in the
-   `Security section <./services/security.html>`__
+   `Security section <./security.html>`__
 
 
 List of API resources in the monitoring API:

@@ -117,12 +117,16 @@ Here are three different examples of notification:
       "timestamp":"26/10/2016T08:50:33",
       "topic":"/data/app_demo_provider/appdemo_sensor_test",
       "type":"DATA",
-      "provider":"app_demo_provider",
       "sensor":"appdemo_sensor_test",
+      "provider":"app_demo_provider",
+      "location": "41.387172 2.17157",
+      "time":1477471833000,
       "retryAttempt": 1,
       "publisher":"app_demo_provider",
-      "time":1477471833000,
-      "publishedAt":1477471833000
+      "publishedAt":1477471833000,
+      "publisherTenant": "",
+      "tenant": "",
+      "sender": "app_demo_provider"
    }
 
 .. code:: json
@@ -132,10 +136,14 @@ Here are three different examples of notification:
       "timestamp":"16/10/2013T15:39:11",
       "topic":"/order/app_demo_provider",
       "type":"ORDER",
+      "sensor": "TEST_SENSOR_001",
       "provider":"app_demo_provider",
-      "publisher":"app_demo_provider",
       "time":1477471833000,
-      "publishedAt":1477471833000
+      "publisher":"app_demo_provider",
+      "publishedAt":1477471833000,
+      "publisherTenant": "",
+      "tenant": "",
+      "sender": "app_demo_provider"
    }
 
 .. code:: json
