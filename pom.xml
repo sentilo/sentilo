@@ -195,6 +195,7 @@
 			<configuration>
 				<source>${maven.compiler.source}</source>
 				<target>${maven.compiler.target}</target>
+				<fork>true</fork>
 			</configuration>
 		</plugin>
 		<plugin>
