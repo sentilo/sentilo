@@ -16,6 +16,7 @@
 	<properties>		
 		<hibernate.version>3.2.1.ga</hibernate.version>				
 		<oracle.jdbc.driver.version>11.2.0.1.0</oracle.jdbc.driver.version>			
+		<postgresql.jdbc.driver.version>42.3.3</postgresql.jdbc.driver.version>
 		<mysql.jdbc.driver.version>5.1.15</mysql.jdbc.driver.version>
 		<tomcat.jdbc.version>7.0.47</tomcat.jdbc.version>
 	</properties>
@@ -90,6 +91,14 @@
 			<artifactId>ojdbc6</artifactId>
 			<version>${oracle.jdbc.driver.version}</version>
 		</dependency -->
+	    <!-- 
+		  PostgreSQL JDBC driver
+	    -->
+	    <!-- dependency>
+		<groupId>org.postgresql</groupId>
+		<artifactId>postgresql</artifactId>
+		<version>${postgresql.jdbc.driver.version}</version>
+	    </dependency -->
 	    <dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-jdbc</artifactId>
