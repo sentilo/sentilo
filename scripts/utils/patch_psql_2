@@ -1,0 +1,18 @@
+--- relational-client-config.properties	2022-03-25 11:17:15.505014570 +0000
++++ relational-client-config.properties.orig	2022-03-25 11:37:36.626867757 +0000
+@@ -39,10 +39,10 @@
+ relational.batch.max.retries=1
+ 
+ #Properties to configure the datasource  sentiloDs
+-#sentiloDs.jdbc.driverClassName=org.postgresql.Driver
+-#sentiloDs.url=jdbc:postgresql://127.0.0.1/sentilo
+-sentiloDs.jdbc.driverClassName=com.mysql.jdbc.Driver
+-sentiloDs.url=jdbc:mysql://127.0.0.1:3306/sentilo
++sentiloDs.jdbc.driverClassName=org.postgresql.Driver
++sentiloDs.url=jdbc:postgresql://127.0.0.1/sentilo
++#sentiloDs.jdbc.driverClassName=com.mysql.jdbc.Driver
++#sentiloDs.url=jdbc:mysql://127.0.0.1:3306/sentilo
+ sentiloDs.username=sentilo_user
+ sentiloDs.password=sentilo_pwd
+ sentiloDs.validationQuery=Select 1
+

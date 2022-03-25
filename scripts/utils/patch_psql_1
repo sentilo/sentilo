@@ -1,0 +1,31 @@
+--- pom.xml	2022-03-25 11:17:15.501012536 +0000
++++ pom.xml.orig	2022-03-25 11:25:24.517091212 +0000
+@@ -76,11 +76,11 @@
+ 	    	<groupId>org.springframework</groupId>
+ 			<artifactId>spring-tx</artifactId>			
+ 		</dependency>		   
+-	    <dependency>
++	    <!-- dependency>
+ 	        <groupId>mysql</groupId>
+ 	        <artifactId>mysql-connector-java</artifactId>
+ 	        <version>${mysql.jdbc.driver.version}</version>
+-	    </dependency>
++	    </dependency -->
+ 	    <!--  
+ 	          there is NO public Maven repository provides Oracle JDBC driver. You must install manually in your local repository
+ 	          before uncomment this dependency, as is explained here:
+@@ -94,11 +94,11 @@
+ 	    <!-- 
+ 		  PostgreSQL JDBC driver
+ 	    -->
+-	    <!-- dependency>
++	    <dependency>
+ 		<groupId>org.postgresql</groupId>
+ 		<artifactId>postgresql</artifactId>
+ 		<version>${postgresql.jdbc.driver.version}</version>
+-	    </dependency -->
++	    </dependency>
+ 	    <dependency>
+ 			<groupId>org.apache.tomcat</groupId>
+ 			<artifactId>tomcat-jdbc</artifactId>
+
