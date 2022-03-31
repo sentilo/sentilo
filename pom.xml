@@ -50,7 +50,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<logback.version>1.0.9</logback.version>
 		<slf4j.version>1.7.2</slf4j.version>		
-		<org.springframework.version>5.0.8.RELEASE</org.springframework.version>			
+		<org.springframework.version>5.3.18</org.springframework.version>			
 		<org.springframework.data.mongodb.version>2.0.9.RELEASE</org.springframework.data.mongodb.version>
 		<org.springframework.data.redis.version>2.0.9.RELEASE</org.springframework.data.redis.version>				
 		<jedis.version>2.10.2</jedis.version>
