@@ -16,7 +16,7 @@
 	</parent>
 
 	<properties>
-		<aws-java-sdk-s3.version>1.11.364</aws-java-sdk-s3.version>
+		<aws-java-sdk-s3.version>1.12.261</aws-java-sdk-s3.version>
 		<commons.validator.version>1.6</commons.validator.version>
 		<commons.fileupload.version>1.3.3</commons.fileupload.version>
 	</properties>
