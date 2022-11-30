@@ -1,0 +1,21 @@
+table {
+	border-collapse: collapse;
+}
+
+th {
+	text-align: center;
+	background-color: #F3F3F3;
+}
+
+th, td {
+	margin: 0px;
+	padding: 5px;
+}
+
+header {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.section {
+    padding-top: 30px;
+}
