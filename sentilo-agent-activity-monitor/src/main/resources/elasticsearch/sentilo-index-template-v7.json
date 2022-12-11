@@ -1,0 +1,107 @@
+{
+	"index_patterns": ["sentilo*"],
+	"order": 0,
+	"settings": {
+		"index": {
+			"number_of_shards": "2"
+		}
+	},
+	"mappings": {
+		"properties": {
+			"publishedAt": {
+				"type": "date"
+			},
+			"message": {
+				"type": "keyword",
+				"fields": {
+					"value": {
+						"type": "float",
+						"ignore_malformed": true
+					}
+				}
+			},
+			"sender": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"sensor": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"timestamp": {
+				"format": "dd/MM/yyyy'T'HH:mm:ss",
+				"type": "date"
+			},
+			"topic": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"time": {
+				"type": "date"
+			},
+			"location": {
+				"type": "geo_point"
+			},
+			"alert": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"provider": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"component": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"sensorType": {
+				"type": "text",
+				"fields": {
+					"raw": {
+						"type": "keyword"
+					}
+				}
+			},
+			"publisher": {
+				"type": "text"
+			},
+			"publisherTenant": {
+				"type": "text"
+			},
+			"tenant": {
+				"type": "text"
+			},
+			"alertType": {
+				"type": "text"
+			},
+			"type": {
+				"type": "text"
+			}
+		}
+	},
+	"aliases": {}
+}

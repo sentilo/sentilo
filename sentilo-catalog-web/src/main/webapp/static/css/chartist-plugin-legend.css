@@ -1,0 +1,51 @@
+.ct-legend {
+    position: relative;
+    z-index: 10;
+    list-style: none;
+    text-align: center;
+}
+
+.ct-legend li {
+    position: relative;
+    padding-left: 30px;
+    margin-right: 10px;
+    margin-bottom: 3px;
+    /* cursor: pointer; */
+    display: inline-block;
+    line-height: 16px;
+}
+
+.ct-legend li:before {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: 0;
+    content: '';
+    border: 3px solid transparent;
+    border-radius: 2px;
+}
+
+.ct-legend li.inactive:before {
+    background: transparent;
+}
+
+.ct-legend li.ct-legend-inside {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.ct-legend li.ct-series-0:before {
+    background-color: #08c;
+	border-color: #08c;
+}
+
+.ct-legend li.ct-series-1:before {
+    background-color: #8833AA;
+	border-color: #8833AA;
+}
+
+.ct-legend li.ct-series-2:before {
+    background-color: #FA5833;
+    border-color: #FA5833;
+}

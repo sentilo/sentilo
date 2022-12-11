@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+
+	
+	<bean id="mongoCredentials" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">	  
+	  <property name="staticMethod" value="com.mongodb.MongoCredential.createCredential"/>	  
+	  <property name="arguments">
+        <list>
+            <value>${sentilo.mongodb.user}</value>           
+            <value>${sentilo.mongodb.database}</value>
+            <value>${sentilo.mongodb.password}</value>           
+        </list>
+      </property>
+	</bean>	
+	
+	<!-- Default bean name is 'mongoDbFactory' -->
+	<mongo:db-factory dbname="${sentilo.mongodb.database}" mongo-client-ref="mongoClient"  write-concern="ACKNOWLEDGED" />
+	
+	<mongo:template id="mongoTemplate" db-factory-ref="mongoDbFactory"/>		
+
+	<bean class="org.springframework.data.mongodb.core.MongoExceptionTranslator" />
+	
+	<beans profile="cluster">
+		<!-- Default bean name is 'mongoClient' 
+		sentilo.mongodb.cluster-read-preference must be PRIMARY due to transactions
+		-->	
+		<mongo:mongo-client host="${sentilo.mongodb.host}" port="${sentilo.mongodb.port}" credential="#{mongoCredentials}" replica-set="${sentilo.mongodb.rs:rs_sentilo}">
+		   <mongo:client-settings 
+		   		connection-pool-max-size="${sentilo.mongodb.pool.max-connections:100}"	   		
+		   		application-name="${sentilo.mongodb.application-name:sentilo-mock}"	   		
+		   		cluster-type="${sentilo.mongodb.cluster-type:REPLICA_SET}"   
+		   		read-preference="${sentilo.mongodb.cluster-read-preference:PRIMARY}"   
+		   	/>
+		</mongo:mongo-client>		
+	</beans>
+	<beans profile="!cluster">
+		<!-- Default bean name is 'mongoClient' -->	
+		<mongo:mongo-client host="${sentilo.mongodb.host}" port="${sentilo.mongodb.port}" credential="#{mongoCredentials}" >
+		   <mongo:client-settings 
+		   		connection-pool-max-size="${sentilo.mongodb.pool.max-connections:100}"	   		
+		   		application-name="${sentilo.mongodb.application-name:sentilo-mock}"	   		  
+		   	/>
+		</mongo:mongo-client>		
+	</beans>
+
+</beans>

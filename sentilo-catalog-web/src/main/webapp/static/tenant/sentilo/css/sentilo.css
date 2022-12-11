@@ -1,0 +1,9 @@
+/* Default tenant catalog styles */
+.navbar .logotype {
+ 	background: url("../img/logo_header.png");
+ 	background-repeat: no-repeat;
+ 	background-size: 132px 45px;
+ 	background-position: 0px 0px;
+ 	display: block;
+ 	height: 50px;
+ }

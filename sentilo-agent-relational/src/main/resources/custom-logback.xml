@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+
+<included>  
+  <contextName>relational</contextName>
+  <property name="sentilo.log.file.name" value="sentilo-agent-relational"/>
+  <property name="sentilo.log.dir" value="${sentilo.log.dir:-/var/log/sentilo}"/>
+  
+  <appender name="FILE_REJECTED" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- daily rollover and compression of rollover files -->
+			<fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-rejected-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+			<!-- Limits log file size up to a maximum of 10MB -->
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+
+			<!-- keep 30 days' worth of history -->
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+
+		<encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+	<logger name="org.sentilo.agent.relational.rejected" level="DEBUG" additivity="false">		
+		<appender-ref ref="FILE_REJECTED" />
+	</logger>
+	  
+</included>

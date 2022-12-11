@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<import resource="classpath:spring/platform-service-context.xml" />	
+	
+	<context:annotation-config />
+	<context:component-scan base-package="org.sentilo.platform.server.handler.impl" />
+	<context:component-scan base-package="org.sentilo.platform.server.auth.impl" />
+	<context:component-scan base-package="org.sentilo.platform.server.config" />
+	<context:component-scan base-package="org.sentilo.platform.server.metrics" />
+	<context:component-scan base-package="org.sentilo.platform.server.monitor" />
+	<context:component-scan base-package="org.sentilo.platform.server.http" />
+	<context:component-scan base-package="org.sentilo.platform.server.pool" />	
+	<context:component-scan base-package="org.sentilo.platform.common.ratelimiter" />
+	<context:component-scan base-package="org.sentilo.platform.server.request.interceptor" />	
+	
+	
+	<bean id="apiServerRequestHandler" class="org.sentilo.platform.server.request.SentiloRequestHandler" p:handlerLocator-ref="apiHandlerLocator">
+		<property name="requestInterceptors">
+			<list>
+				<ref bean="statusInterceptor" />
+				<ref bean="credentialInterceptor" />
+				<ref bean="SSLAccessInterceptor" />
+				<ref bean="rateLimiterInterceptor"/>
+				<ref bean="bodyLengthInterceptor"/>
+			</list>
+		</property>
+	</bean>	
+	
+	<bean id="apiHandlerLocator" class="org.sentilo.platform.server.handler.HandlerLocator">
+		<constructor-arg>	
+			<map>
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).ORDER}" value-ref="orderHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).ALARM}" value-ref="alarmHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).SUBSCRIBE}" value-ref="subscribeHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).CATALOG}" value-ref="catalogHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).DATA}" value-ref="dataHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).ADMIN}" value-ref="adminHandler" />
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).CATALOG_ALERT}" value-ref="catalogAlertHandler" />
+			</map>
+		</constructor-arg>
+	</bean>	
+	
+	<bean id="monitorRequestHandler" class="org.sentilo.platform.server.request.SentiloRequestHandler" p:handlerLocator-ref="monitorHandlerLocator">
+		<property name="requestInterceptors">
+			<list>
+				<ref bean="credentialInterceptor" />				
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="monitorHandlerLocator" class="org.sentilo.platform.server.handler.HandlerLocator">
+		<constructor-arg>	
+			<map>
+			 	<entry key="#{T(org.sentilo.platform.server.handler.HandlerPath).MONITOR}" value-ref="monitorHandler" />			 	
+			</map>
+		</constructor-arg>
+	</bean>
+
+    <!--
+      The tag annotation-driven enables support for @Scheduled and @Async method annotations:  
+        - executor reference is provided for handling those tasks that correspond to methods with the @Async annotation, 
+        - and the scheduler reference is provided for managing those methods annotated with @Scheduled.
+     -->
+	<task:annotation-driven scheduler="platformScheduler" executor="platformExecutor"/>
+	
+	<!-- This code defines a new ScheduledThreadPoolExecutor with a fixed pool of 15 threads, each one dedicated exclusively to run scheduled tasks -->
+	<task:scheduler id="platformScheduler" pool-size="15" />
+	<!--  executor pool size is equal to threadPool size because platform @Async method is directly associated with each HTTP request 
+	      See CounterServiceImpl.save
+	-->	      
+	<task:executor id="platformExecutor" pool-size="${sentilo.server.api.thread.pool.size.core}-${sentilo.server.api.thread.pool.size.max}" 
+		queue-capacity="${sentilo.server.api.thread.pool.queue-size}" keep-alive="120"/>
+
+</beans>

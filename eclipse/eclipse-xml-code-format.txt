@@ -1,0 +1,7 @@
+To format XML code define the next rules in Window > Peeferences > XML > XML Files:
+
+Set 'Line width' to 120
+Check 'Format comments' and 'Join lines'
+Check 'Insert whitespace before closing empty end-tags'
+Check 'Indent using tabs' 
+Indentation = TAB

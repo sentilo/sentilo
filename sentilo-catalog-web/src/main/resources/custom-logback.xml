@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+
+<included>
+  <contextName>catalog</contextName>
+  <property name="sentilo.log.file.name" value="sentilo-catalog"/>  
+  <property name="sentilo.log.dir" value="${sentilo.log.dir:-/var/log/sentilo}"/>
+  
+  
+  <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">	    
+	    <!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
+	    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+	       <!-- daily rollover and compression of rollover files -->
+		   <fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-audit-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+	       <!-- each file should be at most 100MB, keep 10 days worth of history, but at most 4GB -->
+	       <maxFileSize>${sentilo.log.audit.max_size:-100}MB</maxFileSize>    
+	       <maxHistory>${sentilo.log.audit.max_history:-10}</maxHistory>
+	       <totalSizeCap>${sentilo.log.audit.max_size_cap:-4096}MB</totalSizeCap>
+	    </rollingPolicy>
+	    <encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%n</pattern>
+		</encoder>
+	</appender>
+  
+  
+    <logger name="org.sentilo.web.catalog.logging.exceptions" level="warn" />
+
+	<logger name="org.springframework.data.mongodb.core.mapping.event.LoggingEventListener" level="warn" />	
+
+	<logger name="AUDIT" level="DEBUG" additivity="false">
+		<appender-ref ref="AUDIT_FILE" />
+	</logger>
+  
+</included>

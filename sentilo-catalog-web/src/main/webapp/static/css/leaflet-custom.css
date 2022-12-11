@@ -1,0 +1,199 @@
+/* Sentilo18.css **/
+.leaflet-popup-content p {
+    margin: 0;
+    white-space: nowrap;
+}
+.infobox-header-name p {
+    line-height: 20px;
+}
+
+/*.infobox.countC {
+    min-width: 350px;
+}*/
+.infobox {
+	min-width: 380px;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    line-height: 0;
+}
+.leaflet-popup-content-wrapper {
+    background: none;
+    color: transparent;
+    box-shadow: none;
+}
+
+.leaflet-popup-tip {
+    width: 0;
+    height: 0;
+}
+
+.marker-cluster {
+    position: absolute;
+    top: -11px;
+    left: -11px;
+    color: #ffffff;
+    font-size: 11px;
+    font-family: Arial,sans-serif;
+    font-weight: bold;
+    font-style: normal;
+    text-decoration: none;
+    text-align: center;
+    width: 56px;
+    line-height:56px;
+}
+
+#map_controls {
+    z-index: 410;
+}
+
+.hero-unit {
+    z-index: 405;
+}
+
+svg.leaflet-zoom-animated {
+    z-index: 50;
+}
+
+/*** From sidebar styles ***/
+
+.leaflet-control-fullscreen {
+	display: none;
+}
+
+.sntl-map .leaflet-control-fullscreen {
+	display: block;
+}
+
+.leaflet-control-fullscreen-button,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	width: 25px !important;
+	height: 25px !important;
+	line-height: 25px !important;
+}
+
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 35px !important;
+	height: 35px !important;
+}
+
+.leaflet-touch .leaflet-control-fullscreen a {
+	background-position: 4px 4px !important;
+}
+
+.leaflet-touch .leaflet-control-attribution, 
+.leaflet-touch .leaflet-control-layers, 
+.leaflet-touch .leaflet-bar, 
+.leaflet-bar, .leaflet-control-layers {
+    border-color: transparent;
+    border-radius: 0px;
+    box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px;
+    background: white;
+}
+
+.leaflet-control-layers-expanded {
+    padding: 14px;
+}
+
+.leaflet-control-layers-expanded label span {
+    vertical-align: bottom;
+    font-size: 14px;
+    line-height: 16px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block !important;
+    max-width: -webkit-fill-available;
+    margin-bottom: 0px;
+}
+
+.leaflet-control-layers-expanded label input[type="radio"] {
+    margin: 0 6px;
+}
+
+a.leaflet-control-zoom-in,
+a.leaflet-control-zoom-out,
+a.leaflet-control-fullscreen-button,
+.leaflet-fullscreen-on .leaflet-control-fullscreen a {
+    padding: 5px;
+}
+
+.leaflet-control-fullscreen a {
+    background-position: 50% -25%;
+}
+
+.leaflet-fullscreen-on .leaflet-control-fullscreen a {
+    background-position: 50% 125%;
+}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out {
+	font-size: 18px !important;
+}
+
+.leaflet-control,
+.leaflet-control-layers.leaflet-control,
+.leaflet-touch .leaflet-bar a
+.leaflet-bar a:first-child {
+  border: none !important	;
+  border-radius: 0 !important;
+}
+
+#map_controls input {
+    font-weight: 400;
+}
+
+#map_controls .btn,
+#map_controls input {
+    padding: 7px 6px;
+}
+
+#map_controls {
+    right: 9px;
+}
+
+#map_controls {
+    top: 60px !important;
+}
+
+#map_controls .btn,
+#map_controls input {
+    min-width: initial;
+    font-family: "Source Sans Pro";
+    font-size: 14px;
+    display: block;
+}
+
+#map_controls #address {
+    padding-left: 30px;
+    width: 0px;
+    transition: 120ms width ease-in-out;
+}
+
+#map_controls #address:hover,
+#map_controls #address:focus {
+    width: 400px;
+}
+
+#map_controls .add-on {
+    margin-top: 4px;
+    margin-left: 6px;
+    position: absolute;
+    display: block;
+    z-index: 10;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+}
+
+#locate {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+#locate:hover, #geocode:hover {
+	background-color: #f4f4f4;	
+}

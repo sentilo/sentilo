@@ -1,0 +1,93 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>	
+	<artifactId>sentilo-common</artifactId>	
+	<packaging>jar</packaging>
+	<name>sentilo-common</name>	
+
+	<parent>
+		<artifactId>sentilo-parent-pom</artifactId>
+		<groupId>org.sentilo</groupId>
+		<version>2.0.0</version>		
+	</parent>
+
+	<properties>													
+		<commons.io.version>2.4</commons.io.version>	
+		<google.guava.version>30.0-jre</google.guava.version>		   
+	</properties>
+
+	<dependencies>		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>					
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${httpclient.version}</version>
+		</dependency>	
+					
+        <dependency>
+		  <groupId>com.fasterxml.jackson.core</groupId>
+		  <artifactId>jackson-annotations</artifactId>
+		  <version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+		  <groupId>com.fasterxml.jackson.core</groupId>
+		  <artifactId>jackson-core</artifactId>
+		  <version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+		  <groupId>com.fasterxml.jackson.core</groupId>
+		  <artifactId>jackson-databind</artifactId>
+		  <version>${jackson.version}</version>
+		</dependency>        
+   		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>${commons.pool2.version}</version>
+		</dependency>
+   		<dependency>
+	   		<groupId>io.lettuce</groupId>
+		    <artifactId>lettuce-core</artifactId>
+		</dependency>
+		<dependency>
+		   <groupId>org.redisson</groupId>
+		   <artifactId>redisson</artifactId>		   
+		</dependency>
+        <dependency>
+	   		<groupId>org.springframework.data</groupId>
+	   		<artifactId>spring-data-redis</artifactId>	   			   	   	
+		</dependency>       
+        <dependency>
+	    	<groupId>com.google.guava</groupId>
+	    	<artifactId>guava</artifactId>
+	    	<version>${google.guava.version}</version>
+	    </dependency>
+	    <dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>			
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-sync</artifactId>
+			<optional>true</optional>									
+		</dependency>
+		<!-- Support for scheduler jobs orchestration with ShedLock + MongoDB -->
+		<dependency>
+		    <groupId>net.javacrumbs.shedlock</groupId>
+		    <artifactId>shedlock-spring</artifactId>
+		    <version>${shedlock.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>net.javacrumbs.shedlock</groupId>
+		    <artifactId>shedlock-provider-mongo</artifactId>
+		    <version>${shedlock.version}</version>
+		</dependency>		
+	</dependencies>
+</project>

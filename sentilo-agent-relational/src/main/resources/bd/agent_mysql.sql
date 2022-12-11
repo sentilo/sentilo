@@ -1,0 +1,53 @@
+-- Script de creacion del modelo de entidades para una BD MySQL: utiliza la funcion auto_increment para informar el id de cada registro
+CREATE TABLE sentilo_observations (
+	id INT NOT NULL AUTO_INCREMENT,
+	provider VARCHAR(128) NOT NULL,
+	sensor VARCHAR(128),
+	sensor_type VARCHAR(128),
+	component VARCHAR(128),
+	component_type VARCHAR(128),
+	value VARCHAR(512) NOT NULL,
+	timestamp varchar(20) NOT NULL,
+	event_timestamp timestamp NOT NULL,
+	published_at timestamp NOT NULL,
+	publisher VARCHAR(128),
+	location varchar(50),
+	publisher_tenant varchar(128),
+    tenant varchar(128),
+	PRIMARY KEY(id));
+
+CREATE TABLE sentilo_orders (
+	id INT NOT NULL AUTO_INCREMENT,
+	provider VARCHAR(128) NOT NULL,
+	sensor VARCHAR(128),
+	sensor_type VARCHAR(128),
+	component VARCHAR(128),
+	component_type VARCHAR(128),
+	message VARCHAR(512) NOT NULL,
+	timestamp varchar(20) NOT NULL,
+	event_timestamp timestamp NOT NULL,
+	published_at timestamp NOT NULL,
+	publisher VARCHAR(128),
+	location varchar(50),
+	publisher_tenant varchar(128),
+    tenant varchar(128),
+	PRIMARY KEY(id));
+
+CREATE TABLE sentilo_alarms (
+	id INT NOT NULL AUTO_INCREMENT,
+	alert VARCHAR(128) NOT NULL,
+	alert_type VARCHAR(12),
+	provider VARCHAR(128),
+	sensor VARCHAR(128),
+	sensor_type VARCHAR(128),
+	component VARCHAR(128),
+	component_type VARCHAR(128),
+	message VARCHAR(512) NOT NULL,
+	timestamp varchar(20) NOT NULL,
+	event_timestamp timestamp NOT NULL,
+	published_at timestamp NOT NULL,
+	publisher VARCHAR(128),
+	location VARCHAR(50),
+	publisher_tenant VARCHAR(128),
+    tenant VARCHAR(128),
+	PRIMARY KEY(id));

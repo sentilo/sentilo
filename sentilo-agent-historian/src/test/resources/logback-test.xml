@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration>
+	
+	<!-- Custom logback config to run tests. Basically flush all logs to stdout and hide exceptions from output --> 
+	
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%nopex %d [%thread] %-5level %logger - %msg%n</pattern>
+		</encoder>
+	</appender>	
+
+	<logger name="org.sentilo" level="TRACE"/>		
+		
+		
+	<root level="WARN">
+		<appender-ref ref="STDOUT" />		
+	</root>
+
+</configuration>

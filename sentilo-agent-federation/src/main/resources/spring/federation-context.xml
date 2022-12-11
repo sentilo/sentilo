@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<import resource="classpath:spring/federation-properties-context.xml"/>
+	<import resource="classpath:spring/sentilo-mongodb-context.xml" />
+	<context:component-scan base-package="org.sentilo.common.context.config.scheduler" />
+
+	<bean id="remoteRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" />	
+	<bean id="localRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" p:host="${sentilo.agent.federation.api_server.local.endpoint}" />
+			
+</beans> 

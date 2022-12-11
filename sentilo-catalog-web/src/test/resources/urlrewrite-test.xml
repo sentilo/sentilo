@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN"
+        "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
+
+<!--
+
+    Configuration file for UrlRewriteFilter
+    http://www.tuckey.org/urlrewrite/
+
+-->
+<urlrewrite use-context="false">
+     
+	<rule>
+	    <name>tenant rule</name>
+	    <condition type="attribute" name="f-tenant-identifier" operator="equal">1</condition>	    
+	    <condition type="attribute" name="tenant-uri-modified" operator="notequal">1</condition>
+	    <condition type="request-uri" operator="notequal">^/WEB-INF/(.*)$</condition>
+	    <condition type="request-uri" operator="notequal">^/j_spring_security_(.*)$</condition>	    	   		 
+		<from>^/([0-9a-zA-Z-_]+)/?(.*)$</from>                        
+        <set type="request" name="tenant-uri-modified">1</set>
+        <to last="true">/$2</to>         
+	</rule>		
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule1</name>
+	    <!-- condition type="attribute" name="f-tenant-identifier" operator="equal">1</condition -->	    
+		<from>^/sentilo-catalog-web/(WEB-INF|static)/(.*)$</from>                        
+        <to last="true">-</to> 
+	</outbound-rule>		
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule2</name>
+	    <condition type="attribute" name="f-user-tenant-identifier" operator="equal">1</condition>	      	   
+		<from>^/sentilo-catalog-web/admin/(.*)(&amp;uar=1|\?uar=1)$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:user-tenant-identifier}admin/$1$2</to> 
+	</outbound-rule>
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule21</name>
+	    <condition type="attribute" name="f-tenant-identifier" operator="equal">1</condition>	    	    
+		<from>^/sentilo-catalog-web/admin/(.*)$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:tenant-identifier}admin/$1</to> 
+	</outbound-rule>		
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule3</name>
+	    <condition type="attribute" name="f-user-tenant-identifier" operator="equal">1</condition>	    
+		<from>^/sentilo-catalog-web/j_spring_security_logout$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:user-tenant-identifier}j_spring_security_logout</to> 
+	</outbound-rule>
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule4</name>
+	    <condition type="attribute" name="f-tenant-identifier" operator="equal">1</condition>	    
+		<from>^/sentilo-catalog-web/(.+)$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:tenant-identifier}$1</to> 
+	</outbound-rule>	
+	
+	<outbound-rule enabled="true">
+	    <name>outbound tenant rule5</name>
+	    <condition type="attribute" name="f-tenant-identifier" operator="equal">1</condition>	    
+		<from>^/sentilo-catalog-web/?$</from>                        
+        <to last="true">/sentilo-catalog-web/%{attribute:tenant-identifier}</to> 
+	</outbound-rule>		
+
+</urlrewrite>
+

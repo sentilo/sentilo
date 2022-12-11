@@ -1,0 +1,51 @@
+# .travis.yml
+# Configure Travis CI service to build Sentilo platform, http://github.com/sentilo/sentilo
+#
+sudo: false
+dist: trusty
+language: java
+jdk:
+  - oraclejdk8
+
+  
+## export GPG details
+before_install:
+  - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
+  - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+
+install:
+    mvn --settings .maven.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
+  
+  
+## Get the project version  
+before_deploy:
+  - "mvn help:evaluate -N -Dexpression=project.version|grep -v '\\['"
+  - "export project_version=$(mvn help:evaluate -N -Dexpression=project.version|grep -v '\\[')"
+  - "export TRAVIS_TAG=v$project_version"
+
+cache:
+  directories:
+    - ~/.m2/repository
+
+## Create release in GitHub	
+deploy:
+  api_key: $GITHUB_TOKEN  
+  file_glob: true  
+  file: 
+    - "$TRAVIS_BUILD_DIR/**/target/sentilo-*-$project_version.jar"    
+    - "$TRAVIS_BUILD_DIR/**/target/sentilo-*.war"        
+    - "$TRAVIS_BUILD_DIR/sentilo-platform/**/target/sentilo-*-$project_version.jar"    
+  name: v$project_version
+  overwrite: true
+  provider: releases
+  skip_cleanup: true  
+  on:
+    repo: sentilo/sentilo
+    tags: true
+
+## Finally, after deploy sucess,  run Cobertura job	and deploy artifacts to Nexus
+after_deploy:
+  - "mvn clean cobertura:cobertura coveralls:cobertura"	
+  ## Build and release to maven central
+  - "mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Possrh"
+  

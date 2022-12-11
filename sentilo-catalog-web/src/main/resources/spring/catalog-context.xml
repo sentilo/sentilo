@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd		
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<context:annotation-config />
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+	
+	<import resource="classpath:spring/sentilo-context.xml" />
+	<import resource="classpath:spring/catalog-properties-context.xml" />
+	<import resource="classpath:spring/catalog-security-context.xml" />
+	<import resource="classpath:spring/sentilo-platform-client.xml" />
+	<import resource="classpath:spring/catalog-persistence-context.xml" />
+		
+
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+		p:basenames="classpath:i18n/custom_messages,classpath:i18n/messages" p:defaultEncoding="UTF-8" />
+
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"
+		p:validationMessageSource-ref="messageSource" />
+				
+	<context:component-scan base-package="org.sentilo.web.catalog.context.config" />
+	<context:component-scan base-package="org.sentilo.web.catalog.validator" />
+	<context:component-scan base-package="org.sentilo.web.catalog.service.impl" />
+	<context:component-scan base-package="org.sentilo.web.catalog.security" />
+	<context:component-scan base-package="org.sentilo.web.catalog.aop.aspect" />	
+	<context:component-scan base-package="org.sentilo.web.catalog.listener" />	
+	<context:component-scan base-package="org.sentilo.web.catalog.admin" />
+	<context:component-scan base-package="org.sentilo.web.catalog.format" />
+	<context:component-scan base-package="org.sentilo.web.catalog.scheduler" />
+	<context:component-scan base-package="org.sentilo.web.catalog.config" />
+	<context:component-scan base-package="org.sentilo.web.catalog.metrics" />
+	<context:component-scan base-package="org.sentilo.common.config" />
+	<context:component-scan base-package="org.sentilo.common.metrics" />	
+
+	<task:annotation-driven scheduler="catalogScheduler" executor="catalogExecutor"/>
+	<task:scheduler id="catalogScheduler" pool-size="5" />
+	<task:executor id="catalogExecutor" pool-size="3-10" queue-capacity="100" keep-alive="120"/>
+</beans>

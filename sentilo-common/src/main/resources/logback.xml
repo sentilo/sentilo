@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration>	
+	<shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>		
+	<!--  Each module could override / extend default configuration providing a file with name custom-logback.xml -->	
+	<include optional="true" resource="custom-logback.xml"/>
+	
+	<property name="sentilo.log.file.name" value="${sentilo.log.file.name:-sentilo}"/>
+	<property name="sentilo.log.dir" value="${sentilo.log.dir:-/var/log/sentilo}"/>
+					
+	<!--  Common configuration file for each Sentilo module. With system properties each module can override the default configuration -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%thread] %-5level %logger - %msg%xException{25}%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">	    
+	    <!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
+	    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+	       <!-- daily rollover and compression of rollover files -->
+		   <fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+	       <!-- each file should be at most 100MB, keep 10 days worth of history, but at most 4GB -->
+	       <maxFileSize>${sentilo.log.max_size:-100}MB</maxFileSize>    
+	       <maxHistory>${sentilo.log.max_history:-10}</maxHistory>
+	       <totalSizeCap>${sentilo.log.max_size_cap:-4096}MB</totalSizeCap>
+	    </rollingPolicy>
+	    <encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%xException{25}%n</pattern>
+		</encoder>
+	</appender>
+	
+
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">	    
+	    <!-- Unset to avoid file renaming errors: http://logback.qos.ch/codes.html#renamingError -->
+	    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+	       <!-- daily rollover and compression of rollover files -->
+		   <fileNamePattern>${sentilo.log.dir}/${sentilo.log.file.name}-error-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+	       <!-- each file should be at most 100MB, keep 10 days worth of history, but at most 4GB -->
+	       <maxFileSize>${sentilo.log.error.max_size:-100}MB</maxFileSize>    
+	       <maxHistory>${sentilo.log.error.max_history:-30}</maxHistory>
+	       <totalSizeCap>${sentilo.log.error.max_size_cap:-4096}MB</totalSizeCap>
+	    </rollingPolicy>
+	    <encoder>
+			<pattern>%date{"yyyy-MM-dd HH:mm:ss,SSS z"} [%property{HOSTNAME} - %contextName] [%thread] %-5level %logger - %msg%xException S:END%n</pattern>
+		</encoder>
+	</appender>
+	
+
+	<appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+	    <appender-ref ref="STDOUT" />
+	</appender>
+
+	<appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
+    	<queueSize>10000</queueSize>
+    	<discardingThreshold>0</discardingThreshold>
+    	<neverBlock>true</neverBlock>
+    	<appender-ref ref="FILE" />
+  	</appender>
+  	  	
+  	<appender name="ASYNCFILE_SENTILO_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+    	<queueSize>10000</queueSize>
+    	<discardingThreshold>0</discardingThreshold>
+    	<neverBlock>true</neverBlock>
+    	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+	      <level>WARN</level>
+	    </filter>
+    	<appender-ref ref="FILE_ERROR" />
+  	</appender>
+  	
+	<logger name="org.sentilo" level="${sentilo.log.level:-INFO}" additivity="true">
+		<appender-ref ref="ASYNCFILE_SENTILO_ERROR" />		
+	</logger>
+	
+	<logger name="org.apache.http" level="${log.org.apache.http.level:-WARN}"/>		  		  
+
+	<root level="WARN">
+		<appender-ref ref="ASYNCSTDOUT" />		
+		<appender-ref ref="ASYNCFILE" />
+	</root>
+
+</configuration>

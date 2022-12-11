@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"	
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd	    
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<import resource="classpath:spring/sentilo-agent-context.xml" />	
+	<import resource="classpath:spring/agent-kafka-properties-context.xml" />			
+	
+	<context:component-scan base-package="org.sentilo.agent.kafka" />	
+  	<context:component-scan base-package="org.springframework.kafka.core" />
+
+
+	<bean class="org.sentilo.agent.kafka.utils.TopicName" 
+		p:topicNameMode="${sentilo.agent.kafka.topic.nameMode}"
+		p:topicPrefix="${sentilo.agent.kafka.topic.prefix}"
+		p:topicSeparator="${sentilo.agent.kafka.topic.separator}"/>
+	
+		
+	<bean id="kafkaTemplate" class="org.springframework.kafka.core.KafkaTemplate">
+	    <constructor-arg>
+	        <bean class="org.springframework.kafka.core.DefaultKafkaProducerFactory">
+	            <constructor-arg>
+	                <map>
+	                    <entry key="bootstrap.servers" value="${kafka.bootstrap.servers}" />
+	                    <entry key="key.serializer" value="org.apache.kafka.common.serialization.StringSerializer" />
+	                    <entry key="value.serializer" value="org.apache.kafka.common.serialization.StringSerializer" />
+	                    <entry key="request.timeout.ms" value="${kafka.request.timeout.ms}" />
+	                    <entry key="linger.ms" value="${kafka.linger.ms}" />
+	                    <entry key="batch.size" value="${kafka.batch.size}" />
+	                </map>
+	            </constructor-arg>
+	        </bean>
+	    </constructor-arg>
+	</bean>
+	
+		
+</beans>

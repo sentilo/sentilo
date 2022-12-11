@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd  		
+  		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<context:annotation-config />
+	<tx:annotation-driven />		
+		
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" p:dataSource-ref="dataSource" p:defaultTimeout="120"/>			
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" p:dataSource-ref="dataSource"/>
+	
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+		<property name="driverClassName" value="${sentilo.agent.relational.ds.jdbc.driverClassName}" />
+		<property name="url" value="${sentilo.agent.relational.ds.url}" />
+		<property name="username" value="${sentilo.agent.relational.ds.username}" />
+		<property name="password" value="${sentilo.agent.relational.ds.password}" />
+		<property name="initialSize" value="${sentilo.agent.relational.ds.initialSize:1}" />
+		<property name="minIdle" value="${sentilo.agent.relational.ds.minIdle:1}" />
+		<property name="maxIdle" value="${sentilo.agent.relational.ds.maxIdle:10}" />
+		<property name="maxActive" value="${sentilo.agent.relational.ds.maxActive:10}" />
+		<property name="maxWait" value="${sentilo.agent.relational.ds.maxWait:30000}" />
+		<property name="testOnConnect" value="${sentilo.agent.relational.ds.testOnConnect:true}" />
+		<property name="testOnBorrow" value="${sentilo.agent.relational.ds.testOnBorrow:true}" />
+		<property name="testWhileIdle" value="${sentilo.agent.relational.ds.testWhileIdle:true}" />
+		<property name="timeBetweenEvictionRunsMillis" value="${sentilo.agent.relational.ds.timeBetweenEvictionRunsMillis:10000}" />
+		<property name="validationInterval" value="${sentilo.agent.relational.ds.validationInterval:30000}" />
+		<property name="validationQuery" value="${sentilo.agent.relational.ds.validationQuery}" />
+	</bean>	
+</beans>

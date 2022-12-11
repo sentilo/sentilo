@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:redis="http://www.springframework.org/schema/redis" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+  http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd
+  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<import resource="classpath:spring/platform-properties-context.xml" />	
+	<import resource="classpath:spring/sentilo-minimal-context.xml" />
+
+	<context:annotation-config />
+	<aop:aspectj-autoproxy />
+	<context:component-scan base-package="org.sentilo.platform.service.context.config" />
+	<!-- Scans within the AOP packages,and sub-packages, of the application for @Components to configure as beans -->
+	<context:component-scan base-package="org.sentilo.platform.service" />	
+	<context:component-scan base-package="org.sentilo.platform.common.security" />
+	<context:component-scan base-package="org.sentilo.platform.common.ratelimiter" />	
+
+	
+	<!-- RESTClient used by the notifier process  -->
+	<bean id="pushRestClient" class="org.sentilo.common.rest.impl.RESTClientImpl" scope="prototype" 
+		p:noValidateCertificates="${sentilo.server.api.subs.ssl.no-validate-certificates:false}"/>
+		
+	<!--  RESTClient used to send requests to Catalog -->
+	<bean id="restClientImpl" class="org.sentilo.common.rest.impl.RESTClientImpl" p:host="${sentilo.catalog.rest.endpoint}"
+		p:credentials-ref="usernameAndPassword" />
+
+	<bean id="usernameAndPassword" class="org.apache.http.auth.UsernamePasswordCredentials" 
+		c:usernamePassword="${sentilo.catalog.rest.credentials}" />	
+	
+</beans>

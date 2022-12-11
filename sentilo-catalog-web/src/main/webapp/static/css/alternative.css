@@ -1,0 +1,36 @@
+html, body, #map_canvas_1 {
+    height: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.container-fluid {
+	max-width: 100% !important;
+	width: 100% !important;
+	margin: 0px !important;
+	padding: 0px !important;
+}
+
+.mapcontent {
+	margin: 0px !important;
+	padding: 0px !important;
+}
+
+.map2 {
+	position: absolute !important;
+	top:0px;
+    left:0px;
+}
+
+.navbar {
+	display: none !important;
+}
+
+#map_controls {
+	display: none !important;
+}
+
+footer {
+	display: none !important;
+}

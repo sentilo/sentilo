@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+		
+	<global-method-security pre-post-annotations="enabled" />
+	
+	<!-- Realm config for static resources -->
+	<http name="staticRealm" pattern="/static/**" security="none" />
+	<!-- End realm config for static resources -->		
+
+	<!-- Realm config for REST calls -->
+	<http name="apiRestRealm" entry-point-ref="basicAuthEntryPoint" pattern="/api/**" use-expressions="true">
+		<intercept-url pattern="/api/**" access="hasRole('ROLE_PLATFORM') and (hasIpAddress('${sentilo.catalog.api.client.ip}') or hasIpAddress('127.0.0.1/32'))"  />
+		<custom-filter ref="basicAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+		<csrf disabled="true"/>
+	</http>
+
+	<beans:bean id="basicAuthEntryPoint" class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint"
+		p:realmName="REST Realm" />
+
+	<beans:bean id="basicAuthenticationFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter"
+		c:authenticationManager-ref="authenticationManager" c:authenticationEntryPoint-ref="basicAuthEntryPoint" />
+	<!-- End realm config for REST calls -->
+
+	<!-- Realm config for the Web access -->
+	<http name="webRealm" use-expressions="true" disable-url-rewriting="true" create-session="ifRequired" entry-point-ref="loginUrlAuthEntryPoint" >
+		<intercept-url pattern="/auth/login" access="permitAll" />
+		<intercept-url pattern="/" access="permitAll" />
+		<intercept-url pattern="/home" access="permitAll" />
+		<intercept-url pattern="/home/ptgu/**" access="permitAll" />
+        
+		<intercept-url pattern="/accessDenied" access="permitAll" />
+
+        <intercept-url pattern="/public/**" access="permitAll" />
+
+		<intercept-url pattern="/stats/**" access="permitAll" />
+		<intercept-url pattern="/status/**" access="permitAll" />
+		<intercept-url pattern="/component/**" access="permitAll" />		
+		
+		<intercept-url pattern="/admin/sensortypes/icons/json" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastOb/**" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastObs/**" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastOrders/**" access="permitAll" />
+		<intercept-url pattern="/admin/sensor/lastAlarms/**" access="permitAll" />
+		<intercept-url pattern="/admin/metrics/**" access="hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER_ADMIN')" />	
+		
+		<intercept-url pattern="/admin/**" access="hasRole('ROLE_USER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER_ADMIN')" />
+		<intercept-url pattern="/**" access="isAuthenticated()" />		
+		<form-login  authentication-failure-handler-ref="authFailureHandler" authentication-success-handler-ref="loginLogoutHandler"
+			username-parameter="j_username" password-parameter="j_password" login-processing-url="/j_spring_security_check" />
+		<logout invalidate-session="true" delete-cookies="JSESSIONID" success-handler-ref="loginLogoutHandler" logout-url="/j_spring_security_logout"/>
+		<custom-filter position="LAST"  ref="tenantAccessControlFilter" />
+		
+		<access-denied-handler error-page="/accessDenied"/>	
+		<!--  New Spring Security 4.x default -->
+		<headers defaults-disabled="true">
+			<content-type-options/>
+			<frame-options disabled="true"/>
+			<xss-protection/>
+			<header name="X-Content-Security-Policy" value="default-src 'self'"/>
+		</headers>
+		<csrf/>
+	</http>
+	<!--End realm config for the Web access -->
+
+	<authentication-manager alias="authenticationManager">		
+		<authentication-provider user-service-ref="userDetailsService">
+			<password-encoder ref="passwordEncoder"/>		
+		</authentication-provider>		
+	</authentication-manager>
+	
+	
+	<beans:bean id="passwordEncoder" class="org.sentilo.web.catalog.security.crypto.SentiloDelegatingPasswordEncoder" />
+	
+	<beans:bean id="loginLogoutHandler" class="org.sentilo.web.catalog.security.TenantLoginLogoutSuccessHandler"/>
+	<beans:bean id="loginUrlAuthEntryPoint" class="org.sentilo.web.catalog.security.TenantLoginUrlAuthenticationEntryPoint"/>
+	<beans:bean id="authFailureHandler" class="org.sentilo.web.catalog.security.TenantUrlAuthenticationFailureHandler"/>	
+	<beans:bean id="tenantAccessControlFilter" class="org.sentilo.web.catalog.security.access.TenantAccessControlFilter" />
+
+</beans:beans>

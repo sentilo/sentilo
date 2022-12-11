@@ -1,0 +1,138 @@
+td>div.toggle {
+	min-height: 18px;
+	width: 45px !important;
+}
+div.dataTables_scrollHead table{
+	border-collapse:collapse; 
+	table-layout:fixed;
+}
+div.dataTables_scrollBody table {
+	border-collapse:collapse;	
+}
+
+div.dataTables_scrollHead thead tr td:first-child, div.dataTables_scrollBody tbody tr td:first-child {
+	width: 13px !important;
+}
+
+div:not(#userNotInSectorTable_wrapper) > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr td:last-child, 
+div.dataTables_scrollBody table:not(#userNotInSectorTable) tbody tr td:last-child {
+	width: 90px !important;
+}
+
+div.dataTables_scrollHead thead tr td, div.dataTables_scrollBody tbody tr td {
+	padding-right: 8px !important;
+}
+
+@media ( max-width : 767px) {
+	.customModal {
+		min-width: 500px;		
+	}
+	.customModal > .modal-dialog >.modal-body {
+		min-height: 400px !important;
+		max-height: 650px;	
+	}
+	.dataTables_scrollHeadInner {
+		width: 100% !important;
+	}
+	
+	.dataTables_scrollHeadInner > table {
+		width: 100% !important;
+	}
+	
+	div:not(#userNotInSectorTable_wrapper) > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child):not(:last-child),  
+	div.dataTables_scrollBody table:not(#userNotInSectorTable) tbody tr td:not(:first-child):not(:last-child) {
+		width : calc((100% -103px) / 2) !important;
+	}
+	
+	div#userNotInSectorTable_wrapper > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child),  
+	div.dataTables_scrollBody table#userNotInSectorTable tbody tr td:not(:first-child) {
+		width : calc((100% -13px) / 3) !important;
+	}
+}
+
+@media ( max-width : 979px) {
+	.customModal {
+		min-width: 600px;		
+	}
+	.customModal > .modal-dialog >.modal-body {
+		min-height: 400px !important;
+		max-height: 650px;	
+	}
+	.dataTables_scrollHeadInner {
+		width: 100% !important;
+	}
+	
+	.dataTables_scrollHeadInner > table {
+		width: 100% !important;
+	}
+	
+	
+	div:not(#userNotInSectorTable_wrapper) > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child):not(:last-child), 
+	div.dataTables_scrollBody table:not(#userNotInSectorTable) tbody tr td:not(:first-child):not(:last-child) {
+		width : calc((100% -103px) / 2) !important;
+	}
+	
+	div#userNotInSectorTable_wrapper > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child),  
+	div.dataTables_scrollBody table#userNotInSectorTable tbody tr td:not(:first-child) {
+		width : calc((100% -13px) / 3) !important;
+	}
+}
+
+@media ( max-width : 1279px) and (min-width: 980px) {
+	.customModal {
+		min-width: 740px;
+	}
+	
+	.customModal > .modal-dialog >.modal-body {
+		min-height: 400px !important;
+		max-height: 650px;	
+	}
+	.dataTables_scrollHeadInner {
+		width: 100% !important;
+	}
+	
+	.dataTables_scrollHeadInner > table {
+		width: 100% !important;
+	}
+	
+	
+	div:not(#userNotInSectorTable_wrapper) > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child):not(:last-child),
+	div.dataTables_scrollBody table:not(#userNotInSectorTable) tbody tr td:not(:first-child):not(:last-child) {
+		width : calc((100% -103px) / 2) !important;
+	}
+	
+	div#userNotInSectorTable_wrapper > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child),  
+	div.dataTables_scrollBody table#userNotInSectorTable tbody tr td:not(:first-child) {
+		width : calc((100% -13px) / 3) !important;
+	}
+}
+
+@media ( min-width : 1280px) {
+	.customModal {
+		width: 800px;
+	}
+	
+	.customModal > .modal-dialog >.modal-body {
+		min-height: 400px !important;
+		max-height: 650px;	
+	}
+	
+	.dataTables_scrollHeadInner {
+		width: 100% !important;
+	}
+	
+	.dataTables_scrollHeadInner > table {
+		width: 100% !important;
+	}
+	
+	
+	div:not(#userNotInSectorTable_wrapper) > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child):not(:last-child),
+	div.dataTables_scrollBody table:not(#userNotInSectorTable) tbody tr td:not(:first-child):not(:last-child) {
+		width : calc((100% -103px) / 2) !important;
+	}
+	
+	div#userNotInSectorTable_wrapper > div.dataTables_scroll > div.dataTables_scrollHead > div.dataTables_scrollHeadInner > table > thead > tr > td:not(:first-child),  
+	div.dataTables_scrollBody table#userNotInSectorTable tbody tr td:not(:first-child) {
+		width : calc((100% -13px) / 3) !important;
+	}
+}

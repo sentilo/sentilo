@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+		
+	<!--  Enables the Spring AOP aspects in the servlet context -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />	
+	
+	<context:property-placeholder properties-ref="sentiloConfigProperties" ignore-unresolvable="true" />
+	
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven validator="validator" conversion-service="sentiloConversionService">		
+		<argument-resolvers>			
+			<!-- Pageable argument resolver -->
+			<beans:bean class="org.springframework.data.web.PageableHandlerMethodArgumentResolver" 
+			 	c:sortResolver-ref="catalogSortResolver" p:prefix="page." p:oneIndexedParameters="true">				
+			</beans:bean>							
+		</argument-resolvers>
+	</annotation-driven>
+	
+	<beans:bean id="catalogSortResolver" class="org.sentilo.web.catalog.search.resolver.CatalogSortHandlerMethodArgumentResolver"/>
+
+	<!-- Declare the meta-validator bean -->
+	<beans:bean id="validator" class="org.sentilo.web.catalog.validator.SentiloAnnotationValidator" p:validators-ref="validatorsList" />
+
+	<util:list id="validatorsList">
+		<!-- Enable JSR-303 bean validation -->
+		<beans:bean class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
+	</util:list>
+
+	<!-- Handles multipart file uploads  -->
+	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
+	<!-- Handles HTTP GET requests for /static/** by efficiently serving up static resources in the ${webappRoot}/static directory -->
+	<resources mapping="/static/**" location="/static/" />
+
+	<beans:bean id="viewResolver"
+		class="org.springframework.web.servlet.view.XmlViewResolver"
+		p:order="1" p:location="classpath:/spring/catalog-excel-views.xml" />
+	
+	<beans:bean  id="viewResolver2" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/jsp/"
+		p:suffix=".jsp" p:order="2"/>
+	
+	
+	<beans:bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"
+		p:cookieName="catalog.locale" p:defaultLocale="${sentilo.catalog.default.locale}" />
+
+	<interceptors>
+		<!-- Changes the locale when a 'locale' request parameter is sent; e.g. /?locale=de -->
+		<beans:bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />
+		<!--  Log incoming requests -->
+		<beans:bean id="requestLoggingInterceptor" class="org.sentilo.web.catalog.interceptor.RequestLoggingInterceptor" />
+		<!-- Get user specific configurations -->
+		<beans:bean id="userConfigInterceptor" class="org.sentilo.web.catalog.interceptor.UserConfigInterceptor" />
+		<beans:bean id="breadCrumbInterceptor" class="org.sentilo.web.catalog.interceptor.BreadcrumbInterceptor" />
+		<beans:bean id="metricsInterceptor" class="org.sentilo.web.catalog.interceptor.MetricsInterceptor" />
+	</interceptors>
+
+	<!-- selects a static view for rendering without the need for an explicit controller -->	
+	<view-controller path="/catalogFailure" />
+	<view-controller path="/validationFailure" />
+	<view-controller path="/accessNotAllowed" />
+	<view-controller path="/genericError" />
+
+	<!-- Define exception resolvers -->
+	<beans:bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" p:order="1" />
+
+	<!-- This bean resolves specific types of exceptions to corresponding logical - view names for error views. The default 
+		behaviour of DispatcherServlet is to propagate all exceptions to the servlet container: this will happen here with all other 
+		types of exceptions. -->
+	<beans:bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver" p:order="2"
+		p:defaultErrorView="genericError">
+		<beans:property name="exceptionMappings">
+			<beans:props> 
+				<beans:prop key="org.sentilo.web.catalog.exception.NotAllowedActionException">accessNotAllowed</beans:prop>
+				<beans:prop key="org.sentilo.web.catalog.exception.CatalogException">catalogFailure</beans:prop>
+				<beans:prop key="org.sentilo.web.catalog.exception.BusinessValidationException">validationFailure</beans:prop>
+				<beans:prop key=".AccessDeniedException">accessNotAllowed</beans:prop>								
+			</beans:props>
+		</beans:property>
+		<beans:property name="warnLogCategory" value="org.sentilo.web.catalog.logging.exceptions" />
+	</beans:bean>
+
+	<!-- Scans within the controller package of the application for @Components to configure as beans -->
+	<context:component-scan base-package="org.sentilo.web.catalog.controller" />
+	<context:component-scan base-package="org.sentilo.web.catalog.validator" />
+	<context:component-scan base-package="org.sentilo.web.catalog.view" />
+	<context:component-scan base-package="org.sentilo.web.catalog.format" />	
+
+</beans:beans>

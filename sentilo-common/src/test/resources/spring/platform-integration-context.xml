@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+  http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<bean id="restClientImpl" class="org.sentilo.common.rest.impl.RESTClientImpl" p:host="http://127.0.0.1:8081/"
+		p:interceptors-ref="interceptors" />
+
+	<util:list id="interceptors">
+		<bean class="org.sentilo.common.rest.interceptor.IdentityKeyInterceptor" p:identityToken="8495b3140f4074baefaa3cf4a4defe33331a5c7a0ad19b0eb34efab27112a24a" />
+	</util:list>
+
+</beans>

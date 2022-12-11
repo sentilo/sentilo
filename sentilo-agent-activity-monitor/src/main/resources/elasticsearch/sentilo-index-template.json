@@ -1,0 +1,267 @@
+"order": 0,
+  "template": "sentilo*",
+  "settings": {
+    "index": {
+      "number_of_shards": "2"
+    }
+  },
+  "mappings": {
+    "data": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "properties": {
+        "publishedAt": {
+          "type": "date"
+        },
+        "message": {
+          "index": "not_analyzed",
+          "type": "string",
+          "fields": {
+            "value": {
+              "index": "not_analyzed",
+              "ignore_malformed": true,
+              "type": "float"
+            }
+          }
+        },
+        "sender": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "sensor": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "timestamp": {
+          "format": "dd/MM/YYYY'T'HH:mm:ss",
+          "type": "date"
+        },
+        "topic": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "time": {
+          "type": "date"
+        },
+        "location": {
+          "type": "geo_point"
+        },
+        "alert": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "provider": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "order": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "properties": {
+        "publishedAt": {
+          "type": "date"
+        },
+        "message": {
+          "index": "not_analyzed",
+          "type": "string",
+          "fields": {
+            "value": {
+              "index": "not_analyzed",
+              "ignore_malformed": true,
+              "type": "float"
+            }
+          }
+        },
+        "sender": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "sensor": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "timestamp": {
+          "format": "dd/MM/YYYY'T'HH:mm:ss",
+          "type": "date"
+        },
+        "topic": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "time": {
+          "type": "date"
+        },
+        "location": {
+          "type": "geo_point"
+        },
+        "alert": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "provider": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "alarm": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "properties": {
+        "publishedAt": {
+          "type": "date"
+        },
+        "message": {
+          "index": "not_analyzed",
+          "type": "string",
+          "fields": {
+            "value": {
+              "index": "not_analyzed",
+              "ignore_malformed": true,
+              "type": "float"
+            }
+          }
+        },
+        "sender": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "sensor": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "timestamp": {
+          "format": "dd/MM/YYYY'T'HH:mm:ss",
+          "type": "date"
+        },
+        "topic": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "time": {
+          "type": "date"
+        },
+        "location": {
+          "type": "geo_point"
+        },
+        "component": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "alert": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "sensorType": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "provider": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "index": "not_analyzed",
+              "type": "string"
+            }
+          }
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "aliases": {
+
+  }

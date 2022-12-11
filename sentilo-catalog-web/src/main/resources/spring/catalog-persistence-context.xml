@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:c="http://www.springframework.org/schema/c" xmlns:mongo="http://www.springframework.org/schema/data/mongo"	
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd		
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">		
+	
+	<tx:annotation-driven transaction-manager="mongodbTransactionManager"/>		
+	<bean id="mongodbTransactionManager" class="org.springframework.data.mongodb.MongoTransactionManager" c:dbFactory-ref="mongoDbFactory"/> 
+
+	<mongo:repositories base-package="org.sentilo.web.catalog.repository" />
+
+	<!-- listeners -->
+	<bean class="org.springframework.data.mongodb.core.mapping.event.LoggingEventListener" />
+</beans>
