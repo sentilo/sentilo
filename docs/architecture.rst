@@ -193,21 +193,15 @@ The values ​​of the job queue and the workers’ pool are fully
 configurable via properties file, for easily adjust to the load
 requirements of each environment:
 
-.. code:: xml
-
-   <bean id="ThreadPool" class="org.sentilo.platform.server.pool.ThreadPool"
-         p:initialCapacity="${thread.pool.capacity.initial}"
-         p:maxCapacity="${thread.pool.capacity.max}"
-         p:shutdownSecondsTimeout="${thread.pool.shutdown.timeout.seconds}"
-         p:QUEUESIZE="${thread.pool.queue.size}"
-         p:groupId="${thread.pool.group.id}"
-         p:groupName="${thread.pool.group.name}" />
-
 .. code:: properties
 
-   thread.pool.queue.size=100
-   thread.pool.capacity.initial=4
-   thread.pool.capacity.max=10
+   # Properties to configure the pool of workers which handle incoming API requests.
+   sentilo.server.api.thread.pool.group-id=ApiRequestHandler
+   sentilo.server.api.thread.pool.group-name=API-Server
+   sentilo.server.api.thread.pool.queue-size=100
+   sentilo.server.api.thread.pool.keep-alive-seconds=60
+   sentilo.server.api.thread.pool.size.core=4
+   sentilo.server.api.thread.pool.size.max=10
 
 Service Layer
 '''''''''''''
@@ -258,23 +252,15 @@ will maintain anytime an exact copy of these values ​​in memory and
 allows to check credentials and permissions instantly.
 
 Finally, access to Redis is done through a connection pool fully
-configurable through properties file, which allows you to adjust to the
-specifics of each environment.
-
-.. code:: xml
-
-   <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig"
-         p:maxActive="${jedis.config.maxactive}"  
-         p:maxIdle="${jedis.config.maxidle}" 
-         p:maxWait="${jedis.config.maxwait}"  
-         p:testOnBorrow="true"
-         p:whenExhaustedAction="1"/>
+configurable through the *sentilo.conf* properties file, which allows you 
+to adjust to the specifics of each environment.
 
 .. code:: properties
 
-   jedis.config.maxactive=50
-   jedis.config.maxidle=50
-   jedis.config.maxwait=50
+   # Pool properties
+   sentilo.redis.client.maxTotal=300
+   sentilo.redis.client.maxIdle=300
+   sentilo.redis.client.minIdle=10
 
 Comments
 ''''''''

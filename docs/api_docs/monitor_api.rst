@@ -6,12 +6,12 @@ select real-time information of the API server and other components.
 With this internal API you can also remotely restart API server, for example in case the main API is too busy.
 
 The Monitor API runs on a different port then public API. The default port number is :literal:`7081` and is configured in
-:literal:`/sentilo/sentilo-platform/sentilo-platform-server/src/main/resources/properties/config.properties`
-by property :literal:`monitor.port`:
+:literal:`/sentilo/sentilo-platform/sentilo-platform-service/src/main/resources/properties/sentilo-platform.conf`
+by property :literal:`sentilo.server.monitor.socket.port`:
 
 ..
 
-    monitor.port=7081
+    sentilo.server.monitor.socket.port=7081
 
 This API currently works with the Catalog Application token. You can find the catalog token in the Application
 section of the Catalog.

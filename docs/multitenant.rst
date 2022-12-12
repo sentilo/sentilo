@@ -74,7 +74,7 @@ and according to them, be managed in different ways:
 Below you can see an organization list from a multi tenant Sentilo
 instance, when connecting as super admin user:
 
-.. image:: _static/images/multitenant/organization_170_001.jpg
+.. image:: /_static/images/multitenant/organizations_list.png
 
 Sentilo contexts
 ----------------
@@ -92,15 +92,19 @@ You should access to the administration console through the
 corresponding url address, adding the organization id as a last
 parameter, as follows.
 
--  http://sentilo_instance_host[:port]/sentilo-catalog-web/organizationId
+.. code::
+
+   http://sentilo_instance_host[:port]/sentilo-catalog-web/organizationId
 
 In the parameter **organizationId** you should inform the organization
 identifier where you want access to. For example, we could access to an
 organization named **Sample Organization**, with a
-**sample_organization** as organization identifier in a Senilo instance
+**sample_organization** as organization identifier in a Sentilo instance
 deployed in a host with name **example.com**:
 
--  http://example.com/sentilo-catalog-web/sample_organization
+.. code::
+	
+   http://example.com/sentilo-catalog-web/sample_organization
 
 Platform console
 ~~~~~~~~~~~~~~~~
@@ -110,7 +114,9 @@ informing any organization identifier in the url. In this case, no data
 is filtered by organization, and all the public information is visible
 in the public map and statistics:
 
--  http://your_sentilo_server_ip/sentilo-catalog-web
+.. code::
+	
+   http://your_sentilo_server_ip/sentilo-catalog-web
 
 Super Admin users are responsible of configuring the platform
 organizations and its users, and also to define the component and sensor
@@ -124,7 +130,9 @@ without informing organization in the url. In this case, no data is
 filtered by organization, and all public information is displayed in the
 public maps and statistics, using the platform common look & feel.
 
--  http://sentilo_instance_host[:port]/sentilo-catalog-web
+.. code::
+	
+   http://sentilo_instance_host[:port]/sentilo-catalog-web
 
 In this case, the user will see all the public information provided for
 the instance organizations.
@@ -132,21 +140,24 @@ the instance organizations.
 Alternatively, the users can access to a specific organization public
 information, specifying a different URL context:
 
--  http://sentilo_instance_host[:port]/sentilo-catalog-web/organizationId
+.. code::
+	
+   http://sentilo_instance_host[:port]/sentilo-catalog-web/organizationId
 
 For example, we could access to an organization named **Sample
 Organization**, with a **sample_organization** as organization
 identifier in a Sentilo instance deployed in a host with name
 **example.com**:
 
--  http://example.com/sentilo-catalog-web/sample_organization
+.. code::
+	
+   http://example.com/sentilo-catalog-web/sample_organization
 
 Then the user will see all the public data offered by the Sample
 Organization, displayed using the organization custom look & feel.
 
 For the rest of it, the features and behaviour of the public area is the
-same as described in `Catalog and Maps
-section <./catalog_and_maps.html>`__.
+same as described in `Catalog and Maps section <./catalog_and_maps.html>`__.
 
 Platform administration
 -----------------------
@@ -167,14 +178,14 @@ organizations*. After the organization is created, an **Admin** user can
 edit its own configuration settings. **User** role don’t have access to
 this information.
 
-.. image:: _static/images/multitenant/organization_170_001.jpg
+.. image:: /_static/images/multitenant/organizations_list.png
 
 Details
 ^^^^^^^
 
 Below, the organization creation form, as a Super Admin:
 
-.. image:: _static/images/multitenant/organization_170_002.jpg
+.. image:: /_static/images/multitenant/organization_create.png
 
 In order to create an organization, we must inform, at least, these
 parameters:
@@ -194,7 +205,7 @@ Config params
 There are some additional parameters for customizing the public &
 private behavior.
 
-.. image:: _static/images/multitenant/organization_170_003.jpg
+.. image:: /_static/images/multitenant/organization_create_config_params.png
 
 Visual configuration
 ''''''''''''''''''''
@@ -280,7 +291,7 @@ users, it’s mandatory to specify the related organization.
 List
 ^^^^
 
-.. image:: _static/images/multitenant/users_170_001.jpg
+.. image:: /_static/images/multitenant/users_list.png
 
 New user
 ^^^^^^^^
@@ -292,12 +303,12 @@ Details
 
 The next image shows how the new user’s form is:
 
-.. image:: _static/images/multitenant/users_170_002.jpg
+.. image:: /_static/images/multitenant/user_create.png
 
 Alternatively, we can inform some configuration params that will modify
 the catalog visualization for this user:
 
-.. image:: _static/images/multitenant/users_170_003.jpg
+.. image:: /_static/images/multitenant/user_create_config_params.png
 
 These params will apply to the entire catalog application visual
 customization, and how the user will see the data. Note that time zone &
@@ -338,8 +349,7 @@ Only the Super Admin user can administer the components and sensor
 types. In this case, the behaviour is the same like for a normal Sentilo
 instance.
 
-See more information about it in the [[*Catalog and Maps
-section*>>doc:Catalog & Maps]].
+See more information about it in the `Catalog and Maps section <./catalog_and_maps.html>`__.
 
 Tenant administration
 ---------------------
@@ -360,7 +370,7 @@ organization hierarchy.
 
 Below, we review the specific behaviour of tenant administration,
 remarking is specificities. For more information, you can read the
-[[**Catalog and Maps**>>doc:Catalog & Maps]] section.
+`Catalog and Maps section <./catalog_and_maps.html>`__ section.
 
 .. _organization-administration-1:
 
@@ -369,7 +379,7 @@ Organization administration
 
 Admin users can only manage its own organization information.
 
-.. image:: _static/images/multitenant/admin_organization_170_001.jpg
+.. image:: /_static/images/multitenant/organization_admin.png
 
 Alternatively, Admin user can manage their config params and third party
 from/to permissions for sharing information purposes. You’ll find them
@@ -398,28 +408,28 @@ Permission administration
 Permissions list
 ''''''''''''''''
 
-.. image:: _static/images/multitenant/admin_permissions_170_001.jpg
+.. image:: /_static/images/multitenant/organization_permissions_to_others.png
 
 Adding permissions
 ''''''''''''''''''
 
 Adding to third party read & write permission:
 
-.. image:: _static/images/multitenant/admin_permissions_170_002.jpg
+.. image:: /_static/images/multitenant/organization_permissions_add.png
 
 Response upon permission has been created:
 
-.. image:: _static/images/multitenant/admin_permissions_170_003.jpg
+.. image:: /_static/images/multitenant/organization_permission_added.png
 
 In this case we had granted **read&write** permissions from our
 organization and our provider **sample_provider** to third party
 organization named **Sentilo**. So, now the Sentilo organization can
-access to the sample_provider data and manage ii (publish data).
+access to the sample_provider data and manage it (publish data).
 
 In the other side, the Sentilo organization can see these permissions in
 the second tab, *Permissions from others*:
 
-.. image:: _static/images/multitenant/admin_permissions_170_004.jpg
+.. image:: /_static/images/multitenant/organization_permissions_from_others.png
 
 And now, from this tab, we can
 change the permission visibility on the map. Simply select the checkbox
@@ -452,10 +462,10 @@ Applications
 
 For application creation form you’ll see this in the Identifier field:
 
-.. image:: _static/images/multitenant/applications_170_001.jpg
+.. image:: /_static/images/multitenant/application_create.png
 
 In this case, we’re creating a application
-named **My Application** with identifier **myapp_identifier**.
+named **My Application** with identifier **sentilo@myapp_identifier**.
 
 Providers
 ~~~~~~~~~
@@ -464,7 +474,7 @@ For the providers, we would be facing the same case as for the
 Applications. Therefore, you can choose the desired identifier,
 regardless of the tenant you are managing.
 
-.. image:: _static/images/multitenant/providers_170_001.jpg
+.. image:: /_static/images/multitenant/provider_create.png
 
 In this case, we’re creating a provider named **My Provider**, with
-identifier **myprovider_identifier**.
+identifier **sentilo@myprovider_identifier**.

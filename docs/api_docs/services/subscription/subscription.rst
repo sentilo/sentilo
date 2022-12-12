@@ -169,10 +169,10 @@ Notifications to untrusted HTTPS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In case that remote endpoint uses a self-signed certificate, add the
-following configuration in the :literal:`config.properties` of the
-sentilo-platform-server:
+following configuration in the :literal:`sentilo-platform.conf` of the
+sentilo-platform-service:
 
 ::
 
-   #Allows Sentilo to send notifications to untrusted servers, i.e., servers with self signed certificates or signed by unknown CAs
-   api.subs.ssl.no-validate-certificates=false
+   # Allows to send notifications from Sentilo to untrusted servers, i.e., servers with self-signed certificates or signed by unknown CAs
+   sentilo.server.api.subs.ssl.no-validate-certificates=false  

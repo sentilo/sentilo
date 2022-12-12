@@ -93,8 +93,7 @@ It accepts keys of any size, and produces a hash sequence of length 512 bits.
 
 The target system should activate the security for callbacks when
 creates the subscription specifying the secret key (`see
-more <./services/subscription/subscription.html>`__). This subscription
- should be done using HTTPs protocol to avoid compromising the key.
+more <./services/subscription/subscription.html>`__). This subscription should be done using HTTPs protocol to avoid compromising the key.
 
 After the subscription has been created, all the related requests will
 include two new headers, one with the hash (:literal:`X-Sentilo-Content-Hmac`)

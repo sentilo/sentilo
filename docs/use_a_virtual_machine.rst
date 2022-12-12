@@ -14,7 +14,8 @@ It has been tested with **Virtual Box v5 and v6**.
    Mac OS users might check if the downloaded file has the original :literal:`.ova` extension. If it has a :literal:`.ovf` extension,
    you have to rename it back to :literal:`.ova`, otherwise it possibly won't import to VirtualBox (the import will stuck forever).
 
-The appliance contains the **1.9.0 Sentilo release** and runs Ubuntu Server 18.04.
+The appliance contains the **1.9.0 Sentilo release** and runs Ubuntu Server 18.04 *(We are currently working on updating the vm to 
+version 2.1.0 of Sentilo, please stay tuned for future updates)*.
 
 Components installed:
 

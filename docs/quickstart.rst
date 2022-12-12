@@ -1,8 +1,8 @@
 Quickstart
 ==========
 
-Perquisites
------------
+Prerequisites
+-------------
 
 You should have 4 components up & running:
 -  Redis Server
@@ -20,7 +20,7 @@ Create a Provider, Component and a Sensor
 In order to create a publication of sensor data, we have to create first
 the Provider, Component and a Sensor.
 
-We’ll do that from the catalog application as superuser, using the
+We’ll do that from the catalog application as *admin user*, using the
 admin/1234 credentials.
 
 A provider is an entity that manages devices (sensors). We’ll have to

@@ -26,53 +26,84 @@ The following diagram shows the design that every agent should follow:
 3. The message is processed and transferred to the corresponding agent’s
    service responsible to carry out the underlying business logic.
 
-As mentioned above, Sentilo currently provides two agents:
+Sentilo currently provides 7 agents:
+
+- :ref:`Relational database agent`
+- :ref:`Alarm agent`
+- :ref:`Activity Monitor agent`
+- :ref:`Historian agent`
+- :ref:`Federation agent`
+- :ref:`Kafka agent`
+- :ref:`Metrics Monitor Agent`
+
+.. note::
+
+   Agents use a base setting described under the **sentilo.agent** path, which 
+   is defined in the `sentilo.conf <./setup.html#default-settings>`__ file, 
+   and which can be overwritten by them in their own *agent-xxx.conf* file.
+
 
 Relational database agent
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This agent stores all information received from PubSub platform into a
-set of relational databases (the number of relational databases is fully
-configurable). It could be configured to filter the data to store
+relational database. It could be configured to filter the data to store
 according to a business rules through a configuration file.
 
-To do this, when the agent is started it makes a subscription to the
-desired information in Redis (observations, orders and/or alarms), that
-has previously been defined in a properties file:
+**Configuration**
 
-::
+Relational Database Agent is configured in the file:
+:literal:`sentilo-agent-relational/src/main/resources/properties/sentilo-agent-relational.conf`.
 
-   //In this example we indicate to persist any data using a DataSource with srDs identifier, 
-   //and also to store any data from provider with PARKING identifier, 
-   //on a different DataSource whose identifier is parkingDs.
++-----------------------+-----------------------+-----------------------------------------+
+| Property              | Description           | Comments                                |
++=======================+=======================+=========================================+
+| subscriptions         | Regexp pattern on     | Examples of configuration:              |
+|                       | event name that       | ::                                      |
+|                       | enables               |                                         |
+|                       | including/excluding   |                                         |
+|                       | events                |    /alarm/*,/data/*,/order/*            |
+|                       |                       |                                         |
+|                       |                       | Subscribes to all events                |
+|                       |                       | ::                                      |
+|                       |                       |                                         |
+|                       |                       |    /data/PROVIDER1/*, /data/PROVIDER2/* |
+|                       |                       |                                         |
+|                       |                       |                                         |
+|                       |                       | Subscribe only to data of 2 providers   |
+|                       |                       |                                         |
++-----------------------+-----------------------+-----------------------------------------+
 
-   //Finally, we can indicate more than one DataSource destination to persist the same data.
+**Datasource**
 
-   data\:PARKING*=parkingDs
-   data\:*=srDs
-   order\:*=srDs
-   alarm\:*=srDs,parkingDs
-
-It is imperative that the DataSources are defined in the context of the
-agent with the same identifier:
+The dataSource is defined in the persitence context file:
+:literal:`sentilo-agent-relational/src/main/resources/spring/relational-persistence-context.xml`.
 
 .. code:: xml
 
-   <bean id="srDs" class="org.apache.commons.dbcp.BasicDataSource" 
-      destroy-method="close"> 
-      ...
-   </bean> 
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+		<property name="driverClassName" value="${sentilo.agent.relational.ds.jdbc.driverClassName}" />
+		<property name="url" value="${sentilo.agent.relational.ds.url}" />
+		<property name="username" value="${sentilo.agent.relational.ds.username}" />
+		<property name="password" value="${sentilo.agent.relational.ds.password}" />
+		<property name="initialSize" value="${sentilo.agent.relational.ds.initialSize:1}" />
+		<property name="minIdle" value="${sentilo.agent.relational.ds.minIdle:1}" />
+		<property name="maxIdle" value="${sentilo.agent.relational.ds.maxIdle:10}" />
+		<property name="maxActive" value="${sentilo.agent.relational.ds.maxActive:10}" />
+		<property name="maxWait" value="${sentilo.agent.relational.ds.maxWait:30000}" />
+		<property name="testOnConnect" value="${sentilo.agent.relational.ds.testOnConnect:true}" />
+		<property name="testOnBorrow" value="${sentilo.agent.relational.ds.testOnBorrow:true}" />
+		<property name="testWhileIdle" value="${sentilo.agent.relational.ds.testWhileIdle:true}" />
+		<property name="timeBetweenEvictionRunsMillis" value="${sentilo.agent.relational.ds.timeBetweenEvictionRunsMillis:10000}" />
+		<property name="validationInterval" value="${sentilo.agent.relational.ds.validationInterval:30000}" />
+		<property name="validationQuery" value="${sentilo.agent.relational.ds.validationQuery}" />
+	</bean>
 
-   <bean id="parkingDs" class="org.apache.commons.dbcp.BasicDataSource" 
-      destroy-method="close"> 
-    ...
-   </bean>
+and all its params can be configured in the .conf file.
 
-This context is defined in the file:
+Several database initialization files are located into the 
+:literal:`sentilo-agent-relational/src/main/resources/db` directory that you can use for your own database.
 
-::
-
-   sentilo-agent-relational/src/main/resources/spring/relational-persistence-context.xml
 
 Alarm agent
 ~~~~~~~~~~~
@@ -135,15 +166,14 @@ this page.
 
 **Configuration**
 
-Activity Monitor Agent is configured with a set of .properties files in
-:literal:`sentilo/sentilo-agent-activity-monitor/src/main/resources/properties`.
+Activity Monitor Agent is configured in the file:
+:literal:`sentilo/sentilo-agent-activity-monitor/src/main/resources/properties/sentilo-agent-activity-monitor.conf`.
 
-**subscription.properties**
 
 +-----------------------+-----------------------+-----------------------------------------+
 | Property              | Description           | Comments                                |
 +=======================+=======================+=========================================+
-| topics-to-index       | Regexp pattern on     | Examples of configuration:              |
+| subscriptions         | Regexp pattern on     | Examples of configuration:              |
 |                       | event name that       | ::                                      |
 |                       | enables               |                                         |
 |                       | including/excluding   |                                         |
@@ -155,37 +185,12 @@ Activity Monitor Agent is configured with a set of .properties files in
 |                       |                       |    /data/PROVIDER1/*, /data/PROVIDER2/* |
 |                       |                       |                                         |
 |                       |                       |                                         |
-|                       |                       | Subscribe only to data of 2 providers    |
+|                       |                       | Subscribe only to data of 2 providers   |
 |                       |                       |                                         |
 +-----------------------+-----------------------+-----------------------------------------+
-
-**monitor-config.properties**
-
-+-----------------------+-----------------------+-----------------------+
-| Property              | Description           | Comments              |
-+=======================+=======================+=======================+
-| elasticsearch.url     | URL of the ES         |                       |
-|                       | instance              |                       |
-+-----------------------+-----------------------+-----------------------+
-| batch.size            | How many evens are    | Every HTTP request    |
-|                       | sent to ES at once.   | consumes certain      |
-|                       |                       | amount of resources,  |
-|                       |                       | thus is convenient to |
-|                       |                       | use a ES bulk API.    |
-|                       |                       | The agent won't send  |
-|                       |                       | events to ES until    |
-|                       |                       | batch.size events     |
-|                       |                       | occurred.             |
-+-----------------------+-----------------------+-----------------------+
-| batch.workers.size    | Number of threads the | Determines how many   |
-|                       | agent                 | parallel threads      |
-|                       |                       | communicate with ES.  |
-+-----------------------+-----------------------+-----------------------+
-| batch.max.retries     | Number of retries     | Number of intents for |
-|                       | when ES is            | upload to ES          |
-|                       | unavailable           | instance.             |
-+-----------------------+-----------------------+-----------------------+
-
+| elasticsearch.url     | URL of the ES         |                                         |
+|                       | instance              |                                         |
++-----------------------+-----------------------+-----------------------------------------+
 
 The agent will create index(es) called sentilo-YYYY-MM.
 
@@ -223,58 +228,40 @@ data sources.
 
 **Configuration**
 
-Historian Agent is configured with a set of .properties files in
-:literal:`sentilo/sentilo-agent-historian/src/main/resources/properties`.
+Historian Agent is configured in the file:
+:literal:`sentilo/sentilo-agent-historian/src/main/resources/properties/sentilo-agent-hitorian-opentsdb.conf`.
 
-**subscription.properties**
++---------------------------------+-----------------------+---------------------------------------------------------+
+| Property                        | Description           | Comments                                                |
++=================================+=======================+=========================================================+
+| subscriptions                   | Regexp pattern on     | Examples of configuration                               |
+|                                 | event name that       | ::                                                      |
+|                                 | enables               |                                                         |
+|                                 | including/excluding   |    /alarm/*,/data/*,/order/*                            |
+|                                 | events                |                                                         |
+|                                 |                       |                                                         |
+|                                 |                       | Subscribes to all events                                |
+|                                 |                       | ::                                                      |
+|                                 |                       |                                                         |
+|                                 |                       | /data/PROVIDER1/*,/data/PROVIDER2/*                     |
+|                                 |                       |                                                         |
+|                                 |                       | Subscribes only to                                      |
+|                                 |                       | data of 2 providers                                     |
+|                                 |                       |                                                         |
++---------------------------------+-----------------------+---------------------------------------------------------+
+| opentsdb.url                    | URL of the OpenTSDB   |                                                         |
+|                                 | instance              |                                                         |
++---------------------------------+-----------------------+---------------------------------------------------------+
+| metrics.fromSensorType          | Change the metrics    | If set to true, metric name will have                   |
+|                                 | name by using sensor  | for of i.e. data.sensorType, otherwise                  |
+|                                 | type                  | metric name will result in data.providerName.sensorName |
++---------------------------------+-----------------------+---------------------------------------------------------+
+| metrics.usePublishedAtTimestamp | URL of the OpenTSDB   | If set to true, OpenTSDB's datapoint will have the      |
+|                                 | instance              | timestamp of the 'publishedAt' property of the event,   |
+|                                 |                       | otherwise, the datapoint will use the 'time' property   |
+|                                 |                       | of the event message                                    |
++---------------------------------+-----------------------+---------------------------------------------------------+
 
-+-----------------------+-----------------------+---------------------------------------+
-| Property              | Description           | Comments                              |
-+=======================+=======================+=======================================+
-| topics-to-index       | Regexp pattern on     | Examples of configuration             |
-|                       | event name that       | ::                                    |
-|                       | enables               |                                       |
-|                       | including/excluding   |    /alarm/*,/data/*,/order/*          |
-|                       | events                |                                       |
-|                       |                       |                                       |
-|                       |                       | Subscribes to all events              |
-|                       |                       | ::                                    |
-|                       |                       |                                       |
-|                       |                       | /data/PROVIDER1/*,/data/PROVIDER2/*   |
-|                       |                       |                                       |
-|                       |                       | Subscribes only to                     |
-|                       |                       | data of 2 providers                   |
-|                       |                       |                                       |
-+-----------------------+-----------------------+---------------------------------------+
-
-**monitor-config.properties**
-
-+-----------------------+-----------------------+-----------------------+
-| Property              | Description           | Comments              |
-+=======================+=======================+=======================+
-| opentsdb.url          | URL of the OpenTSDB   |                       |
-|                       | instance              |                       |
-+-----------------------+-----------------------+-----------------------+
-| batch.size            | How many evens are    | Every HTTP request    |
-|                       | sent to OpenTSDB at   | consumes certain      |
-|                       | once.                 | amount of resources,  |
-|                       |                       | thus is convenient to |
-|                       |                       | use a OpenTSDB bulk   |
-|                       |                       | API. The agent won't  |
-|                       |                       | send events to        |
-|                       |                       | OpenTSDB until        |
-|                       |                       | batch.size events     |
-|                       |                       | occurred.             |
-+-----------------------+-----------------------+-----------------------+
-| batch.workers.size    | Number of threads the | Determines how many   |
-|                       | agent                 | parallel threads      |
-|                       |                       | communicate with      |
-|                       |                       | OpenTSDB.             |
-+-----------------------+-----------------------+-----------------------+
-| batch.max.retries     | Number of retries     | Number of intents for |
-|                       | when OpenTSDB is      | upload to OpenTSDB    |
-|                       | unavailable           | instance.             |
-+-----------------------+-----------------------+-----------------------+
 
 Configuration of HDFS, HBase, OpenTSDB and is beyond the scope of this
 document and can be easily followed on their respective web pages.
@@ -316,35 +303,23 @@ to forward the events to this endpoint URL.
 **Configuration**
 
 Federation Agent's configuration is in file
-:literal:`sentilo/sentilo-agent-federation/src/main/resources/properties/application.properties`.
+:literal:`sentilo/sentilo-agent-federation/src/main/resources/properties/sentilo-agent-federation.conf`.
 
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| Property                                    | Default Value                         | Description                                                                                              |
-+=============================================+=======================================+==========================================================================================================+
-| server.port                                 | 8082                                  | Agent's HTTP port                                                                                        |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| rest.client.local.host                      | http://127.0.0.1:8081                 | Local Sentilo API endpoint                                                                               |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| sentilo.master.application.id               | sentilo-catalog                       | Local Sentilo application Id. The agent will use the token of the application to make changes in catalog |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| catalog.mongodb.host                        | 127.0.0.1                             | Local MongoDB host                                                                                       |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| catalog.mongodb.port                        | 27017                                 | Local MongoDB port                                                                                       |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| catalog.mongodb.database                    | sentilo                               | Local MongoDB database name                                                                              |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| catalog.mongodb.user                        | sentilo                               | Local MongoDB user                                                                                       |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| catalog.mongodb.password                    | sentilo                               | Local MongoDB password                                                                                   |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| federation.subscription.endpoint            | http://localhost:8082/data/federated/ | Agent URL that will be used in subscriptions in the remote Sentilo instance.                             |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| federation.subscription.secret.key.callback | secret-callback-key-change-it         | HMAC secret used for incoming subscription.                                                              |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| federation.subscription.max.retries         | 3                                     | Number of retries used for subscription                                                                   |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
-| federation.subscription.max.delay           | 5                                     | Delay used for subscription                                                                               |
-+---------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
+| Property                                           | Default Value                         | Description                                                                                              |
++====================================================+=======================================+==========================================================================================================+
+| server.port                                        | 8082                                  | Agent's HTTP port                                                                                        |
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
+| sentilo.agent.federation.api_server.local.endpoint | http://127.0.0.1:8081                 | Endpoint of the local API Server instance                                                                |
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
+| federation.subscription.endpoint                   | http://localhost:8082/data/federated/ | Agent URL that will be used in subscriptions in the remote Sentilo instance.                             |
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
+| federation.subscription.secret.key.callback        | secret-callback-key-change-it         | HMAC secret used for incoming subscription.                                                              |
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
+| federation.subscription.max.retries                | 3                                     | Number of retries used for subscription                                                                  |
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
+| federation.subscription.max.delay                  | 5                                     | Delay used for subscription                                                                              |
++----------------------------------------------------+---------------------------------------+----------------------------------------------------------------------------------------------------------+
 
 Further configuration of the agent is available in the "Federation services" menu.
 
@@ -370,40 +345,53 @@ The Kafka agent publishes Sentilo events to Kafka.
 
 **Configuration**
 
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| Property                 | Default Value  | Description                                                                                         |
-+==========================+================+=====================================================================================================+
-| kafka.bootstrap.servers  | localhost:9092 | Comma-separated list of Kafka brokers                                                               |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| zookeeper.nodes          | localhost:2181 | Comma-separated list of Zookeeper nodes                                                             |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| batch.workers.size       | 10             | Number of worker threads                                                                            |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| batch.max.retries        | 1              | How many times will the agent try to resend the message to Kafka until it gives up                  |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| kafka.request.timeout.ms | 30000          |                                                                                                     |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| kafka.linger.ms          | 100            | Milliseconds before the contents of buffer are sent or until batch fills up, whichever comes first. |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| kafka.batch.size         | 20000          | Number of bytes of internal buffer. If the size fills up before , contents are sent to Kafka, .     |
-|                          |                |                                                                                                     |
-|                          |                | Otherwise contents are sent once kafka.linger.ms passed.                                            |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| kafka.topicPrefix        | sentilo        | Topics in Kafka will start with following prefix. May be left blank                                 |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| kafka.topicSeparator     | .              | The compound name of topic in Kafka will be separated with this string.                             |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
-| kafka.topicNameMode      | topicPerSensor | Possible values of topicNameMode for the "data" event type:                                         |
-|                          |                | * topicPerSensor: sentilo.data.providerName.sensorName                                              |
-|                          |                | * topicPerProvider: sentilo.data.providerName                                                       |
-|                          |                | * topicPerSensorType: sentilo.data.temperature                                                      |
-|                          |                | * topicPerMessageType: sentilo.data                                                                 |
-|                          |                | * singleTopic: sentilo                                                                              |
-|                          |                |                                                                                                     |
-+--------------------------+----------------+-----------------------------------------------------------------------------------------------------+
+Kafka Agent's configuration is in file
+:literal:`sentilo/sentilo-agent-kafka/src/main/resources/properties/sentilo-agent-kafka.conf`.
 
-
-**Compatible versions**
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| Property                            | Default Value         | Description                                                                                         |
++=====================================+=======================+=====================================================================================================+
+| kafka.bootstrap.servers             | localhost:9092        | Comma-separated list of Kafka brokers                                                               |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| zookeeper.nodes                     | localhost:2181        | Comma-separated list of Zookeeper nodes                                                             |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| kafka.request.timeout.ms            | 30000                 |                                                                                                     |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| kafka.linger.ms                     | 100                   | Milliseconds before the contents of buffer are sent or until batch fills up, whichever comes first. |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| kafka.batch.size                    | 20000                 | Number of bytes of internal buffer. If the size fills up before , contents are sent to Kafka, .     |
+|                                     |                       |                                                                                                     |
+|                                     |                       | Otherwise contents are sent once kafka.linger.ms passed.                                            |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| sentilo.agent.kafka.topic.prefix    | sentilo               | Topics in Kafka will start with following prefix. May be left blank                                 |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| sentilo.agent.kafka.topic.separator | .                     | The compound name of topic in Kafka will be separated with this string.                             |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| sentilo.agent.kafka.topic.nameMode  | topicPerSensor        | Possible values of topicNameMode for the "data" event type:                                         |
+|                                     |                       | * topicPerSensor: sentilo.data.providerName.sensorName                                              |
+|                                     |                       | * topicPerProvider: sentilo.data.providerName                                                       |
+|                                     |                       | * topicPerSensorType: sentilo.data.temperature                                                      |
+|                                     |                       | * topicPerMessageType: sentilo.data                                                                 |
+|                                     |                       | * singleTopic: sentilo                                                                              |
+|                                     |                       |                                                                                                     |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+| subscriptions                       | Regexp pattern on     | Examples of configuration                                                                           |
+|                                     | event name that       | ::                                                                                                  |
+|                                     | enables               |                                                                                                     |
+|                                     | including/excluding   |    /alarm/*,/data/*,/order/*                                                                        |
+|                                     | events                |                                                                                                     |
+|                                     |                       |                                                                                                     |
+|                                     |                       | Subscribes to all events                                                                            |
+|                                     |                       | ::                                                                                                  |
+|                                     |                       |                                                                                                     |
+|                                     |                       | /data/PROVIDER1/*,/data/PROVIDER2/*                                                                 |
+|                                     |                       |                                                                                                     |
+|                                     |                       | Subscribes only to                                                                                  |
+|                                     |                       | data of 2 providers                                                                                 |
+|                                     |                       |                                                                                                     |
++-------------------------------------+-----------------------+-----------------------------------------------------------------------------------------------------+
+                                                                                                                                                              
+**Compatible versions**                                                                                                                                       
 
 Sentilo has been successfully used in with these versions:
 
@@ -420,25 +408,16 @@ Elasticsearch template definition for this agent is located in
 :literal:`/sentilo-agent-metrics-monitor/src/main/resources/elasticsearch`.
 The template name is *sentilo-metrics* and the index pattern created by the agent is *sentilo-metrics**.
 
-The configuration :literal:`/sentilo/sentilo-agent-metrics-monitor/src/main/resources/properties/monitor-config.properties`
+The configuration :literal:`/sentilo/sentilo-agent-metrics-monitor/src/main/resources/properties/sentilo-agent-metrics.conf`
 and it's same as for the `Activity Monitor Agent`_. Example configuration:
 
-..
+.. code:: properties
 
-    # Endpoint for elasticsearch
-    elasticsearch.url=http://localhost:9200
+   # Endpoint for elasticsearch
+   elasticsearch.url=http://localhost:9200
 
-    # Properties to configure the index process
-    batch.size=1
-    batch.workers.size=3
-    batch.max.retries=1
-
-
-The difference with the Activity Monitor agent is the Redis topic in :literal:`subscription.properties`:
-
-..
-
-    batch.max.retries=/metrics/*
+   # Properties to configure the index process
+   sentilo.agent.batch.size=1
 
 
 Clients
@@ -449,7 +428,9 @@ Node-red
 
 `Node-RED <https://nodered.org>`__ is a visual programming platform ideal for non-complex integrations and prototyping.
 
-Sentilo plugin is available in Node-RED's marketplace. Simply search for "sentilo" in Palette configuration:
+Sentilo plugin is available in Node-RED's marketplace. 
+
+Simply search for "sentilo" in Palette configuration:
 
 .. image:: _static/images/integrations/sentilo-nodered-installation.png
 
@@ -464,8 +445,6 @@ Now, you should be able to use Sentilo from Node-RED. For example:
 The package contains documentation on how to use Sentilo nodes.
 More info at the `Sentilo library page at Node-RED website  https://flows.nodered.org/node/node-red-contrib-sentilo`__.
 
-
-
 NodeJS
 ~~~~~~
 .. image:: _static/images/integrations/node-js.png
@@ -478,9 +457,6 @@ but you can still use easily. Lastest version of this library is tested with Nod
 More information is in this repository: https://github.com/sentilo/sentilo-client-nodejs
 
 There is also a `tutorial <./tutorials/raspberrypi_tutorial.html>`__ on how to use this library with Raspberry Pi and GPIO with javascript.
-
-
-
 
 Java Client
 ~~~~~~~~~~~
@@ -524,21 +500,15 @@ to upload files such as audio snippets, images or files in general.
 
 Sensor can publish links to multimedia files. If these links are always public, catalog will preview them without any additional configuration.
 
-If these media links are private and managed by S3, catalog needs these properties in the file :literal:`catalog-config.properties`:
+If these media links are private and managed by S3, catalog needs these properties in the file :literal:`sentilo-catalog.conf`:
 
-+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Property                 | Default Value    | Description                                                                                                                                                                                                                                                           |
-+==========================+==================+=======================================================================================================================================================================================================================================================================+
-| s3.endpoints             | empty            | Base URL that is managed by Sentilo. All links uploaded to Sentilo that begin with this URL will be treated as private links and the Catalog will try to login with its credentials to provide a preview of the file. For example: https://s3-eu-west-3.amazonaws.com |
-+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| s3.signing.region        | eu-west-3        | AWS signing region                                                                                                                                                                                                                                                    |
-+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| s3.url.ttl               | 3600000          | Catalog will create a pre-signed URL for the links using this TTL in seconds                                                                                                                                                                                          |
-+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| s3.aws.access.key.id     | connecta-catalog | Catalog will authenticate with this credential. Has to be equal as catalog.app.id. Obviously, this credential has to exist in s3 and has to in all ACLs of all buckets used by providers. Otherwise, Catalog would not have right create the pre-signed URL.           |
-+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| s3.aws.secret.access.key | empty            | Catalog will authenticate with this token.                                                                                                                                                                                                                             |
-+--------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++-----------------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Property                          | Default Value    | Description                                                                                                                                                                                                                                                           |
++===================================+==================+=======================================================================================================================================================================================================================================================================+
+| sentilo.s3.url.accepted.schemes   | empty            | The communication protocol schememes accepted (p.e. http,https), or empty or commented line for all schemes                																																			 |
++-----------------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| sentilo.s3.endpoints              | empty            | Base URL that is managed by Sentilo. All links uploaded to Sentilo that begin with this URL will be treated as private links and the Catalog will try to login with its credentials to provide a preview of the file. For example: https://s3-eu-west-3.amazonaws.com |
++-----------------------------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 .. note::
 
@@ -552,7 +522,4 @@ If these media links are private and managed by S3, catalog needs these properti
 In the end, you will be able to visualize private links in S3, for example:
 
 .. image:: _static/images/integrations/catalog-s3-audio-preview.png
-
-
-`see more <./services/subscription/subscription.html>`__
 

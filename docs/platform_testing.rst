@@ -17,7 +17,7 @@ PubSub), you can access to the following catalog page\ **:**
 
    http://ip:port/sentilo-catalog-web/status/
 
-|status_170_001.jpg|
+.. image:: /_static/images/platform_testing/status_001.png
 
 In this screen you can check the status independently for each Sentilo
 main service. In each case it will be indicated, through a green status
@@ -27,7 +27,7 @@ message will be displayed .
 
 Next screenshot shows to you an error connecting to the API:
 
-|status_170_002.jpg|
+.. image:: /_static/images/platform_testing/status_002.png
 
 Deactivating the status page
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -42,7 +42,7 @@ To disable it, you must provide a JVM Tomcat parameter:
 
 Then, the status page will be inaccessible:
 
-|status_170_003.jpg|
+.. image:: /_static/images/platform_testing/status_003.png
 
 Postman tests
 -------------
@@ -69,12 +69,6 @@ you also as example of the API usage.
    Before executing tests with newman, you should review the values of the variables
    api_url, api_port, provider and provider_token in the environment file postman-script-env.json
    so that they match your Sentilo instance
-
-
-.. |status_170_001.jpg| image:: _static/images/platform_testing/status_170_001.jpg
-.. |status_170_002.jpg| image:: _static/images/platform_testing/status_170_002.jpg
-.. |status_170_003.jpg| image:: _static/images/platform_testing/status_170_003.jpg
-
 
 Before executing the postman script / or  you should replace default values (extracted from the init_test_data.js file)
 with the ones that you want to use to execute it (api_url, api_port, provider and provider_token)

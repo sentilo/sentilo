@@ -16,9 +16,7 @@ the following infrastructure:
    disk
 
 Another deployment configurations should work properly, always keeping in
-mind the expected load by the system. There is also a `virtual
-machine <./use_a_virtual_machine.html>`__ ready for use that can be used
-for testing purposes.
+mind the expected load by the system.
 
 All known Sentilo instances are deployed on Linux servers, mainly CentoOS 6+
 and Ubuntu Server 14.04+.
@@ -46,16 +44,16 @@ Recently Google changed it policy regarding Maps key. Please go to
 https://developers.google.com/maps/documentation/javascript/get-api-key
 and create one.
 
-You can define the API key inside the :literal:`sentilo/sentilo-catalog-web/src/main/resources/properties/catalog-config.properties` configuration file:
+You can define the API key inside the :literal:`/etc/sentilo/sentilo-catalog.conf` configuration file:
 
 .. code:: properties
 
    # Google API key to use Google Maps
-   google.api.key=<your key> 
+   sentilo.catalog.map.google.key=<your key> 
 
 --------------
 
-Remember you'll have to recompile sentilo-catalog-web redeploy the sentilo-catalog-web.war after that.
+Remember you'll have to restart tomcat in order to let sentilo-catalog-web.war reload these changes.
 
 
 I created a provider and immediately after that, an observation using the new provider’s token is rejected with 401 “Invalid credential”
@@ -65,7 +63,16 @@ The providers are activated in a background job that runs every 5
 minutes. Please wait a moment :-)
 
 Another possible reason is that the Sentilo API server started before the Catalog application (probably deployed on your Tomcat).
-At startup, the API server performs a call to /sentilo-catalog-web/api/entities/permissions in order to mirror the permissions stored in MongoDB with Redis.
+
+At startup, the API server performs a call to:
+
+.. code::
+
+   /sentilo-catalog-web/api/entities/permissions 
+   
+in order to mirror the permissions stored in MongoDB with Redis.
+   
+   
 If this call fails because the sentilo-catalog-web is not deployed yet, the permissions are not correctly created.
 To resolve the issue, reboot your Sentilo and ensure that the API server starts always after the sentilo-catalog-web is fully deployed.
 
@@ -101,7 +108,7 @@ How can I activate debug logs?
 ------------------------------
 
 You can pass the property :literal:`sentilo.log.level` to the JVM.
-For example, you might add the following code to the script in the target/appassembler/bin
+For example, you might add the following code to the script in the **bin** directory
 of the component you want to debug:
 
 ::
