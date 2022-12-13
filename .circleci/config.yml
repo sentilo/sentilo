@@ -2,9 +2,6 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-orbs:
-  coveralls: coveralls/coveralls@1.0.6
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
@@ -29,11 +26,10 @@ jobs:
       - run:
           name: Test
           command: mvn test
-      # Run covertura
+      # Run cobertura
       - run:
           name: Test coverage
-          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}  
-      - coveralls/upload    
+          command: mvn clean cobertura:cobertura coveralls:cobertura -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}            
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
