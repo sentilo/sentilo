@@ -32,7 +32,7 @@ jobs:
       # Run covertura
       - run:
           name: Test coverage
-          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci   
+          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}  
       - coveralls/upload    
 
 # Invoke jobs via workflows
