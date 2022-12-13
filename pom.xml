@@ -54,7 +54,7 @@
 		<sentilo.conf.dir>/etc/sentilo</sentilo.conf.dir>
 		<logback.version>1.2.3</logback.version>
 		<slf4j.version>1.7.2</slf4j.version>						
-		<org.springframework.version>5.3.22</org.springframework.version>		
+		<org.springframework.version>6.0.0</org.springframework.version>		
 		<!--  Support for MongoDB transactions -->
 		<org.springframework.data.mongodb.version>3.1.1</org.springframework.data.mongodb.version>		
 		<org.springframework.data.redis.version>2.7.2</org.springframework.data.redis.version>						
