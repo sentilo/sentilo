@@ -32,7 +32,7 @@ jobs:
       # Run covertura
       - run:
           name: Test coverage
-          command: mvn clean cobertura:cobertura coveralls:cobertura    
+          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci   
       - coveralls/upload    
 
 # Invoke jobs via workflows
