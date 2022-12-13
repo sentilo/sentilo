@@ -61,7 +61,7 @@
 		<lettuce.version>6.1.9.RELEASE</lettuce.version>
 		<redisson.version>3.17.5</redisson.version>
 		<jedis.version>3.1.0</jedis.version>		
-		<mongo.driver.version>4.1.1</mongo.driver.version>
+		<mongo.driver.version>4.1.2</mongo.driver.version>
 		<commons.codec.version>1.7</commons.codec.version>	
 		<commons.pool2.version>2.9.0</commons.pool2.version>	
 		<httpclient.version>4.5.13</httpclient.version>		
