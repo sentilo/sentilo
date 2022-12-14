@@ -36,7 +36,12 @@ jobs:
       # Run cobertura
       - run:
           name: Run test coverage and publish to Coveralls
-          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}                           
+          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}   
+      # Store code in a workspace to share it with next job
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .                              
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
