@@ -2,6 +2,12 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+orbs:
+  github-maven-deploy: github-maven-deploy/github-maven-deploy@1.2.0
+
+mvn-deploy-command: &mvn-deploy-command
+  mvn-deploy-command: mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Possrh
+
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
@@ -30,8 +36,7 @@ jobs:
       # Run cobertura
       - run:
           name: Run test coverage and publish to Coveralls
-          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}
-                      
+          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}                           
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -40,3 +45,7 @@ workflows:
     # Inside the workflow, you define the jobs you want to run.
     jobs:
       - build-and-test-sentilo      
+      - github-maven-deploy/deploy-as-is-version:
+          requires:  
+            - build-and-test-sentilo
+          <<: *mvn-deploy-command  
