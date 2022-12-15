@@ -112,6 +112,18 @@
 			    <maven.compiler.source>1.8</maven.compiler.source>
 		    	<maven.compiler.target>1.8</maven.compiler.target>		
 	  		</properties>	
+		</profile>
+		<profile>
+		    <!--  Fix problem with JDK 8 DocLint feature and Javadoc  
+		      https://stackoverflow.com/questions/15886209/maven-is-not-working-in-java-8-when-javadoc-tags-are-incomplete
+		    -->
+		    <id>java8-doclint-disabled</id>
+		    <activation>
+		      <jdk>[1.8,)</jdk>
+		    </activation>
+		    <properties>
+		      <javadoc.opts>-Xdoclint:none</javadoc.opts>
+		    </properties>
 		</profile>	    
 	    <profile>
 	      <id>circleci</id>
@@ -148,9 +160,10 @@
 		    		<plugin>
 					    <groupId>org.apache.maven.plugins</groupId>
 					    <artifactId>maven-javadoc-plugin</artifactId>
-					    <version>2.9.1</version>
+					    <version>3.0.0</version>					    
 					    <configuration>
-					    	<failOnError>false</failOnError>
+					    	<failOnError>false</failOnError>	
+					    	<doclint>none</doclint>				    						    						    					   
 					    </configuration>
 					    <executions>
 					        <execution>
@@ -158,6 +171,9 @@
 					            <goals>
 					                <goal>jar</goal>
 					            </goals>
+					            <configuration>
+						            <additionalparam>${javadoc.opts}</additionalparam>
+						          </configuration>
 					        </execution>
 					    </executions>
 					</plugin>
