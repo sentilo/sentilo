@@ -4,15 +4,15 @@ version: 2.1
 
 orbs:
   github-maven-deploy: github-maven-deploy/github-maven-deploy@1.2.0
+  gh: circleci/github-cli@2.0
 
 mvn-deploy-command: &mvn-deploy-command
   mvn-deploy-command: mvn clean deploy --settings .maven.xml -DskipTests=true -B -U -Possrh
 
 
-# Define a job to be invoked later in a workflow.
+# Define jobs to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
-jobs:
-  # Below is the definition of your job to build and test your app, you can rename and customize it as you want.
+jobs:  
   build-and-test-sentilo:
     # These next lines define a Docker executor: https://circleci.com/docs/2.0/executor-types/
     # You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
@@ -36,21 +36,53 @@ jobs:
       # Run cobertura
       - run:
           name: Run test coverage and publish to Coveralls
-          command: mvn clean cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}   
+          command: mvn cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}   
       # Store code in a workspace to share it with next job
       - persist_to_workspace:
           root: .
           paths:
             - .                              
-
+  # Job to publish releases to Github
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.13
+    environment:
+      project_version = $(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+    steps:
+      - attach_workspace:
+          at: .      
+      - run:
+          name: "Setup RELEASE_VERSION environment variable"
+          command: echo 'export MY_ENV_VAR="FOO"' >> "$BASH_ENV" |
+            project_version=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo 'export RELEASE_VERSION=$project_version' >> "$BASH_ENV"            
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            mkdir -p ./artifacts
+            cp ./**/target/sentilo-*-$RELEASE_VERSION.jar ./artifacts
+            cp ./**/target/sentilo-*.war ./artifacts
+            cp ./sentilo-platform/**/target/sentilo-*-$RELEASE_VERSION.jar ./artifacts            
+            ghr -t ${GITHUB_RELEASES_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${RELEASE_VERSION} ./artifacts/  
+      
+  
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   sentilo-main: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - build-and-test-sentilo      
+      - build-and-test-sentilo
+      - publish-github-release:      
+          requires:  
+            - build-and-test-sentilo           
       - github-maven-deploy/deploy-as-is-version:
           requires:  
             - build-and-test-sentilo
-          <<: *mvn-deploy-command  
+          <<: *mvn-deploy-command
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              # all tags that follow expression v[0-9].[0-9].[0-9]              
+              only: /^v\d+\.\d+\.\d+$/ 
