@@ -25,15 +25,15 @@ jobs:
     steps:
       # Checkout the code as the first step.
       - checkout
-      # Use mvn clean and package as the standard maven build phase
+      # Use mvn clean and install as the standard maven build phase
       - run:
           name: Build install
           command: mvn --settings .maven.xml clean install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.skip=true -B -V
-      # Then run your tests!
+      # Run Sentilo tests ... 
       - run:
           name: Run tests
           command: mvn test
-      # Run cobertura
+      # and finally run cobertura process
       - run:
           name: Run test coverage and publish to Coveralls
           command: mvn cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}
@@ -42,16 +42,25 @@ jobs:
           command: |
             project_version=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
             echo "project_version is: $project_version"            
-            echo "export RELEASE_VERSION=$project_version" >> $BASH_ENV                        
-            cp $BASH_ENV bash.env            
+            echo "export RELEASE_VERSION=$project_version" >> $BASH_ENV
+            # Each job step runs in a new shell so steps don't share variables created into steps. To share custom variables created in a step, we use 
+            # a workspace file (in this case bash.env, which is loaded in a next job step)                        
+            cp $BASH_ENV bash.env             
       # Store code in a workspace to share it with next jobs
+      # In this workflow, workspace is needed and must be . for two reasons:
+      # - github-maven-deploy/deploy-as-is-version job search code to deploy in this workspace (.)
+      # - cibuilds/github:0.13 is a docker image that doesn't contain maven, so RELEASE_VERSION variable cannot be calculated in its jobs and needs to be processed
+      #   here and shared with them via workspace
       - persist_to_workspace:
           root: .
           paths:
             - .                              
-  # Job to publish releases to Github
+  # Job to publish releases to Github when a new tag is created 
   publish-github-release:
     docker:
+      # This image contains ghr command utility: 
+      # - https://circleci.com/blog/publishing-to-github-releases-via-circleci/
+      # - https://github.com/tcnksm/ghr
       - image: cibuilds/github:0.13    
     steps:
       - attach_workspace:
@@ -59,7 +68,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: | 
-            source bash.env           
+            source bash.env  # Load in the current shell bash.env content          
             echo "RELEASE_VERSION is: ${RELEASE_VERSION}"              
             mkdir -p ./artifacts
             cp ./**/target/sentilo-*-${RELEASE_VERSION}.jar ./artifacts
@@ -71,13 +80,21 @@ jobs:
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  sentilo-main: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  # This is the name of the workflow, feel free to change it to better match your workflow.
+  # Inside the workflow, you define the jobs you want to run.
+  # In this case, sentilo-main is the workflow that for each commit in GitHub runs build and test
+  sentilo-main: 
     jobs:
       - build-and-test-sentilo
       - publish-github-release:      
           requires:  
-            - build-and-test-sentilo           
+            - build-and-test-sentilo
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              # all tags that follow the expression v[0-9].[0-9].[0-9]              
+              only: /^v\d+\.\d+\.\d+$/             
       - github-maven-deploy/deploy-as-is-version:
           requires:  
             - build-and-test-sentilo
@@ -86,5 +103,5 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              # all tags that follow expression v[0-9].[0-9].[0-9]              
+              # all tags that follow the expression v[0-9].[0-9].[0-9]              
               only: /^v\d+\.\d+\.\d+$/ 
