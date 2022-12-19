@@ -36,8 +36,15 @@ jobs:
       # Run cobertura
       - run:
           name: Run test coverage and publish to Coveralls
-          command: mvn cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}   
-      # Store code in a workspace to share it with next job
+          command: mvn cobertura:cobertura coveralls:report -Pcircleci -DrepoToken=${COVERALLS_REPO_TOKEN}
+      - run:
+          name: "Setup RELEASE_VERSION environment variable"
+          command: |
+            project_version=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)            
+            echo 'export RELEASE_VERSION=$project_version' >> "$BASH_ENV"            
+            echo 'RELEASE_VERSION is $RELEASE_VERSION'
+            cp $BASH_ENV bash.env    
+      # Store code in a workspace to share it with next jobs
       - persist_to_workspace:
           root: .
           paths:
@@ -45,20 +52,19 @@ jobs:
   # Job to publish releases to Github
   publish-github-release:
     docker:
-      - image: cibuilds/github:0.13
-    environment:
-      project_version = $(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+      - image: cibuilds/github:0.13    
     steps:
       - attach_workspace:
           at: .      
       - run:
-          name: "Setup RELEASE_VERSION environment variable"
-          command: echo 'export MY_ENV_VAR="FOO"' >> "$BASH_ENV" |
-            project_version=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
-            echo 'export RELEASE_VERSION=$project_version' >> "$BASH_ENV"            
+          name: "Retrieve RELEASE_VERSION variable from workspace"
+          command: |
+            cat bash.env > $BASH_ENV                                    
+            echo 'RELEASE_VERSION is $RELEASE_VERSION'
       - run:
           name: "Publish Release on GitHub"
           command: |
+            ls -latr 
             mkdir -p ./artifacts
             cp ./**/target/sentilo-*-$RELEASE_VERSION.jar ./artifacts
             cp ./**/target/sentilo-*.war ./artifacts
