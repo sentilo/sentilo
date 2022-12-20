@@ -5,8 +5,8 @@
 # To get all subscriptions keys, iterates with a cursor over all keys that match expression subs:*
 ##
 
-  port=6380
-  REDIS_PWD=$1
+  port=$1
+  REDIS_PWD=$2
   REDIS_CMD="/usr/local/bin/redis-cli -p $port -a $REDIS_PWD"
 
   cursor=-1
