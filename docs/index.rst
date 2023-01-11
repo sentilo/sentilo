@@ -22,4 +22,4 @@ Contents:
    tutorials
    technical_faq
    platform_testing
-   use_a_virtual_machine
+   official_docker_images
