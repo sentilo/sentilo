@@ -52,7 +52,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<sentilo.conf.dir>/etc/sentilo</sentilo.conf.dir>
-		<logback.version>1.2.3</logback.version>
+		<logback.version>1.2.9</logback.version>
 		<slf4j.version>1.7.2</slf4j.version>						
 		<org.springframework.version>5.3.22</org.springframework.version>		
 		<!--  Support for MongoDB transactions -->
